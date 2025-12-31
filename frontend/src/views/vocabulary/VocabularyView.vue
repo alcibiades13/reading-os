@@ -73,11 +73,11 @@ const handlePracticeComplete = () => {
     <div class="max-w-7xl mx-auto pt-12 pb-8 px-6">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
         <header>
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Brain class="text-emerald-400" :size="24" />
+          <div class="flex items-center gap-2 sm:gap-3 mb-4">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <Brain class="text-emerald-400" :size="18" />
             </div>
-            <span class="text-sm font-bold text-emerald-400 uppercase tracking-[0.3em]">Personal Lexicon</span>
+            <span class="text-[10px] sm:text-sm font-bold text-emerald-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Personal Lexicon</span>
           </div>
           <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
             The <span class="text-emerald-500">Vocabulary</span> Vault
@@ -89,43 +89,44 @@ const handlePracticeComplete = () => {
 
         <button
           @click="handleOpenModal"
-          class="group flex items-center gap-3 px-8 py-5 rounded-2xl bg-emerald-500 text-white font-bold shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all"
+          class="group flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-5 rounded-2xl bg-emerald-500 text-white text-sm sm:text-base font-bold shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all"
         >
-          <Plus :size="24" class="group-hover:rotate-90 transition-transform duration-300" />
-          Capture New Word
+          <Plus :size="18" class="sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
+          <span class="hidden sm:inline">Capture New Word</span>
+          <span class="sm:hidden">Add Word</span>
         </button>
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="flex items-center gap-1.5 p-1.5 bg-slate-900/80 rounded-2xl border border-slate-800 w-fit mb-12">
+      <div class="flex items-center gap-1.5 p-1.5 bg-slate-900/80 rounded-2xl border border-slate-800 w-fit mb-12 overflow-x-auto max-w-full">
         <button
           @click="activeView = 'library'"
           :class="[
-            'flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all',
+            'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
             activeView === 'library' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
           ]"
         >
-          <LayoutGrid :size="16" />
+          <LayoutGrid :size="14" class="sm:w-4 sm:h-4" />
           Library
         </button>
         <button
           @click="activeView = 'practice'"
           :class="[
-            'flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all',
+            'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
             activeView === 'practice' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
           ]"
         >
-          <Brain :size="16" />
+          <Brain :size="14" class="sm:w-4 sm:h-4" />
           Practice
         </button>
         <button
           @click="activeView = 'stats'"
           :class="[
-            'flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all',
+            'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
             activeView === 'stats' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
           ]"
         >
-          <BarChart3 :size="16" />
+          <BarChart3 :size="14" class="sm:w-4 sm:h-4" />
           Insights
         </button>
       </div>

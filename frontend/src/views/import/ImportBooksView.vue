@@ -127,37 +127,39 @@ const handleDelfiUrlSubmit = async () => {
 
       <!-- Source Selector -->
       <div class="mb-6">
-        <div class="flex items-center gap-3">
-          <span class="text-sm font-medium text-slate-400">Search Source:</span>
-          <div class="flex gap-2">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+          <span class="text-sm font-medium text-slate-400 shrink-0">Search Source:</span>
+          <div class="flex flex-wrap gap-2">
             <button
               @click="importStore.setImportSource('google_books')"
               :class="importStore.importSource === 'google_books' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-transparent border-slate-700 text-slate-400 hover:border-indigo-500/50 hover:text-indigo-400'"
-              class="px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2"
+              class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <Search :size="14" />
-              Google Books
+              <span class="hidden sm:inline">Google Books</span>
+              <span class="sm:hidden">Google</span>
             </button>
             <button
               @click="importStore.setImportSource('open_library')"
               :class="importStore.importSource === 'open_library' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-transparent border-slate-700 text-slate-400 hover:border-indigo-500/50 hover:text-indigo-400'"
-              class="px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2"
+              class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <BookOpen :size="14" />
-              Open Library
+              <span class="hidden sm:inline">Open Library</span>
+              <span class="sm:hidden">Open Lib</span>
             </button>
             <button
               @click="importStore.setImportSource('both')"
               :class="importStore.importSource === 'both' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-transparent border-slate-700 text-slate-400 hover:border-indigo-500/50 hover:text-indigo-400'"
-              class="px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2"
+              class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <Library :size="14" />
-              Both Sources
+              Both
             </button>
             <button
               @click="importStore.setImportSource('delfi_rs')"
               :class="importStore.importSource === 'delfi_rs' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-transparent border-slate-700 text-slate-400 hover:border-indigo-500/50 hover:text-indigo-400'"
-              class="px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2"
+              class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <BookOpen :size="14" />
               Delfi.rs 🇷🇸

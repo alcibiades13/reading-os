@@ -193,11 +193,11 @@ const handleBookClick = (quote) => {
     <div class="max-w-7xl mx-auto pt-12 pb-8 px-6">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
         <header>
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Type :size="24" class="text-indigo-400" />
+          <div class="flex items-center gap-2 sm:gap-3 mb-4">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <Type :size="18" class="sm:w-6 sm:h-6 text-indigo-400" />
             </div>
-            <span class="text-sm font-bold text-indigo-400 uppercase tracking-[0.3em]">Insights & Quotes</span>
+            <span class="text-[10px] sm:text-sm font-bold text-indigo-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Insights & Quotes</span>
           </div>
           <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
             The <span class="text-indigo-500">Collected</span> Mind
@@ -209,9 +209,10 @@ const handleBookClick = (quote) => {
 
         <Dialog v-model:open="isCreateDialogOpen">
           <DialogTrigger as-child>
-            <button class="group flex items-center gap-3 px-8 py-5 rounded-2xl bg-indigo-500 text-white font-bold shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 active:scale-95 transition-all">
-              <Plus :size="24" class="group-hover:rotate-90 transition-transform duration-300" />
-              Add New Insight
+            <button class="group flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-5 rounded-2xl bg-indigo-500 text-white text-sm sm:text-base font-bold shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 active:scale-95 transition-all">
+              <Plus :size="18" class="sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
+              <span class="hidden sm:inline">Add New Insight</span>
+              <span class="sm:hidden">Add Quote</span>
             </button>
           </DialogTrigger>
           <DialogContent class="max-w-2xl glass border-slate-700 max-h-[85vh] overflow-y-auto">
@@ -352,29 +353,29 @@ const handleBookClick = (quote) => {
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
-        <div class="p-6 rounded-3xl border-2 text-indigo-400 bg-indigo-500/10 border-indigo-500/20 shadow-xl shadow-indigo-500/5 transition-all duration-500 hover:scale-[1.02]">
-          <div class="flex items-center gap-3 mb-4 opacity-70">
-            <Sparkles :size="20" />
-            <span class="text-xs font-bold uppercase tracking-widest">Total Insights</span>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-12">
+        <div class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-indigo-400 bg-indigo-500/10 border-indigo-500/20 shadow-xl shadow-indigo-500/5 transition-all duration-500 hover:scale-[1.02]">
+          <div class="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4 opacity-70">
+            <Sparkles :size="16" class="sm:w-5 sm:h-5" />
+            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest">Total Insights</span>
           </div>
-          <p class="text-4xl font-black text-white">{{ stats.total }}</p>
+          <p class="text-2xl sm:text-4xl font-black text-white">{{ stats.total }}</p>
         </div>
 
-        <div class="p-6 rounded-3xl border-2 text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-xl shadow-amber-500/5 transition-all duration-500 hover:scale-[1.02]">
-          <div class="flex items-center gap-3 mb-4 opacity-70">
-            <Star :size="20" />
-            <span class="text-xs font-bold uppercase tracking-widest">Favorite Gems</span>
+        <div class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-xl shadow-amber-500/5 transition-all duration-500 hover:scale-[1.02]">
+          <div class="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4 opacity-70">
+            <Star :size="16" class="sm:w-5 sm:h-5" />
+            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest">Favorite Gems</span>
           </div>
-          <p class="text-4xl font-black text-white">{{ stats.favorites }}</p>
+          <p class="text-2xl sm:text-4xl font-black text-white">{{ stats.favorites }}</p>
         </div>
 
-        <div class="p-6 rounded-3xl border-2 text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-xl shadow-sky-500/5 transition-all duration-500 hover:scale-[1.02]">
-          <div class="flex items-center gap-3 mb-4 opacity-70">
-            <BookOpen :size="20" />
-            <span class="text-xs font-bold uppercase tracking-widest">Sources Quoted</span>
+        <div class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-xl shadow-sky-500/5 transition-all duration-500 hover:scale-[1.02] col-span-2 md:col-span-1">
+          <div class="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4 opacity-70">
+            <BookOpen :size="16" class="sm:w-5 sm:h-5" />
+            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest">Sources Quoted</span>
           </div>
-          <p class="text-4xl font-black text-white">{{ stats.books }}</p>
+          <p class="text-2xl sm:text-4xl font-black text-white">{{ stats.books }}</p>
         </div>
       </div>
 
@@ -449,7 +450,7 @@ const handleBookClick = (quote) => {
         <div
           v-for="quote in displayedQuotes"
           :key="quote.id"
-          class="group relative glass bg-slate-900/40 rounded-3xl p-8 border border-slate-800/50 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/5"
+          class="group relative glass bg-slate-900/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-800/50 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/5"
         >
           <!-- Quote Mark -->
           <div class="absolute -top-4 -left-2 text-7xl text-indigo-500/10 font-serif pointer-events-none select-none">"</div>
@@ -461,12 +462,12 @@ const handleBookClick = (quote) => {
             </p>
 
             <!-- Book Info -->
-            <div class="flex items-start gap-4 pt-4 border-t border-slate-800/50">
+            <div class="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 pt-4 border-t border-slate-800/50">
               <div
                 v-if="quote.book_cover"
                 @click="handleBookClick(quote)"
                 :class="quote.book ? 'cursor-pointer hover:scale-105 transition-transform' : ''"
-                class="w-12 h-18 rounded-lg shadow-lg overflow-hidden"
+                class="w-10 h-15 sm:w-12 sm:h-18 rounded-lg shadow-lg overflow-hidden flex-shrink-0"
               >
                 <img :src="quote.book_cover" :alt="quote.book_title" class="w-full h-full object-cover" />
               </div>
@@ -474,26 +475,30 @@ const handleBookClick = (quote) => {
                 v-else
                 @click="handleBookClick(quote)"
                 :class="quote.book ? 'cursor-pointer hover:bg-slate-700 transition-colors' : ''"
-                class="w-12 h-18 bg-slate-800 rounded-lg flex items-center justify-center"
+                class="w-10 h-15 sm:w-12 sm:h-18 bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0"
               >
-                <Bookmark :size="20" class="text-slate-600" />
+                <Bookmark :size="18" class="sm:w-5 sm:h-5 text-slate-600" />
               </div>
-              <div class="flex-1 min-w-0 flex items-center justify-between gap-4">
-                <div class="flex items-center gap-2 min-w-0 flex-1">
+              <div class="flex-1 min-w-0 space-y-2">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0">
                   <h4
                     @click="handleBookClick(quote)"
                     :class="quote.book ? 'cursor-pointer hover:text-indigo-400 transition-colors' : ''"
-                    class="text-white font-bold truncate text-sm flex items-center gap-1.5 group/title"
+                    class="text-white font-bold text-sm flex items-center gap-1.5 group/title"
                   >
-                    {{ quote.book_title || 'Unknown Book' }}
+                    <span class="truncate">{{ quote.book_title || 'Unknown Book' }}</span>
                     <ExternalLink v-if="quote.book" :size="12" class="opacity-0 group-hover/title:opacity-100 transition-opacity flex-shrink-0" />
                   </h4>
-                  <span class="text-slate-600 flex-shrink-0">·</span>
-                  <p class="text-indigo-400 font-medium truncate text-sm">{{ quote.book_author || 'Unknown Author' }}</p>
+                  <span class="text-slate-600 hidden sm:inline flex-shrink-0">·</span>
+                  <p class="text-indigo-400 font-medium text-sm truncate">{{ quote.book_author || 'Unknown Author' }}</p>
                 </div>
-                <div class="flex gap-3 text-xs text-slate-500 font-bold uppercase tracking-wider flex-shrink-0">
-                  <span v-if="quote.page_number">Page {{ quote.page_number }}</span>
-                  <span v-if="quote.chapter">Ch {{ quote.chapter }}</span>
+                <div class="flex flex-wrap gap-2 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                  <span v-if="quote.chapter" class="flex items-center gap-1">
+                    <span class="text-slate-600">Ch.</span> {{ quote.chapter }}
+                  </span>
+                  <span v-if="quote.page_number" class="flex items-center gap-1">
+                    <span class="text-slate-600">Pg.</span> {{ quote.page_number }}
+                  </span>
                 </div>
               </div>
             </div>

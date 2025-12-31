@@ -211,8 +211,8 @@
 
   /* Subtitle/description text size */
   .text-subtitle {
-    font-size: 1rem; /* 16px */
-    line-height: 1.5rem; /* 24px */
+    font-size: 0.875rem; /* 14px - smaller on mobile */
+    line-height: 1.375rem; /* 22px */
   }
 
   @media (min-width: 768px) {
@@ -224,8 +224,8 @@
 
   /* Page heading size */
   .text-page-heading {
-    font-size: 2.5rem; /* 40px */
-    line-height: 1;
+    font-size: 2rem; /* 32px - smaller on mobile */
+    line-height: 1.1;
   }
 
   @media (min-width: 768px) {

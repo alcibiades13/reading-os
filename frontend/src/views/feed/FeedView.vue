@@ -526,46 +526,49 @@ onUnmounted(() => {
       </header>
 
       <!-- Filter Tabs -->
-      <div class="flex items-center justify-between mb-8 gap-4">
-        <div class="flex items-center gap-1 p-1 bg-slate-900/80 rounded-2xl border border-slate-800">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+        <div class="flex items-center gap-1 p-1 bg-slate-900/80 rounded-2xl border border-slate-800 overflow-x-auto">
           <button
             @click="activeTab = 'all'"
             :class="[
-              'flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all',
+              'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
               activeTab === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
             ]"
           >
             <Sparkles :size="14" />
-            All Activity
+            <span class="hidden sm:inline">All Activity</span>
+            <span class="sm:hidden">All</span>
           </button>
           <button
             @click="activeTab = 'following'"
             :class="[
-              'flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all',
+              'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
               activeTab === 'following' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
             ]"
           >
             <Users :size="14" />
-            Following
+            <span class="hidden sm:inline">Following</span>
+            <span class="sm:hidden">Follow</span>
           </button>
           <button
             @click="activeTab = 'books'"
             :class="[
-              'flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all',
+              'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
               activeTab === 'books' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
             ]"
           >
             <TrendingUp :size="14" />
-            My Updates
+            <span class="hidden sm:inline">My Updates</span>
+            <span class="sm:hidden">Mine</span>
           </button>
         </div>
 
         <button
           @click.stop="showFilters = !showFilters"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-all text-sm font-bold relative"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-all text-xs sm:text-sm font-bold relative shrink-0"
         >
           <Filter :size="16" />
-          Filters
+          <span class="hidden sm:inline">Filters</span>
           <ChevronDown :size="14" :class="{ 'rotate-180': showFilters }" class="transition-transform" />
 
           <!-- Filters Dropdown -->

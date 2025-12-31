@@ -342,20 +342,20 @@ export const QuoteCard = defineComponent({
 
       <!-- Left Column - Cover & Main Info -->
       <div class="lg:col-span-4 space-y-8">
-        <div class="relative aspect-[2/3] w-full rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
+        <div class="relative aspect-[2/3] w-full max-w-[200px] sm:max-w-xs mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
           <img :src="coverUrl" :alt="book.title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
           <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent" />
 
           <button
             @click="handleToggleFavorite"
             :class="[
-              'absolute top-6 right-6 p-4 rounded-full glass transition-all',
+              'absolute top-4 right-4 sm:top-6 sm:right-6 p-3 sm:p-4 rounded-full glass transition-all',
               isFavorite
                 ? 'text-rose-500 bg-rose-500/10 border-rose-500/30'
                 : 'text-white hover:text-rose-400'
             ]"
           >
-            <Heart :size="24" :fill="isFavorite ? 'currentColor' : 'none'" />
+            <Heart :size="20" class="sm:w-6 sm:h-6" :fill="isFavorite ? 'currentColor' : 'none'" />
           </button>
         </div>
 
@@ -396,7 +396,7 @@ export const QuoteCard = defineComponent({
             </span>
           </div>
           <h1 class="text-page-heading font-black text-white leading-tight mb-4">{{ book.title }}</h1>
-          <p class="text-2xl text-slate-400 font-medium">
+          <p class="text-lg sm:text-xl md:text-2xl text-slate-400 font-medium">
             by <span class="text-indigo-400 hover:underline cursor-pointer">{{ authorsString }}</span>
           </p>
 

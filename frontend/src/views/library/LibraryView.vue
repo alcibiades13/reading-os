@@ -296,15 +296,15 @@ const getStatusBadge = (status) => {
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 items-start">
 
       <!-- Welcome Briefing -->
-      <div class="lg:col-span-7 space-y-8">
-        <div class="flex items-center gap-2 text-indigo-400 font-bold text-[10px] uppercase tracking-[0.4em]">
-          <BrainCircuit :size="14" class="fill-current" />
+      <div class="lg:col-span-7 space-y-4 sm:space-y-8">
+        <div class="flex items-center gap-2 text-indigo-400 font-bold text-[8px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em]">
+          <BrainCircuit :size="12" class="sm:w-3.5 sm:h-3.5 fill-current" />
           Reading OS / V2.5
         </div>
         <h1 class="text-page-heading font-black text-white tracking-tighter">
           Hello, <span class="text-indigo-500">{{ userName }}</span>.
         </h1>
-        <p class="text-slate-400 text-subtitle leading-relaxed max-w-xl">
+        <p class="text-slate-400 text-subtitle leading-relaxed max-w-xl -mt-2 sm:mt-0">
           Your personal archive of knowledge and wonder. Revisit your insights, track your growth, and find your next great exploration.
         </p>
 
@@ -332,7 +332,7 @@ const getStatusBadge = (status) => {
 
       <!-- Wisdom Spotlight -->
       <div class="lg:col-span-5">
-        <div v-if="dailyQuote" class="relative p-7 rounded-[2rem] glass border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/5 group overflow-hidden shadow-2xl">
+        <div v-if="dailyQuote" class="relative p-5 sm:p-7 rounded-[2rem] glass border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/5 group overflow-hidden shadow-2xl">
           <div class="absolute top-0 right-0 p-6 opacity-[0.03] text-indigo-400 group-hover:scale-110 transition-transform duration-1000">
             <Quote :size="80" />
           </div>
