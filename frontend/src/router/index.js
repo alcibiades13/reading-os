@@ -7,6 +7,10 @@ const routes = [
     redirect: '/library',
   },
   {
+    path: '/home',
+    redirect: '/library',
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/auth/LoginView.vue'),
