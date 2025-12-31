@@ -1,0 +1,294 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { useBookImportStore } from '@/stores/bookImportStore'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Search, BookPlus, Library, AlertCircle } from 'lucide-vue-next'
+import BookPreviewModal from '@/components/BookPreviewModal.vue'
+
+const importStore = useBookImportStore()
+
+const searchInput = ref('')
+const isbnInput = ref('')
+const showPreviewModal = ref(false)
+
+// Handle simple search
+const handleSearch = async () => {
+  if (searchInput.value.trim()) {
+    await importStore.searchBooks(searchInput.value)
+  }
+}
+
+// Handle ISBN search
+const handleISBNSearch = async () => {
+  if (isbnInput.value.trim()) {
+    await importStore.searchByISBN(isbnInput.value)
+  }
+}
+
+// Handle book selection for preview
+const handleSelectBook = (book) => {
+  importStore.selectBook(book)
+  showPreviewModal.value = true
+}
+
+// Handle book import
+const handleImportBook = async (payload) => {
+  const result = await importStore.importBookToDatabase(payload)
+
+  if (result.success) {
+    // Success - close modal and show notification
+    showPreviewModal.value = false
+    const message = payload.addToLibrary
+      ? `✅ Book "${payload.book.title}" added to your library!`
+      : `✅ Book "${payload.book.title}" imported to database!`
+    alert(message)
+  } else {
+    // Error - show in modal
+    alert(`❌ Failed to import: ${result.error}`)
+  }
+}
+
+// Close preview modal
+const closePreviewModal = () => {
+  showPreviewModal.value = false
+  importStore.clearSelectedBook()
+}
+</script>
+
+<template>
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-2">
+        <BookPlus class="w-8 h-8 text-primary" />
+        <h1 class="text-3xl font-bold">Import Books</h1>
+      </div>
+      <p class="text-muted-foreground">
+        Search and import books from Google Books, Open Library, or add manually
+      </p>
+    </div>
+
+    <!-- Source Selector -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-medium">Search Source:</span>
+        <div class="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            @click="importStore.setImportSource('google_books')"
+            :class="importStore.importSource === 'google_books' ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''"
+          >
+            Google Books
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            @click="importStore.setImportSource('open_library')"
+            :class="importStore.importSource === 'open_library' ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''"
+          >
+            Open Library
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            @click="importStore.setImportSource('both')"
+            :class="importStore.importSource === 'both' ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''"
+          >
+            Both Sources
+          </Button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Tabs -->
+    <Tabs default-value="search" class="mb-8">
+      <TabsList class="grid w-full grid-cols-3 max-w-md">
+        <TabsTrigger value="search">Search</TabsTrigger>
+        <TabsTrigger value="isbn">By ISBN</TabsTrigger>
+        <TabsTrigger value="advanced">Advanced</TabsTrigger>
+      </TabsList>
+
+      <!-- Simple Search Tab -->
+      <TabsContent value="search" class="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Search Books</CardTitle>
+            <CardDescription>
+              Search by title, author, or keywords
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form @submit.prevent="handleSearch" class="flex gap-2">
+              <div class="flex-1 relative">
+                <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  v-model="searchInput"
+                  placeholder="e.g. 'The Great Gatsby' or 'F. Scott Fitzgerald'"
+                  class="pl-10"
+                  :disabled="importStore.loading"
+                />
+              </div>
+              <Button type="submit" :disabled="importStore.loading || !searchInput.trim()">
+                <span v-if="importStore.loading">Searching...</span>
+                <span v-else>Search</span>
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <!-- ISBN Search Tab -->
+      <TabsContent value="isbn" class="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Search by ISBN</CardTitle>
+            <CardDescription>
+              Enter ISBN-10 or ISBN-13 for exact match
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form @submit.prevent="handleISBNSearch" class="flex gap-2">
+              <Input
+                v-model="isbnInput"
+                placeholder="e.g. 9780743273565 or 0743273567"
+                :disabled="importStore.loading"
+              />
+              <Button type="submit" :disabled="importStore.loading || !isbnInput.trim()">
+                <span v-if="importStore.loading">Searching...</span>
+                <span v-else>Search</span>
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <!-- Advanced Search Tab -->
+      <TabsContent value="advanced" class="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Advanced Search</CardTitle>
+            <CardDescription>
+              Coming soon - filter by multiple criteria
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p class="text-sm text-muted-foreground">
+              This feature will allow you to search by title, author, publisher, year, and genre simultaneously.
+            </p>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+
+    <!-- Error Message -->
+    <div
+      v-if="importStore.error"
+      class="mb-6 p-4 bg-destructive/10 text-destructive rounded-lg flex items-start gap-3"
+    >
+      <AlertCircle class="w-5 h-5 mt-0.5 flex-shrink-0" />
+      <div>
+        <p class="font-medium">Search Error</p>
+        <p class="text-sm">{{ importStore.error }}</p>
+      </div>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div v-if="importStore.loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div v-for="i in 10" :key="i" class="space-y-3">
+        <Skeleton class="aspect-[2/3] rounded-lg" />
+        <Skeleton class="h-4 w-3/4" />
+        <Skeleton class="h-3 w-1/2" />
+      </div>
+    </div>
+
+    <!-- Search Results -->
+    <div v-else-if="importStore.hasResults">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">
+          {{ importStore.searchResults.length }} Results
+        </h2>
+        <Button variant="ghost" size="sm" @click="importStore.clearResults">
+          Clear Results
+        </Button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <Card
+          v-for="(book, index) in importStore.searchResults"
+          :key="book.google_books_id || book.open_library_id || `book-${index}`"
+          class="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden group"
+          @click="handleSelectBook(book)"
+        >
+          <!-- Book Cover -->
+          <div class="aspect-[2/3] bg-muted relative overflow-hidden">
+            <img
+              v-if="book.cover_image_url"
+              :src="book.cover_image_url"
+              :alt="book.title"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div v-else class="w-full h-full flex items-center justify-center">
+              <Library class="w-12 h-12 text-muted-foreground/30" />
+            </div>
+          </div>
+
+          <!-- Book Info -->
+          <CardContent class="p-4">
+            <h3 class="font-semibold text-sm line-clamp-2 mb-1">
+              {{ book.title }}
+            </h3>
+            <p class="text-xs text-muted-foreground line-clamp-1 mb-2">
+              {{ book.authors.join(', ') || 'Unknown Author' }}
+            </p>
+            <div class="flex flex-wrap gap-1">
+              <Badge v-if="book.published_date" variant="secondary" class="text-xs">
+                {{ book.published_date.substring(0, 4) }}
+              </Badge>
+              <Badge v-if="book.page_count" variant="secondary" class="text-xs">
+                {{ book.page_count }}p
+              </Badge>
+              <Badge
+                v-if="book.source === 'google_books'"
+                variant="outline"
+                class="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20"
+              >
+                Google
+              </Badge>
+              <Badge
+                v-if="book.source === 'open_library'"
+                variant="outline"
+                class="text-xs bg-green-500/10 text-green-600 border-green-500/20"
+              >
+                Open Library
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="text-center py-16">
+      <Library class="w-20 h-20 text-muted-foreground/30 mx-auto mb-4" />
+      <h3 class="text-lg font-semibold mb-2">No books to display</h3>
+      <p class="text-muted-foreground mb-6">
+        Use the search above to find books from Google Books API
+      </p>
+    </div>
+
+    <!-- Book Preview Modal -->
+    <BookPreviewModal
+      v-if="showPreviewModal && importStore.selectedBook"
+      :book="importStore.selectedBook"
+      :open="showPreviewModal"
+      @close="closePreviewModal"
+      @import="handleImportBook"
+    />
+  </div>
+</template>

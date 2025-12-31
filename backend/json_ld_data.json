@@ -1,0 +1,32 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "Book",
+  "name": "Slepilo",
+  "image": "https://delfi.rs/_img/artikli/2014/07/slepilo_vv.jpg",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Žoze Saramago"
+    }
+  ],
+  "datePublished": "2023-01-01",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Laguna"
+  },
+  "genre": "Drama",
+  "description": "Zašto smo oslepeli, Ne znam, možda ćemo jednog dana to otkriti, Hoćeš da ti kažem šta ja mislim, Reci, Mislim da nismo o...",
+  "isbn": "9788652115723",
+  "offers": {
+    "@type": "Offer",
+    "url": "https://delfi.rs/knjige/61030-slepilo-knjiga-delfi-knjizare.html",
+    "priceCurrency": "RSD",
+    "price": 899,
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "https://schema.org/InStock",
+    "seller": {
+      "@type": "Organization",
+      "name": "Delfi knjižare"
+    }
+  }
+}

@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Lumina Dark Mode Colors */
+    --background: 222 47% 11%;        /* slate-950: #0f172a */
+    --foreground: 210 40% 98%;        /* slate-50: #f8fafc */
+    --card: 222 47% 11%;              /* slate-950: #0f172a - DARK kao u Lumina */
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 17%;           /* slate-900 */
+    --popover-foreground: 210 40% 98%;
+
+    /* INDIGO/PURPLE Primary Color */
+    --primary: 243 75% 59%;           /* indigo-500: #6366f1 - LJUBIČASTA */
+    --primary-foreground: 210 40% 98%;
+
+    /* Sky Blue Secondary */
+    --secondary: 199 89% 48%;         /* sky-500: #0ea5e9 */
+    --secondary-foreground: 210 40% 98%;
+
+    /* Muted colors */
+    --muted: 215 28% 17%;             /* slate-800: #1e293b */
+    --muted-foreground: 215 20% 65%;  /* slate-400: #94a3b8 */
+
+    /* Accent - Sky for highlights */
+    --accent: 199 89% 48%;            /* sky-500 */
+    --accent-foreground: 210 40% 98%;
+
+    /* Amber for favorites/ratings */
+    --amber: 38 92% 50%;              /* amber-500: #f59e0b */
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Borders and inputs */
+    --border: 215 28% 17%;            /* slate-800 */
+    --input: 215 28% 17%;
+    --ring: 243 75% 59%;              /* indigo-500 */
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-50;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    @apply bg-indigo-500/30 text-white;
+  }
+}
+
+@layer components {
+  /* Glassmorphism effect */
+  .glass {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-900;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded-sm;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-600;
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Smooth animations */
+  .animate-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .slide-in-from-bottom-4 {
+    animation: slideInFromBottom 0.5s ease-out;
+  }
+
+  .slide-in-from-right-full {
+    animation: slideInFromRight 0.3s ease-out;
+  }
+
+  .zoom-in-95 {
+    animation: zoomIn 0.3s ease-out;
+  }
+
+  .slide-in-from-top-4 {
+    animation: slideInFromTop 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInFromBottom {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInFromTop {
+    from {
+      opacity: 0;
+      transform: translateY(-1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes zoomIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Gradient text utility */
+  .gradient-text {
+    @apply bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent;
+  }
+}
+
+@layer utilities {
+  /* Quote text size */
+  .text-quote {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.5rem; /* 24px */
+  }
+
+  @media (min-width: 768px) {
+    .text-quote {
+      font-size: 1rem; /* 16px */
+      line-height: 1.75rem; /* 28px */
+    }
+  }
+
+  /* Subtitle/description text size */
+  .text-subtitle {
+    font-size: 1rem; /* 16px */
+    line-height: 1.5rem; /* 24px */
+  }
+
+  @media (min-width: 768px) {
+    .text-subtitle {
+      font-size: 1rem; /* 16px */
+      line-height: 1.75rem; /* 28px */
+    }
+  }
+
+  /* Page heading size */
+  .text-page-heading {
+    font-size: 2.5rem; /* 40px */
+    line-height: 1;
+  }
+
+  @media (min-width: 768px) {
+    .text-page-heading {
+      font-size: 2.5rem; /* 40px */
+      line-height: 1;
+    }
+  }
+}

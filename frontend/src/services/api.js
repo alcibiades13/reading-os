@@ -1,0 +1,168 @@
+import axios from 'axios'
+
+// Base URL za Django backend
+// U development: koristi Vite proxy (/api)
+// U production: koristi environment varijablu (VITE_API_URL)
+const API_URL = import.meta.env.VITE_API_URL || '/api'
+
+// Kreiraj axios instancu
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// Request interceptor - dodaje JWT token u svaki request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// Response interceptor - handleuje token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config
+
+    // Ako je 401 i nismo već pokušali refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      try {
+        const refreshToken = localStorage.getItem('refresh_token')
+        if (refreshToken) {
+          const response = await axios.post(`${API_URL}/token/refresh/`, {
+            refresh: refreshToken,
+          })
+
+          const { access } = response.data
+          localStorage.setItem('access_token', access)
+
+          // Pokušaj ponovo sa novim tokenom
+          originalRequest.headers.Authorization = `Bearer ${access}`
+          return api(originalRequest)
+        }
+      } catch (refreshError) {
+        // Refresh failed - logout user
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)
+
+export default api
+
+// API endpoints
+export const authAPI = {
+  login: (credentials) => api.post('/users/login/', credentials),
+  register: (data) => api.post('/users/', data),
+  getMe: () => api.get('/users/me/'),
+  updateProfile: (data) => api.put('/users/update_profile/', data),
+}
+
+export const booksAPI = {
+  list: (params) => api.get('/books/', { params }),
+  get: (id) => api.get(`/books/${id}/`),
+  create: (data) => api.post('/books/', data),
+  importBook: (data) => api.post('/books/import_book/', data),
+  update: (id, data) => api.put(`/books/${id}/`, data),
+  delete: (id) => api.delete(`/books/${id}/`),
+  popular: () => api.get('/books/popular/'),
+  recent: () => api.get('/books/recent/'),
+}
+
+export const authorsAPI = {
+  list: (params) => api.get('/books/authors/', { params }),
+  get: (id) => api.get(`/books/authors/${id}/`),
+}
+
+export const genresAPI = {
+  list: (params) => api.get('/books/genres/', { params }),
+}
+
+export const userBooksAPI = {
+  list: (params) => api.get('/reading/user-books/', { params }),
+  get: (id) => api.get(`/reading/user-books/${id}/`),
+  create: (data) => api.post('/reading/user-books/', data),
+  update: (id, data) => api.put(`/reading/user-books/${id}/`, data),
+  delete: (id) => api.delete(`/reading/user-books/${id}/`),
+  updateProgress: (id, currentPage) => 
+    api.post(`/reading/user-books/${id}/update_progress/`, { current_page: currentPage }),
+  markFinished: (id, data) => 
+    api.post(`/reading/user-books/${id}/mark_finished/`, data),
+}
+
+export const quotesAPI = {
+  list: (params) => api.get('/reading/quotes/', { params }),
+  get: (id) => api.get(`/reading/quotes/${id}/`),
+  create: (data) => api.post('/reading/quotes/', data),
+  update: (id, data) => api.put(`/reading/quotes/${id}/`, data),
+  delete: (id) => api.delete(`/reading/quotes/${id}/`),
+  myFavorites: () => api.get('/reading/quotes/my_favorites/'),
+  searchSemantic: (query) => api.get('/reading/quotes/search_semantic/', { params: { q: query } }),
+}
+
+export const quoteTagsAPI = {
+  list: () => api.get('/reading/quote-tags/'),
+  create: (data) => api.post('/reading/quote-tags/', data),
+  update: (id, data) => api.put(`/reading/quote-tags/${id}/`, data),
+  delete: (id) => api.delete(`/reading/quote-tags/${id}/`),
+}
+
+export const listsAPI = {
+  list: (params) => api.get('/lists/', { params }),
+  get: (id) => api.get(`/lists/${id}/`),
+  create: (data) => api.post('/lists/', data),
+  update: (id, data) => api.put(`/lists/${id}/`, data),
+  delete: (id) => api.delete(`/lists/${id}/`),
+  addBook: (id, bookId, note) => 
+    api.post(`/lists/${id}/add_book/`, { book_id: bookId, note }),
+  removeBook: (id, bookId) => 
+    api.delete(`/lists/${id}/remove_book/`, { data: { book_id: bookId } }),
+}
+
+export const challengesAPI = {
+  list: (params) => api.get('/challenges/', { params }),
+  get: (id) => api.get(`/challenges/${id}/`),
+  create: (data) => api.post('/challenges/', data),
+  update: (id, data) => api.put(`/challenges/${id}/`, data),
+  delete: (id) => api.delete(`/challenges/${id}/`),
+  current: () => api.get('/challenges/current/'),
+  updateProgress: (id) => api.post(`/challenges/${id}/update_progress/`),
+}
+
+export const socialAPI = {
+  // Friendships
+  friendships: () => api.get('/social/friendships/'),
+  sendFriendRequest: (userId) => api.post('/social/friendships/', { to_user: userId }),
+  acceptFriend: (id) => api.post(`/social/friendships/${id}/accept/`),
+  declineFriend: (id) => api.post(`/social/friendships/${id}/decline/`),
+  
+  // Circles
+  circles: () => api.get('/social/circles/'),
+  getCircle: (id) => api.get(`/social/circles/${id}/`),
+  createCircle: (data) => api.post('/social/circles/', data),
+  
+  // Circle Posts
+  circlePosts: (params) => api.get('/social/circle-posts/', { params }),
+  createPost: (data) => api.post('/social/circle-posts/', data),
+  
+  // Feed
+  feed: () => api.get('/social/feed/'),
+  markFeedRead: (id) => api.post(`/social/feed/${id}/mark_read/`),
+}

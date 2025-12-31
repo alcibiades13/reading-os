@@ -1,0 +1,218 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserBooksStore } from '@/stores/userBooksStore'
+import { Skeleton } from '@/components/ui/skeleton'
+import BookCard from '@/components/BookCard.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import StatCard from '@/components/ui/StatCard.vue'
+import SearchBar from '@/components/ui/SearchBar.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import { BookOpen, Heart, Plus } from 'lucide-vue-next'
+
+const router = useRouter()
+const booksStore = useUserBooksStore()
+
+const searchQuery = ref('')
+const selectedTab = ref('all')
+
+// Fetch books on mount
+onMounted(async () => {
+  await booksStore.fetchBooks()
+})
+
+// Books to display based on selected tab
+const displayedBooks = computed(() => {
+  if (selectedTab.value === 'all') {
+    return booksStore.filteredBooks
+  } else if (selectedTab.value === 'favorites') {
+    booksStore.setFilter('favorite', true)
+    return booksStore.filteredBooks
+  } else {
+    booksStore.setFilter('favorite', null)
+    booksStore.setFilter('status', selectedTab.value)
+    return booksStore.filteredBooks
+  }
+})
+
+// Handle search
+const handleSearch = (value) => {
+  booksStore.setFilter('search', value)
+}
+
+// Tab change
+const handleTabChange = (value) => {
+  selectedTab.value = value
+  booksStore.resetFilters()
+  if (value === 'favorites') {
+    booksStore.setFilter('favorite', true)
+  } else if (value !== 'all') {
+    booksStore.setFilter('status', value)
+  }
+}
+
+// Book actions
+const handleViewBook = (book) => {
+  router.push(`/books/${book.book.id}`)
+}
+
+const handleEditBook = (book) => {
+  // TODO: Open edit dialog
+  console.log('Edit book:', book)
+}
+
+const handleDeleteBook = async (book) => {
+  if (confirm(`Remove "${book.book.title}" from your library?`)) {
+    const result = await booksStore.removeBook(book.id)
+    if (result.success) {
+      console.log('Book removed')
+    }
+  }
+}
+
+const handleToggleFavorite = async (book) => {
+  await booksStore.updateBook(book.id, {
+    is_favorite: !book.is_favorite,
+  })
+}
+
+// Stats
+const stats = computed(() => booksStore.stats)
+</script>
+
+<template>
+  <div class="relative z-10 pb-20">
+    <!-- Header Section -->
+    <div class="w-full max-w-7xl mx-auto pt-12 pb-8 px-6">
+      <div class="flex items-center justify-between mb-10">
+        <PageHeader
+          title="My Library"
+          subtitle="Track your reading journey and organize your collection"
+          accentWord="Library"
+        />
+        <button
+          @click="router.push('/books')"
+          class="px-5 py-3 rounded-xl bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-400 transition-colors flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+        >
+          <Plus :size="18" />
+          Add Book
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          label="Total Books"
+          :value="stats.total"
+          :icon="BookOpen"
+          value-color="text-white"
+        />
+        <StatCard
+          label="Reading"
+          :value="stats.currently_reading"
+          value-color="text-indigo-400"
+        />
+        <StatCard
+          label="Finished"
+          :value="stats.read"
+          value-color="text-indigo-400"
+        />
+        <StatCard
+          label="Want to Read"
+          :value="stats.want_to_read"
+          value-color="text-indigo-400"
+        />
+      </div>
+
+      <!-- Search -->
+      <SearchBar
+        v-model="searchQuery"
+        placeholder="Search your library..."
+        @search="handleSearch"
+      />
+    </div>
+
+    <!-- Tabs & Content -->
+    <div class="max-w-7xl mx-auto px-6">
+      <!-- Custom Tabs -->
+      <div class="flex items-center gap-1 p-1 bg-slate-900/80 rounded-xl mb-8 w-fit border border-slate-800">
+        <button
+          @click="handleTabChange('all')"
+          :class="selectedTab === 'all' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
+        >
+          All ({{ stats.total }})
+        </button>
+        <button
+          @click="handleTabChange('currently_reading')"
+          :class="selectedTab === 'currently_reading' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
+        >
+          Reading ({{ stats.currently_reading }})
+        </button>
+        <button
+          @click="handleTabChange('read')"
+          :class="selectedTab === 'read' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
+        >
+          Finished ({{ stats.read }})
+        </button>
+        <button
+          @click="handleTabChange('want_to_read')"
+          :class="selectedTab === 'want_to_read' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
+        >
+          Want to Read ({{ stats.want_to_read }})
+        </button>
+        <button
+          @click="handleTabChange('favorites')"
+          :class="selectedTab === 'favorites' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
+        >
+          <Heart :size="16" :class="selectedTab === 'favorites' ? 'fill-current' : ''" />
+          Favorites
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="booksStore.loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div v-for="i in 10" :key="i" class="space-y-3">
+          <Skeleton class="aspect-[2/3] rounded-xl" />
+          <Skeleton class="h-4 w-3/4" />
+          <Skeleton class="h-3 w-1/2" />
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <EmptyState
+        v-else-if="displayedBooks.length === 0"
+        :icon="BookOpen"
+        :title="searchQuery ? 'No books found' : 'No books in this category'"
+        :description="searchQuery ? 'Try adjusting your search' : 'Start adding books to your library!'"
+      >
+        <template #action>
+          <button
+            @click="router.push('/books')"
+            class="px-5 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-semibold hover:bg-indigo-500 hover:text-white transition-all duration-300 flex items-center gap-2 mt-6"
+          >
+            <Plus :size="18" />
+            Browse Books
+          </button>
+        </template>
+      </EmptyState>
+
+      <!-- Books Grid -->
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <BookCard
+          v-for="book in displayedBooks"
+          :key="book.id"
+          :book="book"
+          @view="handleViewBook"
+          @edit="handleEditBook"
+          @delete="handleDeleteBook"
+          @toggle-favorite="handleToggleFavorite"
+        />
+      </div>
+    </div>
+  </div>
+</template>

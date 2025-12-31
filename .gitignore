@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/backend/staticfiles/
+/backend/media/
+*.pot
+
+# Environment variables
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# Node
+node_modules/
+/frontend/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test files
+*.dump
+*_backup.dump
+data.json
+
+# HTML test files
+*.html
+!frontend/index.html
+!frontend/public/**/*.html
+
+# Playwright browsers
+/backend/ms-playwright/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Logs
+logs/
+*.log

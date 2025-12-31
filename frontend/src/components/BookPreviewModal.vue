@@ -1,0 +1,302 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { X, Star, BookOpen, Calendar, Globe, Hash, Building2, Bookmark, PlayCircle, CheckCircle, Lightbulb, Library, Check } from 'lucide-vue-next'
+import StarRating from '@/components/ui/StarRating.vue'
+
+const props = defineProps({
+  book: {
+    type: Object,
+    required: true,
+  },
+  open: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits(['close', 'import'])
+
+const selectedAction = ref(null)
+const rating = ref(null)
+const showFullDescription = ref(false)
+
+const handleStatusToggle = (status) => {
+  selectedAction.value = selectedAction.value === status ? null : status
+  if (status !== 'read') rating.value = null
+}
+
+const handleImport = () => {
+  const action = selectedAction.value
+  const isLibraryAction = !!action
+
+  const payload = {
+    book: props.book,
+    addToLibrary: isLibraryAction,
+    libraryData: isLibraryAction ? {
+      status: action,
+      rating: rating.value,
+    } : null
+  }
+  emit('import', payload)
+}
+
+const handleClose = () => {
+  emit('close')
+}
+
+const formattedDate = computed(() => {
+  if (!props.book.published_date) return 'N/A'
+  const date = new Date(props.book.published_date)
+  if (isNaN(date.getTime())) return props.book.published_date.split('-')[0] || 'N/A'
+  return date.getFullYear().toString()
+})
+
+const languageName = computed(() => {
+  const langMap = {
+    en: 'EN',
+    sr: 'SR',
+    fr: 'FR',
+    de: 'DE',
+    es: 'ES',
+    it: 'IT',
+    ru: 'RU',
+  }
+  return langMap[props.book.language] || props.book.language?.toUpperCase() || 'N/A'
+})
+
+const hasCover = computed(() => !!props.book.cover_image_url)
+
+const truncatedDescription = computed(() => {
+  if (!props.book.description) return ''
+  const text = props.book.description.replace(/<[^>]*>/g, '') // Strip HTML tags
+  const words = text.split(' ')
+  if (words.length <= 100) return props.book.description
+  return words.slice(0, 100).join(' ') + '...'
+})
+</script>
+
+<template>
+  <div class="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6 pt-20 bg-slate-950/90 backdrop-blur-sm animate-in fade-in duration-300">
+    <div class="relative w-full max-w-5xl h-[85vh] glass rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300">
+
+      <!-- Close Button -->
+      <button
+        @click="handleClose"
+        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-slate-900/50 hover:bg-slate-800 text-slate-300 transition-colors"
+      >
+        <X :size="20" />
+      </button>
+
+      <!-- Left Column - Cover & Quick Stats -->
+      <div class="w-full md:w-[40%] bg-slate-900/50 p-8 flex flex-col items-center overflow-y-auto border-r border-slate-700/30">
+        <div class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+          <img
+            v-if="hasCover"
+            :src="book.cover_image_url"
+            :alt="book.title"
+            class="w-full h-full object-cover"
+          />
+          <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
+            <div class="w-24 h-24 rounded-full bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center mb-6">
+              <BookOpen :size="40" class="text-indigo-500/40" />
+            </div>
+            <p class="text-slate-500 text-sm text-center">
+              No cover available
+            </p>
+          </div>
+          <div class="absolute inset-0 shadow-[inset_0_0_80px_rgba(0,0,0,0.4)]" />
+        </div>
+
+        <div class="w-full mt-8 space-y-4">
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+            <Star class="text-amber-400" :size="20" fill="currentColor" />
+            <div>
+              <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Average Rating</p>
+              <p class="text-slate-100 font-semibold">{{ book.average_rating ? `${book.average_rating}/5` : 'N/A' }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+              <div class="flex items-center gap-2 text-slate-500 mb-1">
+                <BookOpen :size="16" />
+                <span class="text-[10px] font-bold uppercase tracking-wider">Pages</span>
+              </div>
+              <p class="text-slate-200 font-semibold truncate text-sm">{{ book.page_count || 'N/A' }}</p>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+              <div class="flex items-center gap-2 text-slate-500 mb-1">
+                <Globe :size="16" />
+                <span class="text-[10px] font-bold uppercase tracking-wider">Language</span>
+              </div>
+              <p class="text-slate-200 font-semibold truncate text-sm">{{ languageName }}</p>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+              <div class="flex items-center gap-2 text-slate-500 mb-1">
+                <Calendar :size="16" />
+                <span class="text-[10px] font-bold uppercase tracking-wider">Published</span>
+              </div>
+              <p class="text-slate-200 font-semibold truncate text-sm">{{ formattedDate }}</p>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+              <div class="flex items-center gap-2 text-slate-500 mb-1">
+                <Building2 :size="16" />
+                <span class="text-[10px] font-bold uppercase tracking-wider">Publisher</span>
+              </div>
+              <p class="text-slate-200 font-semibold truncate text-sm">{{ book.publisher || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <div v-if="book.isbn_13" class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 overflow-hidden">
+            <Hash class="text-indigo-400 shrink-0" :size="16" />
+            <div class="truncate">
+              <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">ISBN</p>
+              <p class="text-slate-100 font-semibold truncate text-sm">{{ book.isbn_13 }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Details & Actions -->
+      <div class="w-full md:w-[60%] flex flex-col h-full bg-slate-900/20">
+        <div class="flex-1 overflow-y-auto p-8">
+          <header class="mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-white leading-tight">{{ book.title }}</h1>
+            <p v-if="book.authors && book.authors.length > 0" class="text-lg text-indigo-400/80 mt-2 font-medium">
+              {{ book.authors.join(', ') }}
+            </p>
+          </header>
+
+          <section class="mb-6">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-3">Description</h2>
+            <div v-if="book.description">
+              <div
+                :class="showFullDescription ? '' : 'line-clamp-6'"
+                class="text-slate-300 text-sm leading-relaxed"
+                v-html="showFullDescription ? book.description : truncatedDescription"
+              />
+              <button
+                v-if="book.description && book.description.replace(/<[^>]*>/g, '').split(' ').length > 100"
+                @click="showFullDescription = !showFullDescription"
+                class="mt-3 text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4"
+              >
+                {{ showFullDescription ? 'Show Less' : 'Read More' }}
+              </button>
+            </div>
+            <p v-else class="text-slate-300 text-sm leading-relaxed">
+              No description available for this title.
+            </p>
+          </section>
+
+          <section class="mb-8">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-3">Categories</h2>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="category in (book.categories || [])"
+                :key="category"
+                class="px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/20 transition-colors cursor-default"
+              >
+                {{ category }}
+              </span>
+              <p v-if="!book.categories || book.categories.length === 0" class="text-slate-500 text-sm italic">
+                General
+              </p>
+            </div>
+          </section>
+
+          <!-- Import Logic -->
+          <section class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/50">
+            <h3 class="text-base font-semibold text-white mb-5 flex items-center gap-2">
+              Add to Shelf (Optional)
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button
+                @click="handleStatusToggle('want_to_read')"
+                :class="selectedAction === 'want_to_read'
+                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
+                  : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
+                class="p-3 rounded-xl flex items-center gap-3 border-2 transition-all duration-300"
+              >
+                <span :class="selectedAction === 'want_to_read' ? 'scale-110' : ''" class="transition-transform duration-300">
+                  <Bookmark :size="18" />
+                </span>
+                <span class="text-sm font-semibold">Want to Read</span>
+                <Check v-if="selectedAction === 'want_to_read'" :size="16" class="ml-auto" />
+              </button>
+
+              <button
+                @click="handleStatusToggle('currently_reading')"
+                :class="selectedAction === 'currently_reading'
+                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
+                  : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
+                class="p-3 rounded-xl flex items-center gap-3 border-2 transition-all duration-300"
+              >
+                <span :class="selectedAction === 'currently_reading' ? 'scale-110' : ''" class="transition-transform duration-300">
+                  <PlayCircle :size="18" />
+                </span>
+                <span class="text-sm font-semibold">Reading</span>
+                <Check v-if="selectedAction === 'currently_reading'" :size="16" class="ml-auto" />
+              </button>
+
+              <button
+                @click="handleStatusToggle('read')"
+                :class="selectedAction === 'read'
+                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
+                  : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
+                class="p-3 rounded-xl flex items-center gap-3 border-2 transition-all duration-300"
+              >
+                <span :class="selectedAction === 'read' ? 'scale-110' : ''" class="transition-transform duration-300">
+                  <CheckCircle :size="18" />
+                </span>
+                <span class="text-sm font-semibold">Finished</span>
+                <Check v-if="selectedAction === 'read'" :size="16" class="ml-auto" />
+              </button>
+            </div>
+
+            <div v-if="selectedAction === 'read'" class="mt-8 pt-8 border-t border-slate-700/50 animate-in slide-in-from-top-4 duration-300">
+              <p class="text-sm font-medium text-slate-300 mb-4">
+                Your Rating (Optional)
+                <span class="text-xs text-slate-500 ml-2">Click once for full star, double-click for half star</span>
+              </p>
+              <div class="flex items-center gap-2">
+                <StarRating
+                  v-model="rating"
+                  :size="32"
+                  :show-value="true"
+                />
+                <button
+                  v-if="rating"
+                  @click="rating = null"
+                  class="ml-4 text-xs text-slate-500 hover:text-slate-300 underline underline-offset-4"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="p-6 border-t border-slate-700/30 bg-slate-900/50 flex flex-col sm:flex-row gap-3">
+          <button
+            @click="handleClose"
+            class="px-5 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            @click="handleImport"
+            class="flex-[2] px-5 py-3 rounded-xl bg-indigo-500 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 active:scale-[0.98] transition-all"
+          >
+            <Library :size="18" />
+            Import Book
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
