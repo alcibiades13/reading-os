@@ -139,6 +139,8 @@ class UserBookListSerializer(serializers.ModelSerializer):
             'id',
             'book',
             'status',
+            'started_at',
+            'finished_at',
             'rating',
             'review',
             'is_favorite',
@@ -147,8 +149,9 @@ class UserBookListSerializer(serializers.ModelSerializer):
             'quotes_count',
             'depth_score',
             'updated_at',
+            'created_at',
         ]
-        read_only_fields = ['id', 'user', 'quotes_count', 'depth_score', 'updated_at']
+        read_only_fields = ['id', 'user', 'quotes_count', 'depth_score', 'updated_at', 'created_at']
 
     def validate_rating(self, value):
         """Ensure rating is properly converted to Decimal"""

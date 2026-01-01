@@ -84,34 +84,35 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="currentWord" class="max-w-3xl mx-auto space-y-12">
+  <div v-if="currentWord" class="max-w-3xl mx-auto space-y-6 sm:space-y-12">
     <!-- Top Bar / Progress -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-          <Brain :size="20" />
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3 sm:gap-4">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <Brain :size="18" class="sm:w-5 sm:h-5" />
         </div>
         <div>
-          <h3 class="text-white font-bold text-sm">Lexicon Practice</h3>
-          <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Mastery focus session</p>
+          <h3 class="text-white font-bold text-xs sm:text-sm">Lexicon Practice</h3>
+          <p class="text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-wider sm:tracking-widest">Mastery Session</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-3 sm:gap-6 w-full sm:w-auto">
         <button
           @click="toggleAutoPlay"
           :class="[
-            'flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-800 text-[10px] font-black uppercase tracking-widest transition-all',
+            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all',
             isAutoPlay ? 'bg-indigo-500 text-white border-indigo-500' : 'text-slate-500 hover:text-white'
           ]"
         >
-          <Pause v-if="isAutoPlay" :size="14" />
-          <Play v-else :size="14" />
-          {{ isAutoPlay ? 'Auto-play On' : 'Auto-play Off' }}
+          <Pause v-if="isAutoPlay" :size="12" class="sm:w-3.5 sm:h-3.5" />
+          <Play v-else :size="12" class="sm:w-3.5 sm:h-3.5" />
+          <span class="hidden sm:inline">{{ isAutoPlay ? 'Auto-play On' : 'Auto-play Off' }}</span>
+          <span class="sm:hidden">{{ isAutoPlay ? 'Auto' : 'Manual' }}</span>
         </button>
-        <div class="text-right">
+        <div class="flex-1 sm:flex-none sm:text-right">
           <p class="text-xs font-black text-white">{{ currentIndex + 1 }} <span class="text-slate-600">/ {{ words.length }}</span></p>
-          <div class="w-32 h-1 bg-slate-900 rounded-full mt-1">
+          <div class="w-full sm:w-32 h-1 bg-slate-900 rounded-full mt-1">
             <div class="h-full bg-indigo-500 transition-all duration-500" :style="{ width: progressPercent + '%' }" />
           </div>
         </div>
@@ -125,29 +126,29 @@ onUnmounted(() => {
     >
       <div class="flip-card-inner">
         <!-- Front -->
-        <div class="flip-card-front glass bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/20 flex flex-col items-center justify-center p-12 border border-slate-800 shadow-2xl">
-          <span class="text-5xl md:text-7xl font-serif text-white tracking-tight text-center selection:bg-indigo-500/30">
+        <div class="flip-card-front glass bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/20 flex flex-col items-center justify-center p-6 sm:p-12 border border-slate-800 shadow-2xl">
+          <span class="text-3xl sm:text-5xl md:text-6xl font-serif text-white tracking-tight text-center selection:bg-indigo-500/30">
             {{ currentWord.word }}
           </span>
-          <div class="absolute bottom-8 text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500/40">
+          <div class="absolute bottom-4 sm:bottom-8 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] text-indigo-500/40">
             Tap or Space to Flip
           </div>
         </div>
 
         <!-- Back -->
-        <div class="flip-card-back glass bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20 p-10 flex flex-col border border-emerald-500/20 shadow-2xl overflow-y-auto custom-scrollbar">
-          <div class="mb-8">
-            <span class="text-xs font-black text-emerald-400 uppercase tracking-widest block mb-2">Definition</span>
-            <p class="text-2xl text-white font-medium leading-relaxed">
+        <div class="flip-card-back glass bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20 p-6 sm:p-10 flex flex-col border border-emerald-500/20 shadow-2xl overflow-hidden">
+          <div class="mb-4 sm:mb-6">
+            <span class="text-[10px] sm:text-xs font-black text-emerald-400 uppercase tracking-widest block mb-2">Definition</span>
+            <p class="text-base sm:text-xl text-white font-medium leading-relaxed">
               {{ currentWord.definition || "No definition provided." }}
             </p>
           </div>
 
-          <div v-if="currentWord.context" class="mb-8 p-6 rounded-2xl bg-emerald-500/5 border-l-4 border-emerald-500/30 italic text-slate-300 font-serif text-lg">
+          <div v-if="currentWord.context" class="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-500/5 border-l-4 border-emerald-500/30 italic text-slate-300 font-serif text-sm sm:text-base">
             "{{ currentWord.context }}"
           </div>
 
-          <div class="mt-auto flex items-center justify-between pt-6 border-t border-slate-800">
+          <div class="mt-auto flex items-center justify-between pt-4 sm:pt-6 border-t border-slate-800">
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
                 <RotateCcw :size="14" />
@@ -167,35 +168,35 @@ onUnmounted(() => {
     </div>
 
     <!-- Mastery Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-3 gap-3 sm:gap-6">
       <button
         @click.stop="emit('update-mastery', currentWord.id, 'learning'); handleNext()"
-        class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all flex flex-col items-center gap-3 group"
+        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
       >
-        <div class="w-12 h-12 rounded-xl bg-slate-800 group-hover:bg-amber-500/20 flex items-center justify-center text-slate-500 group-hover:text-amber-400 transition-colors">
-          <RotateCcw :size="24" />
+        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-amber-500/20 flex items-center justify-center text-slate-500 group-hover:text-amber-400 transition-colors">
+          <RotateCcw :size="16" class="sm:w-6 sm:h-6" />
         </div>
-        <span class="text-xs font-black uppercase tracking-widest text-slate-500 group-hover:text-amber-400">Still Learning</span>
+        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-amber-400 text-center leading-tight">Still Learning</span>
       </button>
 
       <button
         @click.stop="emit('update-mastery', currentWord.id, 'mastered'); handleNext()"
-        class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all flex flex-col items-center gap-3 group"
+        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
       >
-        <div class="w-12 h-12 rounded-xl bg-slate-800 group-hover:bg-emerald-500/20 flex items-center justify-center text-slate-500 group-hover:text-emerald-400 transition-colors">
-          <Check :size="24" />
+        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-emerald-500/20 flex items-center justify-center text-slate-500 group-hover:text-emerald-400 transition-colors">
+          <Check :size="16" class="sm:w-6 sm:h-6" />
         </div>
-        <span class="text-xs font-black uppercase tracking-widest text-slate-500 group-hover:text-emerald-400">Got it!</span>
+        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-emerald-400 text-center">Got it!</span>
       </button>
 
       <button
         @click.stop="handleNext()"
-        class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-all flex flex-col items-center gap-3 group"
+        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
       >
-        <div class="w-12 h-12 rounded-xl bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-          <SkipForward :size="24" />
+        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+          <SkipForward :size="16" class="sm:w-6 sm:h-6" />
         </div>
-        <span class="text-xs font-black uppercase tracking-widest text-slate-500 group-hover:text-white">Skip</span>
+        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-white text-center">Skip</span>
       </button>
     </div>
 
