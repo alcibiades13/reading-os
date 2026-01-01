@@ -259,57 +259,87 @@ class BookViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def import_book(self, request):
         """Import book from external source (Google Books, etc)"""
-        book_data = request.data.get('book', request.data)
-        add_to_library = request.data.get('addToLibrary', False)
-        library_data = request.data.get('libraryData', None)
+        try:
+            book_data = request.data.get('book', request.data)
+            add_to_library = request.data.get('addToLibrary', False)
+            library_data = request.data.get('libraryData', None)
 
-        # Import the book
-        serializer = BookImportSerializer(data=book_data)
+            # Import the book
+            serializer = BookImportSerializer(data=book_data)
 
-        if serializer.is_valid():
-            # Check if book already exists by ISBN
-            isbn = serializer.validated_data.get('isbn_13') or serializer.validated_data.get('isbn_10')
-            existing_book = None
+            if serializer.is_valid():
+                # Check if book already exists by ISBN
+                isbn = serializer.validated_data.get('isbn_13') or serializer.validated_data.get('isbn_10')
+                existing_book = None
 
-            if isbn:
-                existing_book = Book.objects.filter(isbn=isbn).first()
+                if isbn:
+                    existing_book = Book.objects.filter(isbn=isbn).first()
 
-            if existing_book:
-                book = existing_book
-            else:
-                book = serializer.save()
+                if existing_book:
+                    book = existing_book
+                else:
+                    book = serializer.save()
 
-            # Add to user's library if requested
-            if add_to_library and library_data:
-                from apps.reading.models import UserBook
-                from datetime import date
+                # Add to user's library if requested
+                if add_to_library and library_data:
+                    from apps.reading.models import UserBook
+                    from datetime import date
 
-                # Prepare defaults for UserBook
-                defaults = {
-                    'status': library_data.get('status', 'want_to_read'),
-                }
+                    # Check if user already has this book in their library
+                    existing_user_book = UserBook.objects.filter(
+                        user=request.user,
+                        book=book
+                    ).first()
 
-                # Add rating if provided and status is 'read'
-                if library_data.get('rating') and library_data.get('status') == 'read':
-                    defaults['rating'] = library_data['rating']
+                    if existing_user_book:
+                        # User already has this book - return error
+                        return Response(
+                            {
+                                'error': 'You already have this book in your library',
+                                'book': BookDetailSerializer(book).data
+                            },
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
 
-                # Set started_at for currently_reading
-                if library_data.get('status') == 'currently_reading':
-                    defaults['started_at'] = date.today()
+                    # Prepare defaults for UserBook
+                    defaults = {
+                        'status': library_data.get('status', 'want_to_read'),
+                    }
 
-                # Set finished_at for read
-                if library_data.get('status') == 'read':
-                    defaults['finished_at'] = date.today()
+                    # Add rating if provided and status is 'read'
+                    if library_data.get('rating') and library_data.get('status') == 'read':
+                        defaults['rating'] = library_data['rating']
 
-                # Use update_or_create to avoid duplicate key errors
-                user_book, created = UserBook.objects.update_or_create(
-                    user=request.user,
-                    book=book,
-                    defaults=defaults
-                )
+                    # Set started_at for currently_reading
+                    if library_data.get('status') == 'currently_reading':
+                        defaults['started_at'] = date.today()
 
-            # Return full book details
-            detail_serializer = BookDetailSerializer(book)
-            return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
+                    # Set finished_at for read
+                    if library_data.get('status') == 'read':
+                        defaults['finished_at'] = date.today()
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    # Create the UserBook entry
+                    user_book = UserBook.objects.create(
+                        user=request.user,
+                        book=book,
+                        **defaults
+                    )
+
+                # Return full book details with proper select_related/prefetch_related
+                book_with_relations = Book.objects.select_related('publisher').prefetch_related(
+                    'authors', 'genres', 'tags'
+                ).get(id=book.id)
+
+                detail_serializer = BookDetailSerializer(book_with_relations)
+                return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            # Log the full error for debugging
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Internal server error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

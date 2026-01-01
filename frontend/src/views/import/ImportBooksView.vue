@@ -78,7 +78,9 @@ const handleImportBook = async (payload) => {
       : `Successfully imported "${payload.book.title}" to database!`
     addToast(message, 'success')
   } else {
-    addToast(`Failed to import: ${result.error}`, 'error')
+    // Close modal and show error
+    showPreviewModal.value = false
+    addToast(result.error || 'Failed to import book', 'error')
   }
 }
 
