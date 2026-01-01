@@ -17,6 +17,25 @@ const loading = ref(true)
 const showFilters = ref(false)
 const selectedActivityTypes = ref(['all'])
 
+// Helper function to format timestamps
+const formatTimestamp = (dateString) => {
+  if (!dateString) return 'Recently'
+
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now - date
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 60) return `${diffMins} minutes ago`
+  if (diffHours < 24) return `${diffHours} hours ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  return date.toLocaleDateString()
+}
+
 // Combine real data from stores
 const realFeedPosts = computed(() => {
   const feedItems = []
@@ -27,7 +46,8 @@ const realFeedPosts = computed(() => {
       id: `quote-${quote.id}`,
       user: { name: authStore.user?.username || 'You', avatar: null },
       type: 'quote',
-      timestamp: new Date(quote.created_at).toLocaleString(),
+      timestamp: formatTimestamp(quote.created_at),
+      rawTimestamp: quote.created_at,
       book: {
         title: quote.book_title || quote.book?.title || 'Unknown',
         author: quote.book_author || quote.book?.authors?.[0]?.name || 'Unknown',
@@ -51,7 +71,8 @@ const realFeedPosts = computed(() => {
         id: `progress-${userBook.id}`,
         user: { name: authStore.user?.username || 'You', avatar: null },
         type: 'progress',
-        timestamp: new Date(userBook.updated_at).toLocaleString(),
+        timestamp: formatTimestamp(userBook.updated_at),
+        rawTimestamp: userBook.updated_at,
         bookId: userBook.book?.id,
         book: {
           title: userBook.book?.title || 'Unknown',
@@ -79,7 +100,8 @@ const realFeedPosts = computed(() => {
         id: `review-${userBook.id}`,
         user: { name: authStore.user?.username || 'You', avatar: null },
         type: userBook.status === 'read' ? 'finished' : 'review',
-        timestamp: new Date(userBook.updated_at).toLocaleString(),
+        timestamp: formatTimestamp(userBook.updated_at),
+        rawTimestamp: userBook.updated_at,
         bookId: userBook.book?.id,
         book: {
           title: userBook.book?.title || 'Unknown',
@@ -102,7 +124,8 @@ const realFeedPosts = computed(() => {
         id: `want-to-read-${userBook.id}`,
         user: { name: authStore.user?.username || 'You', avatar: null },
         type: 'want_to_read',
-        timestamp: new Date(userBook.created_at || userBook.updated_at).toLocaleString(),
+        timestamp: formatTimestamp(userBook.created_at || userBook.updated_at),
+        rawTimestamp: userBook.created_at || userBook.updated_at,
         bookId: userBook.book?.id,
         book: {
           title: userBook.book?.title || 'Unknown',
@@ -124,7 +147,8 @@ const realFeedPosts = computed(() => {
         id: `started-reading-${userBook.id}`,
         user: { name: authStore.user?.username || 'You', avatar: null },
         type: 'started',
-        timestamp: new Date(userBook.started_at).toLocaleString(),
+        timestamp: formatTimestamp(userBook.started_at),
+        rawTimestamp: userBook.started_at,
         bookId: userBook.book?.id,
         book: {
           title: userBook.book?.title || 'Unknown',
@@ -139,8 +163,8 @@ const realFeedPosts = computed(() => {
     }
   })
 
-  // Sort by timestamp (newest first)
-  return feedItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+  // Sort by rawTimestamp (newest first)
+  return feedItems.sort((a, b) => new Date(b.rawTimestamp) - new Date(a.rawTimestamp))
 })
 
 // Placeholder feed data
@@ -414,25 +438,6 @@ const generateUserFeedPosts = () => {
   })
 
   return feedPosts
-}
-
-// Helper function to format timestamps
-const formatTimestamp = (dateString) => {
-  if (!dateString) return 'Recently'
-
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now - date
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 60) return `${diffMins} minutes ago`
-  if (diffHours < 24) return `${diffHours} hours ago`
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
-  return date.toLocaleDateString()
 }
 
 // Helper to parse timestamp for sorting

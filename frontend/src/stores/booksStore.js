@@ -119,6 +119,33 @@ export const useBooksStore = defineStore('books', {
       }
     },
 
+    async updateBook(id, bookData) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await booksAPI.update(id, bookData)
+
+        // Update in the books list if present
+        const index = this.books.findIndex(b => b.id === id)
+        if (index !== -1) {
+          this.books[index] = response.data
+        }
+
+        // Update current book if it's the same
+        if (this.currentBook && this.currentBook.id === id) {
+          this.currentBook = response.data
+        }
+
+        return { success: true, data: response.data }
+      } catch (error) {
+        this.error = error.response?.data || 'Failed to update book'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
     async deleteBook(id) {
       this.loading = true
       this.error = null

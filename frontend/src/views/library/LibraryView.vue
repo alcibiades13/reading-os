@@ -4,6 +4,10 @@ import { useRouter } from 'vue-router'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
 import { useAuthStore } from '@/stores/authStore'
+import { useChallengesStore } from '@/stores/challengesStore'
+import { useToast } from '@/composables/useToast'
+import YearlyChallengeWidget from '@/components/YearlyChallengeWidget.vue'
+import YearlyChallengeModal from '@/components/YearlyChallengeModal.vue'
 import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
   CheckCircle, Bookmark, BrainCircuit, Lightbulb,
@@ -14,11 +18,15 @@ const router = useRouter()
 const booksStore = useUserBooksStore()
 const quotesStore = useQuotesStore()
 const authStore = useAuthStore()
+const challengesStore = useChallengesStore()
+const { addToast } = useToast()
 
 const searchQuery = ref('')
 const selectedTab = ref('all')
 const loading = ref(true)
 const isQuoteExpanded = ref(false)
+const showChallengeModal = ref(false)
+const editingChallenge = ref(null)
 
 // Fetch books on mount
 onMounted(async () => {
@@ -280,6 +288,45 @@ const getStatusBadge = (status) => {
   }
   return badges[status] || null
 }
+
+// Challenge handlers
+const handleEditChallenge = (challenge) => {
+  editingChallenge.value = challenge
+  showChallengeModal.value = true
+}
+
+const handleCreateChallenge = () => {
+  editingChallenge.value = null
+  showChallengeModal.value = true
+}
+
+const handleCloseChallengeModal = () => {
+  showChallengeModal.value = false
+  editingChallenge.value = null
+}
+
+const handleSaveChallenge = async (challengeData) => {
+  let result
+
+  if (editingChallenge.value) {
+    // Update existing challenge
+    result = await challengesStore.updateChallenge(editingChallenge.value.id, challengeData)
+  } else {
+    // Create new challenge
+    result = await challengesStore.createChallenge(challengeData)
+  }
+
+  if (result.success) {
+    addToast(
+      editingChallenge.value ? 'Challenge updated successfully!' : 'Challenge created successfully!',
+      'success'
+    )
+    showChallengeModal.value = false
+    editingChallenge.value = null
+  } else {
+    addToast(result.error || 'Failed to save challenge', 'error')
+  }
+}
 </script>
 
 <template>
@@ -309,7 +356,7 @@ const getStatusBadge = (status) => {
         </p>
 
         <div class="flex flex-wrap items-center gap-4 pt-2">
-          <div class="px-5 py-3 rounded-2xl glass border-slate-800 flex items-center gap-4">
+          <div class="px-6 py-3.5 rounded-2xl glass border-slate-800 flex items-center gap-4">
             <div class="flex -space-x-2">
               <img
                 v-for="(book, i) in booksStore.books.slice(0, 3)"
@@ -568,23 +615,11 @@ const getStatusBadge = (status) => {
 
       <!-- RIGHT COLUMN: Analytics Sidebar -->
       <div class="lg:col-span-4 space-y-8">
-        <!-- 2025 Journey -->
-        <div class="p-8 rounded-[2rem] glass border-slate-800 bg-slate-900/20 group">
-          <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-6">2025 Journey</h3>
-          <div class="flex items-baseline gap-2 mb-4">
-            <span class="text-4xl font-black text-white tracking-tighter">{{ finishedThisYear }}</span>
-            <span class="text-slate-600 font-bold text-lg">/ {{ yearGoal }} books</span>
-          </div>
-          <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-4">
-            <div
-              :style="{ width: Math.min(yearProgress, 100) + '%' }"
-              class="h-full bg-indigo-500 rounded-full"
-            />
-          </div>
-          <p class="text-[10px] font-bold text-slate-500 flex items-center gap-2">
-            <TrendingUp :size="12" class="text-emerald-400" /> On track for 2025
-          </p>
-        </div>
+        <!-- Yearly Reading Challenge Widget -->
+        <YearlyChallengeWidget
+          @edit="handleEditChallenge"
+          @create="handleCreateChallenge"
+        />
 
         <!-- Library DNA -->
         <div class="p-8 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
@@ -651,6 +686,14 @@ const getStatusBadge = (status) => {
         </div>
       </div>
     </div>
+
+    <!-- Yearly Challenge Modal -->
+    <YearlyChallengeModal
+      :challenge="editingChallenge"
+      :open="showChallengeModal"
+      @close="handleCloseChallengeModal"
+      @save="handleSaveChallenge"
+    />
   </div>
 </template>
 

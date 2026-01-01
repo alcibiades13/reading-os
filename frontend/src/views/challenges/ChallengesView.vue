@@ -37,6 +37,7 @@ const activeChallenges = computed(() => challengesStore.activeChallenges)
 const completedChallenges = computed(() => challengesStore.completedChallenges)
 
 const years = computed(() => {
+  if (!Array.isArray(challengesStore.challenges)) return []
   const years = new Set()
   challengesStore.challenges.forEach(c => {
     years.add(new Date(c.start_date).getFullYear())
@@ -98,9 +99,9 @@ const formatDate = (date) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background">
+  <div class="min-h-screen bg-slate-950">
     <!-- Header -->
-    <div class="border-b bg-card">
+    <div class="border-b border-slate-800 bg-slate-900/50">
       <div class="container mx-auto px-4 py-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -258,18 +259,18 @@ const formatDate = (date) => {
               <!-- Progress -->
               <div class="space-y-2">
                 <div class="flex justify-between items-center">
-                  <span class="text-2xl font-bold" :class="getProgressColor(challenge.progress_percentage)">
-                    {{ challenge.completed_books }}
+                  <span class="text-2xl font-bold" :class="getProgressColor(challenge.progress_percentage || 0)">
+                    {{ challenge.completed_books || 0 }}
                   </span>
                   <span class="text-sm text-muted-foreground">
-                    / {{ challenge.target_books }} books
+                    / {{ challenge.target_books || 0 }} books
                   </span>
                 </div>
-                <Progress :model-value="challenge.progress_percentage" class="h-3" />
+                <Progress :model-value="challenge.progress_percentage || 0" class="h-3" />
                 <div class="flex justify-between text-xs text-muted-foreground">
-                  <span>{{ Math.round(challenge.progress_percentage) }}% complete</span>
-                  <span v-if="challenge.target_books - challenge.completed_books > 0">
-                    {{ challenge.target_books - challenge.completed_books }} to go
+                  <span>{{ Math.round(challenge.progress_percentage || 0) }}% complete</span>
+                  <span v-if="(challenge.target_books || 0) - (challenge.completed_books || 0) > 0">
+                    {{ (challenge.target_books || 0) - (challenge.completed_books || 0) }} to go
                   </span>
                 </div>
               </div>
@@ -328,7 +329,7 @@ const formatDate = (date) => {
               <Award class="w-8 h-8 text-yellow-600 mb-3" />
               <h3 class="font-semibold mb-1">{{ challenge.title }}</h3>
               <p class="text-2xl font-bold text-green-600">
-                {{ challenge.completed_books }}/{{ challenge.target_books }}
+                {{ challenge.completed_books || 0 }}/{{ challenge.target_books || 0 }}
               </p>
               <p class="text-xs text-muted-foreground mt-2">
                 Completed {{ formatDate(challenge.end_date) }}

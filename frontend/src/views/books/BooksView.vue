@@ -86,10 +86,14 @@ const handleClickOutside = () => {
 onMounted(async () => {
   await booksStore.fetchGenres()
   await userBooksStore.fetchBooks()
-  const popular = await booksStore.fetchPopularBooks()
-  if (popular.success) popularBooks.value = popular.data
 
-  const recent = await booksStore.fetchRecentBooks()
+  // Fetch both in parallel, but wait for both to complete before marking load as done
+  const [popular, recent] = await Promise.all([
+    booksStore.fetchPopularBooks(),
+    booksStore.fetchRecentBooks()
+  ])
+
+  if (popular.success) popularBooks.value = popular.data
   if (recent.success) recentBooks.value = recent.data
 
   // Mark initial load as complete

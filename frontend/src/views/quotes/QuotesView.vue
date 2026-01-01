@@ -467,7 +467,7 @@ const handleBookClick = (quote) => {
                 v-if="quote.book_cover"
                 @click="handleBookClick(quote)"
                 :class="quote.book ? 'cursor-pointer hover:scale-105 transition-transform' : ''"
-                class="w-10 h-15 sm:w-12 sm:h-18 rounded-lg shadow-lg overflow-hidden flex-shrink-0"
+                class="w-10 h-14 sm:w-12 sm:h-16 rounded-lg shadow-lg overflow-hidden flex-shrink-0"
               >
                 <img :src="quote.book_cover" :alt="quote.book_title" class="w-full h-full object-cover" />
               </div>
@@ -475,7 +475,7 @@ const handleBookClick = (quote) => {
                 v-else
                 @click="handleBookClick(quote)"
                 :class="quote.book ? 'cursor-pointer hover:bg-slate-700 transition-colors' : ''"
-                class="w-10 h-15 sm:w-12 sm:h-18 bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0"
+                class="w-10 h-14 sm:w-12 sm:h-16 bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0"
               >
                 <Bookmark :size="18" class="sm:w-5 sm:h-5 text-slate-600" />
               </div>

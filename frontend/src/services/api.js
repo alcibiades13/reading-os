@@ -124,6 +124,16 @@ export const quoteTagsAPI = {
   delete: (id) => api.delete(`/reading/quote-tags/${id}/`),
 }
 
+export const studyNotesAPI = {
+  list: (params) => api.get('/reading/study-notes/', { params }),
+  get: (id) => api.get(`/reading/study-notes/${id}/`),
+  create: (data) => api.post('/reading/study-notes/', data),
+  update: (id, data) => api.put(`/reading/study-notes/${id}/`, data),
+  delete: (id) => api.delete(`/reading/study-notes/${id}/`),
+  references: (bookId) => api.get('/reading/study-notes/references/', { params: { book: bookId } }),
+  promoteToQuote: (id) => api.post(`/reading/study-notes/${id}/promote_to_quote/`),
+}
+
 export const listsAPI = {
   list: (params) => api.get('/lists/', { params }),
   get: (id) => api.get(`/lists/${id}/`),

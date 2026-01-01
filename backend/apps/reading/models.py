@@ -5,6 +5,9 @@ from django.utils.text import slugify
 
 from apps.books.models import Book
 
+# Import StudyNote model
+from .models_study import StudyNote
+
 
 class UserBook(models.Model):
     """

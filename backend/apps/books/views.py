@@ -105,7 +105,7 @@ class BookViewSet(viewsets.ModelViewSet):
         """Return appropriate serializer based on action"""
         if self.action == 'create':
             return BookCreateSerializer
-        elif self.action == 'retrieve':
+        elif self.action == 'retrieve' or self.action == 'update' or self.action == 'partial_update':
             return BookDetailSerializer
         return BookListSerializer
     
@@ -189,6 +189,55 @@ class BookViewSet(viewsets.ModelViewSet):
         books = Book.objects.all().order_by('-created_at')[:20]
         serializer = BookListSerializer(books, many=True)
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        """Custom update to handle authors and publisher"""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        # Extract special fields that need custom handling
+        authors = request.data.get('authors', None)
+        publisher_name = request.data.get('publisher_name', None)
+
+        # Prepare data for serializer (exclude authors for now)
+        serializer_data = request.data.copy()
+        if 'authors' in serializer_data:
+            del serializer_data['authors']
+        if 'publisher_name' in serializer_data:
+            del serializer_data['publisher_name']
+
+        # Handle publisher
+        if publisher_name:
+            publisher, _ = Publisher.objects.get_or_create(
+                name=publisher_name,
+                defaults={'country': ''}
+            )
+            serializer_data['publisher'] = publisher.id
+
+        # Update book instance
+        serializer = self.get_serializer(instance, data=serializer_data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        # Handle authors (many-to-many)
+        if authors is not None:
+            author_objs = []
+            for author_name in authors:
+                if author_name and author_name.strip():
+                    author, _ = Author.objects.get_or_create(
+                        name=author_name.strip(),
+                        defaults={'bio': ''}
+                    )
+                    author_objs.append(author)
+            instance.authors.set(author_objs)
+
+        # Return updated book with all relations
+        book_with_relations = Book.objects.select_related('publisher').prefetch_related(
+            'authors', 'genres', 'tags'
+        ).get(id=instance.id)
+
+        output_serializer = BookDetailSerializer(book_with_relations)
+        return Response(output_serializer.data)
 
     def perform_destroy(self, instance):
         """Override destroy to handle deletion without errors"""

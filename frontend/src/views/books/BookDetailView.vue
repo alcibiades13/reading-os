@@ -7,9 +7,10 @@ import { useQuotesStore } from '@/stores/quotesStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/composables/useToast'
 import StarRating from '@/components/ui/StarRating.vue'
+import BookEditModal from '@/components/BookEditModal.vue'
 import {
   ArrowLeft, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -26,6 +27,7 @@ const bookId = computed(() => route.params.id)
 // State
 const showFullDesc = ref(false)
 const isQuoteModalOpen = ref(false)
+const isEditModalOpen = ref(false)
 const currentPageInput = ref(0)
 const reviewInput = ref('')
 
@@ -47,7 +49,12 @@ const userBook = computed(() => {
 const bookQuotes = computed(() => {
   if (!Array.isArray(quotesStore.quotes)) return []
   const numericBookId = parseInt(bookId.value)
-  return quotesStore.quotes.filter(q => q.book?.id === numericBookId)
+  // Backend already filters by book when we call fetchQuotes({ book: bookId })
+  // But also filter locally in case quotes from other books are in store
+  return quotesStore.quotes.filter(q => {
+    // book is just the ID (number), not an object
+    return q.book === numericBookId
+  })
 })
 
 // Computed - Library status
@@ -247,12 +254,36 @@ const getStatusLabel = (status) => {
   }
   return labels[status] || status
 }
+
+const handleEditBook = () => {
+  isEditModalOpen.value = true
+}
+
+const handleSaveBook = async (updatedData) => {
+  try {
+    await booksStore.updateBook(bookId.value, updatedData)
+    isEditModalOpen.value = false
+    addToast('Book updated successfully!', 'success')
+
+    // Refresh book data
+    await booksStore.fetchBook(bookId.value)
+  } catch (error) {
+    addToast('Failed to update book', 'error')
+  }
+}
+
+const handleStudyMode = () => {
+  router.push({
+    path: `/books/${bookId.value}/study`,
+    query: { title: book.value?.title || 'Study Session' }
+  })
+}
 </script>
 
 <script>
 // Inline helper components
 import { defineComponent, h } from 'vue'
-import { Star, Bookmark, Heart } from 'lucide-vue-next'
+import { Star, Bookmark, Heart, Copy } from 'lucide-vue-next'
 
 export const MetaBox = defineComponent({
   props: {
@@ -299,11 +330,18 @@ export const FriendActivity = defineComponent({
 
 export const QuoteCard = defineComponent({
   props: {
-    quote: Object
+    quote: Object,
+    bookTitle: String,
+    bookAuthors: String
   },
   setup(props) {
+    const handleCopy = () => {
+      const text = `"${props.quote.text}" — ${props.bookTitle} by ${props.bookAuthors}`
+      navigator.clipboard.writeText(text)
+    }
+
     return () => h('div', { class: 'p-6 rounded-2xl glass border-slate-800/50 hover:border-indigo-500/30 transition-all space-y-4' }, [
-      h('blockquote', { class: 'text-lg text-slate-200 italic leading-relaxed border-l-4 border-indigo-500 pl-4' }, `"${props.quote.text}"`),
+      h('blockquote', { class: 'text-quote font-serif text-slate-200 italic leading-relaxed border-l-4 border-indigo-500 pl-4' }, `"${props.quote.text}"`),
       props.quote.note ? h('div', { class: 'text-sm text-slate-400 pl-4' }, [
         h('span', { class: 'font-bold text-slate-500' }, 'Note:'),
         ` ${props.quote.note}`
@@ -318,6 +356,12 @@ export const QuoteCard = defineComponent({
             class: `p-2 rounded-lg hover:bg-slate-800 transition-colors ${props.quote.is_favorite ? 'text-rose-400' : 'text-slate-500'}`
           }, [
             h(Heart, { size: 16, fill: props.quote.is_favorite ? 'currentColor' : 'none' })
+          ]),
+          h('button', {
+            class: 'p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-500 hover:text-indigo-400',
+            onClick: handleCopy
+          }, [
+            h(Copy, { size: 16 })
           ])
         ])
       ])
@@ -379,6 +423,15 @@ export const QuoteCard = defineComponent({
             <code class="text-xs text-indigo-400">{{ book.isbn || 'N/A' }}</code>
           </div>
         </div>
+
+        <!-- Edit Book Button -->
+        <button
+          @click="handleEditBook"
+          class="w-full p-4 rounded-2xl bg-indigo-500/10 border-2 border-indigo-500/20 hover:border-indigo-500/40 hover:bg-indigo-500/20 transition-all flex items-center justify-center gap-2 text-indigo-400 font-bold text-sm group"
+        >
+          <Edit3 :size="18" class="group-hover:rotate-12 transition-transform" />
+          Edit Book Details
+        </button>
       </div>
 
       <!-- Right Column - Interaction & Content -->
@@ -395,8 +448,8 @@ export const QuoteCard = defineComponent({
               {{ genre.name }}
             </span>
           </div>
-          <h1 class="text-page-heading font-black text-white leading-tight mb-4">{{ book.title }}</h1>
-          <p class="text-lg sm:text-xl md:text-2xl text-slate-400 font-medium">
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-4">{{ book.title }}</h1>
+          <p class="text-base sm:text-lg lg:text-xl text-slate-400 font-medium">
             by <span class="text-indigo-400 hover:underline cursor-pointer">{{ authorsString }}</span>
           </p>
 
@@ -614,12 +667,20 @@ export const QuoteCard = defineComponent({
         <section class="space-y-6">
           <div class="flex items-center justify-between">
             <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em]">My Quotes</h2>
-            <button
-              @click="handleAddQuote"
-              class="flex items-center gap-2 text-indigo-400 font-bold text-sm hover:text-indigo-300 transition-colors"
-            >
-              <Plus :size="16" /> Add Quote
-            </button>
+            <div class="flex items-center gap-3">
+              <button
+                @click="handleStudyMode"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-sm hover:bg-indigo-500/20 transition-all"
+              >
+                <Brain :size="16" /> Study Mode
+              </button>
+              <button
+                @click="handleAddQuote"
+                class="flex items-center gap-2 text-indigo-400 font-bold text-sm hover:text-indigo-300 transition-colors"
+              >
+                <Plus :size="16" /> Add Quote
+              </button>
+            </div>
           </div>
 
           <div v-if="bookQuotes.length > 0" class="grid grid-cols-1 gap-6">
@@ -627,6 +688,8 @@ export const QuoteCard = defineComponent({
               v-for="quote in bookQuotes.slice(0, 3)"
               :key="quote.id"
               :quote="quote"
+              :book-title="book.title"
+              :book-authors="authorsString"
             />
             <button
               v-if="bookQuotes.length > 3"
@@ -690,6 +753,15 @@ export const QuoteCard = defineComponent({
       </div>
     </div>
   </div>
+
+  <!-- Book Edit Modal -->
+  <BookEditModal
+    v-if="isEditModalOpen && book"
+    :book="book"
+    :open="isEditModalOpen"
+    @close="isEditModalOpen = false"
+    @save="handleSaveBook"
+  />
 </template>
 
 <style>

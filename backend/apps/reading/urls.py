@@ -4,6 +4,7 @@ from apps.reading.views import (
     UserBookViewSet,
     QuoteTagViewSet,
     QuoteViewSet,
+    StudyNoteViewSet,
 )
 
 app_name = 'reading'
@@ -13,6 +14,7 @@ router = DefaultRouter()
 router.register(r'user-books', UserBookViewSet, basename='userbook')
 router.register(r'quote-tags', QuoteTagViewSet, basename='quotetag')
 router.register(r'quotes', QuoteViewSet, basename='quote')
+router.register(r'study-notes', StudyNoteViewSet, basename='studynote')
 
 urlpatterns = [
     path('', include(router.urls)),

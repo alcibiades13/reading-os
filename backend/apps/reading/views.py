@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.db.models import Q, Count
 
 from apps.reading.models import UserBook, Quote, QuoteTag
+from apps.reading.models_study import StudyNote
 from apps.reading.serializers import (
     UserBookListSerializer,
     UserBookDetailSerializer,
@@ -12,6 +13,12 @@ from apps.reading.serializers import (
     QuoteDetailSerializer,
     QuoteCreateSerializer,
     QuoteTagSerializer,
+)
+from apps.reading.serializers_study import (
+    StudyNoteListSerializer,
+    StudyNoteDetailSerializer,
+    StudyNoteCreateSerializer,
+    StudyNoteUpdateSerializer,
 )
 
 
@@ -90,7 +97,7 @@ class UserBookViewSet(viewsets.ModelViewSet):
         - Set started_at when status changes to 'currently_reading'
         - Set finished_at when status changes to 'read'
         """
-        from datetime import date
+        from django.utils import timezone
 
         instance = self.get_object()
         old_status = instance.status
@@ -99,12 +106,12 @@ class UserBookViewSet(viewsets.ModelViewSet):
         # Auto-set started_at when beginning to read
         if new_status == 'currently_reading' and old_status != 'currently_reading':
             if not instance.started_at:
-                serializer.validated_data['started_at'] = date.today()
+                serializer.validated_data['started_at'] = timezone.now().date()
 
         # Auto-set finished_at when marking as read
         if new_status == 'read' and old_status != 'read':
             if not instance.finished_at:
-                serializer.validated_data['finished_at'] = date.today()
+                serializer.validated_data['finished_at'] = timezone.now().date()
 
         serializer.save()
 
@@ -282,6 +289,116 @@ class QuoteViewSet(viewsets.ModelViewSet):
         ).filter(
             Q(text__icontains=query) | Q(note__icontains=query)
         ).select_related('book').prefetch_related('tags')
-        
+
         serializer = QuoteListSerializer(quotes, many=True)
         return Response(serializer.data)
+
+
+class StudyNoteViewSet(viewsets.ModelViewSet):
+    """ViewSet for StudyNote model - deep study and scholarship"""
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['content', 'reference', 'chapter']
+    ordering_fields = ['created_at', 'reference', 'note_type']
+    ordering = ['reference', '-created_at']
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'create':
+            return StudyNoteCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            return StudyNoteUpdateSerializer
+        elif self.action == 'retrieve':
+            return StudyNoteDetailSerializer
+        return StudyNoteListSerializer
+
+    def get_queryset(self):
+        """Filter queryset by user and parameters"""
+        queryset = StudyNote.objects.all().select_related(
+            'user',
+            'book',
+            'user_book'
+        ).prefetch_related('tags')
+
+        # Filter by current user
+        queryset = queryset.filter(user=self.request.user)
+
+        # Filter by book
+        book_id = self.request.query_params.get('book', None)
+        if book_id:
+            queryset = queryset.filter(book_id=book_id)
+
+        # Filter by note type
+        note_type = self.request.query_params.get('type', None)
+        if note_type:
+            queryset = queryset.filter(note_type=note_type)
+
+        # Filter by reference
+        reference = self.request.query_params.get('reference', None)
+        if reference:
+            queryset = queryset.filter(reference=reference)
+
+        # Filter by tag
+        tag_id = self.request.query_params.get('tag', None)
+        if tag_id:
+            queryset = queryset.filter(tags__id=tag_id)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        """Set user to current user"""
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def references(self, request):
+        """Get list of all unique references for a book"""
+        book_id = request.query_params.get('book')
+        if not book_id:
+            return Response(
+                {'error': 'book parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        references = StudyNote.objects.filter(
+            user=request.user,
+            book_id=book_id
+        ).values('reference').annotate(
+            count=Count('id')
+        ).order_by('reference')
+
+        return Response(references)
+
+    @action(detail=True, methods=['post'])
+    def promote_to_quote(self, request, pk=None):
+        """Promote a study note to a main quote"""
+        study_note = self.get_object()
+
+        if study_note.is_promoted_to_quote:
+            return Response(
+                {'error': 'Note already promoted'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create a Quote from the study note
+        quote = Quote.objects.create(
+            user=request.user,
+            book=study_note.book,
+            user_book=study_note.user_book,
+            text=study_note.content,
+            page_number=study_note.page_number,
+            chapter=study_note.chapter,
+            is_public=study_note.is_public
+        )
+
+        # Copy tags
+        quote.tags.set(study_note.tags.all())
+
+        # Mark as promoted
+        study_note.is_promoted_to_quote = True
+        study_note.promoted_quote = quote
+        study_note.save()
+
+        return Response({
+            'message': 'Note promoted to quote',
+            'quote_id': quote.id
+        })

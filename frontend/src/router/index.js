@@ -41,6 +41,16 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/books/:id/study',
+    name: 'BookStudy',
+    component: () => import('@/views/study/StudyView.vue'),
+    meta: { requiresAuth: true },
+    props: (route) => ({
+      bookId: route.params.id,
+      bookTitle: route.query.title || 'Study Session'
+    })
+  },
+  {
     path: '/books/:id/review',
     name: 'BookReview',
     component: () => import('@/views/books/BookReviewView.vue'),

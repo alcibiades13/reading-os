@@ -180,7 +180,7 @@ const hasCover = ref(true)
                 <input
                   v-model="editableData.title"
                   type="text"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-2xl md:text-3xl font-bold text-white focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-lg md:text-xl font-bold text-white focus:border-indigo-500 focus:outline-none"
                   placeholder="Book Title"
                 />
               </div>
