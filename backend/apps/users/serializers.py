@@ -37,6 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
             'avatar',
             'location',
             'website',
+            'birth_date',
             'reading_dna',
             'profile',
             'created_at',
@@ -96,6 +97,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'avatar',
             'location',
             'website',
+            'birth_date',
             'reading_dna',
             'profile',
             'created_at',
@@ -141,6 +143,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'avatar',
             'location',
             'website',
+            'birth_date',
             'profile',
         ]
     

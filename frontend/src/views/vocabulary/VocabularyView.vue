@@ -77,7 +77,7 @@ const handlePracticeComplete = () => {
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
               <Brain class="text-emerald-400" :size="18" />
             </div>
-            <span class="text-[10px] sm:text-sm font-bold text-emerald-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Personal Lexicon</span>
+            <span class="text-page-meta font-bold text-emerald-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Personal Lexicon</span>
           </div>
           <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
             The <span class="text-emerald-500">Vocabulary</span> Vault

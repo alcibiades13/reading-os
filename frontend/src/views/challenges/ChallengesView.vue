@@ -107,8 +107,8 @@ const formatDate = (date) => {
           <div class="flex items-center gap-3">
             <Target class="w-8 h-8 text-primary" />
             <div>
-              <h1 class="text-3xl font-bold">Reading Challenges</h1>
-              <p class="text-muted-foreground">Track your reading goals</p>
+              <h1 class="text-page-heading font-bold">Reading Challenges</h1>
+              <p class="text-page-subtitle text-muted-foreground">Track your reading goals</p>
             </div>
           </div>
           

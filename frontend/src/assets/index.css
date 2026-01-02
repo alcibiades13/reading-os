@@ -234,4 +234,30 @@
       line-height: 1;
     }
   }
+
+  /* Page subtitle/description size */
+  .text-page-subtitle {
+    font-size: 0.875rem; /* 14px - smaller on mobile */
+    line-height: 1.5rem; /* 24px */
+  }
+
+  @media (min-width: 768px) {
+    .text-page-subtitle {
+      font-size: 1rem; /* 16px */
+      line-height: 1.625rem; /* 26px */
+    }
+  }
+
+  /* Page meta text (genre, snippet above title) */
+  .text-page-meta {
+    font-size: 0.625rem; /* 10px */
+    line-height: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .text-page-meta {
+      font-size: 0.875rem; /* 14px */
+      line-height: 1.25rem;
+    }
+  }
 }

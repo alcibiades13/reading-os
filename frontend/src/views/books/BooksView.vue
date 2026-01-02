@@ -164,7 +164,7 @@ const isBookInLibrary = (book) => {
     <div class="w-full max-w-7xl mx-auto pt-12 pb-8 px-6">
       <PageHeader
         title="Browse Books"
-        subtitle="Discover your next great read from our curated collection"
+        subtitle="Discover your next great read from the curated collection"
         accentWord="Browse"
       />
 

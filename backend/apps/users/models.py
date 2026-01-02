@@ -56,7 +56,8 @@ class User(AbstractUser):
     # Social
     location = models.CharField(max_length=100, blank=True)
     website = models.URLField(blank=True)
-    
+    birth_date = models.DateField(null=True, blank=True, help_text="Date of birth")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

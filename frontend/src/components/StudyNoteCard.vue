@@ -18,6 +18,12 @@
         <span v-else class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
           <Hash :size="10" /> {{ note.reference }}
         </span>
+        <span v-if="note.page_number" class="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+          p. {{ note.page_number }}
+        </span>
+        <span v-if="note.chapter" class="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+          Ch. {{ note.chapter }}
+        </span>
         <span class="text-[10px] font-bold text-slate-600 flex items-center gap-1">
           <Clock :size="10" />
           {{ formatDate(note.created_at) }}

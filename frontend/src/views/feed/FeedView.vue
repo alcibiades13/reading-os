@@ -520,12 +520,12 @@ onUnmounted(() => {
           <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
             <Users :size="24" class="text-indigo-400" />
           </div>
-          <span class="text-sm font-bold text-indigo-400 uppercase tracking-[0.3em]">Activity Stream</span>
+          <span class="text-page-meta font-bold text-indigo-400 uppercase tracking-[0.3em]">Activity Stream</span>
         </div>
         <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
           Reading OS <span class="text-indigo-500">Feed</span>
         </h1>
-        <p class="text-slate-400 text-subtitle leading-relaxed">
+        <p class="text-page-subtitle text-slate-400 leading-relaxed">
           See what your reading community is up to. Discover new books, insights, and reading milestones.
         </p>
       </header>

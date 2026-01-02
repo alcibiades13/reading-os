@@ -197,12 +197,12 @@ const handleBookClick = (quote) => {
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
               <Type :size="18" class="sm:w-6 sm:h-6 text-indigo-400" />
             </div>
-            <span class="text-[10px] sm:text-sm font-bold text-indigo-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Insights & Quotes</span>
+            <span class="text-page-meta font-bold text-indigo-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Insights & Quotes</span>
           </div>
           <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
             The <span class="text-indigo-500">Collected</span> Mind
           </h1>
-          <p class="text-slate-400 text-subtitle max-w-2xl leading-relaxed">
+          <p class="text-page-subtitle text-slate-400 max-w-2xl leading-relaxed">
             Your digital commonplace book. Revisit the ideas that shaped your perspective and preserve the beauty of language.
           </p>
         </header>

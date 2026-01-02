@@ -105,15 +105,36 @@ const userInitials = computed(() => {
           <!-- User dropdown -->
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
-              <button class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:border-indigo-500 transition-colors flex items-center justify-center text-[10px] font-bold">
-                {{ userInitials }}
+              <button class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:border-indigo-500 transition-colors flex items-center justify-center text-[10px] font-bold overflow-hidden">
+                <img
+                  v-if="authStore.user?.avatar"
+                  :src="authStore.user.avatar"
+                  alt="Avatar"
+                  class="w-full h-full object-cover"
+                />
+                <span v-else>{{ userInitials }}</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" class="w-56">
               <DropdownMenuLabel>
-                <div class="flex flex-col space-y-1">
-                  <p class="text-sm font-medium">{{ authStore.user?.full_name || 'User' }}</p>
-                  <p class="text-xs text-muted-foreground">{{ authStore.user?.email }}</p>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold overflow-hidden flex-shrink-0">
+                    <img
+                      v-if="authStore.user?.avatar"
+                      :src="authStore.user.avatar"
+                      alt="Avatar"
+                      class="w-full h-full object-cover"
+                    />
+                    <span v-else>{{ userInitials }}</span>
+                  </div>
+                  <div class="flex flex-col space-y-1 min-w-0">
+                    <p class="text-sm font-medium truncate">
+                      {{ authStore.user?.first_name || authStore.user?.last_name
+                        ? `${authStore.user.first_name || ''} ${authStore.user.last_name || ''}`.trim()
+                        : authStore.user?.email?.split('@')[0] || 'User' }}
+                    </p>
+                    <p class="text-xs text-muted-foreground truncate">{{ authStore.user?.email }}</p>
+                  </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

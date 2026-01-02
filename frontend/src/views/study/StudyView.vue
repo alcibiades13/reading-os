@@ -1,53 +1,75 @@
 <template>
   <div class="fixed inset-0 z-[100] bg-slate-950 flex flex-col animate-in fade-in duration-500">
     <!-- Header -->
-    <header class="h-20 border-b border-slate-900 flex items-center justify-between px-8 glass sticky top-0 z-20">
-      <div class="flex items-center gap-6">
-        <button @click="handleBack" class="p-2 rounded-full hover:bg-slate-800 text-slate-400 transition-colors">
-          <ArrowLeft :size="24" />
+    <header class="h-16 md:h-20 border-b border-slate-900 flex items-center justify-between px-4 md:px-8 glass sticky top-0 z-20">
+      <div class="flex items-center gap-3 md:gap-6 min-w-0 flex-1">
+        <button @click="handleBack" class="p-2 rounded-full hover:bg-slate-800 text-slate-400 transition-colors flex-shrink-0">
+          <ArrowLeft :size="20" class="md:hidden" />
+          <ArrowLeft :size="24" class="hidden md:block" />
         </button>
-        <div class="h-8 w-px bg-slate-800" />
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-            <Brain class="text-indigo-400" :size="20" />
+        <div class="h-6 md:h-8 w-px bg-slate-800 flex-shrink-0" />
+        <div class="flex items-center gap-2 md:gap-3 min-w-0">
+          <div class="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+            <Brain class="text-indigo-400" :size="16" />
           </div>
-          <div>
-            <h1 class="text-sm font-black text-white uppercase tracking-widest">{{ bookTitle }}</h1>
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Study Mode Active</p>
+          <div class="min-w-0">
+            <h1 class="text-xs md:text-sm font-black text-white uppercase tracking-widest truncate">{{ bookTitle }}</h1>
+            <p class="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] hidden md:block">Study Mode Active</p>
           </div>
         </div>
       </div>
 
-      <div class="flex items-center gap-4">
-        <div class="relative group">
+      <div class="flex items-center gap-2 md:gap-4 flex-shrink-0">
+        <button @click="showSearch = !showSearch" class="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors">
+          <Search :size="18" />
+        </button>
+        <div class="relative group hidden md:block">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-400 transition-colors" :size="16" />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Search notes..."
-            class="bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+            class="bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all w-48"
           />
         </div>
       </div>
     </header>
 
+    <!-- Mobile Search Bar -->
+    <div v-if="showSearch" class="md:hidden p-4 border-b border-slate-900 bg-slate-950">
+      <div class="relative">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="16" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search notes..."
+          class="w-full bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+        />
+      </div>
+    </div>
+
     <!-- Main Workspace -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- Sidebar: References List -->
-      <aside class="w-72 border-r border-slate-900 flex flex-col bg-slate-950">
-        <div class="p-6">
-          <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">References</h3>
+      <!-- Sidebar: References List - Hidden on mobile, shown as drawer -->
+      <aside :class="['border-r border-slate-900 flex flex-col bg-slate-950 transition-transform duration-300 z-10', showReferences ? 'fixed inset-y-0 left-0 w-64 md:w-72 shadow-2xl' : 'hidden md:flex md:w-72']">
+        <div class="p-4 md:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">References</h3>
+            <button @click="showReferences = false" class="md:hidden p-1 rounded-lg hover:bg-slate-800 text-slate-500">
+              <X :size="16" />
+            </button>
+          </div>
           <button
-            @click="selectedRef = null"
+            @click="selectedRef = null; showReferences = false"
             :class="['w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all mb-2', !selectedRef ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:bg-slate-900']"
           >
             All References ({{ notes.length }})
           </button>
-          <div class="space-y-1 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+          <div class="space-y-1 overflow-y-auto max-h-[calc(100vh-200px)] custom-scrollbar">
             <button
               v-for="ref in references"
               :key="ref"
-              @click="selectedRef = ref"
+              @click="selectedRef = ref; showReferences = false"
               :class="['w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex justify-between items-center', selectedRef === ref ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-900']"
             >
               <span class="truncate">{{ ref }}</span>
@@ -59,46 +81,71 @@
         </div>
       </aside>
 
+      <!-- Backdrop for mobile drawer -->
+      <div v-if="showReferences" @click="showReferences = false" class="md:hidden fixed inset-0 bg-black/50 z-[5]"></div>
+
       <!-- Notes Surface -->
-      <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20 p-12">
-        <div class="max-w-[1800px] mx-auto space-y-8">
-          <!-- Type Filtering - Left aligned -->
-          <div class="flex items-center gap-2">
+      <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20 p-4 md:p-8 lg:p-12">
+        <div class="max-w-[1800px] mx-auto space-y-6 md:space-y-8">
+          <!-- Mobile Reference Toggle + Type Filtering -->
+          <div class="space-y-3">
+            <!-- Mobile reference toggle button -->
             <button
-              @click="activeType = 'all'"
-              :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              @click="showReferences = true"
+              class="md:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-sm font-bold text-white hover:bg-slate-800 transition-all"
             >
-              <LayoutGrid :size="14" />
-              All
+              <div class="flex items-center gap-2">
+                <Filter :size="16" />
+                <span>{{ selectedRef || 'All References' }}</span>
+              </div>
+              <span class="text-[10px] bg-slate-800 px-2 py-1 rounded border border-slate-700">
+                {{ filteredNotes.length }}
+              </span>
             </button>
-            <button
-              @click="activeType = 'quote'"
-              :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'quote' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
-            >
-              <QuoteIcon :size="14" />
-              Quotes
-            </button>
-            <button
-              @click="activeType = 'insight'"
-              :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'insight' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
-            >
-              <Lightbulb :size="14" />
-              Insights
-            </button>
-            <button
-              @click="activeType = 'question'"
-              :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'question' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
-            >
-              <HelpCircle :size="14" />
-              Questions
-            </button>
-            <button
-              @click="activeType = 'note'"
-              :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'note' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
-            >
-              <MessageSquare :size="14" />
-              Notes
-            </button>
+
+            <!-- Type Filtering - Wrap on mobile -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <button
+                @click="activeType = 'all'"
+                :class="['flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all', activeType === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              >
+                <LayoutGrid :size="12" class="md:hidden" />
+                <LayoutGrid :size="14" class="hidden md:block" />
+                All
+              </button>
+              <button
+                @click="activeType = 'quote'"
+                :class="['flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all', activeType === 'quote' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              >
+                <QuoteIcon :size="12" class="md:hidden" />
+                <QuoteIcon :size="14" class="hidden md:block" />
+                Quotes
+              </button>
+              <button
+                @click="activeType = 'insight'"
+                :class="['flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all', activeType === 'insight' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              >
+                <Lightbulb :size="12" class="md:hidden" />
+                <Lightbulb :size="14" class="hidden md:block" />
+                Insights
+              </button>
+              <button
+                @click="activeType = 'question'"
+                :class="['flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all', activeType === 'question' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              >
+                <HelpCircle :size="12" class="md:hidden" />
+                <HelpCircle :size="14" class="hidden md:block" />
+                Questions
+              </button>
+              <button
+                @click="activeType = 'note'"
+                :class="['flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all', activeType === 'note' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              >
+                <MessageSquare :size="12" class="md:hidden" />
+                <MessageSquare :size="14" class="hidden md:block" />
+                Notes
+              </button>
+            </div>
           </div>
 
           <!-- Two-column masonry grid -->
@@ -124,11 +171,11 @@
       </main>
     </div>
 
-    <!-- Quick Add Footer - Two rows -->
-    <footer class="p-6 bg-slate-900/50 border-t border-slate-900 glass">
+    <!-- Quick Add Footer - Responsive -->
+    <footer class="p-3 md:p-6 bg-slate-900/50 border-t border-slate-900 glass">
       <div class="max-w-5xl mx-auto space-y-3">
-        <!-- Row 1: Type selector + Reference + Capture button -->
-        <div class="flex items-center gap-4">
+        <!-- Desktop Layout: Type selector + Reference + Page + Chapter + Capture -->
+        <div class="hidden md:flex items-center gap-4">
           <!-- Type selector -->
           <div class="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800">
             <button
@@ -161,12 +208,28 @@
             </button>
           </div>
 
-          <!-- Reference input - takes remaining space -->
+          <!-- Reference input -->
           <input
             v-model="newNoteRef"
             type="text"
             placeholder="Reference (e.g. John 3:16, Romans 8:28)"
             class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+          />
+
+          <!-- Page Number input -->
+          <input
+            v-model="newNotePageNumber"
+            type="number"
+            placeholder="Page"
+            class="w-20 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+          />
+
+          <!-- Chapter input -->
+          <input
+            v-model="newNoteChapter"
+            type="text"
+            placeholder="Chapter"
+            class="w-28 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
           />
 
           <!-- Capture button -->
@@ -179,15 +242,83 @@
           </button>
         </div>
 
-        <!-- Row 2: Textarea full width -->
+        <!-- Mobile Layout: Stacked -->
+        <div class="md:hidden space-y-2">
+          <!-- Type selector - Wrap instead of scroll -->
+          <div class="flex items-center gap-1 flex-wrap">
+            <button
+              @click="newNoteType = 'note'"
+              :class="['flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all', newNoteType === 'note' ? 'bg-slate-800 text-white' : 'text-slate-600 bg-slate-950']"
+            >
+              <MessageSquare :size="10" />
+              Note
+            </button>
+            <button
+              @click="newNoteType = 'quote'"
+              :class="['flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all', newNoteType === 'quote' ? 'bg-slate-800 text-white' : 'text-slate-600 bg-slate-950']"
+            >
+              <QuoteIcon :size="10" />
+              Quote
+            </button>
+            <button
+              @click="newNoteType = 'insight'"
+              :class="['flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all', newNoteType === 'insight' ? 'bg-slate-800 text-white' : 'text-slate-600 bg-slate-950']"
+            >
+              <Lightbulb :size="10" />
+              Insight
+            </button>
+            <button
+              @click="newNoteType = 'question'"
+              :class="['flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all', newNoteType === 'question' ? 'bg-slate-800 text-white' : 'text-slate-600 bg-slate-950']"
+            >
+              <HelpCircle :size="10" />
+              Query
+            </button>
+          </div>
+
+          <!-- Reference full width -->
+          <input
+            v-model="newNoteRef"
+            type="text"
+            placeholder="Reference (e.g. John 3:16)"
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+          />
+
+          <!-- Page + Chapter + Capture button row -->
+          <div class="flex items-center gap-2">
+            <input
+              v-model="newNotePageNumber"
+              type="number"
+              placeholder="Page"
+              class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+            />
+            <input
+              v-model="newNoteChapter"
+              type="text"
+              placeholder="Chapter"
+              class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Textarea - Full width on all screens -->
         <textarea
           v-model="newNoteContent"
           @keydown.meta.enter="handleSave"
           @keydown.ctrl.enter="handleSave"
-          placeholder="What are you learning? (Cmd+Enter to save)"
-          class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
-          rows="4"
+          placeholder="What are you learning?"
+          class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
+          :rows="2"
         />
+
+        <!-- Mobile Capture button -->
+        <button
+          @click="handleSave"
+          class="md:hidden w-full py-2 rounded-xl bg-indigo-500 text-white font-bold text-xs shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus :size="16" />
+          Capture
+        </button>
       </div>
     </footer>
   </div>
@@ -209,7 +340,9 @@ import {
   HelpCircle,
   Lightbulb,
   Quote as QuoteIcon,
-  LayoutGrid
+  LayoutGrid,
+  Filter,
+  X
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -237,6 +370,8 @@ const newNoteRef = ref('')
 const newNoteType = ref('note')
 const newNotePageNumber = ref('')
 const newNoteChapter = ref('')
+const showSearch = ref(false)
+const showReferences = ref(false)
 
 onMounted(async () => {
   await studyNotesStore.fetchNotes({ book: props.bookId })
@@ -290,7 +425,9 @@ const handleSave = async () => {
     book: props.bookId,
     content: newNoteContent.value,
     reference: newNoteRef.value || 'General',
-    note_type: newNoteType.value
+    note_type: newNoteType.value,
+    page_number: newNotePageNumber.value ? parseInt(newNotePageNumber.value) : null,
+    chapter: newNoteChapter.value || null
   }
 
   const result = await studyNotesStore.createNote(payload)
@@ -298,6 +435,8 @@ const handleSave = async () => {
   if (result.success) {
     newNoteContent.value = ''
     newNoteRef.value = ''
+    newNotePageNumber.value = ''
+    newNoteChapter.value = ''
   }
 }
 
@@ -348,5 +487,14 @@ const handleBack = () => {
 .glass {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

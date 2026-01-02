@@ -20,6 +20,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // If data is FormData, remove Content-Type header (browser will set it with boundary)
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+
     return config
   },
   (error) => {
@@ -72,7 +78,7 @@ export const authAPI = {
   login: (credentials) => api.post('/users/login/', credentials),
   register: (data) => api.post('/users/', data),
   getMe: () => api.get('/users/me/'),
-  updateProfile: (data) => api.put('/users/update_profile/', data),
+  updateProfile: (data) => api.patch('/users/update_profile/', data),
 }
 
 export const booksAPI = {

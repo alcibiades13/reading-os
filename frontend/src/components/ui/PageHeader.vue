@@ -17,7 +17,7 @@ defineProps({
 
 <template>
   <header class="mb-10">
-    <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight mb-3">
+    <h1 class="text-page-heading font-black text-white tracking-tight mb-3">
       <template v-if="accentWord">
         <span v-html="title.replace(accentWord, `<span class='text-indigo-400'>${accentWord}</span>`)"></span>
       </template>
@@ -25,7 +25,7 @@ defineProps({
         {{ title }}
       </template>
     </h1>
-    <p v-if="subtitle" class="text-slate-400 text-base md:text-lg max-w-3xl leading-relaxed">
+    <p v-if="subtitle" class="text-page-subtitle text-slate-400 max-w-3xl leading-relaxed">
       {{ subtitle }}
     </p>
   </header>
