@@ -388,7 +388,7 @@ export const QuoteCard = defineComponent({
       <div class="lg:col-span-4 space-y-8">
         <div class="relative aspect-[2/3] w-full max-w-[200px] sm:max-w-xs mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
           <img :src="coverUrl" :alt="book.title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent" />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/10 to-transparent" />
 
           <button
             @click="handleToggleFavorite"

@@ -308,7 +308,7 @@
           @keydown.ctrl.enter="handleSave"
           placeholder="What are you learning?"
           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
-          :rows="2"
+          :rows="5"
         />
 
         <!-- Mobile Capture button -->

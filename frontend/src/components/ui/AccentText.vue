@@ -9,7 +9,7 @@ defineProps({
 
 <template>
   <span :class="{
-    'text-indigo-400': color === 'indigo',
+    'text-indigo-500': color === 'indigo',
     'text-sky-500': color === 'sky',
     'text-purple-500': color === 'purple',
     'text-amber-500': color === 'amber'

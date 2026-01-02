@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { useThemeStore } from '@/stores/themeStore'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -26,12 +27,15 @@ import {
   X,
   BookPlus,
   Rss,
-  Brain
+  Brain,
+  Sun,
+  Moon
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
 
 const mobileMenuOpen = ref(false)
 
@@ -91,6 +95,16 @@ const userInitials = computed(() => {
 
         <!-- User Menu -->
         <div class="flex items-center gap-4">
+          <!-- Theme toggle button -->
+          <button
+            @click="themeStore.toggleTheme()"
+            class="p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
+            aria-label="Toggle Theme"
+          >
+            <Sun v-if="themeStore.theme === 'dark'" :size="18" />
+            <Moon v-else :size="18" />
+          </button>
+
           <!-- Mobile menu button -->
           <Button
             variant="ghost"
