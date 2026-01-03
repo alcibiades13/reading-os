@@ -24,6 +24,7 @@ class StudyNoteListSerializer(serializers.ModelSerializer):
             'content',
             'page_number',
             'chapter',
+            'highlights',
             'tags',
             'is_promoted_to_quote',
             'is_public',
@@ -59,6 +60,7 @@ class StudyNoteDetailSerializer(serializers.ModelSerializer):
             'content',
             'page_number',
             'chapter',
+            'highlights',
             'tags',
             'tag_ids',
             'is_promoted_to_quote',
@@ -118,14 +120,17 @@ class StudyNoteUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudyNote
         fields = [
+            'id',
             'reference',
             'note_type',
             'content',
             'page_number',
             'chapter',
+            'highlights',
             'tag_ids',
             'is_public',
         ]
+        read_only_fields = ['id']
 
     def update(self, instance, validated_data):
         """Handle many-to-many relationships"""

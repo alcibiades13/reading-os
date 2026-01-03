@@ -17,7 +17,8 @@
       "Bash(python manage.py makemigrations:*)",
       "Bash(find:*)",
       "Bash(./venv/Scripts/playwright.exe install:*)",
-      "Bash(python test_categories_scrape.py:*)"
+      "Bash(python test_categories_scrape.py:*)",
+      "Bash(nslookup:*)"
     ]
   }
 }

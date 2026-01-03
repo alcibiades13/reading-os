@@ -415,6 +415,15 @@
     background-color: rgba(99, 102, 241, 0.3);
     color: #0f172a;
   }
+
+  /* Highlight text color fixes */
+  .highlight-text {
+    color: #fef08a !important; /* yellow-200 for dark mode */
+  }
+
+  body.light .highlight-text {
+    color: #713f12 !important; /* yellow-900 for light mode - dark text on yellow bg */
+  }
 }
 
 @layer components {

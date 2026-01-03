@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBooksStore } from '@/stores/booksStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
@@ -30,6 +30,8 @@ const isQuoteModalOpen = ref(false)
 const isEditModalOpen = ref(false)
 const currentPageInput = ref(0)
 const reviewInput = ref('')
+const coverLoaded = ref(false)
+const currentCoverUrl = ref('')
 
 // Helper to strip HTML and get text preview
 const getReviewPreview = (htmlContent, maxLength = 300) => {
@@ -123,6 +125,8 @@ const formattedFinishedAt = computed(() => {
 
 // Lifecycle
 onMounted(async () => {
+  coverLoaded.value = false
+
   const promises = [
     booksStore.fetchBook(bookId.value),
     quotesStore.fetchQuotes({ book: bookId.value })
@@ -144,6 +148,25 @@ onMounted(async () => {
   window.scrollTo(0, 0)
 })
 
+// Reset cover loaded state when bookId or coverUrl changes
+watch(bookId, async (newId, oldId) => {
+  // IMMEDIATELY clear the current book to prevent showing old data
+  booksStore.currentBook = null
+  coverLoaded.value = false
+  await nextTick()
+
+  await booksStore.fetchBook(newId)
+  quotesStore.fetchQuotes({ book: newId })
+}, { flush: 'sync' })
+
+watch(coverUrl, async (newUrl, oldUrl) => {
+  if (newUrl !== oldUrl && newUrl !== currentCoverUrl.value) {
+    coverLoaded.value = false
+    currentCoverUrl.value = newUrl
+    await nextTick()
+  }
+})
+
 // Watch for userBook changes to update inputs
 watch(userBook, (newVal, oldVal) => {
   if (newVal) {
@@ -157,6 +180,11 @@ watch(userBook, (newVal, oldVal) => {
 }, { deep: true })
 
 // Handlers
+const handleCoverLoad = () => {
+  console.log('Image @load fired, setting coverLoaded to true')
+  coverLoaded.value = true
+}
+
 const handleBack = () => {
   router.back()
 }
@@ -287,7 +315,7 @@ import { Star, Bookmark, Heart, Copy } from 'lucide-vue-next'
 
 export const MetaBox = defineComponent({
   props: {
-    icon: Object,
+    icon: [Object, Function],
     label: String,
     value: String
   },
@@ -387,8 +415,18 @@ export const QuoteCard = defineComponent({
       <!-- Left Column - Cover & Main Info -->
       <div class="lg:col-span-4 space-y-8">
         <div class="relative aspect-[2/3] w-full max-w-[200px] sm:max-w-xs mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
-          <img :src="coverUrl" :alt="book.title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/10 to-transparent" />
+          <!-- Skeleton loader -->
+          <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 animate-pulse z-10" />
+
+          <img
+            :key="coverUrl"
+            :src="coverUrl"
+            :alt="book.title"
+            @load="handleCoverLoad"
+            v-show="coverLoaded"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/10 to-transparent pointer-events-none" />
 
           <button
             @click="handleToggleFavorite"

@@ -33,6 +33,13 @@ class StudyNote(models.Model):
     page_number = models.IntegerField(null=True, blank=True)
     chapter = models.CharField(max_length=100, blank=True)
 
+    # Highlights - JSON field to store highlighted text portions
+    highlights = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="List of highlighted text portions with start/end offsets"
+    )
+
     # Tags (many-to-many with QuoteTag - reuse existing tag system)
     tags = models.ManyToManyField('QuoteTag', blank=True, related_name='study_notes')
 

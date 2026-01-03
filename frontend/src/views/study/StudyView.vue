@@ -157,6 +157,8 @@
               @edit="handleEdit"
               @delete="handleDelete"
               @promote="handlePromote"
+              @highlight="handleHighlight"
+              @remove-highlight="handleRemoveHighlight"
               class="break-inside-avoid mb-6"
             />
           </div>
@@ -172,8 +174,19 @@
     </div>
 
     <!-- Quick Add Footer - Responsive -->
-    <footer class="p-3 md:p-6 bg-slate-900/50 border-t border-slate-900 glass">
-      <div class="max-w-5xl mx-auto space-y-3">
+    <footer class="relative bg-slate-900/50 border-t border-slate-900 glass transition-all duration-300">
+      <!-- Toggle Button -->
+      <button
+        @click="isFooterCollapsed = !isFooterCollapsed"
+        class="absolute -top-10 right-6 p-2 rounded-t-lg bg-slate-900/80 border border-slate-800 border-b-0 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all z-10"
+        :aria-label="isFooterCollapsed ? 'Expand footer' : 'Collapse footer'"
+      >
+        <ChevronUp v-if="isFooterCollapsed" :size="16" />
+        <ChevronDown v-else :size="16" />
+      </button>
+
+      <div v-show="!isFooterCollapsed" class="p-3 md:p-6">
+        <div class="max-w-5xl mx-auto space-y-3">
         <!-- Desktop Layout: Type selector + Reference + Page + Chapter + Capture -->
         <div class="hidden md:flex items-center gap-4">
           <!-- Type selector -->
@@ -319,8 +332,129 @@
           <Plus :size="16" />
           Capture
         </button>
+        </div>
       </div>
     </footer>
+
+    <!-- Edit Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showEditModal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+        @click.self="handleCancelEdit"
+      >
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="p-6 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+            <h2 class="text-xl font-bold text-white">Edit Study Note</h2>
+            <button
+              @click="handleCancelEdit"
+              class="p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-white transition-colors"
+            >
+              <X :size="20" />
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6 space-y-4">
+            <!-- Type selector -->
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Type</label>
+              <div class="flex items-center gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                <button
+                  @click="editNoteType = 'note'"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'note' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                >
+                  <MessageSquare :size="12" />
+                  Note
+                </button>
+                <button
+                  @click="editNoteType = 'quote'"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'quote' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                >
+                  <QuoteIcon :size="12" />
+                  Quote
+                </button>
+                <button
+                  @click="editNoteType = 'insight'"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'insight' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                >
+                  <Lightbulb :size="12" />
+                  Insight
+                </button>
+                <button
+                  @click="editNoteType = 'question'"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'question' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                >
+                  <HelpCircle :size="12" />
+                  Query
+                </button>
+              </div>
+            </div>
+
+            <!-- Reference input -->
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Reference</label>
+              <input
+                v-model="editNoteRef"
+                type="text"
+                placeholder="Reference (e.g. John 3:16, Romans 8:28)"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+              />
+            </div>
+
+            <!-- Page and Chapter -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Page</label>
+                <input
+                  v-model="editNotePageNumber"
+                  type="number"
+                  placeholder="Page number"
+                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Chapter</label>
+                <input
+                  v-model="editNoteChapter"
+                  type="text"
+                  placeholder="Chapter"
+                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Content textarea -->
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Content</label>
+              <textarea
+                v-model="editNoteContent"
+                placeholder="What are you learning?"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
+                :rows="8"
+              />
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="p-6 border-t border-slate-800 flex items-center justify-end gap-3">
+            <button
+              @click="handleCancelEdit"
+              class="px-6 py-2 rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-700 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              @click="handleSaveEdit"
+              class="px-6 py-2 rounded-xl bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 transition-all"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -342,7 +476,9 @@ import {
   Quote as QuoteIcon,
   LayoutGrid,
   Filter,
-  X
+  X,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -372,6 +508,17 @@ const newNotePageNumber = ref('')
 const newNoteChapter = ref('')
 const showSearch = ref(false)
 const showReferences = ref(false)
+const isFooterCollapsed = ref(false)
+const showEditModal = ref(false)
+const editingNote = ref(null)
+const editNoteContent = ref('')
+const editNoteRef = ref('')
+const editNotePageNumber = ref('')
+const editNoteChapter = ref('')
+const editNoteType = ref('note')
+const showNewNoteHighlightButton = ref(false)
+const newNoteHighlightPosition = ref({ x: 0, y: 0 })
+const newNoteTextareaRef = ref(null)
 
 onMounted(async () => {
   await studyNotesStore.fetchNotes({ book: props.bookId })
@@ -447,8 +594,43 @@ const handleDelete = async (id) => {
 }
 
 const handleEdit = (note) => {
-  // TODO: Implement edit modal
-  console.log('Edit note:', note)
+  editingNote.value = note
+  editNoteContent.value = note.content
+  editNoteRef.value = note.reference || ''
+  editNotePageNumber.value = note.page_number || ''
+  editNoteChapter.value = note.chapter || ''
+  editNoteType.value = note.note_type || 'note'
+  showEditModal.value = true
+}
+
+const handleSaveEdit = async () => {
+  if (!editNoteContent.value.trim() || !editingNote.value) return
+
+  const result = await studyNotesStore.updateNote(editingNote.value.id, {
+    content: editNoteContent.value,
+    reference: editNoteRef.value,
+    page_number: editNotePageNumber.value || null,
+    chapter: editNoteChapter.value,
+    note_type: editNoteType.value
+  })
+
+  if (result.success) {
+    showEditModal.value = false
+    editingNote.value = null
+    editNoteContent.value = ''
+    editNoteRef.value = ''
+    editNotePageNumber.value = ''
+    editNoteChapter.value = ''
+  }
+}
+
+const handleCancelEdit = () => {
+  showEditModal.value = false
+  editingNote.value = null
+  editNoteContent.value = ''
+  editNoteRef.value = ''
+  editNotePageNumber.value = ''
+  editNoteChapter.value = ''
 }
 
 const handlePromote = async (note) => {
@@ -461,8 +643,124 @@ const handlePromote = async (note) => {
   }
 }
 
+const handleHighlight = async (highlightData) => {
+  console.log('handleHighlight called with:', highlightData)
+
+  // Store highlight in the note
+  const note = notes.value.find(n => n.id === highlightData.noteId)
+  console.log('Found note:', note)
+
+  if (note) {
+    if (!note.highlights) {
+      note.highlights = []
+    }
+
+    // Check if this text is already highlighted
+    const alreadyHighlighted = note.highlights.some(h => h.text === highlightData.text)
+    if (alreadyHighlighted) {
+      return // Don't add duplicate highlights
+    }
+
+    note.highlights.push({
+      text: highlightData.text,
+      startOffset: highlightData.startOffset,
+      endOffset: highlightData.endOffset
+    })
+
+    // Update the note in the backend
+    const result = await studyNotesStore.updateNote(highlightData.noteId, {
+      highlights: note.highlights
+    })
+
+    console.log('Update result:', result)
+    if (result.data) {
+      console.log('Backend returned data:', result.data)
+      console.log('Backend returned data.id:', result.data.id)
+    }
+
+    if (!result.success) {
+      console.error('Failed to save highlight:', result.error)
+      // Remove the highlight from local state if save failed
+      note.highlights.pop()
+    }
+  } else {
+    console.error('Note not found! noteId:', highlightData.noteId, 'Available notes:', notes.value.map(n => n.id))
+  }
+}
+
+const handleRemoveHighlight = async (highlightData) => {
+  console.log('handleRemoveHighlight called with:', highlightData)
+
+  const note = notes.value.find(n => n.id === highlightData.noteId)
+  console.log('Found note:', note)
+
+  if (note && note.highlights) {
+    // Remove the highlight from the array
+    note.highlights = note.highlights.filter(h => h.text !== highlightData.text)
+
+    // Update the note in the backend
+    const result = await studyNotesStore.updateNote(highlightData.noteId, {
+      highlights: note.highlights
+    })
+
+    if (!result.success) {
+      console.error('Failed to remove highlight:', result.error)
+      // Restore the highlight if save failed
+      note.highlights.push({
+        text: highlightData.text
+      })
+    }
+  } else {
+    console.error('Note not found! noteId:', highlightData.noteId, 'Available notes:', notes.value.map(n => n.id))
+  }
+}
+
 const handleBack = () => {
   router.push(`/books/${props.bookId}`)
+}
+
+const handleNewNoteTextSelection = () => {
+  setTimeout(() => {
+    const selection = window.getSelection()
+    const selectedText = selection.toString().trim()
+
+    if (selectedText.length > 0 && newNoteTextareaRef.value?.contains(selection.anchorNode)) {
+      const range = selection.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+
+      newNoteHighlightPosition.value = {
+        x: rect.left + rect.width / 2,
+        y: rect.top - 45
+      }
+      showNewNoteHighlightButton.value = true
+    } else {
+      showNewNoteHighlightButton.value = false
+    }
+  }, 10)
+}
+
+const applyNewNoteHighlight = () => {
+  const selection = window.getSelection()
+  const selectedText = selection.toString().trim()
+
+  if (selectedText.length > 0) {
+    // Wrap the selected text in a highlight mark
+    const range = selection.getRangeAt(0)
+    const mark = document.createElement('mark')
+    mark.className = 'bg-yellow-400/30 px-0.5 rounded highlight-text'
+
+    try {
+      range.surroundContents(mark)
+    } catch (e) {
+      // If surroundContents fails (e.g., selection spans multiple elements), use a different approach
+      const fragment = range.extractContents()
+      mark.appendChild(fragment)
+      range.insertNode(mark)
+    }
+  }
+
+  showNewNoteHighlightButton.value = false
+  selection.removeAllRanges()
 }
 </script>
 
