@@ -44,6 +44,35 @@
 
     --radius: 0.75rem;
   }
+
+  body.light {
+    /* Light Mode Colors */
+    --background: 0 0% 100%;              /* white */
+    --foreground: 222 47% 11%;            /* slate-950 */
+    --card: 0 0% 100%;                    /* pure white for modals */
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;                 /* pure white */
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 243 75% 59%;               /* keep indigo */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 199 89% 48%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 0 0% 98%;                    /* almost white - f9fafb */
+    --muted-foreground: 215 16% 47%;      /* slate-600 */
+
+    --accent: 199 89% 48%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;                /* slate-200 */
+    --input: 214 32% 91%;
+    --ring: 243 75% 59%;
+  }
 }
 
 @layer base {
@@ -86,6 +115,7 @@
   body.light .bg-slate-900\/40,
   body.light .bg-slate-900\/50,
   body.light .bg-slate-900\/30,
+  body.light .bg-slate-900\/20,
   body.light .bg-slate-900 {
     background-color: #ffffff !important;
     box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.08) !important;
@@ -96,9 +126,21 @@
   body.light .bg-slate-800\/70,
   body.light .bg-slate-800\/80,
   body.light .bg-slate-800\/90,
+  body.light .bg-slate-800\/40,
+  body.light .bg-slate-800\/20,
   body.light .bg-slate-800 {
     background-color: #f1f5f9 !important; /* slate-100 */
     border-color: rgba(0,0,0,0.05) !important;
+  }
+
+  /* Input fields with bg-slate-800/20 - должны бити БЕЛИ */
+  body.light input.bg-slate-800\/20,
+  body.light textarea.bg-slate-800\/20,
+  body.light input.bg-slate-800\/40,
+  body.light textarea.bg-slate-800\/40 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
   }
 
   body.light .bg-slate-700,
@@ -424,7 +466,105 @@
   body.light .highlight-text {
     color: #713f12 !important; /* yellow-900 for light mode - dark text on yellow bg */
   }
+
+  /* Light mode modal input fields - COVER ALL VARIANTS */
+  body.light input[class*="bg-slate-8"],
+  body.light textarea[class*="bg-slate-8"],
+  body.light input[class*="bg-slate-7"],
+  body.light textarea[class*="bg-slate-7"],
+  body.light input[class*="bg-slate-9"],
+  body.light textarea[class*="bg-slate-9"] {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+
+  body.light input[class*="bg-slate-8"]:focus,
+  body.light textarea[class*="bg-slate-8"]:focus,
+  body.light input[class*="bg-slate-7"]:focus,
+  body.light textarea[class*="bg-slate-7"]:focus,
+  body.light input[class*="bg-slate-9"]:focus,
+  body.light textarea[class*="bg-slate-9"]:focus {
+    border-color: #6366f1 !important;
+  }
+
+  body.light input::placeholder,
+  body.light textarea::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  /* Modal overlays - БЕЛИ СВЕТЛИ OVERLAY за све модале */
+  body.light .bg-slate-950\/90,
+  body.light [class*="bg-slate-950/"],
+  body.light .bg-black\/80,
+  body.light .bg-black\/40,
+  body.light [class*="bg-black/"] {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(12px) !important;
+  }
+
+  /* Glass effect in light mode - БЕО КАО ЛЕКСИКОН MODAL */
+  body.light .glass {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  /* Placeholder gradient za knjige БЕЗ COVERA - светли gradient */
+  body.light .bg-gradient-to-br.from-slate-800 {
+    background: linear-gradient(to bottom right, #e2e8f0, #f1f5f9, #f8fafc) !important;
+  }
+
+  body.light .bg-gradient-to-br.from-slate-800.via-slate-900.to-slate-950 {
+    background: linear-gradient(to bottom right, #e2e8f0, #f1f5f9, #f8fafc) !important;
+  }
+
+  /* Buttons and text in "Add to Shelf" section u import modalu */
+  body.light .bg-slate-800\/40.border-slate-700\/50,
+  body.light section.bg-slate-800\/40 {
+    background-color: #f8fafc !important; /* светло као остатак */
+    border-color: #e2e8f0 !important;
+  }
+
+  body.light .bg-slate-800\/20.border-slate-700 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  body.light .text-slate-400.hover\:border-slate-500,
+  body.light button.text-slate-400 {
+    color: #64748b !important; /* slate-500 - čitljivo */
+  }
+
+  body.light .border-slate-700.bg-slate-800\/20 {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  body.light .border-slate-700.hover\:border-slate-500:hover {
+    border-color: #94a3b8 !important;
+  }
+
+  /* HEADINGS u modalima - mora crni tekst */
+  body.light h1.text-white,
+  body.light h2.text-white,
+  body.light h3.text-white {
+    color: #0f172a !important;
+  }
+
+  /* Svi borders u modalima light mode */
+  body.light .border-slate-700\/50,
+  body.light .border-slate-700\/30 {
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Sve .text-slate-400 buttons i tekst u modalima */
+  body.light button.text-slate-400,
+  body.light .text-slate-400 {
+    color: #64748b !important;
+  }
 }
+
 
 @layer components {
   /* Glassmorphism effect */

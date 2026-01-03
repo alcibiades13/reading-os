@@ -106,13 +106,13 @@ const truncatedDescription = computed(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6 pt-20 bg-slate-950/90 backdrop-blur-sm animate-in fade-in duration-300">
-    <div :class="['relative w-full max-w-5xl h-[85vh] glass rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300', isEditMode ? 'ring-2 ring-indigo-500' : '']">
+  <div class="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6 pt-20 bg-slate-950/90 light:bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
+    <div :class="['relative w-full max-w-5xl h-[85vh] glass light:bg-white light:border light:border-slate-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300', isEditMode ? 'ring-2 ring-indigo-500' : '']">
 
       <!-- Close Button -->
       <button
         @click="handleClose"
-        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-slate-900/50 hover:bg-slate-800 text-slate-300 transition-colors"
+        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700 transition-colors"
       >
         <X :size="20" />
       </button>
@@ -122,7 +122,7 @@ const truncatedDescription = computed(() => {
         @click="isEditMode = !isEditMode"
         :class="[
           'absolute top-6 right-20 z-20 px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all',
-          isEditMode ? 'bg-indigo-500 text-white' : 'bg-slate-900/50 hover:bg-slate-800 text-slate-300'
+          isEditMode ? 'bg-indigo-500 text-white' : 'bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700'
         ]"
       >
         <Edit3 :size="14" />
@@ -130,7 +130,7 @@ const truncatedDescription = computed(() => {
       </button>
 
       <!-- Left Column - Cover & Quick Stats -->
-      <div class="w-full md:w-[40%] bg-slate-900/50 p-8 flex flex-col items-center overflow-y-auto border-r border-slate-700/30">
+      <div class="w-full md:w-[40%] bg-slate-900/50 light:bg-slate-50 p-8 flex flex-col items-center overflow-y-auto border-r border-slate-700/30 light:border-slate-200">
         <div class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
           <img
             v-if="hasCover"
@@ -239,77 +239,77 @@ const truncatedDescription = computed(() => {
       </div>
 
       <!-- Right Column - Details & Actions -->
-      <div class="w-full md:w-[60%] flex flex-col h-full bg-slate-900/20">
+      <div class="w-full md:w-[60%] flex flex-col h-full bg-slate-900/20 light:bg-white">
         <div :class="['flex-1 overflow-y-auto p-8 custom-scrollbar', isEditMode ? 'pt-24' : '']">
           <header class="mb-6">
             <div v-if="isEditMode" class="space-y-3">
               <div>
-                <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Title</label>
+                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Title</label>
                 <input
                   v-model="editableData.title"
                   type="text"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-2xl md:text-3xl font-bold text-white focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-2xl md:text-3xl font-bold text-white light:text-slate-900 focus:border-indigo-500 focus:outline-none"
                   placeholder="Book Title"
                 />
               </div>
               <div>
-                <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Authors (comma-separated)</label>
+                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Authors (comma-separated)</label>
                 <input
                   v-model="editableData.authors"
                   type="text"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-lg text-indigo-400/80 font-medium focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-lg text-indigo-400/80 light:text-indigo-600 font-medium focus:border-indigo-500 focus:outline-none"
                   placeholder="Author 1, Author 2"
                 />
               </div>
               <div>
-                <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Cover Image URL</label>
+                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Cover Image URL</label>
                 <input
                   v-model="editableData.cover_image_url"
                   type="text"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-300 light:text-slate-900 focus:border-indigo-500 focus:outline-none"
                   placeholder="https://..."
                 />
               </div>
             </div>
             <div v-else>
-              <h1 class="text-2xl md:text-3xl font-bold text-white leading-tight">{{ editableData.title }}</h1>
-              <p v-if="editableData.authors" class="text-lg text-indigo-400/80 mt-2 font-medium">
+              <h1 class="text-2xl md:text-3xl font-bold text-white light:text-slate-900 leading-tight">{{ editableData.title }}</h1>
+              <p v-if="editableData.authors" class="text-lg text-indigo-400/80 light:text-indigo-600 mt-2 font-medium">
                 {{ editableData.authors }}
               </p>
             </div>
           </header>
 
           <section class="mb-6">
-            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-3">Description</h2>
+            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-3">Description</h2>
             <div v-if="isEditMode">
               <textarea
                 v-model="editableData.description"
                 rows="6"
-                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 text-sm leading-relaxed focus:border-indigo-500 focus:outline-none resize-none"
+                class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-slate-300 light:text-slate-900 text-sm leading-relaxed focus:border-indigo-500 focus:outline-none resize-none"
                 placeholder="Book description..."
               />
             </div>
             <div v-else-if="editableData.description">
               <div
                 :class="showFullDescription ? '' : 'line-clamp-6'"
-                class="text-slate-300 text-sm leading-relaxed"
+                class="text-slate-300 light:text-slate-700 text-sm leading-relaxed"
                 v-html="showFullDescription ? editableData.description : truncatedDescription"
               />
               <button
                 v-if="editableData.description && editableData.description.replace(/<[^>]*>/g, '').split(' ').length > 100"
                 @click="showFullDescription = !showFullDescription"
-                class="mt-3 text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4"
+                class="mt-3 text-xs text-indigo-400 light:text-indigo-600 hover:text-indigo-300 light:hover:text-indigo-500 font-semibold underline underline-offset-4"
               >
                 {{ showFullDescription ? 'Show Less' : 'Read More' }}
               </button>
             </div>
-            <p v-else class="text-slate-300 text-sm leading-relaxed">
+            <p v-else class="text-slate-300 light:text-slate-700 text-sm leading-relaxed">
               No description available for this title.
             </p>
           </section>
 
           <section class="mb-8">
-            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-3">Categories</h2>
+            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-3">Categories</h2>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="category in (book.categories || [])"
@@ -398,10 +398,10 @@ const truncatedDescription = computed(() => {
         </div>
 
         <!-- Footer Actions -->
-        <div class="p-6 border-t border-slate-700/30 bg-slate-900/50 flex flex-col sm:flex-row gap-3">
+        <div class="p-6 border-t border-slate-700/30 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex flex-col sm:flex-row gap-3">
           <button
             @click="handleClose"
-            class="px-5 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors"
+            class="px-5 py-3 rounded-xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 text-sm font-semibold hover:bg-slate-800 light:hover:bg-slate-200 transition-colors"
           >
             Cancel
           </button>

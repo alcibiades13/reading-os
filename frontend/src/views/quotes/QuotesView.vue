@@ -462,12 +462,12 @@ const handleBookClick = (quote) => {
             </p>
 
             <!-- Book Info -->
-            <div class="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 pt-4 border-t border-slate-800/50">
+            <div class="flex flex-col sm:flex-row items-start gap-2 sm:gap-3 pt-3 border-t border-slate-800/50">
               <div
                 v-if="quote.book_cover"
                 @click="handleBookClick(quote)"
                 :class="quote.book ? 'cursor-pointer hover:scale-105 transition-transform' : ''"
-                class="w-10 h-14 sm:w-12 sm:h-16 rounded-lg shadow-lg overflow-hidden flex-shrink-0"
+                class="w-8 h-12 sm:w-9 sm:h-13 rounded-md shadow-lg overflow-hidden flex-shrink-0"
               >
                 <img :src="quote.book_cover" :alt="quote.book_title" class="w-full h-full object-cover" />
               </div>
@@ -475,11 +475,11 @@ const handleBookClick = (quote) => {
                 v-else
                 @click="handleBookClick(quote)"
                 :class="quote.book ? 'cursor-pointer hover:bg-slate-700 transition-colors' : ''"
-                class="w-10 h-14 sm:w-12 sm:h-16 bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0"
+                class="w-8 h-12 sm:w-9 sm:h-13 bg-slate-800 rounded-md flex items-center justify-center flex-shrink-0"
               >
-                <Bookmark :size="18" class="sm:w-5 sm:h-5 text-slate-600" />
+                <Bookmark :size="14" class="text-slate-600" />
               </div>
-              <div class="flex-1 min-w-0 space-y-2">
+              <div class="flex-1 min-w-0 space-y-1.5">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0">
                   <h4
                     @click="handleBookClick(quote)"
@@ -492,27 +492,29 @@ const handleBookClick = (quote) => {
                   <span class="text-slate-600 hidden sm:inline flex-shrink-0">·</span>
                   <p class="text-indigo-400 font-medium text-sm truncate">{{ quote.book_author || 'Unknown Author' }}</p>
                 </div>
-                <div class="flex flex-wrap gap-2 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                  <span v-if="quote.chapter" class="flex items-center gap-1">
-                    <span class="text-slate-600">Ch.</span> {{ quote.chapter }}
-                  </span>
-                  <span v-if="quote.page_number" class="flex items-center gap-1">
-                    <span class="text-slate-600">Pg.</span> {{ quote.page_number }}
-                  </span>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <div class="flex gap-2 text-slate-500 font-bold uppercase tracking-wider">
+                    <span v-if="quote.chapter" class="flex items-center gap-1">
+                      <span class="text-slate-600">Ch.</span> {{ quote.chapter }}
+                    </span>
+                    <span v-if="quote.page_number" class="flex items-center gap-1">
+                      <span class="text-slate-600">Pg.</span> {{ quote.page_number }}
+                    </span>
+                  </div>
+                  <!-- Tags inline -->
+                  <template v-if="quote.tags && quote.tags.length > 0">
+                    <span v-if="quote.chapter || quote.page_number" class="text-slate-700">|</span>
+                    <button
+                      v-for="(tag, i) in quote.tags"
+                      :key="i"
+                      @click="filterByTag(tag.id)"
+                      class="px-2 py-0.5 rounded-full bg-slate-800/50 border border-slate-700 text-xs font-semibold text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
+                    >
+                      #{{ tag.name }}
+                    </button>
+                  </template>
                 </div>
               </div>
-            </div>
-
-            <!-- Tags -->
-            <div v-if="quote.tags && quote.tags.length > 0" class="flex flex-wrap gap-2">
-              <button
-                v-for="(tag, i) in quote.tags"
-                :key="i"
-                @click="filterByTag(tag.id)"
-                class="px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-xs font-semibold text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
-              >
-                #{{ tag.name }}
-              </button>
             </div>
 
             <!-- Notes Toggle -->

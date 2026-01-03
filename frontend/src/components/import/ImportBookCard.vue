@@ -32,7 +32,7 @@ const publishedYear = props.book.published_date?.split('-')[0] || null
       />
 
       <!-- Beautiful placeholder for missing covers -->
-      <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
+      <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 light:from-slate-200 light:via-slate-100 light:to-slate-50">
         <div class="w-20 h-20 rounded-full bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center mb-4">
           <BookOpen :size="32" class="text-indigo-500/40" />
         </div>

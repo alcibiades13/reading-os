@@ -72,23 +72,23 @@ const handleKeyDown = (e) => {
 
 <template>
   <div
-    class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300"
+    class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/90 light:bg-white/90 backdrop-blur-md animate-in fade-in duration-300"
     @keydown="handleKeyDown"
   >
-    <div class="relative w-full max-w-2xl glass rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+    <div class="relative w-full max-w-2xl glass light:bg-white light:border light:border-slate-200 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
 
       <!-- Header -->
-      <div class="flex items-center justify-between p-8 border-b border-slate-800 bg-slate-900/50">
+      <div class="flex items-center justify-between p-8 border-b border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/5">
             <Type :size="24" class="text-emerald-400" />
           </div>
           <div>
-            <h2 class="text-xl font-black text-white">{{ word ? 'Edit Word' : 'Capture Vocabulary' }}</h2>
-            <p class="text-[10px] uppercase font-black tracking-widest text-slate-500">Add to your lexicon</p>
+            <h2 class="text-xl font-black text-white light:text-slate-900">{{ word ? 'Edit Word' : 'Capture Vocabulary' }}</h2>
+            <p class="text-[10px] uppercase font-black tracking-widest text-slate-500 light:text-slate-600">Add to your lexicon</p>
           </div>
         </div>
-        <button @click="emit('close')" class="p-2.5 rounded-full hover:bg-slate-800 text-slate-400 transition-colors">
+        <button @click="emit('close')" class="p-2.5 rounded-full hover:bg-slate-800 light:hover:bg-slate-200 text-slate-400 light:text-slate-600 transition-colors">
           <X :size="20" />
         </button>
       </div>
@@ -97,7 +97,7 @@ const handleKeyDown = (e) => {
       <div class="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
         <!-- Main Word -->
         <div class="space-y-4">
-          <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+          <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
             <Type :size="14" class="text-emerald-400" /> The Word
           </label>
           <input
@@ -106,30 +106,30 @@ const handleKeyDown = (e) => {
             type="text"
             v-model="wordText"
             placeholder="e.g. Mellifluous"
-            class="w-full bg-slate-800/20 border-2 border-slate-800 rounded-2xl px-6 py-4 text-3xl font-serif text-white placeholder-slate-700 focus:border-emerald-500/50 transition-all outline-none"
+            class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-2xl px-6 py-4 text-3xl font-serif text-white light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
           />
         </div>
 
         <!-- Context & Definition -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
               <AlignLeft :size="14" /> Context / Sentence
             </label>
             <textarea
               v-model="context"
               placeholder="Where did you find it?"
-              class="w-full h-28 bg-slate-800/20 border-2 border-slate-800 rounded-2xl p-4 text-sm text-slate-300 placeholder-slate-700 focus:border-emerald-500/50 transition-all outline-none resize-none"
+              class="w-full h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-2xl p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
             />
           </div>
           <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
               <Plus :size="14" /> Your Definition
             </label>
             <textarea
               v-model="definition"
               placeholder="What does it mean to you?"
-              class="w-full h-28 bg-slate-800/20 border-2 border-slate-800 rounded-2xl p-4 text-sm text-slate-300 placeholder-slate-700 focus:border-emerald-500/50 transition-all outline-none resize-none"
+              class="w-full h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-2xl p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
             />
           </div>
         </div>
@@ -137,25 +137,25 @@ const handleKeyDown = (e) => {
         <!-- Metadata -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
               <Book :size="14" /> Source Book
             </label>
             <input
               type="text"
               v-model="bookTitle"
               placeholder="Title..."
-              class="w-full bg-slate-800/20 border-2 border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 focus:border-emerald-500/50 transition-all outline-none"
+              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
             />
           </div>
           <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
               <Hash :size="14" /> Page
             </label>
             <input
               type="number"
               v-model.number="pageNumber"
               placeholder="Page number..."
-              class="w-full bg-slate-800/20 border-2 border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 focus:border-emerald-500/50 transition-all outline-none"
+              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
             />
           </div>
         </div>
@@ -189,11 +189,11 @@ const handleKeyDown = (e) => {
       </div>
 
       <!-- Footer Actions -->
-      <div class="p-8 border-t border-slate-800 bg-slate-900/50 flex flex-wrap gap-4">
+      <div class="p-8 border-t border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex flex-wrap gap-4">
         <button
           @click="handleSubmit(true)"
           type="button"
-          class="px-6 py-4 rounded-2xl border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
+          class="px-6 py-4 rounded-2xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 font-black text-xs uppercase tracking-widest hover:bg-slate-800 light:hover:bg-slate-200 transition-all"
         >
           Save & Add Another
         </button>

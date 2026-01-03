@@ -760,6 +760,11 @@ const ToolbarButton = defineComponent({
   transition: all 0.2s;
 }
 
+body.light .editor-surface blockquote {
+  color: rgb(30 41 59); /* slate-800 for light mode */
+  background: rgba(99, 102, 241, 0.08);
+}
+
 .editor-surface blockquote:hover {
   background: rgba(99, 102, 241, 0.1);
   border-left-color: rgb(129 140 248);
