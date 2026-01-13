@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
@@ -8,10 +8,13 @@ import { useChallengesStore } from '@/stores/challengesStore'
 import { useToast } from '@/composables/useToast'
 import YearlyChallengeWidget from '@/components/YearlyChallengeWidget.vue'
 import YearlyChallengeModal from '@/components/YearlyChallengeModal.vue'
+import ReadingCircleWidget from '@/components/social/ReadingCircleWidget.vue'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { booksAPI } from '@/services/api'
 import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
   CheckCircle, Bookmark, BrainCircuit, Lightbulb,
-  Quote, ArrowUpRight
+  Quote, ArrowUpRight, Upload, FileUp
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -28,6 +31,17 @@ const isQuoteExpanded = ref(false)
 const showChallengeModal = ref(false)
 const editingChallenge = ref(null)
 
+// Import state
+const showImportDialog = ref(false)
+const importing = ref(false)
+const importProgress = ref(null)
+const selectedFile = ref(null)
+const fileInputRef = ref(null)
+
+// Pagination state
+const itemsPerPage = 24 // Show 24 books per load (4 rows of 6)
+const currentPage = ref(1)
+
 // Fetch books on mount
 onMounted(async () => {
   loading.value = true
@@ -41,6 +55,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+// Reset pagination when search query changes
+watch(searchQuery, () => {
+  resetPagination()
 })
 
 // Books to display based on selected tab
@@ -65,6 +84,7 @@ const handleSearch = (value) => {
 // Tab change
 const handleTabChange = (value) => {
   selectedTab.value = value
+  resetPagination() // Reset pagination when changing tabs
   booksStore.resetFilters()
   if (value === 'favorites') {
     booksStore.setFilter('favorite', true)
@@ -96,6 +116,81 @@ const handleToggleFavorite = async (book) => {
   await booksStore.updateBook(book.id, {
     is_favorite: !book.is_favorite,
   })
+}
+
+// Goodreads Import functions
+const handleFileSelect = (event) => {
+  const file = event.target.files[0]
+  if (file && file.name.endsWith('.csv')) {
+    selectedFile.value = file
+  } else {
+    addToast({
+      title: 'Invalid File',
+      description: 'Please select a CSV file',
+      variant: 'destructive'
+    })
+  }
+}
+
+const handleImport = async () => {
+  if (!selectedFile.value) {
+    addToast({
+      title: 'No File Selected',
+      description: 'Please select a Goodreads CSV file',
+      variant: 'destructive'
+    })
+    return
+  }
+
+  importing.value = true
+  importProgress.value = { current: 0, total: 0, status: 'Uploading...' }
+
+  try {
+    const response = await booksAPI.importGoodreadsCSV(selectedFile.value)
+
+    importProgress.value = {
+      current: response.data.imported,
+      total: response.data.imported + response.data.skipped,
+      status: 'Completed'
+    }
+
+    addToast({
+      title: 'Import Successful!',
+      description: `Imported ${response.data.imported} books, ${response.data.created_books} new books created`,
+      variant: 'default'
+    })
+
+    // Refresh library
+    await booksStore.fetchBooks()
+
+    // Close dialog after a delay
+    setTimeout(() => {
+      showImportDialog.value = false
+      selectedFile.value = null
+      importProgress.value = null
+    }, 2000)
+
+  } catch (error) {
+    console.error('Import error:', error)
+    addToast({
+      title: 'Import Failed',
+      description: error.response?.data?.error || 'Failed to import CSV file',
+      variant: 'destructive'
+    })
+    importProgress.value = null
+  } finally {
+    importing.value = false
+  }
+}
+
+const openImportDialog = () => {
+  showImportDialog.value = true
+  selectedFile.value = null
+  importProgress.value = null
+}
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click()
 }
 
 // Stats
@@ -207,9 +302,11 @@ const isQuoteLong = computed(() => {
   return dailyQuote.value && dailyQuote.value.text && dailyQuote.value.text.length > 600
 })
 
-// Filtered library
+// Filtered library with proper date sorting
 const filteredLibrary = computed(() => {
   let books = booksStore.books
+
+  // Filter by tab
   if (selectedTab.value !== 'all') {
     if (selectedTab.value === 'favorites') {
       books = books.filter(b => b.is_favorite)
@@ -217,6 +314,8 @@ const filteredLibrary = computed(() => {
       books = books.filter(b => b.status === selectedTab.value)
     }
   }
+
+  // Filter by search
   if (searchQuery.value) {
     const search = searchQuery.value.toLowerCase()
     books = books.filter(b =>
@@ -224,12 +323,88 @@ const filteredLibrary = computed(() => {
       b.book?.authors?.some(a => a.name.toLowerCase().includes(search))
     )
   }
+
+  // Sort by relevant date (NEWEST FIRST - most recent at top)
+  books = [...books].sort((a, b) => {
+    // Helper function to get the most relevant date for a book based on its status
+    const getRelevantDate = (book) => {
+      if (book.status === 'read') {
+        // For read books: finished_at is most important
+        return book.finished_at ? new Date(book.finished_at) : new Date(book.updated_at || book.created_at)
+      } else if (book.status === 'currently_reading') {
+        // For currently reading: started_at is most important
+        return book.started_at ? new Date(book.started_at) : new Date(book.updated_at || book.created_at)
+      } else if (book.status === 'want_to_read') {
+        // For want to read: when added to library (created_at)
+        return new Date(book.created_at || book.updated_at)
+      } else {
+        // Fallback
+        return new Date(book.updated_at || book.created_at)
+      }
+    }
+
+    const dateA = getRelevantDate(a)
+    const dateB = getRelevantDate(b)
+
+    // Return DESCENDING order (newest first) - newer dates are LARGER numbers
+    return dateB.getTime() - dateA.getTime()
+  })
+
   return books
 })
 
+// Paginated library - show only items up to current page
+const paginatedLibrary = computed(() => {
+  const maxItems = currentPage.value * itemsPerPage
+  return filteredLibrary.value.slice(0, maxItems)
+})
+
+// Check if there are more items to load
+const hasMoreItems = computed(() => {
+  return paginatedLibrary.value.length < filteredLibrary.value.length
+})
+
+// Load more function
+const loadMore = () => {
+  currentPage.value++
+}
+
+// Reset pagination when filters change
+const resetPagination = () => {
+  currentPage.value = 1
+}
+
+// Infinite scroll handler
+const handleScroll = () => {
+  const scrollThreshold = 300 // pixels from bottom
+  const scrollPosition = window.innerHeight + window.scrollY
+  const pageHeight = document.documentElement.scrollHeight
+
+  if (pageHeight - scrollPosition < scrollThreshold && hasMoreItems.value && !loading.value) {
+    loadMore()
+  }
+}
+
+// Add scroll listener after books are loaded
+watch(() => booksStore.books, () => {
+  nextTick(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  })
+}, { once: true })
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
 // Helper functions
-const handleBookClick = (userBook) => {
-  router.push(`/books/${userBook.book.id}`)
+const handleBookClick = (userBook, event) => {
+  // Support middle-click to open in new tab
+  if (event && (event.button === 1 || event.ctrlKey || event.metaKey)) {
+    const route = router.resolve(`/books/${userBook.book.id}`)
+    window.open(route.href, '_blank')
+  } else {
+    router.push(`/books/${userBook.book.id}`)
+  }
 }
 
 const getProgress = (userBook) => {
@@ -238,8 +413,8 @@ const getProgress = (userBook) => {
 }
 
 const getCoverUrl = (book) => {
-  if (!book) return 'https://via.placeholder.com/300x450/1E293B/64748B?text=Book'
-  return book.cover_image || 'https://via.placeholder.com/300x450/1E293B/64748B'
+  if (!book) return null
+  return book.cover_image || null
 }
 
 // Year stats
@@ -363,10 +538,18 @@ const handleSaveChallenge = async (challengeData) => {
                 :key="i"
                 :src="getCoverUrl(book.book)"
                 class="w-6 h-6 rounded-full border-2 border-slate-950 object-cover"
+                @error="(e) => e.target.style.display = 'none'"
               />
             </div>
             <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ stats.total }} entries in vault</span>
           </div>
+          <button
+            @click="router.push('/library/shelf')"
+            class="px-6 py-3.5 rounded-2xl glass border-indigo-500/30 text-indigo-400 font-bold hover:bg-indigo-500/10 active:scale-95 transition-all flex items-center gap-2"
+          >
+            <BookOpen :size="20" />
+            My Shelf
+          </button>
           <button
             @click="router.push('/import')"
             class="px-6 py-3.5 rounded-2xl bg-indigo-500 text-white font-bold shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 active:scale-95 transition-all flex items-center gap-2"
@@ -420,10 +603,10 @@ const handleSaveChallenge = async (challengeData) => {
       </div>
 
       <div class="grid md:grid-cols-3 gap-5">
-        <div
+        <router-link
           v-for="expedition in activeExpeditions"
           :key="expedition.id"
-          @click="handleBookClick(expedition)"
+          :to="`/books/${expedition.book.id}`"
           class="group relative p-5 rounded-2xl glass border-slate-800 hover:border-indigo-500/30 transition-all duration-300 cursor-pointer overflow-hidden"
         >
           <!-- Badge: Currently Reading or Last Read -->
@@ -443,8 +626,15 @@ const handleSaveChallenge = async (challengeData) => {
           </div>
 
           <div class="flex gap-4">
-            <div class="shrink-0 w-16 h-24 rounded-xl overflow-hidden bg-slate-800 shadow-lg">
-              <img :src="getCoverUrl(expedition.book)" :alt="expedition.book?.title" class="w-full h-full object-cover" />
+            <div class="shrink-0 w-16 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg flex items-center justify-center">
+              <img
+                v-if="getCoverUrl(expedition.book)"
+                :src="getCoverUrl(expedition.book)"
+                :alt="expedition.book?.title"
+                class="w-full h-full object-cover"
+                @error="(e) => e.target.style.display = 'none'"
+              />
+              <BookOpen v-if="!getCoverUrl(expedition.book)" :size="24" class="text-slate-600" />
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="font-bold text-white text-sm mb-1 line-clamp-2 group-hover:text-indigo-400 transition-colors">
@@ -473,7 +663,7 @@ const handleSaveChallenge = async (challengeData) => {
                 <div class="flex items-center gap-2">
                   <div v-if="expedition.rating" class="flex items-center gap-1">
                     <Heart :size="12" class="text-yellow-400 fill-current" />
-                    <span class="text-yellow-400 font-bold text-sm">{{ expedition.rating }}/5</span>
+                    <span class="text-yellow-400 font-bold text-sm">{{ expedition.rating }}/10</span>
                   </div>
                   <span v-else class="text-slate-600 text-xs">No rating</span>
                 </div>
@@ -494,7 +684,7 @@ const handleSaveChallenge = async (challengeData) => {
               </div>
             </div>
           </div>
-        </div>
+        </router-link>
       </div>
     </div>
 
@@ -504,16 +694,27 @@ const handleSaveChallenge = async (challengeData) => {
       <!-- LEFT COLUMN: SEARCH, TABS & BOOKS -->
       <div class="lg:col-span-8 space-y-8 pt-6 border-t border-slate-900">
 
-        <!-- Search Bar -->
-        <div class="relative group w-full">
-          <div class="absolute inset-0 bg-indigo-500/5 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
-          <Search :size="24" class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Query your personal archive by title, author, or keyword..."
-            class="bg-slate-900/40 border border-slate-800 rounded-3xl pl-16 pr-8 py-6 text-lg text-white placeholder-slate-600 focus:border-indigo-500/40 focus:bg-slate-900 outline-none transition-all w-full shadow-lg"
-          />
+        <!-- Search Bar with Import Button -->
+        <div class="flex items-center gap-4">
+          <div class="relative group flex-1">
+            <div class="absolute inset-0 bg-indigo-500/5 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+            <Search :size="24" class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Query your personal archive by title, author, or keyword..."
+              class="bg-slate-900/40 border border-slate-800 rounded-3xl pl-16 pr-8 py-6 text-lg text-white placeholder-slate-600 focus:border-indigo-500/40 focus:bg-slate-900 outline-none transition-all w-full shadow-lg"
+            />
+          </div>
+
+          <!-- Import from Goodreads Button -->
+          <button
+            @click="openImportDialog"
+            class="px-6 py-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 flex items-center gap-2 shrink-0"
+          >
+            <Upload :size="18" />
+            <span class="hidden sm:inline">Import from Goodreads</span>
+          </button>
         </div>
 
         <!-- Tabs -->
@@ -565,18 +766,22 @@ const handleSaveChallenge = async (challengeData) => {
           <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">No entries found in archive</p>
         </div>
 
-        <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-10">
-          <div
-            v-for="userBook in filteredLibrary"
-            :key="userBook.id"
-            @click="handleBookClick(userBook)"
-            class="group relative aspect-[2/3] rounded-xl overflow-hidden bg-slate-900 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300"
-          >
+        <div v-else>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-10">
+            <router-link
+              v-for="userBook in paginatedLibrary"
+              :key="userBook.id"
+              :to="`/books/${userBook.book.id}`"
+              class="group relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 flex items-center justify-center"
+            >
             <img
+              v-if="getCoverUrl(userBook.book)"
               :src="getCoverUrl(userBook.book)"
               :alt="userBook.book?.title"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              @error="(e) => e.target.style.display = 'none'"
             />
+            <BookOpen v-if="!getCoverUrl(userBook.book)" :size="48" class="text-slate-600" />
 
             <!-- Hover Overlay -->
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
@@ -609,12 +814,25 @@ const handleSaveChallenge = async (challengeData) => {
                 class="h-full bg-indigo-500"
               />
             </div>
+          </router-link>
+        </div>
+
+        <!-- Infinite scroll loading indicator -->
+        <div v-if="hasMoreItems" class="flex justify-center mt-12 py-8">
+          <div class="flex items-center gap-2 text-slate-500 text-sm">
+            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style="animation-delay: 0.2s"></div>
+            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style="animation-delay: 0.4s"></div>
           </div>
         </div>
+      </div>
       </div>
 
       <!-- RIGHT COLUMN: Analytics Sidebar -->
       <div class="lg:col-span-4 space-y-8">
+        <!-- Reading Circle Widget -->
+        <ReadingCircleWidget />
+
         <!-- Yearly Reading Challenge Widget -->
         <YearlyChallengeWidget
           @edit="handleEditChallenge"
@@ -694,6 +912,100 @@ const handleSaveChallenge = async (challengeData) => {
       @close="handleCloseChallengeModal"
       @save="handleSaveChallenge"
     />
+
+    <!-- Import Dialog -->
+    <Dialog v-model:open="showImportDialog">
+      <DialogContent class="glass border-slate-700 sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle class="text-2xl font-bold flex items-center gap-3">
+            <FileUp :size="28" class="text-emerald-400" />
+            Import from Goodreads
+          </DialogTitle>
+        </DialogHeader>
+
+        <div class="space-y-6 py-4">
+          <!-- Instructions -->
+          <div class="space-y-3">
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Import your reading history from Goodreads by uploading your library export CSV file.
+            </p>
+            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-3">
+              <p class="text-xs text-indigo-300 font-medium">
+                📚 How to export from Goodreads:
+              </p>
+              <ol class="text-xs text-slate-400 mt-2 space-y-1 list-decimal list-inside">
+                <li>Go to Goodreads → My Books</li>
+                <li>Click "Import and export"</li>
+                <li>Download your library CSV</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- File Input -->
+          <div class="space-y-3">
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept=".csv"
+              @change="handleFileSelect"
+              class="hidden"
+            />
+
+            <button
+              @click="triggerFileInput"
+              :disabled="importing"
+              class="w-full px-6 py-4 rounded-xl border-2 border-dashed border-slate-700 hover:border-indigo-500/50 bg-slate-900/50 hover:bg-slate-900 transition-all duration-300 text-slate-400 hover:text-white flex flex-col items-center justify-center gap-2"
+            >
+              <Upload :size="32" />
+              <span class="text-sm font-medium">
+                {{ selectedFile ? selectedFile.name : 'Click to select CSV file' }}
+              </span>
+            </button>
+          </div>
+
+          <!-- Progress -->
+          <div v-if="importProgress" class="space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-400">{{ importProgress.status }}</span>
+              <span v-if="importProgress.total > 0" class="text-indigo-400 font-medium">
+                {{ importProgress.current }} / {{ importProgress.total }}
+              </span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div
+                v-if="importProgress.total > 0"
+                class="bg-gradient-to-r from-emerald-500 to-teal-500 h-full transition-all duration-500 ease-out"
+                :style="{ width: `${(importProgress.current / importProgress.total) * 100}%` }"
+              />
+              <div
+                v-else
+                class="bg-gradient-to-r from-emerald-500 to-teal-500 h-full animate-pulse"
+                style="width: 100%"
+              />
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex justify-end gap-3 pt-4">
+            <button
+              @click="showImportDialog = false"
+              :disabled="importing"
+              class="px-5 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              @click="handleImport"
+              :disabled="!selectedFile || importing"
+              class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold hover:from-emerald-400 hover:to-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Upload :size="16" />
+              {{ importing ? 'Importing...' : 'Import Books' }}
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 

@@ -252,6 +252,67 @@ class Quote(models.Model):
         return f"{book_info} - {text_preview}"
 
 
+class VocabularyWord(models.Model):
+    """Model for storing vocabulary words learned from reading"""
+    MASTERY_CHOICES = [
+        ('new', 'New'),
+        ('learning', 'Learning'),
+        ('mastered', 'Mastered'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='vocabulary_words'
+    )
+    word = models.CharField(max_length=200)
+    definition = models.TextField()
+    context = models.TextField(blank=True, help_text="Example sentence")
+
+    # Optional book reference
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='vocabulary_words'
+    )
+    book_title = models.CharField(max_length=500, blank=True)
+    book_author = models.CharField(max_length=500, blank=True)
+    page_number = models.IntegerField(null=True, blank=True)
+
+    # Learning progress
+    mastery = models.CharField(
+        max_length=20,
+        choices=MASTERY_CHOICES,
+        default='new'
+    )
+    review_count = models.IntegerField(default=0)
+    last_reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    # Tags and metadata
+    tags = models.JSONField(default=list, blank=True)
+    is_favorite = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Vocabulary Word'
+        verbose_name_plural = 'Vocabulary Words'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'mastery']),
+            models.Index(fields=['word']),
+        ]
+
+    def __str__(self):
+        return f"{self.word} - {self.user.email}"
+
+
 # Signals to update UserBook.quotes_count
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { Star, Edit3, Trash2, Bookmark } from 'lucide-vue-next'
+import { Star, Edit3, Trash2, Bookmark, RotateCcw } from 'lucide-vue-next'
 
 const props = defineProps({
   word: {
@@ -18,6 +18,10 @@ const masteryConfig = {
 }
 
 const config = computed(() => masteryConfig[props.word.mastery])
+
+const returnToLearning = () => {
+  emit('update-mastery', props.word.id, 'learning')
+}
 </script>
 
 <template>
@@ -31,6 +35,14 @@ const config = computed(() => masteryConfig[props.word.mastery])
           <span :class="['px-2 py-0.5 rounded text-[8px] font-black uppercase text-white tracking-widest', config.color]">
             {{ config.label }}
           </span>
+          <button
+            v-if="word.mastery === 'mastered'"
+            @click="returnToLearning"
+            class="p-1 rounded hover:bg-amber-500/20 text-amber-400/60 hover:text-amber-400 transition-all group/reset"
+            title="Return to practice rotation"
+          >
+            <RotateCcw :size="10" class="group-hover/reset:rotate-180 transition-transform duration-500" />
+          </button>
           <Star v-if="word.isFavorite" :size="12" class="text-amber-400" fill="currentColor" />
         </div>
       </div>

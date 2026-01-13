@@ -1,0 +1,345 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserBooksStore } from '@/stores/userBooksStore'
+import {
+  Trophy, BookOpen, BarChart3,
+  Layers, Plus, Star, Sparkles,
+  Library, ChevronRight, Settings, Layout, Trash2
+} from 'lucide-vue-next'
+
+const router = useRouter()
+const booksStore = useUserBooksStore()
+
+const activeGoal = ref({ current: 24, total: 50 })
+const customShelves = ref([])
+
+onMounted(async () => {
+  await booksStore.fetchBooks()
+  initializeShelves()
+})
+
+const initializeShelves = () => {
+  customShelves.value = [
+    {
+      id: 'all-books',
+      title: 'Complete Library',
+      type: 'mahogany',
+      bookIds: booksStore.books.map(b => b.id)
+    },
+    {
+      id: 'favorites',
+      title: 'Philosophy Gems',
+      type: 'glass',
+      bookIds: booksStore.books.filter(b => b.is_favorite).map(b => b.id)
+    },
+    {
+      id: 'currently-reading',
+      title: 'Active Expeditions',
+      type: 'oak',
+      bookIds: booksStore.books.filter(b => b.status === 'currently_reading').map(b => b.id)
+    }
+  ]
+}
+
+const stats = computed(() => {
+  const totalPages = booksStore.books.reduce((acc, b) => acc + (b.book?.pageCount || 0), 0)
+  const readBooks = booksStore.books.filter(b => b.status === 'read').length
+  return {
+    total: booksStore.books.length,
+    totalPages,
+    readBooks,
+    progress: Math.round((readBooks / (booksStore.books.length || 1)) * 100),
+    favoriteGenre: 'Science Fiction'
+  }
+})
+
+const handleAddShelf = () => {
+  const newShelf = {
+    id: `shelf-${Date.now()}`,
+    title: 'New Collection',
+    type: 'minimal',
+    bookIds: []
+  }
+  customShelves.value.push(newShelf)
+}
+
+const handleOpenBook = (book) => {
+  router.push(`/books/${book.book.id}`)
+}
+
+const navigateToImporter = () => {
+  router.push('/library')
+}
+
+const getShelfBooks = (shelf) => {
+  return booksStore.books.filter(b => shelf.bookIds.includes(b.id))
+}
+
+// Generate random spine color for each book
+const getSpineColor = (bookId) => {
+  const colors = [
+    'from-blue-700 via-blue-800 to-blue-950',
+    'from-emerald-700 via-emerald-800 to-emerald-950',
+    'from-amber-700 via-amber-800 to-amber-950',
+    'from-rose-700 via-rose-800 to-rose-950',
+    'from-purple-700 via-purple-800 to-purple-950',
+    'from-cyan-700 via-cyan-800 to-cyan-950',
+    'from-orange-700 via-orange-800 to-orange-950',
+    'from-teal-700 via-teal-800 to-teal-950',
+    'from-pink-700 via-pink-800 to-pink-950',
+    'from-indigo-700 via-indigo-800 to-indigo-950',
+    'from-red-700 via-red-800 to-red-950',
+    'from-lime-700 via-lime-800 to-lime-950',
+    'from-sky-700 via-sky-800 to-sky-950',
+    'from-violet-700 via-violet-800 to-violet-950',
+    'from-fuchsia-700 via-fuchsia-800 to-fuchsia-950',
+    'from-slate-700 via-slate-800 to-slate-950'
+  ]
+
+  // Use book ID to consistently assign same color
+  const hash = bookId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return colors[hash % colors.length]
+}
+</script>
+
+<template>
+  <div class="max-w-7xl mx-auto px-6 py-10 animate-in fade-in duration-1000">
+
+    <!-- PREMIUM DASHBOARD -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-24">
+      <!-- Reading Goal -->
+      <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-6">
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
+              <Trophy class="text-amber-400" :size="22" />
+            </div>
+            <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Reading Goal</span>
+          </div>
+          <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ activeGoal.current }}/{{ activeGoal.total }}</p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Books in 2025</p>
+
+          <div class="mt-6 w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(99,102,241,0.5)]"
+              :style="{ width: `${(activeGoal.current / activeGoal.total) * 100}%` }"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Library Progress -->
+      <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-6">
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
+              <BookOpen class="text-indigo-400" :size="22" />
+            </div>
+            <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Library Progress</span>
+          </div>
+          <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ stats.progress }}%</p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total catalog read</p>
+
+          <div class="mt-6 w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(99,102,241,0.5)]"
+              :style="{ width: `${stats.progress}%` }"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Pages -->
+      <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-6">
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
+              <BarChart3 class="text-emerald-400" :size="22" />
+            </div>
+            <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Total Pages</span>
+          </div>
+          <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ stats.totalPages.toLocaleString() }}</p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Physical pages owned</p>
+        </div>
+      </div>
+
+      <!-- Top Genre -->
+      <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-6">
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
+              <Sparkles class="text-purple-400" :size="22" />
+            </div>
+            <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Top Genre</span>
+          </div>
+          <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ stats.favoriteGenre }}</p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Based on your shelf</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="h-px w-8 bg-indigo-500"></div>
+          <span class="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400">Physical Archive</span>
+        </div>
+        <h2 class="text-5xl font-black text-white tracking-tighter">My <span class="text-indigo-500">Personal</span> Sanctum</h2>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button
+          @click="handleAddShelf"
+          class="flex items-center gap-2 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all"
+        >
+          <Plus :size="16" /> New Collection
+        </button>
+        <button
+          @click="navigateToImporter"
+          class="flex items-center gap-2 px-8 py-4 rounded-2xl bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-indigo-500/20"
+        >
+          <Library :size="16" /> Add Volume
+        </button>
+      </div>
+    </div>
+
+    <!-- THE SHELVES -->
+    <div class="space-y-40 pb-20">
+      <div
+        v-for="shelf in customShelves"
+        :key="shelf.id"
+        class="relative"
+      >
+        <!-- Shelf Labels -->
+        <div class="flex items-center justify-between mb-8 px-4">
+          <div class="flex items-center gap-4">
+            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+            <h3 class="text-[12px] font-black text-white uppercase tracking-[0.4em]">{{ shelf.title }}</h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+              {{ getShelfBooks(shelf).length }} VOLUMES
+            </span>
+            <button class="p-2 text-slate-600 hover:text-white transition-colors">
+              <Settings :size="14" />
+            </button>
+          </div>
+        </div>
+
+        <div class="relative min-h-[300px] perspective-shelf">
+          <!-- BOOKS STANDING ON TOP OF THE SHELF -->
+          <div class="flex items-end gap-[4px] px-12 absolute bottom-[50px] left-0 right-0 z-20 overflow-visible">
+            <div
+              v-for="book in getShelfBooks(shelf)"
+              :key="book.id"
+              @click="handleOpenBook(book)"
+              class="relative group cursor-pointer book-hover-effect flex flex-col items-center"
+              :style="{ width: `${Math.max(20, Math.min(95, ((book.book?.pageCount || 250) / 250) * 45))}px` }"
+            >
+              <!-- Premium Tooltip -->
+              <div class="absolute -top-20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 whitespace-nowrap bg-white text-slate-950 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20">
+                {{ book.book?.title }}
+                <div class="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45" />
+              </div>
+
+              <!-- The 3D Spine Surface -->
+              <div
+                :class="[
+                  'w-full relative rounded-t-md border-x border-t border-white/10 group-hover:border-white/30 shadow-[10px_0_30px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-500',
+                  'bg-gradient-to-b',
+                  getSpineColor(book.id)
+                ]"
+                :style="{ height: `${Math.max(190, Math.min(240, 210 + ((book.book?.pageCount || 250) / 60)))}px` }"
+              >
+                <div class="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 pointer-events-none" />
+
+                <div class="absolute inset-0 flex items-center justify-center p-3 [writing-mode:vertical-rl] rotate-180 pointer-events-none">
+                  <span class="text-[10px] font-black text-white/95 uppercase tracking-[0.2em] line-clamp-1 max-h-[80%] drop-shadow-md">
+                    {{ book.book?.title }}
+                  </span>
+                </div>
+
+                <div class="absolute top-0 left-0 right-0 h-[3px] bg-white/20 pointer-events-none" />
+                <div class="absolute top-6 left-0 right-0 h-[1px] bg-black/30 pointer-events-none" />
+                <div class="absolute bottom-6 left-0 right-0 h-[1px] bg-black/30 pointer-events-none" />
+
+                <div
+                  v-if="book.status === 'currently_reading'"
+                  class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
+                >
+                  <div class="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_15px_#818cf8] animate-pulse" />
+                </div>
+              </div>
+
+              <!-- Contact Shadow on shelf surface -->
+              <div class="absolute bottom-0 w-full h-2 bg-black/60 blur-[4px] opacity-40 group-hover:opacity-0 transition-opacity duration-500 pointer-events-none" />
+            </div>
+          </div>
+
+          <!-- 3D SHELF BASE - FIXED PHYSICS -->
+          <div class="absolute bottom-0 left-0 right-0 z-10 h-[50px]">
+            <!-- Top Surface (Where books sit) -->
+            <div
+              :class="[
+                'h-[12px] w-full rounded-t-2xl bg-gradient-to-r border-t border-x border-white/10 relative z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.5)]',
+                shelf.type === 'mahogany' ? 'from-amber-900 via-amber-950 to-stone-950 border-white/5 shadow-2xl' : '',
+                shelf.type === 'glass' ? 'from-indigo-500/20 via-white/10 to-indigo-500/20 border-white/20 shadow-xl backdrop-blur-md' : '',
+                shelf.type === 'oak' ? 'from-amber-700/40 via-amber-800/50 to-amber-950/40 border-amber-800/10 shadow-lg' : '',
+                shelf.type === 'minimal' ? 'from-white/5 to-white/[0.02] border-white/10 shadow-md' : ''
+              ]"
+            >
+              <div class="absolute inset-0 bg-white/[0.02] rounded-t-2xl" />
+            </div>
+            <!-- Front Edge (Visible face) -->
+            <div class="h-[38px] w-full rounded-b-2xl bg-gradient-to-b from-black/20 to-black/60 border-x border-b border-white/5 relative z-10 flex items-center justify-center">
+              <div class="w-1/3 h-px bg-white/5"></div>
+            </div>
+          </div>
+
+          <div
+            v-if="getShelfBooks(shelf).length === 0"
+            class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20"
+          >
+            <p class="text-[9px] font-black uppercase tracking-[1em] text-slate-500">Vacant Workspace</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* Light mode adjustments */
+body.light .text-white {
+  color: #0f172a !important;
+}
+
+body.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+body.light .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+body.light .bg-white\/\[0\.03\],
+body.light .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light .border-white\/10,
+body.light .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light .bg-slate-800 {
+  background: linear-gradient(to bottom, #e2e8f0, #cbd5e1) !important;
+}
+
+body.light .shadow-\[10px_0_30px_rgba\(0\,0\,0\,0\.4\)\] {
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15) !important;
+}
+</style>

@@ -96,7 +96,7 @@ const handleBookClick = () => {
         <div class="mb-3">
           <h3
             @click="handleBookClick"
-            class="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors cursor-pointer truncate flex items-center gap-2"
+            class="text-base font-bold text-slate-100 group-hover:text-indigo-400 transition-colors cursor-pointer truncate flex items-center gap-2"
           >
             {{ post.book.title }}
             <ExternalLink :size="14" class="opacity-0 group-hover:opacity-100 transition-opacity" />

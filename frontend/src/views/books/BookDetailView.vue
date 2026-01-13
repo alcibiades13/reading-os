@@ -108,7 +108,11 @@ const averageRating = computed(() => book.value?.average_rating || 0)
 const ratingsCount = computed(() => book.value?.ratings_count || 0)
 
 const descriptionHtml = computed(() => {
-  return book.value?.description || 'No description available.'
+  if (!book.value?.description) return 'No description available.'
+  // Convert plain text newlines to HTML with proper formatting
+  const text = book.value.description
+  // Replace ALL newlines with <br> to preserve exact formatting from textarea
+  return text.replace(/\n/g, '<br>')
 })
 
 const formattedStartedAt = computed(() => {

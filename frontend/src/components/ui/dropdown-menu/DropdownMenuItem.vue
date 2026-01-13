@@ -22,7 +22,7 @@ const forwardedProps = useForwardProps(delegatedProps);
     v-bind="forwardedProps"
     :class="
       cn(
-        'relative flex cursor-default select-none items-center rounded-lg gap-2 px-2 py-1.5 text-sm outline-none transition-colors hover:bg-indigo-500/10 focus:bg-indigo-500/10 hover:text-indigo-400 focus:text-indigo-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0',
+        'relative flex cursor-pointer select-none items-center rounded-lg gap-2 px-2 py-1.5 text-sm outline-none transition-colors hover:bg-indigo-500/10 focus:bg-indigo-500/10 hover:text-indigo-400 focus:text-indigo-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0',
         inset && 'pl-8',
         props.class,
       )

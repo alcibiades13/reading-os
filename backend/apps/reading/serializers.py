@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.reading.models import UserBook, Quote, QuoteTag
+from apps.reading.models import UserBook, Quote, QuoteTag, VocabularyWord
 from apps.books.serializers import BookListSerializer
 from apps.users.serializers import UserSerializer
 
@@ -23,6 +23,7 @@ class QuoteTagSerializer(serializers.ModelSerializer):
 class QuoteListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for quote lists"""
     tags = QuoteTagSerializer(many=True, read_only=True)
+    book_cover = serializers.SerializerMethodField()
 
     class Meta:
         model = Quote
@@ -31,6 +32,7 @@ class QuoteListSerializer(serializers.ModelSerializer):
             'book',
             'book_title',
             'book_author',
+            'book_cover',
             'text',
             'page_number',
             'chapter',
@@ -41,6 +43,19 @@ class QuoteListSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['id', 'user', 'user_book', 'created_at']
+
+    def get_book_cover(self, obj):
+        """Get book cover URL from related book"""
+        try:
+            if obj.book:
+                # Book exists, check for cover_image field
+                if hasattr(obj.book, 'cover_image') and obj.book.cover_image:
+                    return obj.book.cover_image
+            # No book linked or no cover
+            return None
+        except Exception as e:
+            print(f"Error getting book cover for quote {obj.id}: {e}")
+            return None
 
 
 class QuoteDetailSerializer(serializers.ModelSerializer):
@@ -199,6 +214,45 @@ class UserBookDetailSerializer(serializers.ModelSerializer):
         ]
 
 
+class QuoteUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating quotes"""
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=QuoteTag.objects.all(),
+        source='tags',
+        required=False
+    )
+
+    class Meta:
+        model = Quote
+        fields = [
+            'text',
+            'book_title',
+            'book_author',
+            'page_number',
+            'chapter',
+            'note',
+            'tag_ids',
+            'is_favorite',
+            'is_public',
+        ]
+
+    def update(self, instance, validated_data):
+        """Handle many-to-many relationships"""
+        tags = validated_data.pop('tags', None)
+
+        # Update regular fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update tags if provided
+        if tags is not None:
+            instance.tags.set(tags)
+
+        return instance
+
+
 class UserBookCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating user books"""
 
@@ -251,4 +305,30 @@ class UserBookCreateSerializer(serializers.ModelSerializer):
             )
         
         return data
+
+
+class VocabularyWordSerializer(serializers.ModelSerializer):
+    """Serializer for vocabulary words"""
+
+    class Meta:
+        model = VocabularyWord
+        fields = [
+            'id',
+            'word',
+            'definition',
+            'context',
+            'book',
+            'book_title',
+            'book_author',
+            'page_number',
+            'mastery',
+            'review_count',
+            'last_reviewed_at',
+            'tags',
+            'is_favorite',
+            'is_public',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 

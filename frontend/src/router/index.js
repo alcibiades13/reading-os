@@ -29,6 +29,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/library/shelf',
+    name: 'PhysicalShelf',
+    component: () => import('@/views/library/PhysicalShelfView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/books',
     name: 'Books',
     component: () => import('@/views/books/BooksView.vue'),
@@ -108,6 +114,12 @@ const routes = [
     path: '/feed',
     name: 'Feed',
     component: () => import('@/views/feed/FeedView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/correspondence',
+    name: 'Correspondence',
+    component: () => import('@/views/correspondence/CorrespondenceView.vue'),
     meta: { requiresAuth: true },
   },
   {

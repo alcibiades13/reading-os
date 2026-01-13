@@ -19,6 +19,7 @@ const profileForm = ref({
   location: '',
   website: '',
   birth_date: '',
+  is_public: true,
 })
 
 onMounted(async () => {
@@ -30,6 +31,7 @@ onMounted(async () => {
       location: authStore.user.location || '',
       website: authStore.user.website || '',
       birth_date: authStore.user.birth_date || '',
+      is_public: authStore.user.profile?.is_public !== undefined ? authStore.user.profile.is_public : true,
     }
     avatarPreview.value = authStore.user.avatar || null
   }
@@ -71,9 +73,12 @@ const stats = computed(() => ({
 const handleSaveProfile = async () => {
   const formData = new FormData()
 
-  // Add text fields
+  // Add text fields (excluding is_public which goes in profile)
   Object.keys(profileForm.value).forEach(key => {
-    if (profileForm.value[key]) {
+    if (key === 'is_public') {
+      // Send is_public as profile.is_public
+      formData.append('profile.is_public', profileForm.value[key])
+    } else if (profileForm.value[key]) {
       formData.append(key, profileForm.value[key])
     }
   })
@@ -101,6 +106,7 @@ const cancelEdit = () => {
       location: authStore.user.location || '',
       website: authStore.user.website || '',
       birth_date: authStore.user.birth_date || '',
+      is_public: authStore.user.profile?.is_public !== undefined ? authStore.user.profile.is_public : true,
     }
     avatarPreview.value = authStore.user.avatar || null
   }
@@ -258,6 +264,24 @@ const cancelEdit = () => {
                     type="date"
                     class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                   />
+                </div>
+              </div>
+
+              <!-- Privacy Setting -->
+              <div class="border-t border-slate-800 pt-6 mt-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-sm font-bold text-white block mb-1">Public Profile</span>
+                    <span class="text-xs text-slate-500">Allow other users to view your profile, books, and quotes</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      v-model="profileForm.is_public"
+                      type="checkbox"
+                      class="sr-only peer"
+                    />
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                  </label>
                 </div>
               </div>
 

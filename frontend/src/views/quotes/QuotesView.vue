@@ -15,6 +15,8 @@ const searchQuery = ref('')
 const selectedTag = ref(null)
 const showFavorites = ref(false)
 const isCreateDialogOpen = ref(false)
+const isEditDialogOpen = ref(false)
+const editingQuote = ref(null)
 
 // New quote form
 const newQuote = ref({
@@ -29,7 +31,21 @@ const newQuote = ref({
   user_book: null,
   tag_ids: [],
   is_favorite: false,
-  is_public: false,
+  is_public: true,
+})
+
+// Edit quote form
+const editQuote = ref({
+  text: '',
+  note: '',
+  book_title: '',
+  book_author: '',
+  page_number: null,
+  chapter: '',
+  tags_input: '',
+  tag_ids: [],
+  is_favorite: false,
+  is_public: true,
 })
 
 onMounted(async () => {
@@ -183,6 +199,82 @@ const handleBookClick = (quote) => {
   // If quote has book ID, navigate to book detail page
   if (quote.book) {
     router.push(`/books/${quote.book}`)
+  }
+}
+
+const openEditDialog = (quote) => {
+  editingQuote.value = quote
+  editQuote.value = {
+    text: quote.text,
+    note: quote.note || '',
+    book_title: quote.book_title,
+    book_author: quote.book_author,
+    page_number: quote.page_number,
+    chapter: quote.chapter || '',
+    tags_input: quote.tags?.map(t => t.name).join(', ') || '',
+    tag_ids: quote.tags?.map(t => t.id) || [],
+    is_favorite: quote.is_favorite,
+    is_public: quote.is_public,
+  }
+  isEditDialogOpen.value = true
+}
+
+const handleEditQuote = async () => {
+  try {
+    // Parse tags from comma-separated string
+    const tagNames = editQuote.value.tags_input
+      ? editQuote.value.tags_input.split(',').map(t => t.trim()).filter(t => t !== '')
+      : []
+
+    // Prepare payload
+    const payload = {
+      text: editQuote.value.text,
+      note: editQuote.value.note,
+      book_title: editQuote.value.book_title,
+      book_author: editQuote.value.book_author,
+      page_number: editQuote.value.page_number || null,
+      chapter: editQuote.value.chapter || '',
+      is_favorite: editQuote.value.is_favorite,
+      is_public: editQuote.value.is_public,
+    }
+
+    // Handle tags
+    if (tagNames.length > 0) {
+      await quotesStore.fetchTags()
+      const tagIds = []
+
+      for (const tagName of tagNames) {
+        const existingTag = quotesStore.tags.find(t =>
+          t.name.toLowerCase() === tagName.toLowerCase()
+        )
+
+        if (existingTag) {
+          tagIds.push(existingTag.id)
+        } else {
+          const result = await quotesStore.createTag({ name: tagName })
+          if (result.success) {
+            tagIds.push(result.data.id)
+          }
+        }
+      }
+      payload.tag_ids = tagIds
+    } else {
+      payload.tag_ids = []
+    }
+
+    const result = await quotesStore.updateQuote(editingQuote.value.id, payload)
+
+    if (result.success) {
+      isEditDialogOpen.value = false
+      editingQuote.value = null
+      await quotesStore.fetchQuotes()
+    } else {
+      console.error('Quote update failed:', result.error)
+      alert(`Failed to update quote: ${JSON.stringify(result.error)}`)
+    }
+  } catch (error) {
+    console.error('Error updating quote:', error)
+    alert(`Error: ${error.message}`)
   }
 }
 </script>
@@ -463,6 +555,7 @@ const handleBookClick = (quote) => {
 
             <!-- Book Info -->
             <div class="flex flex-col sm:flex-row items-start gap-2 sm:gap-3 pt-3 border-t border-slate-800/50">
+              <!-- Book Cover or Placeholder -->
               <div
                 v-if="quote.book_cover"
                 @click="handleBookClick(quote)"
@@ -493,14 +586,16 @@ const handleBookClick = (quote) => {
                   <p class="text-indigo-400 font-medium text-sm truncate">{{ quote.book_author || 'Unknown Author' }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 text-xs">
-                  <div class="flex gap-2 text-slate-500 font-bold uppercase tracking-wider">
-                    <span v-if="quote.chapter" class="flex items-center gap-1">
+                  <!-- Chapter and Page -->
+                  <template v-if="quote.chapter || quote.page_number">
+                    <span v-if="quote.chapter" class="flex items-center gap-1 text-slate-500 font-bold uppercase tracking-wider">
                       <span class="text-slate-600">Ch.</span> {{ quote.chapter }}
                     </span>
-                    <span v-if="quote.page_number" class="flex items-center gap-1">
+                    <span v-if="quote.page_number" class="flex items-center gap-1 text-slate-500 font-bold uppercase tracking-wider">
                       <span class="text-slate-600">Pg.</span> {{ quote.page_number }}
                     </span>
-                  </div>
+                  </template>
+
                   <!-- Tags inline -->
                   <template v-if="quote.tags && quote.tags.length > 0">
                     <span v-if="quote.chapter || quote.page_number" class="text-slate-700">|</span>
@@ -553,7 +648,10 @@ const handleBookClick = (quote) => {
               </div>
 
               <div class="flex items-center gap-2">
-                <button class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2">
+                <button
+                  @click="openEditDialog(quote)"
+                  class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2"
+                >
                   <Edit :size="14" /> Edit
                 </button>
                 <button
@@ -568,5 +666,143 @@ const handleBookClick = (quote) => {
         </div>
       </div>
     </div>
+
+    <!-- Edit Quote Dialog -->
+    <Dialog v-model:open="isEditDialogOpen">
+      <DialogContent class="max-w-2xl glass border-slate-700 max-h-[85vh] overflow-y-auto">
+        <DialogHeader class="border-b border-slate-800 pb-3 mb-4">
+          <DialogTitle class="text-lg font-bold flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <Edit :size="16" class="text-white" />
+            </div>
+            Edit Quote
+          </DialogTitle>
+          <DialogDescription class="sr-only">
+            Edit this quote from your library
+          </DialogDescription>
+        </DialogHeader>
+
+        <form @submit.prevent="handleEditQuote" class="space-y-5">
+          <!-- Quote Content -->
+          <div class="space-y-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+              <component :is="AlignLeft" :size="12" /> The Quote
+            </label>
+            <Textarea
+              v-model="editQuote.text"
+              placeholder="Paste the brilliant words here..."
+              rows="4"
+              required
+              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+            />
+          </div>
+
+          <!-- Book Info Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <component :is="Bookmark" :size="12" /> Book Title
+              </label>
+              <Input
+                v-model="editQuote.book_title"
+                placeholder="Which masterpiece is this from?"
+                required
+                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <component :is="Hash" :size="12" /> Author
+              </label>
+              <Input
+                v-model="editQuote.book_author"
+                placeholder="The creative mind..."
+                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+              />
+            </div>
+          </div>
+
+          <!-- Metadata Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="space-y-2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Page</label>
+              <Input
+                v-model.number="editQuote.page_number"
+                type="number"
+                placeholder="e.g. 142"
+                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chapter</label>
+              <Input
+                v-model="editQuote.chapter"
+                placeholder="e.g. Chapter IV"
+                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+              />
+            </div>
+            <div class="space-y-2 md:col-span-1 col-span-2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tags</label>
+              <Input
+                v-model="editQuote.tags_input"
+                placeholder="philosophy, life, love"
+                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+              />
+            </div>
+          </div>
+
+          <!-- Personal Notes -->
+          <div class="space-y-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Personal Notes</label>
+            <Textarea
+              v-model="editQuote.note"
+              placeholder="Why did this resonate with you?"
+              rows="2"
+              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg p-3 text-sm text-slate-200 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+            />
+          </div>
+
+          <!-- Toggles -->
+          <div class="flex flex-wrap gap-3 pt-2">
+            <button
+              type="button"
+              @click="editQuote.is_favorite = !editQuote.is_favorite"
+              :class="editQuote.is_favorite ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-500'"
+              class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm"
+            >
+              <component :is="Star" :size="16" :fill="editQuote.is_favorite ? 'currentColor' : 'none'" />
+              <span class="font-semibold">Favorite</span>
+            </button>
+            <button
+              type="button"
+              @click="editQuote.is_public = !editQuote.is_public"
+              :class="editQuote.is_public ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-slate-700 text-slate-500'"
+              class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm"
+            >
+              <component :is="editQuote.is_public ? Globe : Lock" :size="16" />
+              <span class="font-semibold">{{ editQuote.is_public ? 'Public' : 'Private' }}</span>
+            </button>
+          </div>
+
+          <!-- Footer Buttons -->
+          <div class="flex gap-3 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              @click="isEditDialogOpen = false"
+              class="flex-1 px-4 py-3 rounded-lg border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="flex-[2] px-4 py-3 rounded-lg bg-indigo-500 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 active:scale-[0.98] transition-all"
+            >
+              <component :is="Save" :size="18" />
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

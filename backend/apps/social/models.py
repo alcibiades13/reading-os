@@ -270,6 +270,52 @@ class CircleComment(models.Model):
         return f"Comment by {self.author.email} on post {self.post.id}"
 
 
+class Notification(models.Model):
+    """
+    User notifications for social interactions.
+    """
+    NOTIFICATION_TYPE_CHOICES = [
+        ('new_follower', 'New Follower'),
+        ('circle_invitation', 'Circle Invitation'),
+        ('circle_post', 'New Circle Post'),
+        ('comment', 'New Comment'),
+    ]
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='triggered_notifications',
+        null=True,
+        blank=True
+    )
+    notification_type = models.CharField(
+        max_length=30,
+        choices=NOTIFICATION_TYPE_CHOICES
+    )
+
+    # Optional reference to related object
+    object_id = models.IntegerField(null=True, blank=True)
+
+    # Preview text
+    message = models.TextField()
+
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+
+    def __str__(self):
+        return f"{self.notification_type} for {self.recipient.email}"
+
+
 class FeedItem(models.Model):
     """
     Aggregated activity feed for users.
@@ -277,6 +323,7 @@ class FeedItem(models.Model):
     """
     FEED_TYPE_CHOICES = [
         ('book_finished', 'Book Finished'),
+        ('book_started', 'Book Started'),
         ('progress_update', 'Progress Update'),
         ('quote_added', 'Quote Added'),
         ('circle_post', 'Circle Post'),

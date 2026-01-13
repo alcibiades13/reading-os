@@ -24,12 +24,13 @@ class UserSerializer(serializers.ModelSerializer):
     """Basic User serializer"""
     profile = UserProfileSerializer(read_only=True)
     full_name = serializers.CharField(read_only=True)
-    
+
     class Meta:
         model = User
         fields = [
             'id',
             'email',
+            'username',
             'first_name',
             'last_name',
             'full_name',
@@ -42,7 +43,7 @@ class UserSerializer(serializers.ModelSerializer):
             'profile',
             'created_at',
         ]
-        read_only_fields = ['id', 'created_at', 'reading_dna']
+        read_only_fields = ['id', 'created_at', 'reading_dna', 'username']
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

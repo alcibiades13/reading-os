@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
-    CirclePost, CircleComment, FeedItem
+    CirclePost, CircleComment, FeedItem, Notification
 )
 from apps.users.serializers import UserSerializer
 from apps.books.serializers import BookListSerializer
@@ -38,25 +38,14 @@ class FriendshipCreateSerializer(serializers.ModelSerializer):
     def validate_to_user(self, value):
         """Validate friend request"""
         request = self.context.get('request')
-        
+
         # Can't send request to yourself
         if value == request.user:
             raise serializers.ValidationError("Cannot send friend request to yourself")
-        
-        # Check if friendship already exists
-        if Friendship.objects.filter(
-            from_user=request.user,
-            to_user=value
-        ).exists():
-            raise serializers.ValidationError("Friend request already sent")
-        
-        # Check reverse friendship
-        if Friendship.objects.filter(
-            from_user=value,
-            to_user=request.user
-        ).exists():
-            raise serializers.ValidationError("This user has already sent you a request")
-        
+
+        # Note: We don't check for existing friendships here anymore
+        # The view's create() method handles that gracefully by returning the existing friendship
+
         return value
 
 
@@ -316,12 +305,34 @@ class CirclePostCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+# ===== NOTIFICATIONS =====
+
+class NotificationSerializer(serializers.ModelSerializer):
+    """Serializer for notifications"""
+    actor = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = [
+            'id',
+            'actor',
+            'notification_type',
+            'message',
+            'object_id',
+            'is_read',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'recipient', 'actor', 'created_at']
+
+
 # ===== FEED =====
 
 class FeedItemSerializer(serializers.ModelSerializer):
     """Serializer for feed items"""
     actor = UserSerializer(read_only=True)
-    
+    book_data = serializers.SerializerMethodField()
+    review_data = serializers.SerializerMethodField()
+
     class Meta:
         model = FeedItem
         fields = [
@@ -332,8 +343,62 @@ class FeedItemSerializer(serializers.ModelSerializer):
             'object_id',
             'preview_text',
             'preview_image',
+            'book_data',
+            'review_data',
             'is_read',
             'created_at',
         ]
         read_only_fields = ['id', 'user', 'actor', 'created_at']
+
+    def get_review_data(self, obj):
+        """Get review data for book_finished feed items"""
+        if obj.content_type == 'UserBook' and obj.feed_type == 'book_finished':
+            from apps.reading.models import UserBook
+            try:
+                user_book = UserBook.objects.get(id=obj.object_id)
+                if user_book.review:
+                    return user_book.review
+            except UserBook.DoesNotExist:
+                pass
+        return None
+
+    def get_book_data(self, obj):
+        """Get structured book data for feed items"""
+        if obj.content_type == 'UserBook':
+            from apps.reading.models import UserBook
+            try:
+                user_book = UserBook.objects.select_related('book').get(id=obj.object_id)
+                book = user_book.book
+                authors = book.authors.all() if hasattr(book, 'authors') else []
+                return {
+                    'id': book.id,
+                    'title': book.title,
+                    'authors': [{'name': author.name} for author in authors],
+                    'cover_image': book.cover_image if hasattr(book, 'cover_image') else None
+                }
+            except UserBook.DoesNotExist:
+                return None
+        elif obj.content_type == 'Quote':
+            from apps.reading.models import Quote
+            try:
+                quote = Quote.objects.select_related('book').get(id=obj.object_id)
+                book = quote.book
+                if book:
+                    authors = book.authors.all() if hasattr(book, 'authors') else []
+                    return {
+                        'id': book.id,
+                        'title': book.title,
+                        'authors': [{'name': author.name} for author in authors],
+                        'cover_image': book.cover_image if hasattr(book, 'cover_image') else None
+                    }
+                # Fallback to quote's stored book info
+                return {
+                    'id': None,
+                    'title': quote.book_title,
+                    'authors': [{'name': quote.book_author}] if quote.book_author else [],
+                    'cover_image': None
+                }
+            except Quote.DoesNotExist:
+                return None
+        return None
 

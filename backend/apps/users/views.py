@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.db.models import Q, Count
 
 from apps.users.models import User, UserProfile
 from apps.users.serializers import (
@@ -180,3 +181,322 @@ class UserViewSet(viewsets.ModelViewSet):
         }
         
         return Response(stats)
+
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        """
+        Search users by name or username.
+        GET /api/users/search/?q=query
+        """
+        query = request.query_params.get('q', '').strip()
+
+        if not query or len(query) < 2:
+            return Response(
+                {'error': 'Search query must be at least 2 characters'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Search in first_name, last_name, username
+        users = User.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(username__icontains=query)
+        )
+
+        # Exclude current user if authenticated
+        if request.user.is_authenticated:
+            users = users.exclude(id=request.user.id)
+
+        # Filter by public profiles if not authenticated
+        if not request.user.is_authenticated:
+            users = users.filter(profile__is_public=True)
+
+        # Limit results
+        users = users[:20]
+
+        # Add basic stats to each user
+        from apps.reading.models import UserBook
+        from apps.social.models import Friendship
+
+        users_data = []
+        for user in users:
+            user_serialized = UserSerializer(user).data
+
+            # Add stats (with safe defaults)
+            try:
+                user_serialized['books_read_count'] = UserBook.objects.filter(user=user, status='read').count()
+            except:
+                user_serialized['books_read_count'] = 0
+
+            try:
+                user_serialized['quotes_count'] = user.quotes.count()
+            except:
+                user_serialized['quotes_count'] = 0
+
+            try:
+                user_serialized['followers_count'] = Friendship.objects.filter(to_user=user, status='accepted').count()
+            except:
+                user_serialized['followers_count'] = 0
+
+            try:
+                user_serialized['following_count'] = Friendship.objects.filter(from_user=user, status='accepted').count()
+            except:
+                user_serialized['following_count'] = 0
+
+            # Add following status if authenticated
+            if request.user.is_authenticated:
+                try:
+                    user_serialized['is_following'] = Friendship.objects.filter(
+                        from_user=request.user,
+                        to_user=user,
+                        status='accepted'
+                    ).exists()
+                except:
+                    user_serialized['is_following'] = False
+            else:
+                user_serialized['is_following'] = False
+
+            users_data.append(user_serialized)
+
+        return Response(users_data)
+
+    @action(detail=True, methods=['get'])
+    def profile(self, request, pk=None):
+        """
+        Get user profile with social info.
+        GET /api/users/{id}/profile/
+        """
+        user = self.get_object()
+
+        # Check if profile is public or if requesting own profile
+        if not user.profile.is_public and user != request.user:
+            return Response(
+                {'error': 'This profile is private'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        from apps.social.models import Friendship
+
+        # Get friendship status
+        is_following = False
+        is_follower = False
+        friendship_id = None
+
+        if request.user.is_authenticated and user != request.user:
+            # Check if current user follows this user
+            following_friendship = Friendship.objects.filter(
+                from_user=request.user,
+                to_user=user,
+                status='accepted'
+            ).first()
+
+            # Debug logging
+            all_friendships = Friendship.objects.filter(
+                from_user=request.user,
+                to_user=user
+            )
+            print(f"DEBUG Profile API - Current user: {request.user.id}, Viewed user: {user.id}")
+            print(f"DEBUG Profile API - All friendships from {request.user.id} to {user.id}: {list(all_friendships.values('id', 'from_user_id', 'to_user_id', 'status'))}")
+            print(f"DEBUG Profile API - Following friendship: {following_friendship}")
+            if following_friendship:
+                print(f"DEBUG Profile API - Following friendship ID: {following_friendship.id}")
+
+            if following_friendship:
+                is_following = True
+                friendship_id = following_friendship.id
+
+            # Check if this user follows current user
+            is_follower = Friendship.objects.filter(
+                from_user=user,
+                to_user=request.user,
+                status='accepted'
+            ).exists()
+
+        # Count followers and following
+        followers_count = Friendship.objects.filter(
+            to_user=user,
+            status='accepted'
+        ).count()
+
+        following_count = Friendship.objects.filter(
+            from_user=user,
+            status='accepted'
+        ).count()
+
+        # Get books and quotes count
+        from apps.reading.models import UserBook
+
+        books_read_count = UserBook.objects.filter(
+            user=user,
+            status='read'
+        ).count()
+
+        quotes_count = user.quotes.count()
+
+        # Get top genres
+        from apps.books.models import Genre
+        from django.db.models import Count
+
+        top_genres = Genre.objects.filter(
+            books__user_books__user=user,
+            books__user_books__status='read'
+        ).annotate(
+            count=Count('books')
+        ).order_by('-count').values_list('name', flat=True)[:5]
+
+        # Serialize user data
+        user_data = UserDetailSerializer(user).data
+        user_data.update({
+            'is_following': is_following,
+            'is_follower': is_follower,
+            'friendship_id': friendship_id,
+            'followers_count': followers_count,
+            'following_count': following_count,
+            'books_read_count': books_read_count,
+            'quotes_count': quotes_count,
+            'top_genres': list(top_genres),
+        })
+
+        return Response(user_data)
+
+    @action(detail=True, methods=['get'])
+    def books(self, request, pk=None):
+        """
+        Get user's books.
+        GET /api/users/{id}/books/?status=read
+        """
+        user = self.get_object()
+
+        # Check if profile is public or if requesting own profile
+        if not user.profile.is_public and user != request.user:
+            return Response(
+                {'error': 'This profile is private'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        from apps.reading.models import UserBook
+        from apps.reading.serializers import UserBookListSerializer
+
+        # Get user's books
+        queryset = UserBook.objects.filter(user=user).select_related('book')
+
+        # Filter by status if provided
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        # Order by date added
+        queryset = queryset.order_by('-created_at')
+
+        serializer = UserBookListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def followers(self, request, pk=None):
+        """
+        Get user's followers.
+        GET /api/users/{id}/followers/
+        """
+        user = self.get_object()
+
+        # Check if profile is public or if requesting own profile
+        if not user.profile.is_public and user != request.user:
+            return Response(
+                {'error': 'This profile is private'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        from apps.social.models import Friendship
+
+        # Get users who follow this user
+        follower_friendships = Friendship.objects.filter(
+            to_user=user,
+            status='accepted'
+        ).select_related('from_user')
+
+        followers_data = []
+        for friendship in follower_friendships:
+            follower = friendship.from_user
+            follower_serialized = UserSerializer(follower).data
+
+            # Add stats
+            from apps.reading.models import UserBook
+            follower_serialized['books_read_count'] = UserBook.objects.filter(user=follower, status='read').count()
+            follower_serialized['quotes_count'] = follower.quotes.count()
+            follower_serialized['followers_count'] = Friendship.objects.filter(to_user=follower, status='accepted').count()
+            follower_serialized['following_count'] = Friendship.objects.filter(from_user=follower, status='accepted').count()
+
+            # Add following status if authenticated
+            if request.user.is_authenticated:
+                follower_serialized['is_following'] = Friendship.objects.filter(
+                    from_user=request.user,
+                    to_user=follower,
+                    status='accepted'
+                ).exists()
+                follower_serialized['is_follower'] = Friendship.objects.filter(
+                    from_user=follower,
+                    to_user=request.user,
+                    status='accepted'
+                ).exists()
+            else:
+                follower_serialized['is_following'] = False
+                follower_serialized['is_follower'] = False
+
+            followers_data.append(follower_serialized)
+
+        return Response(followers_data)
+
+    @action(detail=True, methods=['get'])
+    def following(self, request, pk=None):
+        """
+        Get users that this user follows.
+        GET /api/users/{id}/following/
+        """
+        user = self.get_object()
+
+        # Check if profile is public or if requesting own profile
+        if not user.profile.is_public and user != request.user:
+            return Response(
+                {'error': 'This profile is private'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        from apps.social.models import Friendship
+
+        # Get users that this user follows
+        following_friendships = Friendship.objects.filter(
+            from_user=user,
+            status='accepted'
+        ).select_related('to_user')
+
+        following_data = []
+        for friendship in following_friendships:
+            followed_user = friendship.to_user
+            followed_serialized = UserSerializer(followed_user).data
+
+            # Add stats
+            from apps.reading.models import UserBook
+            followed_serialized['books_read_count'] = UserBook.objects.filter(user=followed_user, status='read').count()
+            followed_serialized['quotes_count'] = followed_user.quotes.count()
+            followed_serialized['followers_count'] = Friendship.objects.filter(to_user=followed_user, status='accepted').count()
+            followed_serialized['following_count'] = Friendship.objects.filter(from_user=followed_user, status='accepted').count()
+
+            # Add following status if authenticated
+            if request.user.is_authenticated:
+                followed_serialized['is_following'] = Friendship.objects.filter(
+                    from_user=request.user,
+                    to_user=followed_user,
+                    status='accepted'
+                ).exists()
+                followed_serialized['is_follower'] = Friendship.objects.filter(
+                    from_user=followed_user,
+                    to_user=request.user,
+                    status='accepted'
+                ).exists()
+            else:
+                followed_serialized['is_following'] = False
+                followed_serialized['is_follower'] = False
+
+            following_data.append(followed_serialized)
+
+        return Response(following_data)

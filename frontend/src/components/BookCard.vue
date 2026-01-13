@@ -28,7 +28,7 @@ const statusInfo = computed(() => statusConfig[props.book.status] || statusConfi
 
 // Cover image with fallback
 const coverImage = computed(() => {
-  return props.book.book?.cover_image || `https://via.placeholder.com/150x200?text=${props.book.book?.title}`
+  return props.book.book?.cover_image || null
 })
 
 // Authors string
@@ -47,16 +47,19 @@ const progressPercent = computed(() => {
 <template>
   <Card class="group hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden">
     <!-- Book cover -->
-    <div 
-      class="relative aspect-[2/3] bg-muted overflow-hidden"
+    <div
+      class="relative aspect-[2/3] bg-gradient-to-br from-slate-700 to-slate-800 overflow-hidden flex items-center justify-center"
       @click="emit('view', book)"
     >
       <img
+        v-if="coverImage"
         :src="coverImage"
         :alt="book.book?.title"
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        @error="(e) => e.target.style.display = 'none'"
       />
-      
+      <BookOpen v-if="!coverImage" :size="48" class="text-slate-600" />
+
       <!-- Favorite heart -->
       <button
         v-if="book.is_favorite"

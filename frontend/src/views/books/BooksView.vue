@@ -21,12 +21,35 @@ const searchQuery = ref('')
 const selectedGenre = ref(null)
 const popularBooks = ref([])
 const recentBooks = ref([])
+const trendingBooks = ref([])
 const isAddDialogOpen = ref(false)
 const selectedBook = ref(null)
 const addBookStatus = ref('want_to_read')
 const showGenreDropdown = ref(false)
 const isSearching = ref(false)
 const isInitialLoad = ref(true)
+
+// All books combined (without trending duplicates)
+const allBooksExceptTrending = computed(() => {
+  const booksMap = new Map()
+  const trendingIds = new Set(trendingBooks.value.map(b => b.id))
+
+  // Add recent books
+  recentBooks.value.forEach(book => {
+    if (!trendingIds.has(book.id)) {
+      booksMap.set(book.id, book)
+    }
+  })
+
+  // Add popular books
+  popularBooks.value.forEach(book => {
+    if (!trendingIds.has(book.id) && !booksMap.has(book.id)) {
+      booksMap.set(book.id, book)
+    }
+  })
+
+  return Array.from(booksMap.values())
+})
 
 const selectedGenreLabel = computed(() => {
   if (!selectedGenre.value) return 'All Genres'
@@ -87,14 +110,16 @@ onMounted(async () => {
   await booksStore.fetchGenres()
   await userBooksStore.fetchBooks()
 
-  // Fetch both in parallel, but wait for both to complete before marking load as done
-  const [popular, recent] = await Promise.all([
+  // Fetch all discovery endpoints in parallel
+  const [popular, recent, trending] = await Promise.all([
     booksStore.fetchPopularBooks(),
-    booksStore.fetchRecentBooks()
+    booksStore.fetchRecentBooks(),
+    booksStore.fetchTrendingBooks()
   ])
 
   if (popular.success) popularBooks.value = popular.data
   if (recent.success) recentBooks.value = recent.data
+  if (trending.success) trendingBooks.value = trending.data
 
   // Mark initial load as complete
   isInitialLoad.value = false
@@ -239,16 +264,16 @@ const isBookInLibrary = (book) => {
 
     <!-- Content Section -->
     <div class="max-w-7xl mx-auto px-6 space-y-16">
-      <!-- Recently Added -->
-      <section v-if="!searchQuery && !selectedGenre && recentBooks.length > 0">
+      <!-- Trending Books Section -->
+      <section v-if="!searchQuery && !selectedGenre && trendingBooks.length > 0">
         <div class="flex items-center gap-2 mb-6">
-          <Calendar :size="18" class="text-indigo-400 flex-shrink-0 mt-0.5" />
-          <SectionHeader title="Recently Added" />
+          <TrendingUp :size="18" class="text-indigo-400 flex-shrink-0 mt-0.5" />
+          <SectionHeader title="Trending This Week" />
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div
-            v-for="book in recentBooks"
+            v-for="book in trendingBooks"
             :key="book.id"
             class="group cursor-pointer"
           >
@@ -316,16 +341,16 @@ const isBookInLibrary = (book) => {
         </div>
       </section>
 
-      <!-- Popular Books -->
-      <section v-if="!searchQuery && !selectedGenre && popularBooks.length > 0">
+      <!-- All Books Section -->
+      <section v-if="!searchQuery && !selectedGenre && allBooksExceptTrending.length > 0">
         <div class="flex items-center gap-2 mb-6">
-          <TrendingUp :size="18" class="text-indigo-400 flex-shrink-0 mt-0.5" />
-          <SectionHeader title="Popular Books" />
+          <BookOpen :size="18" class="text-indigo-400 flex-shrink-0 mt-0.5" />
+          <SectionHeader title="All Books" />
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div
-            v-for="book in popularBooks"
+            v-for="book in allBooksExceptTrending"
             :key="book.id"
             class="group cursor-pointer"
           >
@@ -489,7 +514,7 @@ const isBookInLibrary = (book) => {
 
       <!-- Empty State for no books at all -->
       <EmptyState
-        v-else-if="!searchQuery && !selectedGenre && popularBooks.length === 0 && recentBooks.length === 0"
+        v-else-if="!searchQuery && !selectedGenre && trendingBooks.length === 0 && allBooksExceptTrending.length === 0"
         :icon="BookOpen"
         title="No books available"
         description="Check back later for new additions to our collection"

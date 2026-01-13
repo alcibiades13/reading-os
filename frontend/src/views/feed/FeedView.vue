@@ -2,10 +2,12 @@
 import { ref, onMounted, computed, onUnmounted } from 'vue'
 import FeedPostCard from '@/components/feed/FeedPostCard.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
-import { Users, TrendingUp, Sparkles, Filter, ChevronDown, CheckCircle, BookOpen, Bookmark, Quote as QuoteIcon, MessageSquare, Star, MessageCircle } from 'lucide-vue-next'
+import DiscoverTab from '@/components/social/DiscoverTab.vue'
+import { Users, TrendingUp, Sparkles, Filter, ChevronDown, CheckCircle, BookOpen, Bookmark, Quote as QuoteIcon, MessageSquare, Star, MessageCircle, Compass } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/authStore'
 import { useQuotesStore } from '@/stores/quotesStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
+import api from '@/services/api'
 
 const authStore = useAuthStore()
 const quotesStore = useQuotesStore()
@@ -461,14 +463,14 @@ const filteredPosts = computed(() => {
   let filtered = posts.value
 
   // Filter by tab
+  const currentUserId = authStore.user?.id
+
   if (activeTab.value === 'books') {
-    // Show only user's own posts
-    const currentUserName = authStore.user?.full_name || authStore.user?.email || 'You'
-    filtered = filtered.filter(post => post.user.name === currentUserName)
+    // Show only user's own posts (My Updates)
+    filtered = filtered.filter(post => post.user.id === currentUserId)
   } else if (activeTab.value === 'following') {
-    // For now, show placeholder posts (non-user posts)
-    const currentUserName = authStore.user?.full_name || authStore.user?.email || 'You'
-    filtered = filtered.filter(post => post.user.name !== currentUserName)
+    // Show only posts from other users (Following)
+    filtered = filtered.filter(post => post.user.id !== currentUserId)
   }
   // 'all' shows everything
 
@@ -490,17 +492,90 @@ const handleClickOutside = () => {
 onMounted(async () => {
   loading.value = true
 
-  // Fetch user's quotes and books
-  await Promise.all([
-    quotesStore.fetchQuotes(),
-    quotesStore.fetchTags(),
-    userBooksStore.fetchBooks()
-  ])
+  try {
+    // Fetch from API
+    const response = await api.get('/social/feed/')
+    console.log('Feed API response:', response.data)
 
-  // Use real feed posts from stores
-  posts.value = realFeedPosts.value
+    // DRF returns paginated results
+    const feedData = response.data?.results || response.data || []
 
-  loading.value = false
+    // Transform API data to match expected format
+    const currentUserId = authStore.user?.id
+
+    posts.value = feedData.map(item => {
+      // Get book data from API
+      const bookTitle = item.book_data?.title || 'Unknown'
+      const bookAuthor = item.book_data?.authors?.map(a => a.name).join(', ') || 'Unknown Author'
+      const bookCover = item.book_data?.cover_image || item.preview_image
+      const bookId = item.book_data?.id || item.object_id
+
+      // Parse rating and progress from preview_text
+      let rating = null
+      let progress = null
+
+      if (item.feed_type === 'book_finished' && item.preview_text) {
+        // Format: "finished reading BookTitle and rated it X/5"
+        const match = item.preview_text.match(/rated it ([\d.]+)\/5/)
+        if (match) {
+          rating = parseFloat(match[1])
+        }
+      } else if (item.feed_type === 'progress_update' && item.preview_text) {
+        // Format: "made X% progress on BookTitle"
+        const match = item.preview_text.match(/made (\d+)% progress/)
+        if (match) {
+          progress = parseInt(match[1])
+        }
+      }
+
+      return {
+        id: item.id,
+        user: {
+          id: item.actor.id,
+          name: item.actor.id === currentUserId ? 'You' : `${item.actor.first_name} ${item.actor.last_name}`,
+          avatar: item.actor.avatar,
+        },
+        type: item.feed_type === 'book_finished' ? 'finished' :
+              item.feed_type === 'quote_added' ? 'quote' :
+              item.feed_type === 'progress_update' ? 'progress' :
+              item.feed_type === 'book_started' ? 'started' : item.feed_type,
+        timestamp: formatTimestamp(item.created_at),
+        rawTimestamp: item.created_at,
+        bookId: bookId,
+        book: {
+          title: bookTitle,
+          author: bookAuthor,
+          cover: bookCover,
+        },
+        content: item.feed_type === 'quote_added' ? {
+          quote: item.preview_text.split(' - ')[0].replace(/^"|"$/g, ''),
+          note: null
+        } : item.feed_type === 'book_finished' ? {
+          rating: rating,
+          review: item.review_data || null
+        } : item.feed_type === 'progress_update' ? {
+          progress: progress,
+          note: item.preview_text
+        } : {
+          note: item.preview_text
+        },
+        stats: { likes: 0, comments: 0, hasLiked: false }
+      }
+    })
+
+    loading.value = false
+  } catch (err) {
+    console.error('Feed error:', err)
+
+    // Fallback to store data if API fails
+    await Promise.all([
+      quotesStore.fetchQuotes(),
+      quotesStore.fetchTags(),
+      userBooksStore.fetchBooks()
+    ])
+    posts.value = realFeedPosts.value
+    loading.value = false
+  }
 
   // Add click outside listener
   document.addEventListener('click', handleClickOutside)
@@ -566,6 +641,17 @@ onUnmounted(() => {
             <span class="hidden sm:inline">My Updates</span>
             <span class="sm:hidden">Mine</span>
           </button>
+          <button
+            @click="activeTab = 'discover'"
+            :class="[
+              'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
+              activeTab === 'discover' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
+            ]"
+          >
+            <Compass :size="14" />
+            <span class="hidden sm:inline">Discover</span>
+            <span class="sm:hidden">Find</span>
+          </button>
         </div>
 
         <button
@@ -626,7 +712,10 @@ onUnmounted(() => {
       </div>
 
       <!-- Feed Stream -->
-      <div class="space-y-8">
+      <div v-if="activeTab === 'discover'">
+        <DiscoverTab />
+      </div>
+      <div v-else class="space-y-8">
         <div v-if="loading" class="space-y-8">
           <div v-for="n in 3" :key="n" class="h-64 glass bg-slate-900/50 rounded-2xl animate-pulse flex items-center justify-center">
             <div class="w-12 h-12 rounded-full border-4 border-slate-800 border-t-indigo-500 animate-spin" />

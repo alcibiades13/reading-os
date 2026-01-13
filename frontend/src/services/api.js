@@ -86,10 +86,21 @@ export const booksAPI = {
   get: (id) => api.get(`/books/${id}/`),
   create: (data) => api.post('/books/', data),
   importBook: (data) => api.post('/books/import_book/', data),
+  importGoodreadsCSV: (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/books/import_goodreads_csv/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
   update: (id, data) => api.put(`/books/${id}/`, data),
   delete: (id) => api.delete(`/books/${id}/`),
   popular: () => api.get('/books/popular/'),
   recent: () => api.get('/books/recent/'),
+  trending: () => api.get('/books/trending/'),
+  featured: () => api.get('/books/featured/'),
 }
 
 export const authorsAPI = {
@@ -168,17 +179,35 @@ export const socialAPI = {
   sendFriendRequest: (userId) => api.post('/social/friendships/', { to_user: userId }),
   acceptFriend: (id) => api.post(`/social/friendships/${id}/accept/`),
   declineFriend: (id) => api.post(`/social/friendships/${id}/decline/`),
-  
+  removeFriend: (id) => api.delete(`/social/friendships/${id}/`),
+
   // Circles
   circles: () => api.get('/social/circles/'),
   getCircle: (id) => api.get(`/social/circles/${id}/`),
   createCircle: (data) => api.post('/social/circles/', data),
-  
+
   // Circle Posts
   circlePosts: (params) => api.get('/social/circle-posts/', { params }),
   createPost: (data) => api.post('/social/circle-posts/', data),
-  
+
   // Feed
   feed: () => api.get('/social/feed/'),
   markFeedRead: (id) => api.post(`/social/feed/${id}/mark_read/`),
+
+  // User Discovery & Profiles
+  suggestedUsers: (params) => api.get('/social/suggested-users/', { params }),
+  searchUsers: (query) => api.get('/users/search/', { params: { q: query } }),
+  getUserProfile: (userId) => api.get(`/users/${userId}/profile/`),
+  getUserBooks: (userId, params) => api.get(`/users/${userId}/books/`, { params }),
+  getUserStats: (userId) => api.get(`/users/${userId}/stats/`),
+}
+
+export const vocabularyAPI = {
+  list: (params) => api.get('/reading/vocabulary/', { params }),
+  get: (id) => api.get(`/reading/vocabulary/${id}/`),
+  create: (data) => api.post('/reading/vocabulary/', data),
+  update: (id, data) => api.put(`/reading/vocabulary/${id}/`, data),
+  delete: (id) => api.delete(`/reading/vocabulary/${id}/`),
+  updateMastery: (id, mastery) => api.post(`/reading/vocabulary/${id}/update_mastery/`, { mastery }),
+  toggleFavorite: (id) => api.post(`/reading/vocabulary/${id}/toggle_favorite/`),
 }

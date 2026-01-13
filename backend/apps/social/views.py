@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
-    CirclePost, CircleComment, FeedItem
+    CirclePost, CircleComment, FeedItem, Notification
 )
 from apps.social.serializers import (
     FriendshipSerializer, FriendshipCreateSerializer,
@@ -12,7 +12,7 @@ from apps.social.serializers import (
     CircleMembershipSerializer, CircleInvitationSerializer,
     CircleInvitationCreateSerializer, CirclePostListSerializer,
     CirclePostDetailSerializer, CirclePostCreateSerializer,
-    CircleCommentSerializer, FeedItemSerializer,
+    CircleCommentSerializer, FeedItemSerializer, NotificationSerializer,
 )
 
 
@@ -21,13 +21,13 @@ from apps.social.serializers import (
 class FriendshipViewSet(viewsets.ModelViewSet):
     """ViewSet for Friendship model"""
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_serializer_class(self):
         """Return appropriate serializer based on action"""
         if self.action == 'create':
             return FriendshipCreateSerializer
         return FriendshipSerializer
-    
+
     def get_queryset(self):
         """Get friendships for current user"""
         user = self.request.user
@@ -36,10 +36,60 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         ) | Friendship.objects.filter(
             to_user=user
         )
-    
+
+    def create(self, request, *args, **kwargs):
+        """Override create to handle existing friendships"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Get the to_user from validated data
+        to_user = serializer.validated_data['to_user']
+
+        # Check if friendship already exists
+        existing_friendship = Friendship.objects.filter(
+            from_user=request.user,
+            to_user=to_user
+        ).first()
+
+        if existing_friendship:
+            # Return existing friendship
+            response_serializer = FriendshipSerializer(existing_friendship)
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+        # Create new friendship
+        self.perform_create(serializer)
+
+        # Get the created friendship to return it
+        new_friendship = Friendship.objects.filter(
+            from_user=request.user,
+            to_user=to_user
+        ).first()
+
+        response_serializer = FriendshipSerializer(new_friendship)
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def perform_create(self, serializer):
-        """Create friend request"""
-        serializer.save(from_user=self.request.user, status='pending')
+        """Create friend request - auto-accept for follow functionality"""
+        # Create the friendship
+        friendship = serializer.save(from_user=self.request.user)
+
+        # Explicitly set status to accepted (model default is 'pending')
+        friendship.status = 'accepted'
+        friendship.save()
+
+        # Debug logging
+        print(f"DEBUG Create Friendship - Created friendship ID: {friendship.id}")
+        print(f"DEBUG Create Friendship - from_user: {friendship.from_user_id}, to_user: {friendship.to_user_id}, status: {friendship.status}")
+
+        # Create notification for the followed user
+        Notification.objects.create(
+            recipient=friendship.to_user,
+            actor=self.request.user,
+            notification_type='new_follower',
+            message=f'{self.request.user.first_name} {self.request.user.last_name} started following you',
+            object_id=friendship.id
+        )
     
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
@@ -320,6 +370,38 @@ class CircleCommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
+# ===== NOTIFICATIONS =====
+
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for Notification model (read-only)"""
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """Get notifications for current user"""
+        return Notification.objects.filter(
+            recipient=self.request.user
+        ).select_related('actor').order_by('-created_at')
+
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        """Mark notification as read"""
+        notification = self.get_object()
+        notification.is_read = True
+        notification.save()
+        serializer = NotificationSerializer(notification)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def mark_all_read(self, request):
+        """Mark all notifications as read"""
+        Notification.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).update(is_read=True)
+        return Response({'status': 'All notifications marked as read'})
+
+
 # ===== FEED =====
 
 class FeedItemViewSet(viewsets.ReadOnlyModelViewSet):
@@ -350,3 +432,119 @@ class FeedItemViewSet(viewsets.ReadOnlyModelViewSet):
             is_read=False
         ).update(is_read=True)
         return Response({'status': 'All items marked as read'})
+
+
+# ===== USER DISCOVERY =====
+
+from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
+from apps.users.serializers import UserSerializer
+from django.db.models import Count, Q
+
+User = get_user_model()
+
+
+class SuggestedUsersView(APIView):
+    """
+    Get suggested users based on reading similarity.
+    GET /api/social/suggested-users/?limit=10
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        limit = int(request.query_params.get('limit', 10))
+        current_user = request.user
+
+        from apps.reading.models import UserBook
+        from apps.books.models import Genre
+
+        # Get current user's read books and genres
+        current_user_books = list(UserBook.objects.filter(
+            user=current_user,
+            status='read'
+        ).values_list('book_id', flat=True))
+
+        current_user_genres = list(Genre.objects.filter(
+            books__user_books__user=current_user,
+            books__user_books__status='read'
+        ).distinct().values_list('id', flat=True))
+
+        # Get ALL users except current user and already followed
+        existing_friendships = list(Friendship.objects.filter(
+            from_user=current_user,
+            status__in=['accepted', 'pending']
+        ).values_list('to_user_id', flat=True))
+
+        # Get ALL users except current user and already followed
+        suggested_users = User.objects.exclude(
+            id=current_user.id
+        ).exclude(
+            id__in=existing_friendships
+        )
+
+        # Calculate match score for each user
+        users_with_scores = []
+        for user in suggested_users[:limit * 2]:  # Get more to filter after scoring
+            # Count shared books
+            user_books = UserBook.objects.filter(
+                user=user,
+                status='read'
+            ).values_list('book_id', flat=True)
+
+            shared_books = set(current_user_books) & set(user_books)
+            shared_books_count = len(shared_books)
+
+            # Count shared genres
+            user_genres = Genre.objects.filter(
+                books__user_books__user=user,
+                books__user_books__status='read'
+            ).distinct().values_list('id', flat=True)
+
+            shared_genres = set(current_user_genres) & set(user_genres)
+            shared_genres_count = len(shared_genres)
+
+            # Calculate match score (max 100)
+            match_score = min(shared_books_count * 4, 40) + min(shared_genres_count * 10, 30)
+
+            # Get friendship status
+            is_following = Friendship.objects.filter(
+                from_user=current_user,
+                to_user=user,
+                status='accepted'
+            ).exists()
+
+            is_follower = Friendship.objects.filter(
+                from_user=user,
+                to_user=current_user,
+                status='accepted'
+            ).exists()
+
+            # Get top genres for this user
+            top_genres = Genre.objects.filter(
+                books__user_books__user=user,
+                books__user_books__status='read'
+            ).annotate(
+                count=Count('books')
+            ).order_by('-count').values_list('name', flat=True)[:3]
+
+            # Serialize user
+            user_data = UserSerializer(user).data
+            user_data.update({
+                'match_score': match_score,
+                'shared_books_count': shared_books_count,
+                'is_following': is_following,
+                'is_follower': is_follower,
+                'top_genres': list(top_genres),
+                'books_read_count': UserBook.objects.filter(user=user, status='read').count(),
+                'quotes_count': user.quotes.count(),
+                'followers_count': Friendship.objects.filter(to_user=user, status='accepted').count(),
+                'following_count': Friendship.objects.filter(from_user=user, status='accepted').count(),
+            })
+
+            users_with_scores.append(user_data)
+
+        # Sort by match score
+        users_with_scores.sort(key=lambda x: x['match_score'], reverse=True)
+
+        # Return top N users
+        return Response(users_with_scores[:limit])

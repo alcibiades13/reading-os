@@ -29,8 +29,11 @@ import {
   Rss,
   Brain,
   Sun,
-  Moon
+  Moon,
+  MessageSquare,
+  Settings
 } from 'lucide-vue-next'
+import NotificationDropdown from '@/components/NotificationDropdown.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -40,12 +43,13 @@ const themeStore = useThemeStore()
 const mobileMenuOpen = ref(false)
 
 const navItems = [
+  { name: 'Feed', path: '/feed', icon: Rss },
   { name: 'Library', path: '/library', icon: Library },
   { name: 'Books', path: '/books', icon: Search },
   { name: 'Import', path: '/import', icon: BookPlus },
   { name: 'Quotes', path: '/quotes', icon: Quote },
   { name: 'Lexicon', path: '/vocabulary', icon: Brain },
-  { name: 'Feed', path: '/feed', icon: Rss },
+  { name: 'Correspondence', path: '/correspondence', icon: MessageSquare },
   { name: 'Circles', path: '/circles', icon: Users },
 ]
 
@@ -95,6 +99,9 @@ const userInitials = computed(() => {
 
         <!-- User Menu -->
         <div class="flex items-center gap-4">
+          <!-- Notifications -->
+          <NotificationDropdown />
+
           <!-- Theme toggle button -->
           <button
             @click="themeStore.toggleTheme()"
@@ -152,9 +159,13 @@ const userInitials = computed(() => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem @click="router.push('/profile')">
+              <DropdownMenuItem @click="router.push(`/users/${authStore.user?.id}`)">
                 <User class="w-4 h-4 mr-2" />
-                Profile
+                My Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="router.push('/profile')">
+                <Settings class="w-4 h-4 mr-2" />
+                Settings
               </DropdownMenuItem>
               <DropdownMenuItem @click="router.push('/lists')">
                 <ListChecks class="w-4 h-4 mr-2" />

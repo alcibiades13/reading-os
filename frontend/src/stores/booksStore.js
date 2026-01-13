@@ -91,6 +91,30 @@ export const useBooksStore = defineStore('books', {
       }
     },
 
+    async fetchTrendingBooks() {
+      this.loading = true
+      try {
+        const response = await booksAPI.trending()
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, error: error.response?.data }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchFeaturedBooks() {
+      this.loading = true
+      try {
+        const response = await booksAPI.featured()
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, error: error.response?.data }
+      } finally {
+        this.loading = false
+      }
+    },
+
     async fetchAuthors(params = {}) {
       try {
         const response = await authorsAPI.list(params)

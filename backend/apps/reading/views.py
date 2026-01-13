@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, Count
 
-from apps.reading.models import UserBook, Quote, QuoteTag
+from apps.reading.models import UserBook, Quote, QuoteTag, VocabularyWord
 from apps.reading.models_study import StudyNote
 from apps.reading.serializers import (
     UserBookListSerializer,
@@ -12,7 +12,9 @@ from apps.reading.serializers import (
     QuoteListSerializer,
     QuoteDetailSerializer,
     QuoteCreateSerializer,
+    QuoteUpdateSerializer,
     QuoteTagSerializer,
+    VocabularyWordSerializer,
 )
 from apps.reading.serializers_study import (
     StudyNoteListSerializer,
@@ -195,6 +197,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
         """Return appropriate serializer based on action"""
         if self.action == 'create':
             return QuoteCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            return QuoteUpdateSerializer
         elif self.action == 'retrieve':
             return QuoteDetailSerializer
         return QuoteListSerializer
@@ -402,3 +406,66 @@ class StudyNoteViewSet(viewsets.ModelViewSet):
             'message': 'Note promoted to quote',
             'quote_id': quote.id
         })
+
+
+class VocabularyWordViewSet(viewsets.ModelViewSet):
+    """ViewSet for vocabulary words"""
+    serializer_class = VocabularyWordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['word', 'definition', 'context']
+    ordering_fields = ['word', 'created_at', 'mastery', 'review_count']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        """Filter vocabulary words by user"""
+        queryset = VocabularyWord.objects.filter(user=self.request.user)
+
+        # Filter by mastery level
+        mastery = self.request.query_params.get('mastery', None)
+        if mastery:
+            queryset = queryset.filter(mastery=mastery)
+
+        # Filter by favorite
+        favorite = self.request.query_params.get('favorite', None)
+        if favorite and favorite.lower() == 'true':
+            queryset = queryset.filter(is_favorite=True)
+
+        # Filter by book
+        book_id = self.request.query_params.get('book', None)
+        if book_id:
+            queryset = queryset.filter(book_id=book_id)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        """Set user when creating vocabulary word"""
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def update_mastery(self, request, pk=None):
+        """Update mastery level and increment review count"""
+        word = self.get_object()
+        mastery = request.data.get('mastery')
+
+        if mastery not in ['new', 'learning', 'mastered']:
+            return Response(
+                {'error': 'Invalid mastery level'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        word.mastery = mastery
+        word.review_count += 1
+        from django.utils import timezone
+        word.last_reviewed_at = timezone.now()
+        word.save()
+
+        return Response(VocabularyWordSerializer(word).data)
+
+    @action(detail=True, methods=['post'])
+    def toggle_favorite(self, request, pk=None):
+        """Toggle favorite status"""
+        word = self.get_object()
+        word.is_favorite = not word.is_favorite
+        word.save()
+        return Response(VocabularyWordSerializer(word).data)

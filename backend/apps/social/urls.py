@@ -7,6 +7,8 @@ from apps.social.views import (
     CirclePostViewSet,
     CircleCommentViewSet,
     FeedItemViewSet,
+    NotificationViewSet,
+    SuggestedUsersView,
 )
 
 app_name = 'social'
@@ -18,10 +20,12 @@ router.register(r'circles', CircleViewSet, basename='circle')
 router.register(r'circle-invitations', CircleInvitationViewSet, basename='circleinvitation')
 router.register(r'circle-posts', CirclePostViewSet, basename='circlepost')
 router.register(r'circle-comments', CircleCommentViewSet, basename='circlecomment')
+router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'feed', FeedItemViewSet, basename='feeditem')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('suggested-users/', SuggestedUsersView.as_view(), name='suggested-users'),
 ]
 
 # This creates the following URLs:

@@ -18,7 +18,18 @@
       "Bash(find:*)",
       "Bash(./venv/Scripts/playwright.exe install:*)",
       "Bash(python test_categories_scrape.py:*)",
-      "Bash(nslookup:*)"
+      "Bash(nslookup:*)",
+      "Bash(../venv/Scripts/python.exe manage.py makemigrations)",
+      "Bash(tasklist:*)",
+      "Bash(python manage.py shell:*)",
+      "Bash(../venv/Scripts/python.exe manage.py shell:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(venv/Scripts/python.exe manage.py shell:*)",
+      "Bash(venv/Scripts/python.exe:*)",
+      "Bash(python:*)",
+      "Bash(backend/venv/Scripts/python.exe:*)",
+      "Bash(backend\\\\venv\\\\Scripts\\\\python.exe:*)",
+      "Bash(./backend/venv/Scripts/python.exe:*)"
     ]
   }
 }

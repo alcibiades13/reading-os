@@ -116,23 +116,29 @@ class BookDetailSerializer(serializers.ModelSerializer):
         many=True,
         write_only=True,
         queryset=Author.objects.all(),
-        source='authors'
+        required=False
     )
     genre_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         write_only=True,
         queryset=Genre.objects.all(),
-        source='genres',
         required=False
     )
     tag_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         write_only=True,
         queryset=Tag.objects.all(),
-        source='tags',
         required=False
     )
-    
+
+    # Add support for updating authors/publisher by name (not just IDs)
+    publisher_name = serializers.CharField(
+        max_length=200,
+        write_only=True,
+        required=False,
+        allow_blank=True
+    )
+
     class Meta:
         model = Book
         fields = [
@@ -144,6 +150,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
             'authors',
             'author_ids',
             'publisher',
+            'publisher_name',
             'published_date',
             'language',
             'pages',
@@ -158,6 +165,56 @@ class BookDetailSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def to_internal_value(self, data):
+        """Handle 'authors' array of strings from frontend"""
+        # If 'authors' is sent as array of strings (names), convert to author_ids
+        if 'authors' in data and isinstance(data.get('authors'), list):
+            authors_input = data.pop('authors')
+            if authors_input and isinstance(authors_input[0], str):
+                # It's author names - create or get authors and convert to IDs
+                author_ids = []
+                for author_name in authors_input:
+                    if author_name.strip():
+                        author, _ = Author.objects.get_or_create(
+                            name=author_name.strip(),
+                            defaults={'bio': ''}
+                        )
+                        author_ids.append(author.id)
+                data['author_ids'] = author_ids
+
+        return super().to_internal_value(data)
+
+    def update(self, instance, validated_data):
+        """Handle update with support for author names and publisher name"""
+        # Handle author_ids (PrimaryKeyRelatedField)
+        if 'author_ids' in validated_data:
+            author_objs = validated_data.pop('author_ids')
+            instance.authors.set(author_objs)
+
+        # Handle publisher by name if provided
+        publisher_name = validated_data.pop('publisher_name', None)
+        if publisher_name:
+            publisher_obj, _ = Publisher.objects.get_or_create(
+                name=publisher_name.strip(),
+                defaults={'country': ''}
+            )
+            instance.publisher = publisher_obj
+
+        # Handle genre_ids if provided
+        if 'genre_ids' in validated_data:
+            instance.genres.set(validated_data.pop('genre_ids'))
+
+        # Handle tag_ids if provided
+        if 'tag_ids' in validated_data:
+            instance.tags.set(validated_data.pop('tag_ids'))
+
+        # Update remaining fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class BookCreateSerializer(serializers.ModelSerializer):

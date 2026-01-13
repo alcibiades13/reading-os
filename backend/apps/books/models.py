@@ -179,7 +179,17 @@ class Book(models.Model):
         blank=True,
         help_text="External IDs: {'goodreads_id': '...', 'google_id': '...'}"
     )
-    
+
+    # Featured/Curation
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="Mark as featured book for cold start/discovery"
+    )
+    featured_order = models.IntegerField(
+        default=0,
+        help_text="Order for featured books (lower = higher priority)"
+    )
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
