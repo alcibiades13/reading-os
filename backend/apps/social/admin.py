@@ -108,3 +108,4 @@ class FeedItemAdmin(admin.ModelAdmin):
         }),
     )
 
+

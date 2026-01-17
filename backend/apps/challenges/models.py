@@ -146,3 +146,4 @@ def update_challenge_progress(sender, instance, **kwargs):
         for challenge in active_challenges:
             challenge.update_progress()
 
+

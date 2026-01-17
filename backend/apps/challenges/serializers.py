@@ -195,3 +195,4 @@ class ReadingChallengeUpdateSerializer(serializers.ModelSerializer):
         instance.update_progress()
         
         return instance
+

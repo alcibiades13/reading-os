@@ -23,3 +23,4 @@ urlpatterns = [
 # GET    /api/users/me/           - Get current user (custom action)
 # PUT    /api/users/update_profile/ - Update profile (custom action)
 # GET    /api/users/{id}/stats/   - Get user stats (custom action)
+

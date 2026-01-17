@@ -103,7 +103,7 @@ const App: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform">
               <Library size={22} className="text-white" />
             </div>
-            <span className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white group-hover:text-indigo-500 transition-colors">VELLUX</span>
+            <span className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white group-hover:text-indigo-500 transition-colors">Marginalia</span>
           </div>
           
           <div className="flex items-center gap-6 md:gap-10">

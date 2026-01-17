@@ -106,3 +106,4 @@ class ReadingListItem(models.Model):
     def __str__(self):
         return f"{self.reading_list.title} - {self.book.title}"
 
+

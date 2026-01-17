@@ -156,3 +156,4 @@ class ReadingChallengeViewSet(viewsets.ModelViewSet):
             'qualifying_books': serializer.data,
             'count': books.count(),
         })
+

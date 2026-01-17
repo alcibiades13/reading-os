@@ -372,3 +372,4 @@ def create_feed_item_on_progress(sender, instance, created, update_fields, **kwa
                 preview_image=instance.book.cover_image or ''
             )
 
+

@@ -89,6 +89,27 @@ class UserBookViewSet(viewsets.ModelViewSet):
         
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        """
+        Override create to handle duplicates gracefully.
+        If user already has this book, return the existing UserBook.
+        """
+        book_id = request.data.get('book')
+
+        # Check if user already has this book
+        existing = UserBook.objects.filter(
+            user=request.user,
+            book_id=book_id
+        ).first()
+
+        if existing:
+            # Return existing UserBook instead of creating duplicate
+            serializer = self.get_serializer(existing)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Create new UserBook if it doesn't exist
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Set user to current user"""
         serializer.save(user=self.request.user)
@@ -469,3 +490,4 @@ class VocabularyWordViewSet(viewsets.ModelViewSet):
         word.is_favorite = not word.is_favorite
         word.save()
         return Response(VocabularyWordSerializer(word).data)
+

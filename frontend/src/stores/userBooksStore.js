@@ -23,6 +23,9 @@ export const useUserBooksStore = defineStore('userBooks', {
   }),
 
   getters: {
+    // All user books
+    userBooks: (state) => state.books,
+
     // Filter and sort books based on current filters
     filteredBooks: (state) => {
       let filtered = [...state.books]
@@ -118,13 +121,22 @@ export const useUserBooksStore = defineStore('userBooks', {
       this.error = null
 
       try {
+        console.log('userBooksStore.addBook called with:', bookData)
         const response = await userBooksAPI.create(bookData)
+        console.log('userBooksAPI.create response:', response)
         this.books.unshift(response.data)
         this.calculateStats()
         return { success: true, data: response.data }
       } catch (error) {
-        this.error = error.response?.data || 'Failed to add book'
-        return { success: false, error: this.error }
+        console.error('userBooksStore.addBook error:', error)
+        console.error('Error response:', error.response)
+        const errorMessage = error.response?.data?.detail
+          || error.response?.data?.error
+          || JSON.stringify(error.response?.data)
+          || error.message
+          || 'Failed to add book'
+        this.error = errorMessage
+        return { success: false, error: errorMessage }
       } finally {
         this.loading = false
       }

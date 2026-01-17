@@ -43,12 +43,12 @@ const formatDate = (timestamp) => {
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between mb-1">
-          <h4 class="text-sm font-bold text-white truncate">{{ otherParticipant?.name }}</h4>
-          <span class="text-[9px] font-black text-slate-500 uppercase">
+          <h4 class="text-sm font-bold text-slate-50 truncate">{{ otherParticipant?.name }}</h4>
+          <span class="text-[9px] font-black text-slate-400 uppercase">
             {{ formatDate(lastMsg?.timestamp) }}
           </span>
         </div>
-        <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+        <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">
           <Star
             v-if="lastMsg?.isImportant"
             :size="10"

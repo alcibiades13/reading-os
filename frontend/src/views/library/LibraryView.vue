@@ -10,11 +10,18 @@ import YearlyChallengeWidget from '@/components/YearlyChallengeWidget.vue'
 import YearlyChallengeModal from '@/components/YearlyChallengeModal.vue'
 import ReadingCircleWidget from '@/components/social/ReadingCircleWidget.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { booksAPI } from '@/services/api'
 import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
   CheckCircle, Bookmark, BrainCircuit, Lightbulb,
-  Quote, ArrowUpRight, Upload, FileUp
+  Quote, ArrowUpRight, Upload, FileUp, LayoutGrid, List, Star,
+  MoreVertical, Trash2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -30,6 +37,7 @@ const loading = ref(true)
 const isQuoteExpanded = ref(false)
 const showChallengeModal = ref(false)
 const editingChallenge = ref(null)
+const viewMode = ref('grid') // 'grid' or 'list'
 
 // Import state
 const showImportDialog = ref(false)
@@ -54,6 +62,12 @@ onMounted(async () => {
     console.error('Error loading library data:', error)
   } finally {
     loading.value = false
+  }
+
+  // Find the scrollable main container
+  const mainContainer = document.querySelector('main.overflow-y-auto')
+  if (mainContainer) {
+    mainContainer.addEventListener('scroll', handleScroll, { passive: true })
   }
 })
 
@@ -375,25 +389,27 @@ const resetPagination = () => {
 }
 
 // Infinite scroll handler
-const handleScroll = () => {
-  const scrollThreshold = 300 // pixels from bottom
-  const scrollPosition = window.innerHeight + window.scrollY
-  const pageHeight = document.documentElement.scrollHeight
+const isLoadingMore = ref(false)
+const handleScroll = (event) => {
+  const element = event.target
+  const scrollThreshold = 500
+  const scrollPosition = element.scrollTop + element.clientHeight
+  const scrollHeight = element.scrollHeight
 
-  if (pageHeight - scrollPosition < scrollThreshold && hasMoreItems.value && !loading.value) {
+  if (scrollHeight - scrollPosition < scrollThreshold && hasMoreItems.value && !loading.value && !isLoadingMore.value) {
+    isLoadingMore.value = true
     loadMore()
+    setTimeout(() => {
+      isLoadingMore.value = false
+    }, 500)
   }
 }
 
-// Add scroll listener after books are loaded
-watch(() => booksStore.books, () => {
-  nextTick(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true })
-  })
-}, { once: true })
-
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  const mainContainer = document.querySelector('main.overflow-y-auto')
+  if (mainContainer) {
+    mainContainer.removeEventListener('scroll', handleScroll)
+  }
 })
 
 // Helper functions
@@ -512,7 +528,7 @@ const handleSaveChallenge = async (challengeData) => {
   </div>
 
   <!-- Main Content -->
-  <div v-else class="max-w-7xl mx-auto px-6 py-12">
+  <div v-else class="w-full max-w-[1800px] mx-auto px-8 py-12">
 
     <!-- HERO SECTION -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 items-start">
@@ -703,30 +719,31 @@ const handleSaveChallenge = async (challengeData) => {
               v-model="searchQuery"
               type="text"
               placeholder="Query your personal archive by title, author, or keyword..."
-              class="bg-slate-900/40 border border-slate-800 rounded-3xl pl-16 pr-8 py-6 text-lg text-white placeholder-slate-600 focus:border-indigo-500/40 focus:bg-slate-900 outline-none transition-all w-full shadow-lg"
+              class="bg-slate-900/40 border border-slate-800 rounded-3xl pl-16 pr-8 py-4 text-lg text-white placeholder-slate-600 focus:border-indigo-500/40 focus:bg-slate-900 outline-none transition-all w-full shadow-lg"
             />
           </div>
 
           <!-- Import from Goodreads Button -->
           <button
             @click="openImportDialog"
-            class="px-6 py-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 flex items-center gap-2 shrink-0"
+            class="px-6 py-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 flex items-center gap-2 shrink-0"
           >
             <Upload :size="18" />
             <span class="hidden sm:inline">Import from Goodreads</span>
           </button>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-900/80 rounded-2xl border border-slate-800 w-fit">
-          <button
-            @click="handleTabChange('all')"
-            :class="selectedTab === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-white bg-transparent'"
-            class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-2"
-          >
-            <BookOpen :size="12" />
-            All Vault
-          </button>
+        <!-- Tabs and View Toggle -->
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-900/80 rounded-2xl border border-slate-800 w-fit">
+            <button
+              @click="handleTabChange('all')"
+              :class="selectedTab === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-white bg-transparent'"
+              class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-2"
+            >
+              <BookOpen :size="12" />
+              All Vault
+            </button>
           <button
             @click="handleTabChange('currently_reading')"
             :class="selectedTab === 'currently_reading' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-white bg-transparent'"
@@ -759,21 +776,46 @@ const handleSaveChallenge = async (challengeData) => {
             <Heart :size="12" :class="selectedTab === 'favorites' ? 'fill-current' : ''" />
             Favorites
           </button>
+          </div>
+
+          <!-- View Toggle -->
+          <div class="flex items-center gap-1 p-1 bg-slate-900/80 rounded-xl border border-slate-800">
+            <button
+              @click="viewMode = 'grid'"
+              :class="[
+                'p-2.5 rounded-lg transition-all',
+                viewMode === 'grid' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'
+              ]"
+              title="Grid View"
+            >
+              <LayoutGrid :size="18" />
+            </button>
+            <button
+              @click="viewMode = 'list'"
+              :class="[
+                'p-2.5 rounded-lg transition-all',
+                viewMode === 'list' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'
+              ]"
+              title="List View"
+            >
+              <List :size="18" />
+            </button>
+          </div>
         </div>
 
-        <!-- Books Grid -->
+        <!-- Empty State -->
         <div v-if="filteredLibrary.length === 0" class="py-20 text-center glass border-slate-800 rounded-[2.5rem]">
           <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">No entries found in archive</p>
         </div>
 
-        <div v-else>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-10">
-            <router-link
-              v-for="userBook in paginatedLibrary"
-              :key="userBook.id"
-              :to="`/books/${userBook.book.id}`"
-              class="group relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 flex items-center justify-center"
-            >
+        <!-- Grid View -->
+        <div v-else-if="viewMode === 'grid'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
+          <router-link
+            v-for="userBook in paginatedLibrary"
+            :key="userBook.id"
+            :to="`/books/${userBook.book.id}`"
+            class="group relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 flex items-center justify-center"
+          >
             <img
               v-if="getCoverUrl(userBook.book)"
               :src="getCoverUrl(userBook.book)"
@@ -807,6 +849,29 @@ const handleSaveChallenge = async (challengeData) => {
               <Heart :size="14" class="text-red-400 fill-current" />
             </button>
 
+            <!-- More Options (Grid View) -->
+            <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <button
+                    @click.stop
+                    class="p-2 rounded-lg bg-slate-950/80 backdrop-blur-sm hover:bg-slate-900 transition-colors text-slate-400 hover:text-white"
+                  >
+                    <MoreVertical :size="16" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" class="bg-slate-900 border-slate-800">
+                  <DropdownMenuItem
+                    @click.stop="handleDeleteBook(userBook)"
+                    class="text-xs cursor-pointer hover:bg-slate-800 text-red-400 hover:text-red-300 flex items-center gap-2"
+                  >
+                    <Trash2 :size="14" />
+                    Remove from Library
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <!-- Progress Bar for currently reading -->
             <div v-if="userBook.status === 'currently_reading' && getProgress(userBook) > 0" class="absolute bottom-0 left-0 right-0 h-1 bg-slate-800">
               <div
@@ -817,7 +882,127 @@ const handleSaveChallenge = async (challengeData) => {
           </router-link>
         </div>
 
-        <!-- Infinite scroll loading indicator -->
+        <!-- List/Table View -->
+        <div v-else-if="viewMode === 'list'" class="space-y-3">
+          <!-- Table Header -->
+          <div class="flex items-center gap-4 px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+            <!-- Cover -->
+            <div class="shrink-0 w-12"></div>
+
+            <!-- Title & Author -->
+            <div class="flex-1 min-w-0">Book</div>
+
+            <!-- Star Rating -->
+            <div class="hidden sm:flex w-20 justify-center">Rating</div>
+
+            <!-- Date Read -->
+            <div class="hidden md:block w-24 text-center">Date Read</div>
+
+            <!-- Date Added -->
+            <div class="hidden lg:block w-24 text-center">Date Added</div>
+
+            <!-- Status Badge -->
+            <div class="hidden xl:flex w-28 justify-center">Status</div>
+
+            <!-- Actions -->
+            <div class="w-16"></div>
+          </div>
+
+          <!-- Table Rows -->
+          <router-link
+            v-for="userBook in paginatedLibrary"
+            :key="userBook.id"
+            :to="`/books/${userBook.book.id}`"
+            class="group flex items-center gap-4 p-4 rounded-2xl glass border-slate-800 hover:border-indigo-500/30 transition-all duration-300"
+          >
+            <!-- Cover -->
+            <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg flex items-center justify-center">
+              <img
+                v-if="getCoverUrl(userBook.book)"
+                :src="getCoverUrl(userBook.book)"
+                :alt="userBook.book?.title"
+                class="w-full h-full object-cover"
+                @error="(e) => e.target.style.display = 'none'"
+              />
+              <BookOpen v-else :size="20" class="text-slate-600" />
+            </div>
+
+            <!-- Title & Author -->
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-white text-sm truncate group-hover:text-indigo-400 transition-colors">
+                {{ userBook.book?.title }}
+              </h3>
+              <p class="text-slate-400 text-xs truncate">
+                {{ userBook.book?.authors?.map(a => a.name).join(', ') || 'Unknown Author' }}
+              </p>
+            </div>
+
+            <!-- Star Rating (10-point scale) -->
+            <div class="hidden sm:flex flex-col items-center gap-1 w-32">
+              <span v-if="userBook.rating" class="text-xs font-bold text-amber-400">{{ userBook.rating }}</span>
+              <div class="flex items-center gap-0.5">
+                <Star
+                  v-for="i in 10"
+                  :key="i"
+                  :size="12"
+                  :class="i <= (userBook.rating || 0) ? 'text-amber-400 fill-current' : 'text-slate-700'"
+                />
+              </div>
+            </div>
+
+            <!-- Date Read -->
+            <div class="hidden md:block text-xs text-slate-500 w-24 text-center">
+              {{ userBook.finished_at ? new Date(userBook.finished_at).toLocaleDateString() : '—' }}
+            </div>
+
+            <!-- Date Added -->
+            <div class="hidden lg:block text-xs text-slate-500 w-24 text-center">
+              {{ userBook.created_at ? new Date(userBook.created_at).toLocaleDateString() : '—' }}
+            </div>
+
+            <!-- Status Badge -->
+            <div class="hidden xl:flex w-28 justify-center">
+              <span
+                v-if="getStatusBadge(userBook.status)"
+                :class="['px-2 py-1 rounded-lg text-[9px] font-bold whitespace-nowrap', getStatusBadge(userBook.status).class]"
+              >
+                {{ getStatusBadge(userBook.status).text }}
+              </span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 w-16 justify-end">
+              <button
+                v-if="userBook.is_favorite"
+                @click.stop="handleToggleFavorite(userBook)"
+                class="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <Heart :size="16" class="text-red-400 fill-current" />
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <button
+                    @click.stop
+                    class="p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-500 hover:text-white"
+                  >
+                    <MoreVertical :size="18" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" class="bg-slate-900 border-slate-800">
+                  <DropdownMenuItem
+                    @click.stop="handleDeleteBook(userBook)"
+                    class="text-xs cursor-pointer hover:bg-slate-800 text-red-400 hover:text-red-300 flex items-center gap-2"
+                  >
+                    <Trash2 :size="14" />
+                    Remove from Library
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- Infinite scroll loading indicator (for both grid and list views) -->
         <div v-if="hasMoreItems" class="flex justify-center mt-12 py-8">
           <div class="flex items-center gap-2 text-slate-500 text-sm">
             <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
@@ -825,7 +1010,6 @@ const handleSaveChallenge = async (challengeData) => {
             <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style="animation-delay: 0.4s"></div>
           </div>
         </div>
-      </div>
       </div>
 
       <!-- RIGHT COLUMN: Analytics Sidebar -->

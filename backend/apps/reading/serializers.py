@@ -282,21 +282,19 @@ class UserBookCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Validate reading dates and status"""
+        from django.utils import timezone
+
         status = data.get('status')
         started_at = data.get('started_at')
         finished_at = data.get('finished_at')
-        
-        # Validate finished books have finished_at date
+
+        # Auto-set finished_at if status is 'read' and finished_at not provided
         if status == 'read' and not finished_at:
-            raise serializers.ValidationError(
-                "Finished books must have a finished_at date"
-            )
-        
-        # Validate currently reading books have started_at date
+            data['finished_at'] = timezone.now().date()
+
+        # Auto-set started_at if status is 'currently_reading' and started_at not provided
         if status == 'currently_reading' and not started_at:
-            raise serializers.ValidationError(
-                "Currently reading books must have a started_at date"
-            )
+            data['started_at'] = timezone.now().date()
         
         # Validate date order
         if started_at and finished_at and started_at > finished_at:
@@ -331,4 +329,5 @@ class VocabularyWordSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
 

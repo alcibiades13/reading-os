@@ -253,12 +253,18 @@ export const socialService = {
   },
 
   /**
-   * Get user's books
+   * Get user's books (paginated)
    */
   async getUserBooks(userId, params = {}) {
     try {
-      const response = await socialAPI.getUserBooks(userId, params)
-      return response.data
+      // Default to first page with 20 items if not specified
+      const queryParams = {
+        page: 1,
+        page_size: 20,
+        ...params
+      }
+      const response = await socialAPI.getUserBooks(userId, queryParams)
+      return response.data.results || response.data
     } catch (error) {
       console.error('Error getting user books:', error)
       return []

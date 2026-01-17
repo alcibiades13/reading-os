@@ -140,14 +140,26 @@ const openAddDialog = (book) => {
 const addToLibrary = async () => {
   if (!selectedBook.value) return
 
+  console.log('Adding book to library:', {
+    book: selectedBook.value.id,
+    status: addBookStatus.value
+  })
+
   const result = await userBooksStore.addBook({
     book: selectedBook.value.id,
     status: addBookStatus.value,
   })
 
+  console.log('Add book result:', result)
+
   if (result.success) {
     isAddDialogOpen.value = false
     selectedBook.value = null
+    // Refresh books list to show the newly added book
+    await userBooksStore.fetchBooks()
+  } else {
+    console.error('Failed to add book:', result.error)
+    alert(`Failed to add book: ${result.error || 'Unknown error'}`)
   }
 }
 

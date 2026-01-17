@@ -26,3 +26,4 @@ urlpatterns = [
 #   GET    /api/challenges/current/              - Get current challenges
 #   GET    /api/challenges/completed/            - Get completed challenges
 #   GET    /api/challenges/{id}/progress_details/ - Get progress breakdown
+

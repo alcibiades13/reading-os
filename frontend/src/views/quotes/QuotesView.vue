@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuotesStore } from '@/stores/quotesStore'
+import { userBooksAPI } from '@/services/api'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,6 +18,12 @@ const showFavorites = ref(false)
 const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const editingQuote = ref(null)
+
+// Book autocomplete
+const bookSearchQuery = ref('')
+const bookSearchResults = ref([])
+const showBookDropdown = ref(false)
+const isSearchingBooks = ref(false)
 
 // New quote form
 const newQuote = ref({
@@ -169,9 +176,23 @@ const resetForm = () => {
 }
 
 const toggleFavorite = async (quote) => {
-  await quotesStore.updateQuote(quote.id, {
-    is_favorite: !quote.is_favorite,
-  })
+  try {
+    console.log('Toggling favorite for quote:', quote.id, 'Current value:', quote.is_favorite)
+    const result = await quotesStore.updateQuote(quote.id, {
+      is_favorite: !quote.is_favorite,
+    })
+    if (!result.success) {
+      console.error('Failed to toggle favorite:', result.error)
+      console.error('Full error details:', JSON.stringify(result.error, null, 2))
+      alert(`Failed to update favorite status: ${JSON.stringify(result.error)}`)
+    } else {
+      console.log('Successfully toggled favorite')
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+    console.error('Error response:', error.response)
+    alert('Error updating favorite status')
+  }
 }
 
 const deleteQuote = async (quote) => {
@@ -200,6 +221,42 @@ const handleBookClick = (quote) => {
   if (quote.book) {
     router.push(`/books/${quote.book}`)
   }
+}
+
+// Book search autocomplete
+const searchBooks = async (query) => {
+  if (!query || query.length < 2) {
+    bookSearchResults.value = []
+    showBookDropdown.value = false
+    return
+  }
+
+  isSearchingBooks.value = true
+  try {
+    const response = await userBooksAPI.list({ search: query })
+    bookSearchResults.value = response.data.results || response.data || []
+    showBookDropdown.value = bookSearchResults.value.length > 0
+  } catch (error) {
+    console.error('Error searching books:', error)
+    bookSearchResults.value = []
+  } finally {
+    isSearchingBooks.value = false
+  }
+}
+
+const selectBook = (userBook) => {
+  newQuote.value.book = userBook.book.id
+  newQuote.value.user_book = userBook.id
+  newQuote.value.book_title = userBook.book.title
+  newQuote.value.book_author = userBook.book.authors?.[0]?.name || ''
+  bookSearchQuery.value = userBook.book.title
+  showBookDropdown.value = false
+}
+
+const handleBookInputChange = async (e) => {
+  bookSearchQuery.value = e.target.value
+  newQuote.value.book_title = e.target.value
+  await searchBooks(e.target.value)
 }
 
 const openEditDialog = (quote) => {
@@ -337,16 +394,47 @@ const handleEditQuote = async () => {
 
               <!-- Book Info Grid -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-2">
+                <div class="space-y-2 relative">
                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                     <component :is="Bookmark" :size="12" /> Book Title
                   </label>
-                  <Input
-                    v-model="newQuote.book_title"
-                    placeholder="Which masterpiece is this from?"
+                  <input
+                    :value="bookSearchQuery || newQuote.book_title"
+                    @input="handleBookInputChange"
+                    @focus="showBookDropdown = bookSearchResults.length > 0"
+                    placeholder="Start typing to search your books..."
                     required
-                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all outline-none"
+                    autocomplete="off"
                   />
+                  <!-- Autocomplete Dropdown -->
+                  <div
+                    v-if="showBookDropdown && bookSearchResults.length > 0"
+                    class="absolute z-50 w-full mt-1 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
+                  >
+                    <button
+                      v-for="userBook in bookSearchResults"
+                      :key="userBook.id"
+                      type="button"
+                      @click="selectBook(userBook)"
+                      class="w-full flex items-start gap-3 p-3 hover:bg-slate-700 transition-colors text-left border-b border-slate-700/50 last:border-0"
+                    >
+                      <div class="w-8 h-12 rounded overflow-hidden flex-shrink-0 bg-slate-700 flex items-center justify-center">
+                        <img
+                          v-if="userBook.book.cover_image"
+                          :src="userBook.book.cover_image"
+                          :alt="userBook.book.title"
+                          class="w-full h-full object-cover"
+                        />
+                        <BookOpen v-else :size="14" class="text-slate-500" />
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-white truncate">{{ userBook.book.title }}</p>
+                        <p class="text-xs text-slate-400 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
+                      </div>
+                    </button>
+                  </div>
+                  <p v-if="isSearchingBooks" class="text-xs text-slate-500 mt-1">Searching...</p>
                 </div>
                 <div class="space-y-2">
                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">

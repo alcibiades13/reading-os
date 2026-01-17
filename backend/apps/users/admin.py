@@ -43,3 +43,4 @@ class UserProfileAdmin(admin.ModelAdmin):
         ('Metadata', {'fields': ('created_at', 'updated_at')}),
     )
 
+

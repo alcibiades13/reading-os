@@ -53,3 +53,4 @@ urlpatterns = [
 #   GET    /api/reading/quotes/my_favorites/     - Get favorite quotes
 #   GET    /api/reading/quotes/by_tag/?tag_id=X  - Get quotes by tag
 #   GET    /api/reading/quotes/search_semantic/?q=X - Semantic search
+

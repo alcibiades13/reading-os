@@ -81,24 +81,24 @@ const mentionedBooks = computed(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 top-20 bg-slate-950 flex animate-in fade-in duration-700">
+  <div class="h-full flex animate-in fade-in duration-700 bg-slate-950">
 
-    <!-- INBOX SIDEBAR -->
-    <aside class="w-80 border-r border-white/5 flex flex-col bg-slate-900/20 backdrop-blur-xl">
-      <div class="p-6 border-b border-white/5">
+    <!-- INBOX SIDEBAR (Secondary Sidebar) -->
+    <aside class="w-80 border-r border-slate-800/50 flex flex-col bg-slate-950/50 backdrop-blur-md">
+      <div class="p-6 border-b border-slate-800/50">
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-sm font-black text-white uppercase tracking-[0.3em]">Correspondents</h2>
+          <h2 class="text-xs font-black text-slate-50 uppercase tracking-[0.3em]">Correspondents</h2>
           <button class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all">
-            <Plus :size="18" />
+            <Plus :size="16" />
           </button>
         </div>
         <div class="relative group">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors" :size="14" />
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" :size="14" />
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Find intellectual peers..."
-            class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+            placeholder="Filter peer discussions..."
+            class="w-full bg-white/5 border border-slate-800/50 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-50 outline-none focus:border-indigo-500 transition-all"
           />
         </div>
       </div>
@@ -115,33 +115,24 @@ const mentionedBooks = computed(() => {
     </aside>
 
     <!-- THREAD AREA -->
-    <main class="flex-1 flex flex-col bg-slate-950/40 relative">
+    <main class="flex-1 flex flex-col relative">
       <template v-if="activeConv">
         <!-- Thread Header -->
-        <header class="h-16 border-b border-white/5 px-8 flex items-center justify-between glass sticky top-0 z-20">
+        <header class="h-16 border-b border-slate-800/50 px-8 flex items-center justify-between bg-slate-950/50 backdrop-blur-md sticky top-0 z-20">
           <div class="flex items-center gap-4">
-            <div class="relative">
-              <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-black text-white ring-2 ring-indigo-500/20">
-                {{ otherParticipant?.name.charAt(0) }}
-              </div>
-              <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950" />
+            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-black text-white">
+              {{ otherParticipant?.name?.charAt(0) || '?' }}
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white">{{ otherParticipant?.name }}</h3>
-              <div class="flex items-center gap-2">
-                <span class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Active Discussion</span>
-              </div>
+              <h3 class="text-sm font-bold text-slate-50">{{ otherParticipant?.name }}</h3>
+              <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Deliberate Exchange</span>
             </div>
           </div>
-
           <div class="flex items-center gap-2">
-            <button class="p-2 text-slate-500 hover:text-white transition-colors">
+            <button class="p-2 text-slate-400 hover:text-slate-50 transition-colors">
               <Star :size="18" />
             </button>
-            <button class="p-2 text-slate-500 hover:text-white transition-colors">
-              <Search :size="18" />
-            </button>
-            <button class="p-2 text-slate-500 hover:text-white transition-colors">
+            <button class="p-2 text-slate-400 hover:text-slate-50 transition-colors">
               <MoreHorizontal :size="18" />
             </button>
           </div>
@@ -164,43 +155,11 @@ const mentionedBooks = computed(() => {
 
       <!-- Empty State -->
       <div v-else class="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-40">
-        <div class="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-8">
-          <Inbox :size="48" class="text-slate-700" />
-        </div>
-        <h3 class="text-2xl font-black text-white mb-2 uppercase tracking-[0.3em]">Correspondence Chamber</h3>
-        <p class="max-w-xs text-slate-500 font-medium">Select a correspondent to begin a deliberate intellectual exchange.</p>
+        <Inbox :size="48" class="text-slate-400 mb-8" />
+        <h3 class="text-2xl font-black text-slate-50 mb-2 uppercase tracking-[0.3em]">Correspondence Chamber</h3>
+        <p class="max-w-xs text-slate-400 font-medium">Select a correspondent to begin a deliberate intellectual exchange.</p>
       </div>
     </main>
-
-    <!-- CONTEXT SIDEBAR (DESKTOP) -->
-    <aside v-if="activeConv" class="w-80 border-l border-white/5 bg-slate-900/10 backdrop-blur-3xl hidden xl:flex flex-col">
-      <div class="p-8 border-b border-white/5">
-        <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-6">Discussed Material</h3>
-        <div class="space-y-6">
-          <section>
-            <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest block mb-4">Books Mentioned</span>
-            <div class="space-y-3">
-              <div
-                v-for="book in mentionedBooks"
-                :key="book.id"
-                class="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all cursor-pointer group"
-              >
-                <img
-                  :src="book.book.cover_image || 'https://via.placeholder.com/100x150'"
-                  class="w-10 h-14 rounded-lg object-cover"
-                />
-                <div class="min-w-0">
-                  <p class="text-[11px] font-bold text-white truncate">{{ book.book.title }}</p>
-                  <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest truncate">
-                    {{ book.book.authors?.[0]?.name || 'Unknown' }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </aside>
   </div>
 </template>
 

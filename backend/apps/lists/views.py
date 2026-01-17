@@ -173,3 +173,4 @@ class ReadingListItemViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return ReadingListItemCreateSerializer
         return ReadingListItemSerializer
+

@@ -12,8 +12,20 @@
           <div class="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
             <Brain class="text-indigo-400" :size="16" />
           </div>
-          <div class="min-w-0">
-            <h1 class="text-xs md:text-sm font-black text-white uppercase tracking-widest truncate">{{ bookTitle }}</h1>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h1 class="text-xs md:text-sm font-black text-white uppercase tracking-widest truncate">{{ bookTitle }}</h1>
+              <button
+                @click="showBookSelector = true"
+                class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition-colors flex-shrink-0"
+                title="Change book"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  <path d="m15 5 4 4"/>
+                </svg>
+              </button>
+            </div>
             <p class="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] hidden md:block">Study Mode Active</p>
           </div>
         </div>
@@ -455,14 +467,85 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Book Selector Modal -->
+    <Teleport to="body">
+      <div v-if="showBookSelector" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-200" @click.self="showBookSelector = false">
+        <div class="w-full max-w-2xl bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 animate-in zoom-in-95 duration-200">
+          <!-- Modal Header -->
+          <div class="p-6 border-b border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-black text-white uppercase tracking-widest">Select Book</h2>
+              <button @click="showBookSelector = false" class="p-2 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors">
+                <X :size="20" />
+              </button>
+            </div>
+            <!-- Search -->
+            <div class="relative">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="18" />
+              <input
+                v-model="bookSearchQuery"
+                type="text"
+                placeholder="Search by title or author..."
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                autofocus
+              />
+            </div>
+          </div>
+
+          <!-- Books List -->
+          <div class="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div v-if="filteredBooks.length === 0" class="py-12 text-center">
+              <BookOpen :size="48" class="mx-auto mb-4 text-slate-700" />
+              <p class="text-slate-500 text-sm">No books found</p>
+            </div>
+            <div v-else class="space-y-2">
+              <button
+                v-for="userBook in filteredBooks"
+                :key="userBook.id"
+                @click="selectBook(userBook)"
+                class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-slate-800 transition-all group text-left"
+              >
+                <!-- Book Cover -->
+                <div class="w-12 h-16 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0 flex items-center justify-center">
+                  <img
+                    v-if="userBook.book?.cover_image"
+                    :src="userBook.book.cover_image"
+                    :alt="userBook.book.title"
+                    class="w-full h-full object-cover"
+                  />
+                  <BookOpen v-else :size="20" class="text-slate-600" />
+                </div>
+
+                <!-- Book Info -->
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-bold text-white text-sm truncate group-hover:text-indigo-400 transition-colors">
+                    {{ userBook.book?.title }}
+                  </h3>
+                  <p class="text-slate-500 text-xs truncate">
+                    {{ userBook.book?.authors?.map(a => a.name).join(', ') || 'Unknown Author' }}
+                  </p>
+                </div>
+
+                <!-- Active indicator -->
+                <div v-if="userBook.book?.id == bookId" class="flex-shrink-0">
+                  <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStudyNotesStore } from '@/stores/studyNotesStore'
 import { useQuotesStore } from '@/stores/quotesStore'
+import { useUserBooksStore } from '@/stores/userBooksStore'
 import StudyNoteCard from '@/components/StudyNoteCard.vue'
 import {
   ArrowLeft,
@@ -496,6 +579,7 @@ const router = useRouter()
 
 const studyNotesStore = useStudyNotesStore()
 const quotesStore = useQuotesStore()
+const booksStore = useUserBooksStore()
 
 const notes = computed(() => studyNotesStore.notes || [])
 const searchQuery = ref('')
@@ -519,10 +603,27 @@ const editNoteType = ref('note')
 const showNewNoteHighlightButton = ref(false)
 const newNoteHighlightPosition = ref({ x: 0, y: 0 })
 const newNoteTextareaRef = ref(null)
+const showBookSelector = ref(false)
+const bookSearchQuery = ref('')
+const userBooks = ref([])
+
+const loadStudyData = async () => {
+  await studyNotesStore.fetchNotes({ book: props.bookId })
+}
 
 onMounted(async () => {
-  await studyNotesStore.fetchNotes({ book: props.bookId })
+  await Promise.all([
+    loadStudyData(),
+    booksStore.fetchBooks()
+  ])
+  userBooks.value = booksStore.userBooks || []
   window.scrollTo(0, 0)
+})
+
+watch(() => props.bookId, async (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    await loadStudyData()
+  }
 })
 
 const references = computed(() => {
@@ -761,6 +862,24 @@ const applyNewNoteHighlight = () => {
 
   showNewNoteHighlightButton.value = false
   selection.removeAllRanges()
+}
+
+// Filter books based on search
+const filteredBooks = computed(() => {
+  if (!bookSearchQuery.value) return userBooks.value
+
+  const query = bookSearchQuery.value.toLowerCase()
+  return userBooks.value.filter(userBook =>
+    userBook.book?.title?.toLowerCase().includes(query) ||
+    userBook.book?.authors?.some(author => author.name?.toLowerCase().includes(query))
+  )
+})
+
+// Select book and navigate to study mode
+const selectBook = (userBook) => {
+  showBookSelector.value = false
+  bookSearchQuery.value = ''
+  router.push(`/books/${userBook.book.id}/study?title=${encodeURIComponent(userBook.book.title)}`)
 }
 </script>
 

@@ -120,7 +120,8 @@ export const useQuotesStore = defineStore('quotes', {
       this.error = null
 
       try {
-        const response = await quotesAPI.update(id, quoteData)
+        // Use PATCH for partial updates (when only updating one field like is_favorite)
+        const response = await quotesAPI.patch(id, quoteData)
         const index = this.quotes.findIndex(q => q.id === id)
         if (index !== -1) {
           this.quotes[index] = response.data

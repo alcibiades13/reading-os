@@ -324,6 +324,7 @@ class FeedItem(models.Model):
     FEED_TYPE_CHOICES = [
         ('book_finished', 'Book Finished'),
         ('book_started', 'Book Started'),
+        ('want_to_read', 'Want to Read'),
         ('progress_update', 'Progress Update'),
         ('quote_added', 'Quote Added'),
         ('circle_post', 'Circle Post'),
@@ -386,4 +387,5 @@ class FeedItem(models.Model):
     
     def __str__(self):
         return f"{self.actor.email} - {self.feed_type} (for {self.user.email})"
+
 

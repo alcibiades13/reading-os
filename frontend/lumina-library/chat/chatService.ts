@@ -1,7 +1,7 @@
 
 import { Conversation, Message } from '../types';
 
-const STORAGE_KEY_CONVS = 'vellux_conversations';
+const STORAGE_KEY_CONVS = 'Marginalia_conversations';
 const CURRENT_USER_ID = 'me';
 
 const MOCK_CONVERSATIONS: Conversation[] = [

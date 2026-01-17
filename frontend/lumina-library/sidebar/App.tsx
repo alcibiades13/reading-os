@@ -77,7 +77,7 @@ const App: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/40 group-hover:scale-105 transition-transform">
               <Library size={22} className="text-white" />
             </div>
-            <span className="font-black text-2xl tracking-tighter text-[var(--color-text-primary)]">VELLUX</span>
+            <span className="font-black text-2xl tracking-tighter text-[var(--color-text-primary)]">Marginalia</span>
           </div>
 
           <nav className="space-y-1">

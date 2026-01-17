@@ -37,3 +37,4 @@ class ReadingListItemAdmin(admin.ModelAdmin):
     list_filter = ['added_at']
     search_fields = ['reading_list__title', 'book__title', 'note']
 
+

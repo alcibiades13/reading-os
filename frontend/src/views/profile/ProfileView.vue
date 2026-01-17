@@ -274,13 +274,14 @@ const cancelEdit = () => {
                     <span class="text-sm font-bold text-white block mb-1">Public Profile</span>
                     <span class="text-xs text-slate-500">Allow other users to view your profile, books, and quotes</span>
                   </div>
-                  <label class="relative inline-flex items-center cursor-pointer">
+                  <label :class="['relative inline-flex items-center', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
                     <input
                       v-model="profileForm.is_public"
+                      :disabled="!isEditing"
                       type="checkbox"
                       class="sr-only peer"
                     />
-                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 peer-disabled:opacity-50"></div>
                   </label>
                 </div>
               </div>

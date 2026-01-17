@@ -548,3 +548,4 @@ class SuggestedUsersView(APIView):
 
         # Return top N users
         return Response(users_with_scores[:limit])
+

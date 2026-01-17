@@ -47,3 +47,4 @@ class ReadingChallengeAdmin(admin.ModelAdmin):
         self.message_user(request, f"Progress recalculated for {queryset.count()} challenges.")
     recalculate_progress.short_description = "Recalculate progress"
 
+

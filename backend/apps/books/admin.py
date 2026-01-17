@@ -68,3 +68,4 @@ class BookAdmin(admin.ModelAdmin):
         return obj.author_names
     author_names.short_description = 'Authors'
 
+

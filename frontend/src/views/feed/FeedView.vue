@@ -18,6 +18,7 @@ const activeTab = ref('all')
 const loading = ref(true)
 const showFilters = ref(false)
 const selectedActivityTypes = ref(['all'])
+const userBooks = ref([])
 
 // Helper function to format timestamps
 const formatTimestamp = (dateString) => {
@@ -493,12 +494,19 @@ onMounted(async () => {
   loading.value = true
 
   try {
-    // Fetch from API
-    const response = await api.get('/social/feed/')
-    console.log('Feed API response:', response.data)
+    // Fetch userBooks and feed in parallel for faster loading
+    const [feedResponse, userBooksResponse] = await Promise.all([
+      api.get('/social/feed/'),
+      api.get('/reading/user-books/')
+    ])
+
+    console.log('Feed API response:', feedResponse.data)
+
+    // Store userBooks
+    userBooks.value = userBooksResponse.data?.results || userBooksResponse.data || []
 
     // DRF returns paginated results
-    const feedData = response.data?.results || response.data || []
+    const feedData = feedResponse.data?.results || feedResponse.data || []
 
     // Transform API data to match expected format
     const currentUserId = authStore.user?.id
@@ -556,6 +564,8 @@ onMounted(async () => {
         } : item.feed_type === 'progress_update' ? {
           progress: progress,
           note: item.preview_text
+        } : item.feed_type === 'book_started' || item.feed_type === 'want_to_read' ? {
+          note: null
         } : {
           note: item.preview_text
         },
@@ -584,6 +594,17 @@ onMounted(async () => {
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
+const handleBookAdded = (newUserBook) => {
+  userBooks.value.push(newUserBook)
+}
+
+const handleBookUpdated = (updatedUserBook) => {
+  const index = userBooks.value.findIndex(ub => ub.id === updatedUserBook.id)
+  if (index !== -1) {
+    userBooks.value[index] = updatedUserBook
+  }
+}
 </script>
 
 <template>
@@ -723,7 +744,14 @@ onUnmounted(() => {
         </div>
 
         <template v-else>
-          <FeedPostCard v-for="post in filteredPosts" :key="post.id" :post="post" />
+          <FeedPostCard
+            v-for="post in filteredPosts"
+            :key="post.id"
+            :post="post"
+            :user-books="userBooks"
+            @book-added="handleBookAdded"
+            @book-updated="handleBookUpdated"
+          />
 
           <div class="flex justify-center pt-8">
             <button class="px-8 py-4 rounded-2xl bg-slate-900 border border-slate-800 text-white font-bold hover:bg-slate-800 hover:border-slate-700 transition-all flex items-center gap-3 active:scale-95">

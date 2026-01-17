@@ -217,3 +217,4 @@ class Book(models.Model):
         """Returns comma-separated author names"""
         return ", ".join([a.name for a in self.authors.all()])
 
+

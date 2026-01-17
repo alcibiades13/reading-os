@@ -9,7 +9,8 @@ import BookCard from '@/components/BookCard.vue'
 import api from '@/services/api'
 import {
   BookOpen, Quote, Users, TrendingUp, Heart,
-  ArrowLeft, Sparkles, Bookmark, ExternalLink, Copy, Star
+  ArrowLeft, Sparkles, Bookmark, ExternalLink, Copy, Star,
+  LayoutGrid, List, ArrowUpRight
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -26,10 +27,14 @@ const matchScore = ref(0)
 const loading = ref(true)
 const activeTab = ref('books') // 'books', 'quotes', 'followers', 'following'
 const booksSubTab = ref('all') // 'all', 'reading', 'finished', 'want_to_read'
+const viewMode = ref('list') // 'grid' or 'list' - default to list for UserProfileView
 const userQuotes = ref([])
 const followers = ref([])
 const following = ref([])
 const quotesLoading = ref(false)
+const booksPage = ref(1)
+const hasMoreBooks = ref(false)
+const loadingMoreBooks = ref(false)
 
 // Watch for route parameter changes to reload profile
 watch(() => route.params.id, async (newId, oldId) => {
@@ -47,6 +52,8 @@ watch(() => route.params.id, async (newId, oldId) => {
     followers.value = []
     following.value = []
     activeTab.value = 'books'
+    booksPage.value = 1
+    hasMoreBooks.value = false
 
     // Load new user's data
     await Promise.all([
@@ -93,12 +100,37 @@ const loadUserProfile = async () => {
   }
 }
 
-const loadUserBooks = async () => {
+const loadUserBooks = async (append = false) => {
   try {
-    userBooks.value = await socialService.getUserBooks(userId.value)
+    const response = await api.get(`/users/${userId.value}/books/`, {
+      params: {
+        page: booksPage.value,
+        page_size: 100 // Load 100 at a time
+      }
+    })
+
+    const newBooks = response.data.results || response.data
+
+    if (append) {
+      userBooks.value = [...userBooks.value, ...newBooks]
+    } else {
+      userBooks.value = newBooks
+    }
+
+    // Check if there are more books
+    hasMoreBooks.value = response.data.next !== null
   } catch (error) {
     console.error('Error loading user books:', error)
   }
+}
+
+const loadMoreBooks = async () => {
+  if (!hasMoreBooks.value || loadingMoreBooks.value) return
+
+  loadingMoreBooks.value = true
+  booksPage.value += 1
+  await loadUserBooks(true)
+  loadingMoreBooks.value = false
 }
 
 const loadUserStats = async () => {
@@ -240,11 +272,47 @@ const copyQuote = async (quote) => {
     console.error('Failed to copy quote:', error)
   }
 }
+
+// Helper functions for list view
+const getCoverUrl = (book) => {
+  if (!book) return null
+  return book.cover_image || null
+}
+
+const getStatusBadge = (status) => {
+  const badges = {
+    'currently_reading': {
+      text: 'Reading',
+      class: 'bg-indigo-500 text-white'
+    },
+    'reading': {
+      text: 'Reading',
+      class: 'bg-indigo-500 text-white'
+    },
+    'read': {
+      text: 'Finished',
+      class: 'bg-emerald-500/90 text-white'
+    },
+    'finished': {
+      text: 'Finished',
+      class: 'bg-emerald-500/90 text-white'
+    },
+    'want_to_read': {
+      text: 'Want to Read',
+      class: 'bg-sky-500/90 text-white'
+    },
+    'abandoned': {
+      text: 'Abandoned',
+      class: 'bg-slate-600 text-slate-200'
+    }
+  }
+  return badges[status] || null
+}
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-950 pt-20 pb-16">
-    <div class="max-w-7xl mx-auto px-6">
+  <div class="min-h-screen bg-slate-950 pb-16">
+    <div class="max-w-7xl mx-auto px-6 pt-8">
       <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center py-32">
         <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -307,42 +375,58 @@ const copyQuote = async (quote) => {
               </div>
 
               <!-- Stats Row - Clickable -->
-              <div class="flex flex-wrap gap-6">
+              <div class="flex flex-wrap gap-3">
                 <button
                   @click="switchTab('books')"
-                  class="flex items-center gap-2 hover:opacity-80 transition-opacity group"
-                  :class="activeTab === 'books' ? 'opacity-100' : 'opacity-60'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-3 rounded-2xl transition-all group',
+                    activeTab === 'books'
+                      ? 'bg-indigo-500 shadow-lg shadow-indigo-500/20'
+                      : 'bg-white/5 hover:bg-white/10'
+                  ]"
                 >
-                  <BookOpen :size="16" class="text-indigo-400" />
+                  <BookOpen :size="18" :class="activeTab === 'books' ? 'text-white' : 'text-indigo-400'" />
                   <span class="text-xl font-black text-white">{{ userProfile.books_read_count || 0 }}</span>
-                  <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest group-hover:text-indigo-400 transition-colors">Books</span>
+                  <span :class="['text-xs font-black uppercase tracking-widest', activeTab === 'books' ? 'text-white/80' : 'text-slate-400 group-hover:text-indigo-400']">Books</span>
                 </button>
                 <button
                   @click="switchTab('quotes')"
-                  class="flex items-center gap-2 hover:opacity-80 transition-opacity group"
-                  :class="activeTab === 'quotes' ? 'opacity-100' : 'opacity-60'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-3 rounded-2xl transition-all group',
+                    activeTab === 'quotes'
+                      ? 'bg-purple-500 shadow-lg shadow-purple-500/20'
+                      : 'bg-white/5 hover:bg-white/10'
+                  ]"
                 >
-                  <Quote :size="16" class="text-purple-400" />
+                  <Quote :size="18" :class="activeTab === 'quotes' ? 'text-white' : 'text-purple-400'" />
                   <span class="text-xl font-black text-white">{{ userProfile.quotes_count || 0 }}</span>
-                  <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest group-hover:text-purple-400 transition-colors">Quotes</span>
+                  <span :class="['text-xs font-black uppercase tracking-widest', activeTab === 'quotes' ? 'text-white/80' : 'text-slate-400 group-hover:text-purple-400']">Quotes</span>
                 </button>
                 <button
                   @click="switchTab('followers')"
-                  class="flex items-center gap-2 hover:opacity-80 transition-opacity group"
-                  :class="activeTab === 'followers' ? 'opacity-100' : 'opacity-60'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-3 rounded-2xl transition-all group',
+                    activeTab === 'followers'
+                      ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20'
+                      : 'bg-white/5 hover:bg-white/10'
+                  ]"
                 >
-                  <Users :size="16" class="text-emerald-400" />
+                  <Users :size="18" :class="activeTab === 'followers' ? 'text-white' : 'text-emerald-400'" />
                   <span class="text-xl font-black text-white">{{ userProfile.followers_count || 0 }}</span>
-                  <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest group-hover:text-emerald-400 transition-colors">Followers</span>
+                  <span :class="['text-xs font-black uppercase tracking-widest', activeTab === 'followers' ? 'text-white/80' : 'text-slate-400 group-hover:text-emerald-400']">Followers</span>
                 </button>
                 <button
                   @click="switchTab('following')"
-                  class="flex items-center gap-2 hover:opacity-80 transition-opacity group"
-                  :class="activeTab === 'following' ? 'opacity-100' : 'opacity-60'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-3 rounded-2xl transition-all group',
+                    activeTab === 'following'
+                      ? 'bg-amber-500 shadow-lg shadow-amber-500/20'
+                      : 'bg-white/5 hover:bg-white/10'
+                  ]"
                 >
-                  <TrendingUp :size="16" class="text-amber-400" />
+                  <TrendingUp :size="18" :class="activeTab === 'following' ? 'text-white' : 'text-amber-400'" />
                   <span class="text-xl font-black text-white">{{ userProfile.following_count || 0 }}</span>
-                  <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest group-hover:text-amber-400 transition-colors">Following</span>
+                  <span :class="['text-xs font-black uppercase tracking-widest', activeTab === 'following' ? 'text-white/80' : 'text-slate-400 group-hover:text-amber-400']">Following</span>
                 </button>
               </div>
             </div>
@@ -355,31 +439,57 @@ const copyQuote = async (quote) => {
           <div class="lg:col-span-8 space-y-8">
             <!-- BOOKS TAB -->
             <div v-if="activeTab === 'books'">
-              <!-- Books Sub-Tab Navigation -->
-              <div class="flex items-center gap-2 overflow-x-auto pb-2">
-                <button
-                  v-for="tab in [
-                    { id: 'all', label: 'All Books', icon: BookOpen },
-                    { id: 'reading', label: 'Reading', icon: BookOpen },
-                    { id: 'finished', label: 'Finished', icon: BookOpen },
-                    { id: 'want_to_read', label: 'Want to Read', icon: Heart }
-                  ]"
-                  :key="tab.id"
-                  @click="booksSubTab = tab.id"
-                  :class="[
-                    'flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex-shrink-0',
-                    booksSubTab === tab.id
-                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                      : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
-                  ]"
-                >
-                  <component :is="tab.icon" :size="14" />
-                  <span>{{ tab.label }}</span>
-                </button>
+              <!-- Books Sub-Tab Navigation and View Toggle -->
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-2 overflow-x-auto pb-2">
+                  <button
+                    v-for="tab in [
+                      { id: 'all', label: 'All Books', icon: BookOpen },
+                      { id: 'reading', label: 'Reading', icon: BookOpen },
+                      { id: 'finished', label: 'Finished', icon: BookOpen },
+                      { id: 'want_to_read', label: 'Want to Read', icon: Heart }
+                    ]"
+                    :key="tab.id"
+                    @click="booksSubTab = tab.id"
+                    :class="[
+                      'flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex-shrink-0',
+                      booksSubTab === tab.id
+                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                        : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                    ]"
+                  >
+                    <component :is="tab.icon" :size="14" />
+                    <span>{{ tab.label }}</span>
+                  </button>
+                </div>
+
+                <!-- View Toggle -->
+                <div class="flex items-center gap-1 p-1 bg-slate-900/80 rounded-xl border border-slate-800">
+                  <button
+                    @click="viewMode = 'grid'"
+                    :class="[
+                      'p-2.5 rounded-lg transition-all',
+                      viewMode === 'grid' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'
+                    ]"
+                    title="Grid View"
+                  >
+                    <LayoutGrid :size="18" />
+                  </button>
+                  <button
+                    @click="viewMode = 'list'"
+                    :class="[
+                      'p-2.5 rounded-lg transition-all',
+                      viewMode === 'list' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'
+                    ]"
+                    title="List View"
+                  >
+                    <List :size="18" />
+                  </button>
+                </div>
               </div>
 
-              <!-- Books Grid -->
-              <div v-if="filteredBooks.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+              <!-- Books Grid View -->
+              <div v-if="viewMode === 'grid' && filteredBooks.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                 <BookCard
                   v-for="userBook in filteredBooks"
                   :key="userBook.id"
@@ -390,8 +500,124 @@ const copyQuote = async (quote) => {
                 />
               </div>
 
+              <!-- Books List/Table View -->
+              <div v-else-if="viewMode === 'list' && filteredBooks.length > 0" class="space-y-3">
+                <!-- Table Header -->
+                <div class="flex items-center gap-4 px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                  <!-- Cover -->
+                  <div class="shrink-0 w-12"></div>
+
+                  <!-- Title & Author -->
+                  <div class="flex-1 min-w-0">Book</div>
+
+                  <!-- Star Rating -->
+                  <div class="hidden sm:flex w-20 justify-center">Rating</div>
+
+                  <!-- Date Read -->
+                  <div class="hidden md:block w-24 text-center">Date Read</div>
+
+                  <!-- Date Added -->
+                  <div class="hidden lg:block w-24 text-center">Date Added</div>
+
+                  <!-- Status Badge -->
+                  <div class="hidden xl:flex w-28 justify-center">Status</div>
+
+                  <!-- Actions -->
+                  <div class="w-16"></div>
+                </div>
+
+                <!-- Table Rows -->
+                <router-link
+                  v-for="userBook in filteredBooks"
+                  :key="userBook.id"
+                  :to="`/books/${userBook.book.id}`"
+                  class="group flex items-center gap-4 p-4 rounded-2xl glass border-slate-800 hover:border-indigo-500/30 transition-all duration-300"
+                >
+                  <!-- Cover -->
+                  <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg flex items-center justify-center">
+                    <img
+                      v-if="getCoverUrl(userBook.book)"
+                      :src="getCoverUrl(userBook.book)"
+                      :alt="userBook.book?.title"
+                      class="w-full h-full object-cover"
+                      @error="(e) => e.target.style.display = 'none'"
+                    />
+                    <BookOpen v-else :size="20" class="text-slate-600" />
+                  </div>
+
+                  <!-- Title & Author -->
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-white text-sm truncate group-hover:text-indigo-400 transition-colors">
+                      {{ userBook.book?.title }}
+                    </h3>
+                    <p class="text-slate-400 text-xs truncate">
+                      {{ userBook.book?.authors?.map(a => a.name).join(', ') || 'Unknown Author' }}
+                    </p>
+                  </div>
+
+                  <!-- Star Rating (10-point scale) -->
+                  <div class="hidden sm:flex flex-col items-center gap-1 w-32">
+                    <span v-if="userBook.rating" class="text-xs font-bold text-amber-400">{{ userBook.rating }}</span>
+                    <div class="flex items-center gap-0.5">
+                      <Star
+                        v-for="i in 10"
+                        :key="i"
+                        :size="12"
+                        :class="i <= (userBook.rating || 0) ? 'text-amber-400 fill-current' : 'text-slate-700'"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Date Read -->
+                  <div class="hidden md:block text-xs text-slate-500 w-24 text-center">
+                    {{ userBook.finished_at ? new Date(userBook.finished_at).toLocaleDateString() : '—' }}
+                  </div>
+
+                  <!-- Date Added -->
+                  <div class="hidden lg:block text-xs text-slate-500 w-24 text-center">
+                    {{ userBook.created_at ? new Date(userBook.created_at).toLocaleDateString() : '—' }}
+                  </div>
+
+                  <!-- Status Badge -->
+                  <div class="hidden xl:flex w-28 justify-center">
+                    <span
+                      v-if="getStatusBadge(userBook.status)"
+                      :class="['px-2 py-1 rounded-lg text-[9px] font-bold whitespace-nowrap', getStatusBadge(userBook.status).class]"
+                    >
+                      {{ getStatusBadge(userBook.status).text }}
+                    </span>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="flex items-center gap-2 w-16 justify-end">
+                    <button
+                      v-if="userBook.is_favorite"
+                      @click.stop
+                      class="p-2 rounded-lg"
+                    >
+                      <Heart :size="16" class="text-red-400 fill-current" />
+                    </button>
+                    <div class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ArrowUpRight :size="18" />
+                    </div>
+                  </div>
+                </router-link>
+              </div>
+
+              <!-- Load More Button -->
+              <div v-if="hasMoreBooks && filteredBooks.length > 0" class="flex justify-center pt-8">
+                <button
+                  @click="loadMoreBooks"
+                  :disabled="loadingMoreBooks"
+                  class="px-6 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-bold hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <span v-if="loadingMoreBooks">Loading...</span>
+                  <span v-else>Load More Books</span>
+                </button>
+              </div>
+
               <!-- Empty State -->
-              <div v-else class="p-16 rounded-3xl glass text-center opacity-40">
+              <div v-else-if="filteredBooks.length === 0" class="p-16 rounded-3xl glass text-center opacity-40">
                 <BookOpen :size="48" class="mx-auto mb-4 text-slate-600" />
                 <p class="text-slate-400 font-medium">No books in this category yet.</p>
               </div>

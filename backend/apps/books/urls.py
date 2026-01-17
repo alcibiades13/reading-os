@@ -56,3 +56,4 @@ urlpatterns = [
 #   GET    /api/books/{id}/quotes/       - Get public quotes
 #   GET    /api/books/popular/           - Get popular books
 #   GET    /api/books/recent/            - Get recent books
+

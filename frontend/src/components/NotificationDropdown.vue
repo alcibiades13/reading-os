@@ -84,16 +84,16 @@ onMounted(() => {
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <button
-        class="relative p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
+        class="relative p-2.5 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-white/5 transition-all"
         aria-label="Notifications"
       >
-        <Bell :size="18" />
-        <span
+        <Bell :size="20" />
+        <div
           v-if="unreadCount > 0"
-          class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center"
+          class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-500 border-2 border-slate-950 flex items-center justify-center text-[9px] font-black text-white"
         >
           {{ unreadCount > 9 ? '9+' : unreadCount }}
-        </span>
+        </div>
       </button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-80">

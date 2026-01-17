@@ -110,3 +110,4 @@ class ReadingListItemCreateSerializer(serializers.ModelSerializer):
             )
         
         return data
+

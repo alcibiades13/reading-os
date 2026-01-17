@@ -27,10 +27,21 @@ const router = useRouter()
 const activities = ref([])
 const loading = ref(true)
 const error = ref(null)
+const userBooks = ref([])
 
 onMounted(async () => {
   await loadFeed()
+  await loadUserBooks()
 })
+
+const loadUserBooks = async () => {
+  try {
+    const response = await api.get('/reading/user-books/')
+    userBooks.value = response.data?.results || response.data || []
+  } catch (err) {
+    console.error('Failed to load user books:', err)
+  }
+}
 
 const loadFeed = async () => {
   loading.value = true
@@ -52,18 +63,13 @@ const loadFeed = async () => {
         full_name: `${item.actor.first_name} ${item.actor.last_name}`,
         avatar: item.actor.avatar,
       },
-      book: item.content_type === 'UserBook' || item.content_type === 'Quote' ? {
-        id: item.object_id,
-        title: item.preview_text?.split(' - ')[1] || 'Unknown',
-        cover_image: item.preview_image,
-        authors: [],
-      } : null,
+      book: item.book_data || null,
       quote: item.feed_type === 'quote_added' ? {
         text: item.preview_text,
         page_number: null,
       } : null,
       rating: null,
-      review: item.feed_type === 'book_finished' ? item.preview_text : null,
+      review: item.review_data || null,
       timestamp: item.created_at,
       likes_count: 0,
       comments_count: 0,
@@ -89,6 +95,7 @@ const getActivityIcon = (type) => {
     reading_session: BookOpen,
     progress_update: TrendingUp,
     book_started: BookOpen,
+    want_to_read: Heart,
     joined_circle: Users,
   }
   return icons[type] || Sparkles
@@ -103,6 +110,7 @@ const getActivityColor = (type) => {
     reading_session: 'text-orange-500',
     progress_update: 'text-amber-500',
     book_started: 'text-indigo-500',
+    want_to_read: 'text-rose-500',
     joined_circle: 'text-pink-500',
   }
   return colors[type] || 'text-primary'
@@ -117,6 +125,7 @@ const getActivityTitle = (activity) => {
     reading_session: 'just read',
     progress_update: 'made progress on',
     book_started: 'started reading',
+    want_to_read: 'wants to read',
     joined_circle: 'joined a circle',
   }
   return titles[activity.type] || 'posted'
@@ -153,6 +162,50 @@ const goToProfile = (userId) => {
 
 const initials = (name) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase()
+}
+
+const getUserBookStatus = (bookId) => {
+  if (!bookId) return null
+  const userBook = userBooks.value.find(ub => ub.book?.id === bookId)
+  return userBook?.status || null
+}
+
+const getStatusLabel = (status) => {
+  const labels = {
+    'currently_reading': 'Currently Reading',
+    'read': 'Finished',
+    'want_to_read': 'Want to Read',
+    'abandoned': 'Abandoned'
+  }
+  return labels[status] || status
+}
+
+const getStatusVariant = (status) => {
+  const variants = {
+    'currently_reading': 'default',
+    'read': 'secondary',
+    'want_to_read': 'outline',
+    'abandoned': 'destructive'
+  }
+  return variants[status] || 'outline'
+}
+
+const addToLibrary = async (bookId, status) => {
+  if (!bookId) return
+
+  try {
+    const response = await api.post('/reading/user-books/', {
+      book: bookId,
+      status: status
+    })
+
+    // Add to local userBooks array
+    if (response.data) {
+      userBooks.value.push(response.data)
+    }
+  } catch (err) {
+    console.error('Failed to add book to library:', err)
+  }
 }
 </script>
 
@@ -313,7 +366,7 @@ const initials = (name) => {
               </div>
             </div>
 
-            <!-- Reading Session -->
+            <!-- Reading Session / Progress Update -->
             <div v-if="activity.type === 'reading_session' || activity.type === 'progress_update'" class="space-y-2">
               <div v-if="activity.session" class="flex items-center gap-4 text-sm">
                 <div v-if="activity.session.pages_read" class="flex items-center gap-2">
@@ -325,6 +378,9 @@ const initials = (name) => {
                   <span class="font-medium">{{ activity.session.duration }}</span>
                 </div>
               </div>
+              <div v-if="activity.preview_text" class="text-sm">
+                {{ activity.preview_text }}
+              </div>
               <button
                 v-if="activity.book"
                 @click="goToBook(activity.book.id)"
@@ -334,8 +390,55 @@ const initials = (name) => {
               </button>
             </div>
 
+            <!-- Book Started / Want to Read -->
+            <div v-if="activity.type === 'book_started' || activity.type === 'want_to_read'" class="space-y-3">
+              <div class="flex gap-4 p-3 rounded-lg bg-muted/30">
+                <div
+                  v-if="activity.preview_image"
+                  class="w-16 h-24 bg-muted rounded overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  @click="activity.book && goToBook(activity.book.id)"
+                >
+                  <img
+                    :src="activity.preview_image"
+                    :alt="activity.book?.title"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+                <div class="flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3
+                      class="font-semibold text-base mb-1 cursor-pointer hover:text-primary transition-colors"
+                      @click="activity.book && goToBook(activity.book.id)"
+                    >
+                      {{ activity.book?.title || 'Unknown Book' }}
+                    </h3>
+                    <p v-if="activity.book?.authors?.length" class="text-sm text-muted-foreground mb-3">
+                      {{ activity.book.authors.map(a => a.name).join(', ') }}
+                    </p>
+                  </div>
+                  <!-- Status Badge or Want to Read Button -->
+                  <div class="flex items-center gap-2">
+                    <Badge
+                      v-if="getUserBookStatus(activity.book?.id)"
+                      :variant="getStatusVariant(getUserBookStatus(activity.book?.id))"
+                      class="text-xs"
+                    >
+                      {{ getStatusLabel(getUserBookStatus(activity.book?.id)) }}
+                    </Badge>
+                    <button
+                      v-else
+                      @click.stop="addToLibrary(activity.book?.id, 'want_to_read')"
+                      class="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-semibold hover:bg-primary hover:text-primary-foreground transition-all"
+                    >
+                      Want to Read
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Generic preview text for other types -->
-            <div v-if="!['book_finished', 'quote_added', 'challenge_completed', 'list_created', 'reading_session', 'progress_update'].includes(activity.type) && activity.preview_text" class="space-y-2">
+            <div v-if="!['book_finished', 'quote_added', 'challenge_completed', 'list_created', 'reading_session', 'progress_update', 'book_started', 'want_to_read'].includes(activity.type) && activity.preview_text" class="space-y-2">
               <p class="text-sm">{{ activity.preview_text }}</p>
             </div>
 

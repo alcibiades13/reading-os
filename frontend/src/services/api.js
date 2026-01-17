@@ -129,6 +129,7 @@ export const quotesAPI = {
   get: (id) => api.get(`/reading/quotes/${id}/`),
   create: (data) => api.post('/reading/quotes/', data),
   update: (id, data) => api.put(`/reading/quotes/${id}/`, data),
+  patch: (id, data) => api.patch(`/reading/quotes/${id}/`, data),
   delete: (id) => api.delete(`/reading/quotes/${id}/`),
   myFavorites: () => api.get('/reading/quotes/my_favorites/'),
   searchSemantic: (query) => api.get('/reading/quotes/search_semantic/', { params: { q: query } }),

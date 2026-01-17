@@ -362,8 +362,8 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def books(self, request, pk=None):
         """
-        Get user's books.
-        GET /api/users/{id}/books/?status=read
+        Get user's books with pagination.
+        GET /api/users/{id}/books/?status=read&page=1&page_size=20
         """
         user = self.get_object()
 
@@ -376,9 +376,15 @@ class UserViewSet(viewsets.ModelViewSet):
 
         from apps.reading.models import UserBook
         from apps.reading.serializers import UserBookListSerializer
+        from django.core.paginator import Paginator
 
         # Get user's books
-        queryset = UserBook.objects.filter(user=user).select_related('book')
+        queryset = UserBook.objects.filter(user=user).select_related(
+            'book'
+        ).prefetch_related(
+            'book__authors',
+            'book__genres'
+        )
 
         # Filter by status if provided
         status_filter = request.query_params.get('status')
@@ -388,8 +394,21 @@ class UserViewSet(viewsets.ModelViewSet):
         # Order by date added
         queryset = queryset.order_by('-created_at')
 
-        serializer = UserBookListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        # Paginate - default 20 per page
+        page_size = int(request.query_params.get('page_size', 20))
+        page_number = int(request.query_params.get('page', 1))
+
+        paginator = Paginator(queryset, page_size)
+        page_obj = paginator.get_page(page_number)
+
+        serializer = UserBookListSerializer(page_obj, many=True)
+
+        return Response({
+            'count': paginator.count,
+            'next': page_obj.has_next() and page_obj.next_page_number() or None,
+            'previous': page_obj.has_previous() and page_obj.previous_page_number() or None,
+            'results': serializer.data
+        })
 
     @action(detail=True, methods=['get'])
     def followers(self, request, pk=None):
@@ -500,3 +519,4 @@ class UserViewSet(viewsets.ModelViewSet):
             following_data.append(followed_serialized)
 
         return Response(following_data)
+

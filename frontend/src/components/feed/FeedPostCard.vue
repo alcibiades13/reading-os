@@ -1,11 +1,19 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Heart, MessageCircle, Share2, CheckCircle, BookOpen, Bookmark,
-  Quote as QuoteIcon, MessageSquare, TrendingUp, Star, MoreHorizontal, ExternalLink, Brain
+  Quote as QuoteIcon, MessageSquare, TrendingUp, Star, MoreHorizontal, ExternalLink, Brain, ChevronDown
 } from 'lucide-vue-next'
 import StarRating from '@/components/ui/StarRating.vue'
+import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import api from '@/services/api'
 
 const router = useRouter()
 
@@ -13,8 +21,79 @@ const props = defineProps({
   post: {
     type: Object,
     required: true
+  },
+  userBooks: {
+    type: Array,
+    default: () => []
   }
 })
+
+const getUserBookStatus = (bookId) => {
+  if (!bookId) return null
+  const userBook = props.userBooks.find(ub => ub.book?.id === bookId)
+  return userBook?.status || null
+}
+
+const getStatusLabel = (status) => {
+  const labels = {
+    'currently_reading': 'Currently Reading',
+    'read': 'Finished',
+    'want_to_read': 'Want to Read',
+    'abandoned': 'Abandoned'
+  }
+  return labels[status] || status
+}
+
+const getStatusVariant = (status) => {
+  const variants = {
+    'currently_reading': 'default',
+    'read': 'secondary',
+    'want_to_read': 'outline',
+    'abandoned': 'destructive'
+  }
+  return variants[status] || 'outline'
+}
+
+const emit = defineEmits(['book-added', 'book-updated'])
+
+const addToLibrary = async (bookId, status) => {
+  if (!bookId) return
+  try {
+    const response = await api.post('/reading/user-books/', {
+      book: bookId,
+      status: status
+    })
+    if (response.data) {
+      emit('book-added', response.data)
+    }
+  } catch (err) {
+    console.error('Failed to add book to library:', err)
+  }
+}
+
+const updateBookStatus = async (bookId, newStatus) => {
+  if (!bookId) return
+  const userBook = props.userBooks.find(ub => ub.book?.id === bookId)
+  if (!userBook) return
+
+  try {
+    const response = await api.patch(`/reading/user-books/${userBook.id}/`, {
+      status: newStatus
+    })
+    if (response.data) {
+      emit('book-updated', response.data)
+    }
+  } catch (err) {
+    console.error('Failed to update book status:', err)
+  }
+}
+
+const statusOptions = [
+  { value: 'want_to_read', label: 'Want to Read', icon: Bookmark },
+  { value: 'currently_reading', label: 'Currently Reading', icon: BookOpen },
+  { value: 'read', label: 'Finished', icon: CheckCircle },
+  { value: 'abandoned', label: 'Abandoned', icon: Star }
+]
 
 const liked = ref(props.post.stats.hasLiked)
 const likeCount = ref(props.post.stats.likes)
@@ -102,6 +181,32 @@ const handleBookClick = () => {
             <ExternalLink :size="14" class="opacity-0 group-hover:opacity-100 transition-opacity" />
           </h3>
           <p class="text-sm text-slate-400">by {{ post.book.author }}</p>
+
+          <!-- Status Dropdown for want_to_read and started types -->
+          <div v-if="post.type === 'want_to_read' || post.type === 'started'" class="mt-3">
+            <!-- Always show dropdown with all status options -->
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <button
+                  class="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold hover:bg-indigo-500/20 transition-all flex items-center gap-2"
+                >
+                  {{ getUserBookStatus(post.bookId) ? getStatusLabel(getUserBookStatus(post.bookId)) : 'Add to Library' }}
+                  <ChevronDown :size="14" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" class="bg-slate-900 border-slate-800">
+                <DropdownMenuItem
+                  v-for="option in statusOptions"
+                  :key="option.value"
+                  @click="getUserBookStatus(post.bookId) ? updateBookStatus(post.bookId, option.value) : addToLibrary(post.bookId, option.value)"
+                  class="text-xs cursor-pointer hover:bg-slate-800 text-slate-200 flex items-center gap-2"
+                >
+                  <component :is="option.icon" :size="14" />
+                  {{ option.label }}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <!-- Activity Specific Content -->

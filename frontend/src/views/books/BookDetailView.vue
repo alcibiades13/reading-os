@@ -8,9 +8,12 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/composables/useToast'
 import StarRating from '@/components/ui/StarRating.vue'
 import BookEditModal from '@/components/BookEditModal.vue'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import {
   ArrowLeft, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -32,6 +35,17 @@ const currentPageInput = ref(0)
 const reviewInput = ref('')
 const coverLoaded = ref(false)
 const currentCoverUrl = ref('')
+
+// Quote form state
+const newQuote = ref({
+  text: '',
+  note: '',
+  page_number: null,
+  chapter: '',
+  tags_input: '',
+  is_favorite: false,
+  is_public: true,
+})
 
 // Helper to strip HTML and get text preview
 const getReviewPreview = (htmlContent, maxLength = 300) => {
@@ -261,9 +275,78 @@ const handleToggleFavorite = async () => {
 
 const handleAddQuote = () => {
   isQuoteModalOpen.value = true
-  // TODO: Implement quote modal
-  // For now, navigate to quotes page
-  router.push(`/quotes/new?book=${bookId.value}`)
+}
+
+const handleCreateQuote = async () => {
+  try {
+    if (!newQuote.value.text) {
+      addToast('Quote text is required', 'error')
+      return
+    }
+
+    // Parse tags from comma-separated string
+    const tagNames = newQuote.value.tags_input
+      ? newQuote.value.tags_input.split(',').map(t => t.trim()).filter(t => t !== '')
+      : []
+
+    // Prepare payload
+    const payload = {
+      text: newQuote.value.text,
+      note: newQuote.value.note,
+      book: book.value.id,
+      book_title: book.value.title,
+      book_author: book.value.authors?.[0]?.name || '',
+      user_book: userBook.value?.id || null,
+      page_number: newQuote.value.page_number || null,
+      chapter: newQuote.value.chapter || '',
+      is_favorite: newQuote.value.is_favorite,
+      is_public: newQuote.value.is_public,
+    }
+
+    // Handle tags
+    if (tagNames.length > 0) {
+      await quotesStore.fetchTags()
+      const tagIds = []
+      for (const tagName of tagNames) {
+        const existingTag = quotesStore.tags.find(t =>
+          t.name.toLowerCase() === tagName.toLowerCase()
+        )
+        if (existingTag) {
+          tagIds.push(existingTag.id)
+        } else {
+          const result = await quotesStore.createTag({ name: tagName })
+          if (result.success) {
+            tagIds.push(result.data.id)
+          }
+        }
+      }
+      payload.tag_ids = tagIds
+    }
+
+    const result = await quotesStore.createQuote(payload)
+
+    if (result.success) {
+      addToast('Quote added successfully!', 'success')
+      isQuoteModalOpen.value = false
+      // Reset form
+      newQuote.value = {
+        text: '',
+        note: '',
+        page_number: null,
+        chapter: '',
+        tags_input: '',
+        is_favorite: false,
+        is_public: true,
+      }
+      // Refresh quotes for this book
+      await quotesStore.fetchQuotes({ book: bookId.value })
+    } else {
+      addToast('Failed to create quote', 'error')
+    }
+  } catch (error) {
+    console.error('Error creating quote:', error)
+    addToast('Error creating quote', 'error')
+  }
 }
 
 const handleShareProgress = () => {
@@ -795,6 +878,122 @@ export const QuoteCard = defineComponent({
       </div>
     </div>
   </div>
+
+  <!-- Add Quote Modal -->
+  <Dialog v-model:open="isQuoteModalOpen">
+    <DialogContent class="max-w-2xl glass border-slate-700 max-h-[85vh] overflow-y-auto">
+      <DialogHeader class="border-b border-slate-800 pb-3 mb-4">
+        <DialogTitle class="text-lg font-bold flex items-center gap-2">
+          <Sparkles :size="20" class="text-indigo-400" />
+          Capture a Quote from {{ book?.title }}
+        </DialogTitle>
+      </DialogHeader>
+
+      <form @submit.prevent="handleCreateQuote" class="space-y-5">
+        <!-- Quote Text -->
+        <div class="space-y-2">
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <component :is="AlignLeft" :size="12" /> The Quote
+          </label>
+          <Textarea
+            v-model="newQuote.text"
+            placeholder="Paste the brilliant words here..."
+            rows="4"
+            required
+            class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+          />
+        </div>
+
+        <!-- Metadata Grid -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Page</label>
+            <Input
+              v-model.number="newQuote.page_number"
+              type="number"
+              placeholder="e.g. 142"
+              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chapter</label>
+            <Input
+              v-model="newQuote.chapter"
+              placeholder="Chapter name/number"
+              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Personal Note -->
+        <div class="space-y-2">
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <component :is="Brain" :size="12" /> Personal Note (Optional)
+          </label>
+          <Textarea
+            v-model="newQuote.note"
+            placeholder="What does this mean to you? Why does it resonate?"
+            rows="3"
+            class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+          />
+        </div>
+
+        <!-- Tags -->
+        <div class="space-y-2">
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <component :is="Hash" :size="12" /> Tags (comma-separated)
+          </label>
+          <Input
+            v-model="newQuote.tags_input"
+            placeholder="philosophy, wisdom, inspiration..."
+            class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+          />
+        </div>
+
+        <!-- Toggles -->
+        <div class="flex items-center gap-6 pt-3 border-t border-slate-800">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              v-model="newQuote.is_favorite"
+              class="w-4 h-4 rounded border-2 border-slate-700 bg-slate-800/50 checked:bg-amber-500 checked:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all cursor-pointer"
+            />
+            <Star :size="16" class="text-amber-400" />
+            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">Add to Favorites</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              v-model="newQuote.is_public"
+              class="w-4 h-4 rounded border-2 border-slate-700 bg-slate-800/50 checked:bg-indigo-500 checked:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+            />
+            <Globe v-if="newQuote.is_public" :size="16" class="text-indigo-400" />
+            <Lock v-else :size="16" class="text-slate-500" />
+            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">
+              {{ newQuote.is_public ? 'Public' : 'Private' }}
+            </span>
+          </label>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3 pt-4 border-t border-slate-800">
+          <button
+            type="button"
+            @click="isQuoteModalOpen = false"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-400 transition-all shadow-lg shadow-indigo-500/20"
+          >
+            Save Quote
+          </button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
 
   <!-- Book Edit Modal -->
   <BookEditModal
