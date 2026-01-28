@@ -212,3 +212,23 @@ export const vocabularyAPI = {
   updateMastery: (id, mastery) => api.post(`/reading/vocabulary/${id}/update_mastery/`, { mastery }),
   toggleFavorite: (id) => api.post(`/reading/vocabulary/${id}/toggle_favorite/`),
 }
+
+export const recommendationsAPI = {
+  // Main recommendations
+  getRecommendations: (params) => api.get('/recommendations/', { params }),
+  getContextual: (context, limit = 10) =>
+    api.get('/recommendations/contextual/', { params: { context, limit } }),
+  getSimilar: (bookId, limit = 6) =>
+    api.get(`/recommendations/similar/${bookId}/`, { params: { limit } }),
+
+  // Survey
+  submitSurvey: (data) => api.post('/recommendations/survey/', data),
+  checkSurvey: (bookId) => api.get(`/recommendations/survey/check/${bookId}/`),
+  getSurveyConfig: () => api.get('/recommendations/survey/config/'),
+
+  // User profile
+  getTasteProfile: () => api.get('/recommendations/taste-profile/'),
+
+  // Book DNA
+  getBookDNA: (bookId) => api.get(`/recommendations/book-dna/${bookId}/`),
+}

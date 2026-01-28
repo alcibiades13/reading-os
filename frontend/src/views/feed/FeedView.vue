@@ -1,14 +1,17 @@
 <script setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import FeedPostCard from '@/components/feed/FeedPostCard.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import DiscoverTab from '@/components/social/DiscoverTab.vue'
-import { Users, TrendingUp, Sparkles, Filter, ChevronDown, CheckCircle, BookOpen, Bookmark, Quote as QuoteIcon, MessageSquare, Star, MessageCircle, Compass } from 'lucide-vue-next'
+import { Users, TrendingUp, Sparkles, Filter, ChevronDown, CheckCircle, BookOpen, Bookmark, Quote as QuoteIcon, MessageSquare, Star, MessageCircle, Compass, ArrowRight, Dna, Heart } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/authStore'
 import { useQuotesStore } from '@/stores/quotesStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
+import { recommendationsService, CONTEXT_CONFIG } from '@/services/recommendationsService'
 import api from '@/services/api'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const quotesStore = useQuotesStore()
 const userBooksStore = useUserBooksStore()
@@ -16,6 +19,11 @@ const userBooksStore = useUserBooksStore()
 const posts = ref([])
 const activeTab = ref('all')
 const loading = ref(true)
+
+// Recommendations state
+const recommendedBooks = ref([])
+const tasteProfile = ref(null)
+const loadingRecommendations = ref(true)
 const showFilters = ref(false)
 const selectedActivityTypes = ref(['all'])
 const userBooks = ref([])
@@ -589,7 +597,27 @@ onMounted(async () => {
 
   // Add click outside listener
   document.addEventListener('click', handleClickOutside)
+
+  // Fetch recommendations in background
+  fetchRecommendations()
 })
+
+// Fetch recommendations for sidebar
+const fetchRecommendations = async () => {
+  loadingRecommendations.value = true
+  try {
+    const [books, profile] = await Promise.all([
+      recommendationsService.getForYouBooks(6),
+      recommendationsService.getTasteProfile()
+    ])
+    recommendedBooks.value = books
+    tasteProfile.value = profile
+  } catch (error) {
+    console.error('Error fetching recommendations:', error)
+  } finally {
+    loadingRecommendations.value = false
+  }
+}
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
@@ -609,8 +637,10 @@ const handleBookUpdated = (updatedUserBook) => {
 
 <template>
   <div class="animate-in fade-in duration-700">
-    <!-- Page Header -->
-    <div class="max-w-4xl mx-auto pt-12 pb-8 px-6">
+    <!-- Page Container with max width -->
+    <div class="w-full max-w-[1600px] mx-auto px-6 py-12">
+
+      <!-- Page Header -->
       <header class="mb-12">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
@@ -621,10 +651,16 @@ const handleBookUpdated = (updatedUserBook) => {
         <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
           Reading OS <span class="text-indigo-500">Feed</span>
         </h1>
-        <p class="text-page-subtitle text-slate-400 leading-relaxed">
+        <p class="text-page-subtitle text-slate-400 leading-relaxed max-w-2xl">
           See what your reading community is up to. Discover new books, insights, and reading milestones.
         </p>
       </header>
+
+      <!-- Main Grid: Feed + Sidebar -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+        <!-- LEFT COLUMN: Main Feed -->
+        <div class="lg:col-span-8 min-w-0">
 
       <!-- Filter Tabs -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
@@ -761,6 +797,216 @@ const handleBookUpdated = (updatedUserBook) => {
           </div>
         </template>
       </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Recommendations Sidebar -->
+        <div class="lg:col-span-4 min-w-0 space-y-6">
+
+          <!-- For You - Recommended Books -->
+          <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                  <Sparkles :size="16" class="text-indigo-400" />
+                </div>
+                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">For You</h3>
+              </div>
+              <router-link
+                to="/discover"
+                class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
+              >
+                See All <ArrowRight :size="12" />
+              </router-link>
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="loadingRecommendations" class="space-y-4">
+              <div v-for="n in 3" :key="n" class="flex items-center gap-3 animate-pulse">
+                <div class="w-12 h-16 rounded-lg bg-slate-800" />
+                <div class="flex-1 space-y-2">
+                  <div class="h-3 bg-slate-800 rounded w-3/4" />
+                  <div class="h-2 bg-slate-800 rounded w-1/2" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Recommended Books List -->
+            <div v-else-if="recommendedBooks.length > 0" class="space-y-1">
+              <router-link
+                v-for="book in recommendedBooks.slice(0, 5)"
+                :key="book.id"
+                :to="`/books/${book.id}`"
+                class="group flex items-center gap-3 p-2 -mx-1 rounded-xl hover:bg-white/5 transition-all"
+              >
+                <div class="shrink-0 w-14 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                  <img
+                    v-if="book.cover_image"
+                    :src="book.cover_image"
+                    :alt="book.title"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    @error="(e) => e.target.style.display = 'none'"
+                  />
+                  <BookOpen v-else :size="18" class="text-slate-600" />
+                </div>
+                <div class="flex-1 min-w-0 py-0.5">
+                  <h4 class="font-bold text-white text-sm leading-snug line-clamp-2 group-hover:text-indigo-400 transition-colors">
+                    {{ book.title }}
+                  </h4>
+                  <p class="text-slate-400 text-xs truncate mt-0.5">
+                    {{ book.authors?.map(a => a.name).join(', ') || 'Unknown' }}
+                  </p>
+                  <!-- Match info + Themes on same area -->
+                  <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <span v-if="book.match_score" class="text-xs font-bold text-indigo-400">
+                      {{ Math.round(book.match_score) }}%
+                    </span>
+                    <span v-if="book.match_highlights?.length" class="text-xs text-slate-500">
+                      · {{ book.match_highlights.join(', ') }}
+                    </span>
+                  </div>
+                  <div v-if="book.themes?.length" class="flex gap-1.5 mt-1.5 flex-wrap">
+                    <span
+                      v-for="theme in book.themes.slice(0, 2)"
+                      :key="theme"
+                      class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-400"
+                    >
+                      {{ theme }}
+                    </span>
+                  </div>
+                </div>
+              </router-link>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="text-center py-6">
+              <div class="w-12 h-12 mx-auto rounded-full bg-slate-800/50 flex items-center justify-center mb-3">
+                <BookOpen :size="20" class="text-slate-600" />
+              </div>
+              <p class="text-slate-500 text-xs">
+                Rate more books to get personalized recommendations
+              </p>
+              <router-link
+                to="/discover"
+                class="inline-flex items-center gap-1 mt-3 text-xs text-indigo-400 hover:text-indigo-300 font-bold transition-colors"
+              >
+                Explore Books <ArrowRight :size="12" />
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Your Reading DNA (mini version) -->
+          <div v-if="tasteProfile && tasteProfile.vote_count > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <Dna :size="16" class="text-indigo-400" />
+              </div>
+              <div>
+                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Your DNA</h3>
+                <p class="text-slate-600 text-[9px]">{{ tasteProfile.vote_count }} books rated</p>
+              </div>
+            </div>
+
+            <!-- Mini DNA bars -->
+            <div class="space-y-3">
+              <div v-if="tasteProfile.pace_preference !== undefined">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[9px] font-bold text-slate-500 uppercase">Pace</span>
+                  <span class="text-[9px] text-slate-600">{{ tasteProfile.pace_preference > 0.5 ? 'Fast' : 'Slow' }}</span>
+                </div>
+                <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-indigo-500 rounded-full transition-all"
+                    :style="{ width: `${tasteProfile.pace_preference * 100}%` }"
+                  />
+                </div>
+              </div>
+              <div v-if="tasteProfile.complexity_tolerance !== undefined">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[9px] font-bold text-slate-500 uppercase">Complexity</span>
+                  <span class="text-[9px] text-slate-600">{{ tasteProfile.complexity_tolerance > 0.5 ? 'Dense' : 'Light' }}</span>
+                </div>
+                <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-purple-500 rounded-full transition-all"
+                    :style="{ width: `${tasteProfile.complexity_tolerance * 100}%` }"
+                  />
+                </div>
+              </div>
+              <div v-if="tasteProfile.darkness_tolerance !== undefined">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[9px] font-bold text-slate-500 uppercase">Tone</span>
+                  <span class="text-[9px] text-slate-600">{{ tasteProfile.darkness_tolerance > 0.5 ? 'Dark' : 'Light' }}</span>
+                </div>
+                <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-rose-500 rounded-full transition-all"
+                    :style="{ width: `${tasteProfile.darkness_tolerance * 100}%` }"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <router-link
+              to="/discover"
+              class="mt-4 block text-center text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+            >
+              View Full Profile
+            </router-link>
+          </div>
+
+          <!-- Quick Mood Picks -->
+          <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+            <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Quick Picks</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <router-link
+                to="/discover?mood=peaceful"
+                class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-center group"
+              >
+                <span class="text-lg block mb-1">🌿</span>
+                <span class="text-[10px] font-bold text-emerald-400 group-hover:text-emerald-300">Peaceful</span>
+              </router-link>
+              <router-link
+                to="/discover?mood=challenge"
+                class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all text-center group"
+              >
+                <span class="text-lg block mb-1">🧠</span>
+                <span class="text-[10px] font-bold text-purple-400 group-hover:text-purple-300">Challenge</span>
+              </router-link>
+              <router-link
+                to="/discover?mood=emotional"
+                class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-all text-center group"
+              >
+                <span class="text-lg block mb-1">💔</span>
+                <span class="text-[10px] font-bold text-rose-400 group-hover:text-rose-300">Emotional</span>
+              </router-link>
+              <router-link
+                to="/discover?mood=quick"
+                class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-all text-center group"
+              >
+                <span class="text-lg block mb-1">⚡</span>
+                <span class="text-[10px] font-bold text-amber-400 group-hover:text-amber-300">Quick Read</span>
+              </router-link>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

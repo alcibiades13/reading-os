@@ -218,3 +218,135 @@ class Book(models.Model):
         return ", ".join([a.name for a in self.authors.all()])
 
 
+class BookDNA(models.Model):
+    """
+    DNA vector for books - numerical attributes for recommendations.
+    All attributes use 0.0 - 1.0 scale.
+    """
+    book = models.OneToOneField(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='dna'
+    )
+
+    # Core attributes (0.0 - 1.0 scale)
+    pace = models.FloatField(
+        default=0.5,
+        help_text="0=slow/contemplative, 1=fast/page-turner"
+    )
+    complexity = models.FloatField(
+        default=0.5,
+        help_text="0=simple/accessible, 1=dense/challenging"
+    )
+    emotional_intensity = models.FloatField(
+        default=0.5,
+        help_text="0=light/easy, 1=heavy/intense"
+    )
+    darkness = models.FloatField(
+        default=0.5,
+        help_text="0=hopeful/light, 1=dark/bleak"
+    )
+    character_focus = models.FloatField(
+        default=0.5,
+        help_text="0=plot-driven, 1=character-driven"
+    )
+    introspection = models.FloatField(
+        default=0.5,
+        help_text="0=action/external, 1=introspective/philosophical"
+    )
+
+    # Themes (list of theme slugs)
+    themes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of theme slugs: ['faith', 'identity', 'suffering']"
+    )
+
+    # Meta
+    SOURCE_CHOICES = [
+        ('user_votes', 'User Votes Aggregated'),
+        ('ai_generated', 'AI Generated'),
+        ('manual', 'Manual Entry'),
+    ]
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default='manual'
+    )
+    vote_count = models.IntegerField(
+        default=0,
+        help_text="Number of user votes for these attributes"
+    )
+    confidence_score = models.FloatField(
+        default=0.0,
+        help_text="0-1, confidence in these values based on vote count"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Book DNA'
+        verbose_name_plural = 'Book DNAs'
+
+    def __str__(self):
+        return f"DNA: {self.book.title}"
+
+    def to_vector(self):
+        """Convert to list for similarity calculation"""
+        return [
+            self.pace,
+            self.complexity,
+            self.emotional_intensity,
+            self.darkness,
+            self.character_focus,
+            self.introspection,
+        ]
+
+
+class BookDNAVote(models.Model):
+    """
+    Individual user vote for Book DNA attributes.
+    Stored for transparency and re-calculation capability.
+    """
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='book_dna_votes'
+    )
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='dna_votes'
+    )
+    user_book = models.ForeignKey(
+        'reading.UserBook',
+        on_delete=models.CASCADE,
+        related_name='dna_vote',
+        null=True,
+        blank=True
+    )
+
+    # Votes for each attribute (null = not answered)
+    pace = models.FloatField(null=True, blank=True)
+    complexity = models.FloatField(null=True, blank=True)
+    emotional_intensity = models.FloatField(null=True, blank=True)
+    darkness = models.FloatField(null=True, blank=True)
+    character_focus = models.FloatField(null=True, blank=True)
+    introspection = models.FloatField(null=True, blank=True)
+
+    # Themes selected by user
+    themes = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'book']
+        verbose_name = 'Book DNA Vote'
+        verbose_name_plural = 'Book DNA Votes'
+
+    def __str__(self):
+        return f"{self.user.email} vote for {self.book.title}"

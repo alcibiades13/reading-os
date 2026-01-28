@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Author, Publisher, Genre, Tag, Book
+from .models import Author, Publisher, Genre, Tag, Book, BookDNA, BookDNAVote
 
 
 @admin.register(Author)
@@ -69,3 +69,33 @@ class BookAdmin(admin.ModelAdmin):
     author_names.short_description = 'Authors'
 
 
+@admin.register(BookDNA)
+class BookDNAAdmin(admin.ModelAdmin):
+    list_display = ['book', 'pace', 'complexity', 'emotional_intensity', 'darkness', 'source', 'vote_count', 'confidence_score']
+    search_fields = ['book__title']
+    list_filter = ['source', 'confidence_score']
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('Book', {
+            'fields': ('book',)
+        }),
+        ('DNA Attributes', {
+            'fields': ('pace', 'complexity', 'emotional_intensity', 'darkness', 'character_focus', 'introspection')
+        }),
+        ('Themes', {
+            'fields': ('themes',)
+        }),
+        ('Meta', {
+            'fields': ('source', 'vote_count', 'confidence_score', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(BookDNAVote)
+class BookDNAVoteAdmin(admin.ModelAdmin):
+    list_display = ['user', 'book', 'created_at']
+    search_fields = ['user__email', 'book__title']
+    list_filter = ['created_at']
+    readonly_fields = ['created_at']

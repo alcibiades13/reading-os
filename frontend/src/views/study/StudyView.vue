@@ -32,6 +32,15 @@
       </div>
 
       <div class="flex items-center gap-2 md:gap-4 flex-shrink-0">
+        <button
+          @click="exportToPDF"
+          :disabled="notes.length === 0"
+          class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Export study notes to PDF"
+        >
+          <Download :size="16" />
+          Export PDF
+        </button>
         <button @click="showSearch = !showSearch" class="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors">
           <Search :size="18" />
         </button>
@@ -561,8 +570,10 @@ import {
   Filter,
   X,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Download
 } from 'lucide-vue-next'
+import html2pdf from 'html2pdf.js'
 
 const props = defineProps({
   bookId: {
@@ -627,17 +638,24 @@ watch(() => props.bookId, async (newId, oldId) => {
 })
 
 const references = computed(() => {
-  const refs = new Set()
+  const refsMap = new Map() // Use Map to track lowercase -> original case mapping
 
   notes.value.forEach(note => {
     // If backend sends references_list, use it; otherwise split by comma
     const refList = note.references_list || (note.reference ? note.reference.split(',').map(r => r.trim()) : ['General'])
     refList.forEach(ref => {
-      if (ref) refs.add(ref)
+      if (ref) {
+        const lowerRef = ref.toLowerCase()
+        // Keep first occurrence's case
+        if (!refsMap.has(lowerRef)) {
+          refsMap.set(lowerRef, ref)
+        }
+      }
     })
   })
 
-  return Array.from(refs).sort()
+  // Return sorted references (case-insensitive sort)
+  return Array.from(refsMap.values()).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
 })
 
 const filteredNotes = computed(() => {
@@ -645,9 +663,9 @@ const filteredNotes = computed(() => {
 
   if (selectedRef.value) {
     filtered = filtered.filter(n => {
-      // Check if note contains the selected reference (supports multiple references)
+      // Check if note contains the selected reference (case-insensitive, supports multiple references)
       const refList = n.references_list || (n.reference ? n.reference.split(',').map(r => r.trim()) : [])
-      return refList.includes(selectedRef.value)
+      return refList.some(ref => ref.toLowerCase() === selectedRef.value.toLowerCase())
     })
   }
 
@@ -874,6 +892,175 @@ const filteredBooks = computed(() => {
     userBook.book?.authors?.some(author => author.name?.toLowerCase().includes(query))
   )
 })
+
+// Export study notes to PDF
+const exportToPDF = () => {
+  if (notes.value.length === 0) return
+
+  // Stats
+  const quoteCount = notes.value.filter(n => n.note_type === 'quote').length
+  const insightCount = notes.value.filter(n => n.note_type === 'insight').length
+  const questionCount = notes.value.filter(n => n.note_type === 'question').length
+  const noteCount = notes.value.filter(n => n.note_type === 'note').length
+
+  const exportDate = new Date().toLocaleDateString('sr-RS', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+
+  // Sort notes by reference (case-insensitive)
+  const sortedNotes = [...notes.value].sort((a, b) => {
+    const refA = (a.reference || 'General').toLowerCase()
+    const refB = (b.reference || 'General').toLowerCase()
+    return refA.localeCompare(refB)
+  })
+
+  // Group notes by reference (case-insensitive grouping)
+  const groupedNotes = {}
+  const refCaseMap = {} // Track original case for each lowercase reference
+
+  sortedNotes.forEach(note => {
+    const ref = note.reference || 'General'
+    const refLower = ref.toLowerCase()
+
+    // Use first occurrence's case as the key
+    if (!refCaseMap[refLower]) {
+      refCaseMap[refLower] = ref
+    }
+
+    const displayRef = refCaseMap[refLower]
+    if (!groupedNotes[displayRef]) {
+      groupedNotes[displayRef] = []
+    }
+    groupedNotes[displayRef].push(note)
+  })
+
+  // Create HTML content
+  let htmlContent = `
+    <!DOCTYPE html>
+    <html lang="sr">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @page {
+          margin: 20mm;
+          size: A4;
+        }
+        body {
+          font-family: 'Arial', 'Helvetica', sans-serif;
+          font-size: 11pt;
+          line-height: 1.6;
+          color: #000;
+        }
+        h1 {
+          font-size: 24pt;
+          font-weight: bold;
+          margin-bottom: 10px;
+          color: #000;
+        }
+        .date {
+          font-size: 10pt;
+          color: #666;
+          margin-bottom: 15px;
+        }
+        .stats {
+          font-size: 10pt;
+          margin-bottom: 20px;
+          padding: 10px;
+          background: #f5f5f5;
+          border-radius: 5px;
+        }
+        .reference-section {
+          margin-bottom: 25px;
+          page-break-inside: avoid;
+        }
+        .reference-title {
+          font-size: 16pt;
+          font-weight: bold;
+          color: #4F46E5;
+          margin-bottom: 15px;
+          border-bottom: 2px solid #4F46E5;
+          padding-bottom: 5px;
+        }
+        .note {
+          margin-bottom: 20px;
+          page-break-inside: avoid;
+        }
+        .note-type {
+          font-size: 9pt;
+          font-weight: bold;
+          text-transform: uppercase;
+          margin-bottom: 3px;
+        }
+        .note-type.quote { color: #A855F7; }
+        .note-type.insight { color: #FBBF24; }
+        .note-type.question { color: #3B82F6; }
+        .note-type.note { color: #64748B; }
+        .note-meta {
+          font-size: 8pt;
+          color: #999;
+          margin-bottom: 8px;
+        }
+        .note-content {
+          font-size: 10pt;
+          line-height: 1.5;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Study Notes: ${props.bookTitle}</h1>
+      <div class="date">Exported on ${exportDate}</div>
+      <div class="stats">
+        Total Notes: ${notes.value.length} (${quoteCount} Quotes, ${insightCount} Insights, ${questionCount} Questions, ${noteCount} Notes)
+      </div>
+  `
+
+  // Add notes grouped by reference
+  Object.entries(groupedNotes).forEach(([reference, refNotes]) => {
+    htmlContent += `<div class="reference-section">`
+    htmlContent += `<div class="reference-title">${reference}</div>`
+
+    refNotes.forEach(note => {
+      const metaInfo = []
+      if (note.page_number) metaInfo.push(`Page ${note.page_number}`)
+      if (note.chapter) metaInfo.push(`Chapter: ${note.chapter}`)
+
+      htmlContent += `
+        <div class="note">
+          <div class="note-type ${note.note_type}">${note.note_type.toUpperCase()}</div>
+          ${metaInfo.length > 0 ? `<div class="note-meta">${metaInfo.join(' • ')}</div>` : ''}
+          <div class="note-content">${note.content}</div>
+        </div>
+      `
+    })
+
+    htmlContent += `</div>`
+  })
+
+  htmlContent += `
+    </body>
+    </html>
+  `
+
+  // Create a temporary element
+  const element = document.createElement('div')
+  element.innerHTML = htmlContent
+
+  // PDF options
+  const opt = {
+    margin: 10,
+    filename: `${props.bookTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_study_notes.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }
+
+  // Generate PDF
+  html2pdf().set(opt).from(element).save()
+}
 
 // Select book and navigate to study mode
 const selectBook = (userBook) => {

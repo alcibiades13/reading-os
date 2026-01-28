@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'apps.lists',
     'apps.challenges',
     'apps.social',
+    'apps.recommendations',
 ]
 
 MIDDLEWARE = [

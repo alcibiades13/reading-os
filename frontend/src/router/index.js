@@ -129,6 +129,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/discover',
+    name: 'Discover',
+    component: () => import('@/views/recommendations/RecommendationsView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('@/views/profile/ProfileView.vue'),

@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/lists/', include('apps.lists.urls')),
     path('api/challenges/', include('apps.challenges.urls')),
     path('api/social/', include('apps.social.urls')),
+    path('api/recommendations/', include('apps.recommendations.urls')),
 ]
 
 # Serve media files in development

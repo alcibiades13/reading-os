@@ -29,7 +29,10 @@
       "Bash(python:*)",
       "Bash(backend/venv/Scripts/python.exe:*)",
       "Bash(backend\\\\venv\\\\Scripts\\\\python.exe:*)",
-      "Bash(./backend/venv/Scripts/python.exe:*)"
+      "Bash(./backend/venv/Scripts/python.exe:*)",
+      "Bash(.venv/Scripts/python.exe manage.py makemigrations:*)",
+      "Bash(/d/projects/reading-os/backend/.venv/Scripts/pip.exe list)",
+      "Bash(/d/projects/reading-os/backend/venv/Scripts/pip.exe list:*)"
     ]
   }
 }

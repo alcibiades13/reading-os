@@ -229,6 +229,8 @@ class QuoteUpdateSerializer(serializers.ModelSerializer):
             'text',
             'book_title',
             'book_author',
+            'book',
+            'user_book',
             'page_number',
             'chapter',
             'note',

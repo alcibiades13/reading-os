@@ -8,12 +8,14 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/composables/useToast'
 import StarRating from '@/components/ui/StarRating.vue'
 import BookEditModal from '@/components/BookEditModal.vue'
+import BookDNASurvey from '@/components/recommendations/BookDNASurvey.vue'
+import { recommendationsService } from '@/services/recommendationsService'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import {
-  ArrowLeft, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star
+  ArrowLeft, ArrowRight, BookOpen, Calendar, Globe, Hash, Building2,
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -31,10 +33,18 @@ const bookId = computed(() => route.params.id)
 const showFullDesc = ref(false)
 const isQuoteModalOpen = ref(false)
 const isEditModalOpen = ref(false)
+const showDNASurvey = ref(false)
+const hasVotedForBook = ref(false)
 const currentPageInput = ref(0)
 const reviewInput = ref('')
 const coverLoaded = ref(false)
 const currentCoverUrl = ref('')
+
+// Sidebar state
+const similarBooks = ref([])
+const bookDNA = ref(null)
+const loadingSimilar = ref(true)
+const loadingDNA = ref(true)
 
 // Quote form state
 const newQuote = ref({
@@ -163,18 +173,71 @@ onMounted(async () => {
     reviewInput.value = userBook.value.review || ''
   }
 
+  // Check if user has already voted for this book's DNA
+  checkDNAVoteStatus()
+
+  // Fetch sidebar data (similar books, book DNA)
+  fetchSidebarData()
+
   window.scrollTo(0, 0)
 })
+
+// Check DNA vote status
+const checkDNAVoteStatus = async () => {
+  if (!bookId.value) return
+
+  try {
+    hasVotedForBook.value = await recommendationsService.hasVotedForBook(bookId.value)
+  } catch (error) {
+    console.error('Error checking DNA vote status:', error)
+    hasVotedForBook.value = false
+  }
+}
+
+// Fetch sidebar data (similar books + book DNA)
+const fetchSidebarData = async () => {
+  if (!bookId.value) return
+
+  loadingSimilar.value = true
+  loadingDNA.value = true
+
+  // Fetch in parallel
+  const [similar, dna] = await Promise.all([
+    recommendationsService.getSimilarBooks(bookId.value, 5),
+    recommendationsService.getBookDNA(bookId.value)
+  ])
+
+  similarBooks.value = similar || []
+  bookDNA.value = dna
+  loadingSimilar.value = false
+  loadingDNA.value = false
+}
+
+// Open DNA survey manually
+const openDNASurvey = () => {
+  showDNASurvey.value = true
+}
+
+// Handle survey submitted
+const handleSurveySubmitted = () => {
+  hasVotedForBook.value = true
+  addToast('Thanks for rating! Your profile has been updated.', 'success')
+}
 
 // Reset cover loaded state when bookId or coverUrl changes
 watch(bookId, async (newId, oldId) => {
   // IMMEDIATELY clear the current book to prevent showing old data
   booksStore.currentBook = null
   coverLoaded.value = false
+  hasVotedForBook.value = false
+  similarBooks.value = []
+  bookDNA.value = null
   await nextTick()
 
   await booksStore.fetchBook(newId)
   quotesStore.fetchQuotes({ book: newId })
+  checkDNAVoteStatus()
+  fetchSidebarData()
 }, { flush: 'sync' })
 
 watch(coverUrl, async (newUrl, oldUrl) => {
@@ -223,6 +286,8 @@ const handleAddToLibrary = async () => {
 }
 
 const handleStatusChange = async (newStatus) => {
+  const wasNotRead = currentStatus.value !== 'read'
+
   if (!userBook.value) {
     // Add to library with this status
     await userBooksStore.addBook({
@@ -234,6 +299,18 @@ const handleStatusChange = async (newStatus) => {
     await userBooksStore.updateBook(userBook.value.id, {
       status: newStatus
     })
+  }
+
+  // Show DNA survey when marking as read for the first time
+  if (newStatus === 'read' && wasNotRead) {
+    // Check if user has already voted for this book
+    const hasVoted = await recommendationsService.hasVotedForBook(bookId.value)
+    if (!hasVoted) {
+      // Show survey after a short delay
+      setTimeout(() => {
+        showDNASurvey.value = true
+      }, 500)
+    }
   }
 }
 
@@ -486,7 +563,7 @@ export const QuoteCard = defineComponent({
 </script>
 
 <template>
-  <div v-if="book" class="max-w-7xl mx-auto px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <div v-if="book" class="w-full max-w-[1600px] mx-auto px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
     <!-- Back Button -->
     <button
@@ -500,7 +577,7 @@ export const QuoteCard = defineComponent({
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
       <!-- Left Column - Cover & Main Info -->
-      <div class="lg:col-span-4 space-y-8">
+      <div class="lg:col-span-3 min-w-0 space-y-8">
         <div class="relative aspect-[2/3] w-full max-w-[200px] sm:max-w-xs mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
           <!-- Skeleton loader -->
           <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 animate-pulse z-10" />
@@ -559,8 +636,8 @@ export const QuoteCard = defineComponent({
         </button>
       </div>
 
-      <!-- Right Column - Interaction & Content -->
-      <div class="lg:col-span-8 space-y-12">
+      <!-- Middle Column - Interaction & Content -->
+      <div class="lg:col-span-6 min-w-0 space-y-12">
 
         <!-- Header Info -->
         <section>
@@ -700,6 +777,16 @@ export const QuoteCard = defineComponent({
                 >
                   <SquarePen :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
                   <span class="transition-colors group-hover/btn:text-indigo-400">Edit My Activity</span>
+                </button>
+
+                <!-- Describe Book's Essence Button (only for finished/abandoned books not yet rated) -->
+                <button
+                  v-if="(currentStatus === 'read' || currentStatus === 'abandoned') && !hasVotedForBook"
+                  @click="openDNASurvey"
+                  class="w-full py-3 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Sparkles :size="14" />
+                  <span>Capture This Book's Soul</span>
                 </button>
                 <div v-if="currentStatus === 'currently_reading'" class="p-6 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-4">
                   <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block">Reading Progress</label>
@@ -859,21 +946,200 @@ export const QuoteCard = defineComponent({
           </div>
         </section>
       </div>
+
+      <!-- Right Column - Sidebar -->
+      <div class="lg:col-span-3 min-w-0 space-y-6">
+
+        <!-- Similar Books -->
+        <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <Sparkles :size="16" class="text-indigo-400" />
+              </div>
+              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Similar Books</h3>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="loadingSimilar" class="space-y-4">
+            <div v-for="n in 3" :key="n" class="flex items-center gap-3 animate-pulse">
+              <div class="w-12 h-16 rounded-lg bg-slate-800" />
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-slate-800 rounded w-3/4" />
+                <div class="h-2 bg-slate-800 rounded w-1/2" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Similar Books List -->
+          <div v-else-if="similarBooks.length > 0" class="space-y-1">
+            <router-link
+              v-for="simBook in similarBooks"
+              :key="simBook.id"
+              :to="`/books/${simBook.id}`"
+              class="group flex items-center gap-3 p-2 -mx-1 rounded-xl hover:bg-white/5 transition-all"
+            >
+              <div class="shrink-0 w-14 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                <img
+                  v-if="simBook.cover_image"
+                  :src="simBook.cover_image"
+                  :alt="simBook.title"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  @error="(e) => e.target.style.display = 'none'"
+                />
+                <BookOpen v-else :size="18" class="text-slate-600" />
+              </div>
+              <div class="flex-1 min-w-0 py-0.5">
+                <h4 class="font-bold text-white text-sm leading-snug line-clamp-2 group-hover:text-indigo-400 transition-colors">
+                  {{ simBook.title }}
+                </h4>
+                <p class="text-slate-400 text-xs truncate mt-0.5">
+                  {{ simBook.authors?.map(a => a.name).join(', ') || 'Unknown' }}
+                </p>
+                <div class="flex items-center gap-1.5 mt-1.5">
+                  <span v-if="simBook.similarity_score" class="text-xs font-bold text-indigo-400">
+                    {{ Math.round(simBook.similarity_score) }}% similar
+                  </span>
+                </div>
+              </div>
+            </router-link>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else class="text-center py-6">
+            <div class="w-12 h-12 mx-auto rounded-full bg-slate-800/50 flex items-center justify-center mb-3">
+              <BookOpen :size="20" class="text-slate-600" />
+            </div>
+            <p class="text-slate-500 text-xs">
+              Rate this book to discover similar reads
+            </p>
+          </div>
+        </div>
+
+        <!-- Book DNA -->
+        <div v-if="bookDNA" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <Dna :size="16" class="text-indigo-400" />
+            </div>
+            <div>
+              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Book DNA</h3>
+              <p class="text-slate-600 text-[9px]">{{ bookDNA.vote_count || 0 }} reader{{ bookDNA.vote_count !== 1 ? 's' : '' }} rated</p>
+            </div>
+          </div>
+
+          <!-- DNA Attributes -->
+          <div class="space-y-3">
+            <div v-if="bookDNA.pace !== undefined">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] font-bold text-slate-500 uppercase">Pace</span>
+                <span class="text-[9px] text-slate-600">{{ bookDNA.pace > 0.5 ? 'Fast' : 'Slow' }}</span>
+              </div>
+              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-indigo-500 rounded-full transition-all"
+                  :style="{ width: `${bookDNA.pace * 100}%` }"
+                />
+              </div>
+            </div>
+            <div v-if="bookDNA.complexity !== undefined">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] font-bold text-slate-500 uppercase">Complexity</span>
+                <span class="text-[9px] text-slate-600">{{ bookDNA.complexity > 0.5 ? 'Dense' : 'Light' }}</span>
+              </div>
+              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-purple-500 rounded-full transition-all"
+                  :style="{ width: `${bookDNA.complexity * 100}%` }"
+                />
+              </div>
+            </div>
+            <div v-if="bookDNA.emotional_intensity !== undefined">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] font-bold text-slate-500 uppercase">Emotion</span>
+                <span class="text-[9px] text-slate-600">{{ bookDNA.emotional_intensity > 0.5 ? 'Intense' : 'Calm' }}</span>
+              </div>
+              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-rose-500 rounded-full transition-all"
+                  :style="{ width: `${bookDNA.emotional_intensity * 100}%` }"
+                />
+              </div>
+            </div>
+            <div v-if="bookDNA.darkness !== undefined">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] font-bold text-slate-500 uppercase">Tone</span>
+                <span class="text-[9px] text-slate-600">{{ bookDNA.darkness > 0.5 ? 'Dark' : 'Light' }}</span>
+              </div>
+              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-slate-500 rounded-full transition-all"
+                  :style="{ width: `${bookDNA.darkness * 100}%` }"
+                />
+              </div>
+            </div>
+            <div v-if="bookDNA.character_focus !== undefined">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] font-bold text-slate-500 uppercase">Focus</span>
+                <span class="text-[9px] text-slate-600">{{ bookDNA.character_focus > 0.5 ? 'Characters' : 'Plot' }}</span>
+              </div>
+              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-amber-500 rounded-full transition-all"
+                  :style="{ width: `${bookDNA.character_focus * 100}%` }"
+                />
+              </div>
+            </div>
+            <div v-if="bookDNA.introspection !== undefined">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] font-bold text-slate-500 uppercase">Style</span>
+                <span class="text-[9px] text-slate-600">{{ bookDNA.introspection > 0.5 ? 'Reflective' : 'Action' }}</span>
+              </div>
+              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-cyan-500 rounded-full transition-all"
+                  :style="{ width: `${bookDNA.introspection * 100}%` }"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Themes -->
+          <div v-if="bookDNA.themes?.length > 0" class="mt-5 pt-4 border-t border-slate-800">
+            <span class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Themes</span>
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                v-for="theme in bookDNA.themes.slice(0, 4)"
+                :key="theme"
+                class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400"
+              >
+                {{ theme }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
   <!-- Loading State -->
-  <div v-else class="max-w-7xl mx-auto px-6 py-12">
+  <div v-else class="w-full max-w-[1600px] mx-auto px-6 py-12">
     <div class="animate-pulse space-y-8">
       <div class="h-8 bg-slate-800 rounded w-48"></div>
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div class="lg:col-span-4">
+        <div class="lg:col-span-3">
           <div class="aspect-[2/3] bg-slate-800 rounded-3xl"></div>
         </div>
-        <div class="lg:col-span-8 space-y-6">
+        <div class="lg:col-span-6 space-y-6">
           <div class="h-12 bg-slate-800 rounded w-3/4"></div>
           <div class="h-6 bg-slate-800 rounded w-1/2"></div>
           <div class="h-32 bg-slate-800 rounded"></div>
+        </div>
+        <div class="lg:col-span-3 space-y-6">
+          <div class="h-64 bg-slate-800 rounded-[2rem]"></div>
+          <div class="h-48 bg-slate-800 rounded-[2rem]"></div>
         </div>
       </div>
     </div>
@@ -1002,6 +1268,16 @@ export const QuoteCard = defineComponent({
     :open="isEditModalOpen"
     @close="isEditModalOpen = false"
     @save="handleSaveBook"
+  />
+
+  <!-- Book DNA Survey Modal -->
+  <BookDNASurvey
+    v-if="book"
+    :open="showDNASurvey"
+    :book="book"
+    :user-book-id="userBook?.id"
+    @close="showDNASurvey = false"
+    @submitted="handleSurveySubmitted"
   />
 </template>
 

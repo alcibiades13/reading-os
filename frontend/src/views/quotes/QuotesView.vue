@@ -19,11 +19,17 @@ const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const editingQuote = ref(null)
 
-// Book autocomplete
+// Book autocomplete (for create)
 const bookSearchQuery = ref('')
 const bookSearchResults = ref([])
 const showBookDropdown = ref(false)
 const isSearchingBooks = ref(false)
+
+// Book autocomplete (for edit)
+const editBookSearchQuery = ref('')
+const editBookSearchResults = ref([])
+const showEditBookDropdown = ref(false)
+const isSearchingEditBooks = ref(false)
 
 // New quote form
 const newQuote = ref({
@@ -47,6 +53,8 @@ const editQuote = ref({
   note: '',
   book_title: '',
   book_author: '',
+  book: null,
+  user_book: null,
   page_number: null,
   chapter: '',
   tags_input: '',
@@ -108,6 +116,8 @@ const handleCreateQuote = async () => {
       note: newQuote.value.note,
       book_title: newQuote.value.book_title,
       book_author: newQuote.value.book_author,
+      book: newQuote.value.book || null,
+      user_book: newQuote.value.user_book || null,
       page_number: newQuote.value.page_number || null,
       chapter: newQuote.value.chapter || '',
       is_favorite: newQuote.value.is_favorite,
@@ -259,6 +269,44 @@ const handleBookInputChange = async (e) => {
   await searchBooks(e.target.value)
 }
 
+// Edit book search functions
+const searchEditBooks = async (query) => {
+  if (!query || query.length < 2) {
+    editBookSearchResults.value = []
+    showEditBookDropdown.value = false
+    return
+  }
+
+  isSearchingEditBooks.value = true
+  try {
+    const response = await userBooksAPI.list({ search: query })
+    editBookSearchResults.value = response.data.results || response.data || []
+    showEditBookDropdown.value = editBookSearchResults.value.length > 0
+  } catch (error) {
+    console.error('Error searching books:', error)
+    editBookSearchResults.value = []
+  } finally {
+    isSearchingEditBooks.value = false
+  }
+}
+
+const selectEditBook = (userBook) => {
+  console.log('Selected edit book:', userBook)
+  editQuote.value.book = userBook.book.id
+  editQuote.value.user_book = userBook.id
+  editQuote.value.book_title = userBook.book.title
+  editQuote.value.book_author = userBook.book.authors?.[0]?.name || ''
+  editBookSearchQuery.value = userBook.book.title
+  showEditBookDropdown.value = false
+  console.log('Updated editQuote:', editQuote.value)
+}
+
+const handleEditBookInputChange = async (e) => {
+  editBookSearchQuery.value = e.target.value
+  editQuote.value.book_title = e.target.value
+  await searchEditBooks(e.target.value)
+}
+
 const openEditDialog = (quote) => {
   editingQuote.value = quote
   editQuote.value = {
@@ -266,6 +314,8 @@ const openEditDialog = (quote) => {
     note: quote.note || '',
     book_title: quote.book_title,
     book_author: quote.book_author,
+    book: quote.book || null,
+    user_book: quote.user_book || null,
     page_number: quote.page_number,
     chapter: quote.chapter || '',
     tags_input: quote.tags?.map(t => t.name).join(', ') || '',
@@ -273,6 +323,10 @@ const openEditDialog = (quote) => {
     is_favorite: quote.is_favorite,
     is_public: quote.is_public,
   }
+  // Reset edit book search
+  editBookSearchQuery.value = quote.book_title || ''
+  editBookSearchResults.value = []
+  showEditBookDropdown.value = false
   isEditDialogOpen.value = true
 }
 
@@ -289,6 +343,8 @@ const handleEditQuote = async () => {
       note: editQuote.value.note,
       book_title: editQuote.value.book_title,
       book_author: editQuote.value.book_author,
+      book: editQuote.value.book || null,
+      user_book: editQuote.value.user_book || null,
       page_number: editQuote.value.page_number || null,
       chapter: editQuote.value.chapter || '',
       is_favorite: editQuote.value.is_favorite,
@@ -319,9 +375,11 @@ const handleEditQuote = async () => {
       payload.tag_ids = []
     }
 
+    console.log('Edit Quote Payload:', payload)
     const result = await quotesStore.updateQuote(editingQuote.value.id, payload)
 
     if (result.success) {
+      console.log('Quote updated successfully:', result)
       isEditDialogOpen.value = false
       editingQuote.value = null
       await quotesStore.fetchQuotes()
@@ -637,7 +695,7 @@ const handleEditQuote = async () => {
 
           <div class="relative space-y-6">
             <!-- Quote Content -->
-            <p class="text-quote font-medium text-slate-100 leading-relaxed italic font-serif">
+            <p class="text-quote font-medium text-slate-100 leading-relaxed italic font-serif whitespace-pre-wrap">
               {{ quote.text }}
             </p>
 
@@ -787,16 +845,47 @@ const handleEditQuote = async () => {
 
           <!-- Book Info Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-2">
+            <div class="space-y-2 relative">
               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                 <component :is="Bookmark" :size="12" /> Book Title
               </label>
-              <Input
-                v-model="editQuote.book_title"
-                placeholder="Which masterpiece is this from?"
+              <input
+                :value="editBookSearchQuery || editQuote.book_title"
+                @input="handleEditBookInputChange"
+                @focus="showEditBookDropdown = editBookSearchResults.length > 0"
+                placeholder="Start typing to search your books..."
                 required
-                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all outline-none"
+                autocomplete="off"
               />
+              <!-- Autocomplete Dropdown -->
+              <div
+                v-if="showEditBookDropdown && editBookSearchResults.length > 0"
+                class="absolute z-50 w-full mt-1 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
+              >
+                <button
+                  v-for="userBook in editBookSearchResults"
+                  :key="userBook.id"
+                  type="button"
+                  @click="selectEditBook(userBook)"
+                  class="w-full flex items-start gap-3 p-3 hover:bg-slate-700 transition-colors text-left border-b border-slate-700/50 last:border-0"
+                >
+                  <div class="w-8 h-12 rounded overflow-hidden flex-shrink-0 bg-slate-700 flex items-center justify-center">
+                    <img
+                      v-if="userBook.book.cover_image"
+                      :src="userBook.book.cover_image"
+                      :alt="userBook.book.title"
+                      class="w-full h-full object-cover"
+                    />
+                    <BookOpen v-else :size="14" class="text-slate-500" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-white truncate">{{ userBook.book.title }}</p>
+                    <p class="text-xs text-slate-400 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
+                  </div>
+                </button>
+              </div>
+              <p v-if="isSearchingEditBooks" class="text-xs text-slate-500 mt-1">Searching...</p>
             </div>
             <div class="space-y-2">
               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
