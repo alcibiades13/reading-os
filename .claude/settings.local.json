@@ -32,7 +32,14 @@
       "Bash(./backend/venv/Scripts/python.exe:*)",
       "Bash(.venv/Scripts/python.exe manage.py makemigrations:*)",
       "Bash(/d/projects/reading-os/backend/.venv/Scripts/pip.exe list)",
-      "Bash(/d/projects/reading-os/backend/venv/Scripts/pip.exe list:*)"
+      "Bash(/d/projects/reading-os/backend/venv/Scripts/pip.exe list:*)",
+      "Bash(pg_lsclusters:*)",
+      "Bash(sudo apt:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(PGPASSWORD=47258789 psql:*)",
+      "Bash(playwright install --help:*)",
+      "Bash(playwright install:*)",
+      "Bash(python3:*)"
     ]
   }
 }

@@ -226,19 +226,32 @@ class BookDNASurveyView(APIView):
 class CheckSurveyView(APIView):
     """
     GET /api/recommendations/survey/check/{book_id}/
-    Check if user has already voted for a book.
+    Check if user has already voted for a book (or any edition in the same group).
     """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, book_id):
-        has_voted = BookDNAVote.objects.filter(
-            user=request.user,
-            book_id=book_id
-        ).exists()
+        from apps.books.models import Book
+
+        # Get the book and check its group
+        try:
+            book = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response({'has_voted': False, 'vote': None})
+
+        # Build query - check this book OR any book in the same group
+        vote_query = Q(user=request.user, book_id=book_id)
+
+        if book.book_group_id:
+            # Also check votes for other editions in the same group
+            group_book_ids = book.book_group.editions.values_list('id', flat=True)
+            vote_query = Q(user=request.user, book_id__in=group_book_ids)
+
+        has_voted = BookDNAVote.objects.filter(vote_query).exists()
 
         vote_data = None
         if has_voted:
-            vote = BookDNAVote.objects.get(user=request.user, book_id=book_id)
+            vote = BookDNAVote.objects.filter(vote_query).first()
             vote_data = {
                 'pace': vote.pace,
                 'complexity': vote.complexity,
@@ -285,18 +298,33 @@ class TasteProfileView(APIView):
 class BookDNAView(APIView):
     """
     GET /api/recommendations/book-dna/{book_id}/
-    Get DNA for a specific book.
+    Get DNA for a specific book (or from any edition in the same group).
     """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, book_id):
         book = get_object_or_404(Book, id=book_id)
 
+        # Try to get DNA for this specific book
+        dna = None
         try:
             dna = book.dna
+        except BookDNA.DoesNotExist:
+            pass
+
+        # If no DNA for this book, check other editions in the same group
+        if not dna and book.book_group_id:
+            for edition in book.book_group.editions.exclude(id=book_id):
+                try:
+                    dna = edition.dna
+                    break
+                except BookDNA.DoesNotExist:
+                    continue
+
+        if dna:
             serializer = BookDNASerializer(dna)
             return Response(serializer.data)
-        except BookDNA.DoesNotExist:
+        else:
             return Response({
                 'detail': 'No DNA data available for this book yet.',
                 'book_id': book_id

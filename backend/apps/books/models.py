@@ -106,6 +106,149 @@ class Tag(models.Model):
         return f"{self.name} ({self.category})"
 
 
+class BookGroup(models.Model):
+    """
+    Represents a logical/abstract book that groups multiple editions.
+    Example: "The Tunnel" by Sabato has Spanish edition, Serbian edition, etc.
+    Different editions may have different ISBNs, publishers, languages, page counts,
+    but they represent the same literary work.
+    """
+    # Canonical information (from best/first edition)
+    canonical_title = models.CharField(max_length=500)
+    canonical_authors = models.ManyToManyField(Author, related_name='book_groups')
+
+    # Metadata
+    description = models.TextField(
+        blank=True,
+        help_text="Best/longest description from editions"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Stats (denormalized for performance)
+    editions_count = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['canonical_title']
+        verbose_name = 'Book Group'
+        verbose_name_plural = 'Book Groups'
+
+    def __str__(self):
+        try:
+            authors = ", ".join([a.name for a in self.canonical_authors.all()[:2]])
+            if self.canonical_authors.count() > 2:
+                authors += "..."
+            return f"{self.canonical_title} - {authors}" if authors else self.canonical_title
+        except:
+            return self.canonical_title
+
+    def update_stats(self):
+        """Update denormalized stats"""
+        self.editions_count = self.editions.count()
+        self.save()
+
+    def get_primary_edition(self):
+        """Get the primary edition, or first edition if none marked"""
+        return self.editions.filter(is_primary_edition=True).first() or \
+               self.editions.order_by('created_at').first()
+
+    def get_or_create_dna(self):
+        """Get DNA for this group, create default if doesn't exist"""
+        dna, created = BookGroupDNA.objects.get_or_create(
+            book_group=self,
+            defaults={'source': 'manual'}
+        )
+        return dna
+
+
+class BookGroupDNA(models.Model):
+    """
+    DNA vector for book groups - characteristics of the work itself.
+    Moved from individual Book model to represent the work, not specific editions.
+    All attributes use 0.0 - 1.0 scale.
+    """
+    book_group = models.OneToOneField(
+        BookGroup,
+        on_delete=models.CASCADE,
+        related_name='dna'
+    )
+
+    # Core attributes (0.0 - 1.0 scale) - SAME AS OLD BookDNA
+    pace = models.FloatField(
+        default=0.5,
+        help_text="0=slow/contemplative, 1=fast/page-turner"
+    )
+    complexity = models.FloatField(
+        default=0.5,
+        help_text="0=simple/accessible, 1=dense/challenging"
+    )
+    emotional_intensity = models.FloatField(
+        default=0.5,
+        help_text="0=light/easy, 1=heavy/intense"
+    )
+    darkness = models.FloatField(
+        default=0.5,
+        help_text="0=hopeful/light, 1=dark/bleak"
+    )
+    character_focus = models.FloatField(
+        default=0.5,
+        help_text="0=plot-driven, 1=character-driven"
+    )
+    introspection = models.FloatField(
+        default=0.5,
+        help_text="0=action/external, 1=introspective/philosophical"
+    )
+
+    # Themes (list of theme slugs)
+    themes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of theme slugs: ['faith', 'identity', 'suffering']"
+    )
+
+    # Meta
+    SOURCE_CHOICES = [
+        ('user_votes', 'User Votes Aggregated'),
+        ('ai_generated', 'AI Generated'),
+        ('manual', 'Manual Entry'),
+        ('migrated', 'Migrated from Book'),
+    ]
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default='manual'
+    )
+    vote_count = models.IntegerField(
+        default=0,
+        help_text="Number of user votes for these attributes"
+    )
+    confidence_score = models.FloatField(
+        default=0.0,
+        help_text="0-1, confidence in these values based on vote count"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Book Group DNA'
+        verbose_name_plural = 'Book Group DNAs'
+
+    def __str__(self):
+        return f"DNA: {self.book_group.canonical_title}"
+
+    def to_vector(self):
+        """Convert to list for similarity calculation"""
+        return [
+            self.pace,
+            self.complexity,
+            self.emotional_intensity,
+            self.darkness,
+            self.character_focus,
+            self.introspection,
+        ]
+
+
 class Book(models.Model):
     """
     Central Book model.
@@ -180,6 +323,20 @@ class Book(models.Model):
         help_text="External IDs: {'goodreads_id': '...', 'google_id': '...'}"
     )
 
+    # Edition/Version Management
+    book_group = models.ForeignKey(
+        'BookGroup',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='editions',
+        help_text="Group linking different editions of the same work"
+    )
+    is_primary_edition = models.BooleanField(
+        default=False,
+        help_text="Primary edition for this book group"
+    )
+
     # Featured/Curation
     is_featured = models.BooleanField(
         default=False,
@@ -216,6 +373,34 @@ class Book(models.Model):
     def author_names(self):
         """Returns comma-separated author names"""
         return ", ".join([a.name for a in self.authors.all()])
+
+    def get_other_editions(self):
+        """Get all other editions in this book group"""
+        if not self.book_group:
+            return Book.objects.none()
+        return self.book_group.editions.exclude(id=self.id)
+
+    def has_other_editions(self):
+        """Check if this book has other editions"""
+        return self.book_group and self.book_group.editions.count() > 1
+
+    @property
+    def effective_dna(self):
+        """
+        Get DNA from BookGroup if available, else from Book (legacy).
+        This provides backward compatibility during migration.
+        """
+        if self.book_group:
+            try:
+                return self.book_group.dna
+            except:
+                pass
+
+        # Fallback to old BookDNA if exists
+        try:
+            return self.dna
+        except:
+            return None
 
 
 class BookDNA(models.Model):

@@ -71,7 +71,10 @@ class UserBookViewSet(viewsets.ModelViewSet):
         else:
             # Default to current user's books
             queryset = queryset.filter(user=self.request.user)
-        
+
+        # IMPORTANT: Only return ACTIVE UserBooks (not replaced by another edition)
+        queryset = queryset.filter(replaced_by__isnull=True)
+
         # Filter by status
         status_filter = self.request.query_params.get('status', None)
         if status_filter:

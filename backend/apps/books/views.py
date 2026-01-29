@@ -14,6 +14,7 @@ from apps.books.serializers import (
     BookCreateSerializer,
     BookImportSerializer,
 )
+from apps.books.filters import UnaccentSearchFilter
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
@@ -21,7 +22,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [UnaccentSearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'bio']
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
@@ -96,7 +97,7 @@ class BookViewSet(viewsets.ModelViewSet):
     """ViewSet for Book model"""
     queryset = Book.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [UnaccentSearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'subtitle', 'isbn', 'authors__name', 'description']
     ordering_fields = ['title', 'published_date', 'created_at', 'pages']
     ordering = ['-created_at']
@@ -143,7 +144,8 @@ class BookViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(isbn=isbn)
         
         return queryset.distinct()
-    
+
+
     @action(detail=True, methods=['get'])
     def readers(self, request, pk=None):
         """Get users who have this book"""
@@ -453,6 +455,285 @@ class BookViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=True, methods=['post'])
+    def switch_edition(self, request, pk=None):
+        """
+        Switch from current book to another edition in the same group.
+        Transfers user's reading data to the new edition.
+        """
+        old_book = self.get_object()
+        new_book_id = request.data.get('new_book_id')
+
+        if not new_book_id:
+            return Response({'error': 'new_book_id required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_book = Book.objects.get(id=new_book_id)
+        except Book.DoesNotExist:
+            return Response({'error': 'New book not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Validate books are in same group
+        if not old_book.book_group or old_book.book_group != new_book.book_group:
+            return Response({'error': 'Books not in same group'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get user's old UserBook
+        from apps.reading.models import UserBook, Quote
+
+        old_userbook = UserBook.objects.filter(
+            user=request.user,
+            book=old_book
+        ).first()
+
+        if not old_userbook:
+            return Response({'error': 'No reading data for old book'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if user already has new edition (ACTIVE)
+        existing_active_userbook = UserBook.objects.filter(
+            user=request.user,
+            book=new_book,
+            replaced_by__isnull=True
+        ).first()
+
+        if existing_active_userbook:
+            return Response({'error': 'Already tracking new edition'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if there's a replaced UserBook for the new book (from previous switch)
+        # If so, we'll reactivate it instead of creating a new one
+        existing_replaced_userbook = UserBook.objects.filter(
+            user=request.user,
+            book=new_book,
+            replaced_by__isnull=False
+        ).first()
+
+        # Create or reactivate UserBook with transferred data
+        # Calculate transferred page number (default to 0 if can't calculate)
+        transferred_page = self._transfer_page_number(
+            old_userbook.current_page,
+            old_book.pages,
+            new_book.pages
+        ) if old_book.pages and new_book.pages and old_userbook.current_page else 0
+
+        if existing_replaced_userbook:
+            # Reactivate the existing replaced UserBook
+            new_userbook = existing_replaced_userbook
+            new_userbook.status = old_userbook.status
+            new_userbook.rating = old_userbook.rating
+            new_userbook.review = old_userbook.review
+            new_userbook.is_favorite = old_userbook.is_favorite
+            new_userbook.started_at = old_userbook.started_at
+            new_userbook.finished_at = old_userbook.finished_at
+            new_userbook.is_public = old_userbook.is_public
+            new_userbook.current_page = transferred_page
+            new_userbook.replaced_by = None  # Reactivate
+            new_userbook.save()
+        else:
+            # Create new UserBook
+            new_userbook = UserBook.objects.create(
+                user=request.user,
+                book=new_book,
+                status=old_userbook.status,
+                rating=old_userbook.rating,
+                review=old_userbook.review,
+                is_favorite=old_userbook.is_favorite,
+                started_at=old_userbook.started_at,
+                finished_at=old_userbook.finished_at,
+                is_public=old_userbook.is_public,
+                current_page=transferred_page
+            )
+
+        # If reactivating an existing UserBook, delete its old quotes first
+        if existing_replaced_userbook:
+            Quote.objects.filter(user=request.user, book=new_book).delete()
+
+        # Transfer quotes (with proportional page numbers)
+        old_quotes = Quote.objects.filter(user=request.user, book=old_book)
+        transferred_quotes = 0
+        for old_quote in old_quotes:
+            Quote.objects.create(
+                user=request.user,
+                book=new_book,
+                user_book=new_userbook,
+                book_title=new_book.title,
+                book_author=', '.join([a.name for a in new_book.authors.all()]),
+                text=old_quote.text,
+                page_number=self._transfer_page_number(
+                    old_quote.page_number,
+                    old_book.pages,
+                    new_book.pages
+                ) if old_book.pages and new_book.pages and old_quote.page_number else None,
+                chapter=old_quote.chapter,
+                note=old_quote.note,
+                is_favorite=old_quote.is_favorite,
+                is_public=old_quote.is_public,
+            )
+            transferred_quotes += 1
+
+        # Mark old UserBook as replaced (KEEP for history, don't delete)
+        old_userbook.replaced_by = new_userbook
+        old_userbook.save()
+
+        return Response({
+            'success': True,
+            'new_userbook_id': new_userbook.id,
+            'new_book_id': new_book.id,
+            'transferred_quotes': transferred_quotes,
+            'old_userbook_preserved': True
+        })
+
+    def _transfer_page_number(self, old_page, old_total, new_total):
+        """Transfer page number proportionally between editions"""
+        if not old_page or not old_total or not new_total:
+            return None
+        ratio = old_page / old_total
+        return int(ratio * new_total)
+
+    @action(detail=True, methods=['post'])
+    def link_edition(self, request, pk=None):
+        """
+        Link this book to another as editions of same work.
+        Creates BookGroup if needed.
+        """
+        book1 = self.get_object()
+        book2_id = request.data.get('book_id')
+
+        if not book2_id:
+            return Response({'error': 'book_id required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            book2 = Book.objects.get(id=book2_id)
+        except Book.DoesNotExist:
+            return Response({'error': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        from apps.books.models import BookGroup
+
+        # If either has a group, use that; else create new
+        if book1.book_group:
+            group = book1.book_group
+        elif book2.book_group:
+            group = book2.book_group
+        else:
+            # Create new group
+            group = BookGroup.objects.create(
+                canonical_title=book1.title,
+                description=book1.description
+            )
+            group.canonical_authors.set(book1.authors.all())
+            book1.is_primary_edition = True
+            book1.save()
+
+        # Link both books to group
+        book1.book_group = group
+        book2.book_group = group
+        book1.save()
+        book2.save()
+
+        # Update stats
+        group.update_stats()
+
+        return Response({
+            'success': True,
+            'book_group_id': group.id,
+            'editions_count': group.editions_count
+        })
+
+    @action(detail=True, methods=['get'])
+    def potential_editions(self, request, pk=None):
+        """
+        Find potential editions of this book based on:
+        - Similar title (fuzzy match)
+        - Same or similar authors
+        - Different ISBN (or one/both missing ISBN)
+        """
+        from difflib import SequenceMatcher
+
+        book = self.get_object()
+
+        # Skip if already in a group with editions
+        if book.book_group and book.book_group.editions.count() > 1:
+            return Response([])
+
+        # Get author names for this book
+        author_names = set(author.name.lower().strip() for author in book.authors.all())
+
+        if not author_names:
+            return Response([])
+
+        # Find candidates with overlapping authors
+        candidates_qs = Book.objects.exclude(id=book.id)
+
+        # Only exclude same book_group if book has a group
+        if book.book_group:
+            candidates_qs = candidates_qs.exclude(book_group=book.book_group)
+
+        candidates = candidates_qs.prefetch_related('authors', 'publisher')
+
+        matches = []
+        book_title_lower = book.title.lower().strip()
+
+        for candidate in candidates:
+            # Check author overlap
+            candidate_author_names = set(author.name.lower().strip() for author in candidate.authors.all())
+
+            if not candidate_author_names:
+                continue
+
+            # Calculate author similarity
+            author_overlap = len(author_names & candidate_author_names)
+            author_similarity = 0.0
+
+            if author_overlap > 0:
+                # Exact match on at least one author
+                author_similarity = 1.0
+            else:
+                # Check for similar author names (handles "Hermann Hesse" vs "Herman Hese")
+                max_author_sim = 0.0
+                for author1 in author_names:
+                    for author2 in candidate_author_names:
+                        sim = SequenceMatcher(None, author1, author2).ratio()
+                        max_author_sim = max(max_author_sim, sim)
+                author_similarity = max_author_sim
+
+            # Skip if authors are too different
+            if author_similarity < 0.75:
+                continue
+
+            # Calculate title similarity
+            candidate_title_lower = candidate.title.lower().strip()
+            title_similarity = SequenceMatcher(None, book_title_lower, candidate_title_lower).ratio()
+
+            # Calculate combined score (weighted: title 70%, author 30%)
+            combined_score = (title_similarity * 0.7) + (author_similarity * 0.3)
+
+            # Only include if high enough similarity
+            if combined_score >= 0.75:
+                # Check if ISBNs are different (or missing)
+                isbn_different = True
+                if book.isbn and candidate.isbn:
+                    isbn_different = book.isbn != candidate.isbn
+
+                if isbn_different:
+                    matches.append({
+                        'id': candidate.id,
+                        'title': candidate.title,
+                        'subtitle': candidate.subtitle or '',
+                        'language': candidate.language,
+                        'isbn': candidate.isbn,
+                        'pages': candidate.pages,
+                        'cover_image': candidate.cover_image,
+                        'publisher': candidate.publisher.name if candidate.publisher else None,
+                        'published_date': candidate.published_date,
+                        'authors': [{'id': a.id, 'name': a.name} for a in candidate.authors.all()],
+                        'similarity': round(combined_score, 3),
+                        'title_similarity': round(title_similarity, 3),
+                        'author_similarity': round(author_similarity, 3),
+                    })
+
+        # Sort by combined score (descending)
+        matches.sort(key=lambda x: x['similarity'], reverse=True)
+
+        # Limit to top 10 matches
+        return Response(matches[:10])
+
     @action(detail=False, methods=['post'])
     def import_goodreads_csv(self, request):
         """Import books from Goodreads CSV export"""
@@ -503,6 +784,18 @@ class BookViewSet(viewsets.ModelViewSet):
                     book = None
                     if isbn:
                         book = Book.objects.filter(isbn=isbn).first()
+
+                    # If no ISBN match, try to find by title + author
+                    if not book and title and author_name:
+                        # Try exact title match with author
+                        book = Book.objects.filter(
+                            title__iexact=title,
+                            authors__name__iexact=author_name
+                        ).first()
+
+                        # If still not found, try with title only (for common cases)
+                        if not book:
+                            book = Book.objects.filter(title__iexact=title).first()
 
                     if not book:
                         # Create new book

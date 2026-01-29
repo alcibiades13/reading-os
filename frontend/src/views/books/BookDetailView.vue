@@ -10,12 +10,13 @@ import StarRating from '@/components/ui/StarRating.vue'
 import BookEditModal from '@/components/BookEditModal.vue'
 import BookDNASurvey from '@/components/recommendations/BookDNASurvey.vue'
 import { recommendationsService } from '@/services/recommendationsService'
+import { booksAPI } from '@/services/api'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import {
   ArrowLeft, ArrowRight, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -34,7 +35,13 @@ const showFullDesc = ref(false)
 const isQuoteModalOpen = ref(false)
 const isEditModalOpen = ref(false)
 const showDNASurvey = ref(false)
+const isSwitchEditionModalOpen = ref(false)
+const editionToSwitchTo = ref(null)
 const hasVotedForBook = ref(false)
+const isLinkEditionModalOpen = ref(false)
+const editionSearchQuery = ref('')
+const editionSearchResults = ref([])
+const isSearchingEditions = ref(false)
 const currentPageInput = ref(0)
 const reviewInput = ref('')
 const coverLoaded = ref(false)
@@ -43,8 +50,11 @@ const currentCoverUrl = ref('')
 // Sidebar state
 const similarBooks = ref([])
 const bookDNA = ref(null)
+const potentialEditions = ref([])
 const loadingSimilar = ref(true)
 const loadingDNA = ref(true)
+const loadingPotentialEditions = ref(false)
+const showPotentialEditions = ref(false)
 
 // Quote form state
 const newQuote = ref({
@@ -70,16 +80,30 @@ const getReviewPreview = (htmlContent, maxLength = 300) => {
 const book = computed(() => booksStore.currentBook)
 const userBook = computed(() => {
   const numericBookId = parseInt(bookId.value)
-  return userBooksStore.books.find(ub => ub.book?.id === numericBookId)
+
+  // First, try to find UserBook for this specific book
+  let foundUserBook = userBooksStore.books.find(ub => ub.book?.id === numericBookId)
+
+  // If not found and this book is in a group, look for UserBook from other editions in the same group
+  if (!foundUserBook && book.value?.book_group_id) {
+    foundUserBook = userBooksStore.books.find(ub =>
+      ub.book?.book_group_id === book.value.book_group_id &&
+      ub.book?.id !== numericBookId
+    )
+  }
+
+  return foundUserBook
 })
 const bookQuotes = computed(() => {
   if (!Array.isArray(quotesStore.quotes)) return []
-  const numericBookId = parseInt(bookId.value)
-  // Backend already filters by book when we call fetchQuotes({ book: bookId })
-  // But also filter locally in case quotes from other books are in store
+
+  // If user has an edition in this group, show quotes from THEIR edition
+  // Otherwise show quotes from the currently viewed book
+  const quoteBookId = userBook.value ? userBook.value.book.id : parseInt(bookId.value)
+
   return quotesStore.quotes.filter(q => {
     // book is just the ID (number), not an object
-    return q.book === numericBookId
+    return q.book === quoteBookId
   })
 })
 
@@ -156,8 +180,7 @@ onMounted(async () => {
   coverLoaded.value = false
 
   const promises = [
-    booksStore.fetchBook(bookId.value),
-    quotesStore.fetchQuotes({ book: bookId.value })
+    booksStore.fetchBook(bookId.value)
   ]
 
   // Only fetch user books if store is empty
@@ -167,10 +190,19 @@ onMounted(async () => {
 
   await Promise.all(promises)
 
-  // Initialize inputs
+  // After loading book and user books, fetch quotes for the user's edition (if they have one in this group)
+  await nextTick()
+
   if (userBook.value) {
+    // User has an edition in this group - fetch quotes for THEIR edition
+    await quotesStore.fetchQuotes({ book: userBook.value.book.id })
+
+    // Initialize inputs from user's edition data
     currentPageInput.value = userBook.value.current_page || 0
     reviewInput.value = userBook.value.review || ''
+  } else {
+    // User doesn't have any edition - fetch quotes for current book
+    await quotesStore.fetchQuotes({ book: bookId.value })
   }
 
   // Check if user has already voted for this book's DNA
@@ -178,6 +210,10 @@ onMounted(async () => {
 
   // Fetch sidebar data (similar books, book DNA)
   fetchSidebarData()
+
+  // Fetch potential editions (for linking suggestions)
+  await nextTick()
+  fetchPotentialEditions()
 
   window.scrollTo(0, 0)
 })
@@ -213,6 +249,28 @@ const fetchSidebarData = async () => {
   loadingDNA.value = false
 }
 
+// Fetch potential editions (only if book doesn't already have other editions)
+const fetchPotentialEditions = async () => {
+  if (!bookId.value || !book.value) return
+
+  // Skip if book already has other editions
+  if (book.value.has_other_editions) {
+    potentialEditions.value = []
+    return
+  }
+
+  loadingPotentialEditions.value = true
+  try {
+    const response = await booksAPI.potentialEditions(bookId.value)
+    potentialEditions.value = response.data || []
+  } catch (error) {
+    console.error('Failed to fetch potential editions:', error)
+    potentialEditions.value = []
+  } finally {
+    loadingPotentialEditions.value = false
+  }
+}
+
 // Open DNA survey manually
 const openDNASurvey = () => {
   showDNASurvey.value = true
@@ -235,9 +293,23 @@ watch(bookId, async (newId, oldId) => {
   await nextTick()
 
   await booksStore.fetchBook(newId)
-  quotesStore.fetchQuotes({ book: newId })
+
+  // After loading the new book, fetch quotes for user's edition if they have one
+  await nextTick()
+
+  if (userBook.value) {
+    // User has an edition in this group - fetch quotes for THEIR edition
+    await quotesStore.fetchQuotes({ book: userBook.value.book.id })
+  } else {
+    // User doesn't have any edition - fetch quotes for current book
+    await quotesStore.fetchQuotes({ book: newId })
+  }
+
   checkDNAVoteStatus()
   fetchSidebarData()
+  // Fetch potential editions after book data is loaded
+  await nextTick()
+  fetchPotentialEditions()
 }, { flush: 'sync' })
 
 watch(coverUrl, async (newUrl, oldUrl) => {
@@ -366,13 +438,15 @@ const handleCreateQuote = async () => {
       ? newQuote.value.tags_input.split(',').map(t => t.trim()).filter(t => t !== '')
       : []
 
-    // Prepare payload
+    // Prepare payload - use user's edition if they have one
+    const quoteBook = userBook.value ? userBook.value.book : book.value
+
     const payload = {
       text: newQuote.value.text,
       note: newQuote.value.note,
-      book: book.value.id,
-      book_title: book.value.title,
-      book_author: book.value.authors?.[0]?.name || '',
+      book: quoteBook.id,
+      book_title: quoteBook.title,
+      book_author: quoteBook.authors?.[0]?.name || '',
       user_book: userBook.value?.id || null,
       page_number: newQuote.value.page_number || null,
       chapter: newQuote.value.chapter || '',
@@ -469,6 +543,132 @@ const handleStudyMode = () => {
     path: `/books/${bookId.value}/study`,
     query: { title: book.value?.title || 'Study Session' }
   })
+}
+
+const switchToEdition = async (newBookId) => {
+  // Store the edition ID and open confirmation modal
+  editionToSwitchTo.value = newBookId
+  isSwitchEditionModalOpen.value = true
+}
+
+const confirmSwitchEdition = async () => {
+  try {
+    const newBookId = editionToSwitchTo.value
+    if (!newBookId || !userBook.value) return
+
+    // Get the book ID of the edition the user currently has
+    // This might be different from the book they're viewing
+    const currentUserBookId = userBook.value.book.id
+
+    // Call the switch_edition API endpoint with the user's actual edition
+    const response = await booksStore.switchEdition(currentUserBookId, newBookId)
+
+    if (response.success) {
+      // Close modal
+      isSwitchEditionModalOpen.value = false
+
+      // Navigate to new edition
+      router.push(`/books/${newBookId}`)
+
+      // Show success message
+      addToast(
+        `Switched to new edition! ${response.transferred_quotes} quote${response.transferred_quotes !== 1 ? 's' : ''} transferred.`,
+        'success'
+      )
+
+      // Refresh user books
+      await userBooksStore.fetchBooks()
+    }
+  } catch (error) {
+    console.error('Failed to switch edition:', error)
+    addToast(error.response?.data?.error || 'Failed to switch edition', 'error')
+  }
+}
+
+// Link a potential edition
+const linkPotentialEdition = async (editionId) => {
+  try {
+    const response = await booksAPI.linkEdition(bookId.value, editionId)
+
+    if (response.data.success) {
+      addToast('Edition linked successfully!', 'success')
+
+      // Refresh book data to show new editions
+      await booksStore.fetchBook(bookId.value)
+      await nextTick()
+
+      // Clear potential editions and fetch again
+      potentialEditions.value = []
+      fetchPotentialEditions()
+    }
+  } catch (error) {
+    console.error('Failed to link edition:', error)
+    addToast(error.response?.data?.error || 'Failed to link edition', 'error')
+  }
+}
+
+// Manual edition search
+let searchDebounceTimeout = null
+watch(editionSearchQuery, (newQuery) => {
+  clearTimeout(searchDebounceTimeout)
+
+  if (!newQuery || newQuery.trim().length < 2) {
+    editionSearchResults.value = []
+    return
+  }
+
+  searchDebounceTimeout = setTimeout(async () => {
+    await searchEditions(newQuery.trim())
+  }, 300)
+})
+
+const searchEditions = async (query) => {
+  isSearchingEditions.value = true
+  try {
+    const response = await booksAPI.list({ search: query })
+    const results = response.data?.results || response.data || []
+
+    // Filter out current book and any books already in the same group
+    editionSearchResults.value = results.filter(b => {
+      if (b.id === parseInt(bookId.value)) return false
+      if (book.value.book_group_id && b.book_group_id === book.value.book_group_id) return false
+      return true
+    }).slice(0, 10)
+  } catch (error) {
+    console.error('Failed to search editions:', error)
+    editionSearchResults.value = []
+  } finally {
+    isSearchingEditions.value = false
+  }
+}
+
+const openLinkEditionModal = () => {
+  editionSearchQuery.value = ''
+  editionSearchResults.value = []
+  isLinkEditionModalOpen.value = true
+}
+
+const linkManualEdition = async (editionId) => {
+  try {
+    const response = await booksAPI.linkEdition(bookId.value, editionId)
+
+    if (response.data.success) {
+      // Close modal
+      isLinkEditionModalOpen.value = false
+      editionSearchQuery.value = ''
+      editionSearchResults.value = []
+
+      addToast('Edition linked successfully!', 'success')
+
+      // Refresh book data
+      await booksStore.fetchBook(bookId.value)
+      await nextTick()
+      fetchPotentialEditions()
+    }
+  } catch (error) {
+    console.error('Failed to link edition:', error)
+    addToast(error.response?.data?.error || 'Failed to link edition', 'error')
+  }
 }
 </script>
 
@@ -786,7 +986,7 @@ export const QuoteCard = defineComponent({
                   class="w-full py-3 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2"
                 >
                   <Sparkles :size="14" />
-                  <span>Capture This Book's Soul</span>
+                  <span>Rate Book DNA</span>
                 </button>
                 <div v-if="currentStatus === 'currently_reading'" class="p-6 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-4">
                   <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block">Reading Progress</label>
@@ -1120,6 +1320,197 @@ export const QuoteCard = defineComponent({
           </div>
         </div>
 
+        <!-- Potential Editions Section (only show if no existing editions) -->
+        <div v-if="!book.has_other_editions && potentialEditions.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40 border-amber-500/20">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+              <BookOpen :size="16" class="text-amber-400" />
+            </div>
+            <div>
+              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Potential Editions</h3>
+              <p class="text-slate-600 text-[9px]">{{ potentialEditions.length }} potential match{{ potentialEditions.length !== 1 ? 'es' : '' }} found</p>
+            </div>
+          </div>
+
+          <div class="mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+            <p class="text-xs text-amber-200/70">
+              We found books with similar titles and authors. Link them to group different editions together.
+            </p>
+          </div>
+
+          <!-- Potential Editions List -->
+          <div class="space-y-4">
+            <div
+              v-for="edition in potentialEditions"
+              :key="edition.id"
+              class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-amber-500/30 transition-all space-y-3"
+            >
+              <!-- Edition info -->
+              <div class="flex gap-3">
+                <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                  <img
+                    v-if="edition.cover_image"
+                    :src="edition.cover_image"
+                    :alt="edition.title"
+                    class="w-full h-full object-cover"
+                    @error="(e) => e.target.style.display = 'none'"
+                  />
+                  <BookOpen v-else :size="16" class="text-slate-600" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start gap-2 mb-1">
+                    <h4 class="flex-1 font-semibold text-slate-100 text-sm line-clamp-2">{{ edition.title }}</h4>
+                    <span class="shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold">
+                      {{ Math.round(edition.similarity * 100) }}% match
+                    </span>
+                  </div>
+                  <div class="space-y-1">
+                    <div v-if="edition.authors?.length > 0" class="text-[10px] text-slate-500 truncate">
+                      {{ edition.authors.map(a => a.name).join(', ') }}
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px]">
+                      <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">
+                        {{ edition.language?.toUpperCase() || 'N/A' }}
+                      </span>
+                      <span class="text-slate-500">•</span>
+                      <span class="text-slate-500">{{ edition.pages || 'N/A' }} pages</span>
+                    </div>
+                    <div v-if="edition.publisher" class="text-[10px] text-slate-500 truncate">
+                      {{ edition.publisher }}
+                    </div>
+                    <div v-if="edition.isbn" class="text-[10px] text-slate-600">
+                      ISBN: {{ edition.isbn }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="pt-3 border-t border-slate-800/50 flex gap-2">
+                <button
+                  @click="linkPotentialEdition(edition.id)"
+                  class="flex-1 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all"
+                >
+                  Link as edition
+                </button>
+                <router-link
+                  :to="`/books/${edition.id}`"
+                  class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all"
+                >
+                  View
+                </router-link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editions Section -->
+        <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <BookOpen :size="16" class="text-indigo-400" />
+            </div>
+            <div>
+              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
+              <p class="text-slate-600 text-[9px]">{{ book.other_editions.length }} edition{{ book.other_editions.length !== 1 ? 's' : '' }}</p>
+            </div>
+          </div>
+
+          <!-- Editions List -->
+          <div class="space-y-4">
+            <div
+              v-for="edition in book.other_editions"
+              :key="edition.id"
+              class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-indigo-500/30 transition-all space-y-3"
+            >
+              <!-- Edition info - Clickable to navigate -->
+              <router-link :to="`/books/${edition.id}`" class="flex gap-3 cursor-pointer group/card">
+                <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                  <img
+                    v-if="edition.cover_image"
+                    :src="edition.cover_image"
+                    :alt="edition.title"
+                    class="w-full h-full object-cover"
+                    @error="(e) => e.target.style.display = 'none'"
+                  />
+                  <BookOpen v-else :size="16" class="text-slate-600" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h4 class="font-semibold text-slate-100 text-sm line-clamp-2 group-hover/card:text-indigo-400 transition-colors">{{ edition.title }}</h4>
+                    <span
+                      v-if="userBook?.book?.id === edition.id"
+                      class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-wider"
+                    >
+                      Your Edition
+                    </span>
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2 text-[10px]">
+                      <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">
+                        {{ edition.language?.toUpperCase() || 'N/A' }}
+                      </span>
+                      <span class="text-slate-500">•</span>
+                      <span class="text-slate-500">{{ edition.pages }} pages</span>
+                    </div>
+                    <div v-if="edition.publisher" class="text-[10px] text-slate-500 truncate">
+                      {{ edition.publisher }}
+                    </div>
+                    <div v-if="edition.published_date" class="text-[10px] text-slate-600">
+                      {{ edition.published_date.split('-')[0] }}
+                    </div>
+                  </div>
+                </div>
+              </router-link>
+
+              <!-- Actions -->
+              <div class="pt-3 border-t border-slate-800/50">
+                <!-- Current edition indicator -->
+                <router-link
+                  v-if="userBook?.book?.id === edition.id"
+                  :to="`/books/${edition.id}`"
+                  class="block w-full px-3 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-bold transition-all text-center"
+                >
+                  View Your Edition
+                </router-link>
+
+                <!-- Switch button (if user has a different edition in library) -->
+                <button
+                  v-else-if="isInLibrary"
+                  @click="switchToEdition(edition.id)"
+                  class="w-full px-3 py-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs font-bold transition-all flex items-center justify-center gap-2 group"
+                >
+                  <ArrowRight :size="14" class="group-hover:translate-x-0.5 transition-transform" />
+                  Switch to this edition
+                </button>
+
+                <!-- View button (if user doesn't have any edition) -->
+                <router-link
+                  v-else
+                  :to="`/books/${edition.id}`"
+                  class="block w-full px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all text-center"
+                >
+                  View edition
+                </router-link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Link Edition Button -->
+        <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40 border-dashed">
+          <button
+            @click="openLinkEditionModal"
+            class="w-full px-4 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-2 group"
+          >
+            <Plus :size="16" class="group-hover:rotate-90 transition-transform" />
+            Link another edition
+          </button>
+          <p class="text-[10px] text-slate-500 text-center mt-2">
+            Manually link different language versions or editions
+          </p>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1279,6 +1670,159 @@ export const QuoteCard = defineComponent({
     @close="showDNASurvey = false"
     @submitted="handleSurveySubmitted"
   />
+
+  <!-- Switch Edition Confirmation Modal -->
+  <Dialog :open="isSwitchEditionModalOpen" @update:open="isSwitchEditionModalOpen = $event">
+    <DialogContent class="max-w-md glass border-slate-700">
+      <DialogHeader class="border-b border-slate-800 pb-4 mb-4">
+        <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
+          <BookOpen :size="20" class="text-indigo-400" />
+          Switch to Different Edition?
+        </DialogTitle>
+      </DialogHeader>
+
+      <div class="space-y-4">
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Your reading progress, quotes, and review will be transferred to the new edition.
+        </p>
+
+        <div class="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 space-y-2">
+          <div class="flex items-start gap-2">
+            <ArrowRight :size="16" class="text-indigo-400 mt-0.5 flex-shrink-0" />
+            <p class="text-xs text-slate-300">Page numbers will be adjusted proportionally based on the new edition's length</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <ArrowRight :size="16" class="text-indigo-400 mt-0.5 flex-shrink-0" />
+            <p class="text-xs text-slate-300">Your original edition data will be preserved in your reading history</p>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button
+            @click="isSwitchEditionModalOpen = false"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmSwitchEdition"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-400 transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+          >
+            <ArrowRight :size="16" />
+            Switch Edition
+          </button>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+
+  <!-- Link Edition Modal -->
+  <Dialog :open="isLinkEditionModalOpen" @update:open="isLinkEditionModalOpen = $event">
+    <DialogContent class="max-w-2xl glass border-slate-700 max-h-[80vh] flex flex-col">
+      <DialogHeader class="border-b border-slate-800 pb-4">
+        <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
+          <Plus :size="20" class="text-emerald-400" />
+          Link Another Edition
+        </DialogTitle>
+      </DialogHeader>
+
+      <div class="flex-1 overflow-hidden flex flex-col space-y-4 py-4">
+        <p class="text-sm text-slate-300">
+          Search for another edition of "{{ book.title }}" to link. This is useful for different language versions or publisher editions.
+        </p>
+
+        <!-- Search Input -->
+        <div class="relative">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="18" />
+          <input
+            v-model="editionSearchQuery"
+            type="text"
+            placeholder="Search by title, author, or ISBN..."
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-50 outline-none focus:border-emerald-500 transition-all placeholder-slate-600"
+            autofocus
+          />
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="isSearchingEditions" class="flex items-center justify-center py-8">
+          <Loader2 :size="24" class="text-emerald-400 animate-spin" />
+        </div>
+
+        <!-- Search Results -->
+        <div v-else-if="editionSearchResults.length > 0" class="flex-1 overflow-y-auto space-y-3">
+          <div
+            v-for="result in editionSearchResults"
+            :key="result.id"
+            class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-emerald-500/30 transition-all cursor-pointer"
+            @click="linkManualEdition(result.id)"
+          >
+            <div class="flex gap-3">
+              <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                <img
+                  v-if="result.cover_image"
+                  :src="result.cover_image"
+                  :alt="result.title"
+                  class="w-full h-full object-cover"
+                />
+                <BookOpen v-else :size="16" class="text-slate-600" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-slate-100 text-sm line-clamp-2 mb-1">{{ result.title }}</h4>
+                <div class="space-y-1">
+                  <div v-if="result.authors?.length > 0" class="text-[11px] text-slate-500 truncate">
+                    {{ result.authors.map(a => a.name).join(', ') }}
+                  </div>
+                  <div class="flex items-center gap-2 text-[11px]">
+                    <span v-if="result.language" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">
+                      {{ result.language }}
+                    </span>
+                    <span v-if="result.pages" class="text-slate-500">{{ result.pages }} pages</span>
+                    <span v-if="result.isbn" class="text-slate-600">ISBN: {{ result.isbn }}</span>
+                  </div>
+                  <div v-if="result.publisher?.name" class="text-[11px] text-slate-500 truncate">
+                    {{ result.publisher.name }}
+                  </div>
+                </div>
+              </div>
+              <div class="shrink-0 flex items-center">
+                <div class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold">
+                  Link
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="editionSearchQuery.trim().length >= 2" class="flex-1 flex flex-col items-center justify-center py-8 text-center">
+          <div class="w-16 h-16 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mb-4">
+            <Search :size="24" class="text-slate-600" />
+          </div>
+          <p class="text-sm font-semibold text-slate-400 mb-1">No books found</p>
+          <p class="text-xs text-slate-500">Try a different search term</p>
+        </div>
+
+        <!-- Initial State -->
+        <div v-else class="flex-1 flex flex-col items-center justify-center py-8 text-center">
+          <div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
+            <BookOpen :size="24" class="text-emerald-400" />
+          </div>
+          <p class="text-sm font-semibold text-slate-300 mb-1">Search for editions</p>
+          <p class="text-xs text-slate-500">Start typing to find books in the database</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="pt-4 border-t border-slate-800">
+          <button
+            @click="isLinkEditionModalOpen = false"
+            class="w-full px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <style>

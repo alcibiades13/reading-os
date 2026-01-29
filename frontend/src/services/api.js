@@ -101,6 +101,12 @@ export const booksAPI = {
   recent: () => api.get('/books/recent/'),
   trending: () => api.get('/books/trending/'),
   featured: () => api.get('/books/featured/'),
+  switchEdition: (oldBookId, newBookId) =>
+    api.post(`/books/${oldBookId}/switch_edition/`, { new_book_id: newBookId }),
+  linkEdition: (book1Id, book2Id) =>
+    api.post(`/books/${book1Id}/link_edition/`, { book_id: book2Id }),
+  potentialEditions: (bookId) =>
+    api.get(`/books/${bookId}/potential_editions/`),
 }
 
 export const authorsAPI = {

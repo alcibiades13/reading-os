@@ -78,7 +78,17 @@ class UserBook(models.Model):
         default=True,
         help_text="Show this book on public profile"
     )
-    
+
+    # Edition Management
+    replaced_by = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='replaces',
+        help_text="If user switched to different edition, points to new UserBook"
+    )
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -113,6 +123,11 @@ class UserBook(models.Model):
         if self.book.pages and self.book.pages > 0:
             return min((self.current_page / self.book.pages) * 100, 100)
         return 0
+
+    @property
+    def is_active(self):
+        """Check if this is the active edition (not replaced)"""
+        return self.replaced_by is None
 
 
 class QuoteTag(models.Model):

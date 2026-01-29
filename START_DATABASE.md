@@ -1,89 +1,110 @@
-# 🔧 PostgreSQL Database Setup
+# 🔧 PostgreSQL Database Setup (Linux)
 
-## Problem: Connection Refused
+## Reading OS Database Configuration
 
-```
-django.db.utils.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused
-```
+**Reading OS** uses **PostgreSQL 17** on **port 5433** to avoid conflicts with your main application.
 
-Ovo znači da PostgreSQL server nije pokrenut.
-
-## ✅ Rešenje
-
-### Opcija 1: Pokreni PostgreSQL Service (Windows)
-
-1. **Otvori Services:**
-   - Pritisni `Win + R`
-   - Otkucaj: `services.msc`
-   - Pritisni Enter
-
-2. **Pronađi PostgreSQL servis:**
-   - Traži "postgresql-x64-XX" (gde je XX verzija, npr. 14, 15, 16)
-
-3. **Pokreni servis:**
-   - Desni klik → Start
-   - Ili dvostruki klik → Start
-
-### Opcija 2: Command Line (Brže)
-
-```bash
-# Proveri status
-pg_ctl status -D "C:\Program Files\PostgreSQL\XX\data"
-
-# Pokreni server
-pg_ctl start -D "C:\Program Files\PostgreSQL\XX\data"
-```
-
-### Opcija 3: Koristi pgAdmin
-
-1. Otvori pgAdmin
-2. Konekcija na server će automatski pokrenuti PostgreSQL
+- **Main Application:** PostgreSQL 16 on port 5432
+- **Reading OS:** PostgreSQL 17 on port 5433
 
 ---
 
-## 🚀 Quick Start - Kompletno Pokretanje Aplikacije
+## ✅ Quick Start
 
-### 1. Pokreni PostgreSQL
+### 1. Check PostgreSQL Clusters
 
 ```bash
-# Windows Service
-net start postgresql-x64-15  # Promeni broj verzije ako treba
+pg_lsclusters
 ```
 
-### 2. Pokreni Backend
-
-```bash
-cd D:\projects\reading-os\backend
-.\venv\Scripts\activate
-python manage.py runserver
+You should see:
+```
+Ver Cluster   Port Status
+16  main      5432 online   # Main application
+17  readingos 5433 online   # Reading OS
 ```
 
-### 3. Pokreni Frontend (drugi terminal)
+### 2. Start PostgreSQL 17 (if not running)
 
 ```bash
-cd D:\projects\reading-os\frontend
+sudo pg_ctlcluster 17 readingos start
+```
+
+### 3. Verify Connection
+
+```bash
+# Connect to Reading OS database
+psql -U postgres -h 127.0.0.1 -p 5433 -d reading_os_db
+```
+
+---
+
+## 🔍 Common PostgreSQL Commands (Linux)
+
+### Check Status
+```bash
+# List all clusters
+pg_lsclusters
+
+# Check if port 5433 is listening
+sudo netstat -tlnp | grep 5433
+
+# Or using ss
+ss -tlnp | grep 5433
+```
+
+### Start/Stop Clusters
+```bash
+# Start reading-os cluster
+sudo pg_ctlcluster 17 readingos start
+
+# Stop reading-os cluster
+sudo pg_ctlcluster 17 readingos stop
+
+# Restart reading-os cluster
+sudo pg_ctlcluster 17 readingos restart
+
+# Check status
+sudo pg_ctlcluster 17 readingos status
+```
+
+### Connect to Database
+```bash
+# Connect as postgres user
+sudo -u postgres psql -p 5433
+
+# Connect to specific database
+sudo -u postgres psql -p 5433 -d reading_os_db
+
+# Connect with password authentication
+psql -U postgres -h 127.0.0.1 -p 5433 -d reading_os_db
+```
+
+---
+
+## 🚀 Full Application Startup
+
+### 1. Start PostgreSQL 17
+```bash
+sudo pg_ctlcluster 17 readingos start
+```
+
+### 2. Start Backend (new terminal)
+```bash
+cd ~/Projects/reading-os/backend
+source venv/bin/activate
+python manage.py runserver 8001
+```
+
+### 3. Start Frontend (new terminal)
+```bash
+cd ~/Projects/reading-os/frontend
 npm run dev
 ```
 
-### 4. Otvori aplikaciju
-
+### 4. Open Application
 ```
-http://localhost:5173
-```
-
----
-
-## 🔍 Provera da li PostgreSQL radi
-
-```bash
-# Način 1: psql komanda
-psql -U postgres -c "SELECT version();"
-
-# Način 2: Proveri port
-netstat -an | findstr "5432"
-
-# Način 3: Test konekcija
-psql -U postgres -h localhost -p 5432
+http://localhost:5175
 ```
 
 ---

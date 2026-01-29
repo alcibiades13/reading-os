@@ -86,7 +86,8 @@ class BookListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for book lists"""
     authors = AuthorSerializer(many=True, read_only=True)
     publisher_name = serializers.CharField(source='publisher.name', read_only=True)
-    
+    book_group_id = serializers.IntegerField(source='book_group.id', read_only=True, allow_null=True)
+
     class Meta:
         model = Book
         fields = [
@@ -100,6 +101,7 @@ class BookListSerializer(serializers.ModelSerializer):
             'language',
             'pages',
             'cover_image',
+            'book_group_id',
         ]
         read_only_fields = ['id']
 
@@ -110,7 +112,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
     publisher = PublisherSerializer(read_only=True)
     genres = GenreSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    
+
     # IDs for write operations
     author_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -139,6 +141,11 @@ class BookDetailSerializer(serializers.ModelSerializer):
         allow_blank=True
     )
 
+    # Edition/Version information
+    book_group_id = serializers.IntegerField(source='book_group.id', read_only=True, allow_null=True)
+    has_other_editions = serializers.SerializerMethodField()
+    other_editions = serializers.SerializerMethodField()
+
     class Meta:
         model = Book
         fields = [
@@ -161,10 +168,36 @@ class BookDetailSerializer(serializers.ModelSerializer):
             'tag_ids',
             'source',
             'external_ids',
+            'book_group_id',
+            'has_other_editions',
+            'other_editions',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_has_other_editions(self, obj):
+        """Check if this book has other editions"""
+        return obj.has_other_editions()
+
+    def get_other_editions(self, obj):
+        """Get list of other editions"""
+        if not obj.book_group:
+            return []
+
+        other_editions = obj.get_other_editions()
+        return [{
+            'id': ed.id,
+            'title': ed.title,
+            'subtitle': ed.subtitle,
+            'language': ed.language,
+            'publisher': ed.publisher.name if ed.publisher else None,
+            'published_date': ed.published_date,
+            'pages': ed.pages,
+            'isbn': ed.isbn,
+            'cover_image': ed.cover_image,
+            'is_primary': ed.is_primary_edition,
+        } for ed in other_editions]
 
     def to_internal_value(self, data):
         """Handle 'authors' array of strings from frontend"""

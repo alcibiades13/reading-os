@@ -254,16 +254,36 @@ class RecommendationEngine:
 
     def get_similar_books(self, book: Book, limit: int = 6) -> List[Dict[str, Any]]:
         """Get books similar to a given book based on its DNA."""
+        # Try to get DNA for this specific book
+        book_dna = None
         try:
             book_dna = book.dna
         except BookDNA.DoesNotExist:
+            pass
+
+        # If no DNA for this book, check other editions in the same group
+        if not book_dna and book.book_group_id:
+            for edition in book.book_group.editions.exclude(id=book.id):
+                try:
+                    book_dna = edition.dna
+                    break
+                except BookDNA.DoesNotExist:
+                    continue
+
+        if not book_dna:
             return []
 
         book_vector = book_dna.to_vector()
 
+        # Build list of book IDs to exclude (this book + other editions in the same group)
+        excluded_ids = [book.id]
+        if book.book_group_id:
+            group_edition_ids = list(book.book_group.editions.values_list('id', flat=True))
+            excluded_ids.extend(group_edition_ids)
+
         # Get all other books with DNA (don't exclude user's library for similar books)
         other_books = BookDNA.objects.exclude(
-            book_id=book.id
+            book_id__in=excluded_ids
         ).filter(
             vote_count__gte=1
         ).select_related('book')

@@ -186,6 +186,36 @@ export const useBooksStore = defineStore('books', {
       }
     },
 
+    async switchEdition(oldBookId, newBookId) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await booksAPI.switchEdition(oldBookId, newBookId)
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || 'Failed to switch edition'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async linkEdition(book1Id, book2Id) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await booksAPI.linkEdition(book1Id, book2Id)
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || 'Failed to link edition'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     setFilter(key, value) {
       this.filters[key] = value
     },
