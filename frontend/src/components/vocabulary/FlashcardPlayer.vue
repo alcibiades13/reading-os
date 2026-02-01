@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { ChevronLeft, ChevronRight, RotateCcw, Check, Brain, SkipForward, Play, Pause } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, RotateCcw, Check, Brain, SkipForward, Play, Pause, Shuffle } from 'lucide-vue-next'
 
 const props = defineProps({
   words: {
@@ -14,9 +14,38 @@ const emit = defineEmits(['complete', 'update-mastery'])
 const currentIndex = ref(0)
 const isFlipped = ref(false)
 const isAutoPlay = ref(false)
+const isShuffled = ref(false)
+const shuffledIndices = ref([])
 let autoPlayInterval = null
 
-const currentWord = computed(() => props.words[currentIndex.value])
+const shuffleArray = (arr) => {
+  const shuffled = [...arr]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+const doShuffle = () => {
+  shuffledIndices.value = shuffleArray(Array.from({ length: props.words.length }, (_, i) => i))
+}
+
+const toggleShuffle = () => {
+  isShuffled.value = !isShuffled.value
+  if (isShuffled.value) {
+    doShuffle()
+  }
+  currentIndex.value = 0
+  isFlipped.value = false
+}
+
+const activeWords = computed(() => {
+  if (!isShuffled.value) return props.words
+  return shuffledIndices.value.map(i => props.words[i])
+})
+
+const currentWord = computed(() => activeWords.value[currentIndex.value])
 const progressPercent = computed(() => ((currentIndex.value + 1) / props.words.length) * 100)
 
 const handleNext = () => {
@@ -97,7 +126,17 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="flex items-center gap-3 sm:gap-6 w-full sm:w-auto">
+      <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+        <button
+          @click="toggleShuffle"
+          :class="[
+            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all',
+            isShuffled ? 'bg-indigo-500 text-white border-indigo-500' : 'text-slate-500 hover:text-white'
+          ]"
+        >
+          <Shuffle :size="12" class="sm:w-3.5 sm:h-3.5" />
+          <span class="hidden sm:inline">{{ isShuffled ? 'Shuffled' : 'In Order' }}</span>
+        </button>
         <button
           @click="toggleAutoPlay"
           :class="[
@@ -107,8 +146,7 @@ onUnmounted(() => {
         >
           <Pause v-if="isAutoPlay" :size="12" class="sm:w-3.5 sm:h-3.5" />
           <Play v-else :size="12" class="sm:w-3.5 sm:h-3.5" />
-          <span class="hidden sm:inline">{{ isAutoPlay ? 'Auto-play On' : 'Auto-play Off' }}</span>
-          <span class="sm:hidden">{{ isAutoPlay ? 'Auto' : 'Manual' }}</span>
+          <span class="hidden sm:inline">{{ isAutoPlay ? 'Auto' : 'Auto' }}</span>
         </button>
         <div class="flex-1 sm:flex-none sm:text-right">
           <p class="text-xs font-black text-white">{{ currentIndex + 1 }} <span class="text-slate-600">/ {{ words.length }}</span></p>

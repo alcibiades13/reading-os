@@ -101,13 +101,13 @@ onUnmounted(() => {
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <button
-        class="relative p-2.5 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-white/5 transition-all"
+        class="relative p-1.5 lg:p-2.5 rounded-lg lg:rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-white/5 transition-all"
         aria-label="Notifications"
       >
-        <Bell :size="20" />
+        <Bell :size="16" class="lg:!w-5 lg:!h-5" />
         <div
           v-if="unreadCount > 0"
-          class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-500 border-2 border-slate-950 flex items-center justify-center text-[9px] font-black text-white"
+          class="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] lg:min-w-[18px] lg:h-[18px] px-0.5 lg:px-1 rounded-full bg-indigo-500 border-2 border-slate-950 flex items-center justify-center text-[8px] lg:text-[9px] font-black text-white"
         >
           {{ unreadCount > 9 ? '9+' : unreadCount }}
         </div>

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { Dna, Sparkles } from 'lucide-vue-next'
+import { Dna, Sparkles, ArrowRight } from 'lucide-vue-next'
 
 const props = defineProps({
   profile: {
@@ -29,14 +29,22 @@ const getProgressWidth = (value) => {
 
 <template>
   <div class="p-6 rounded-3xl bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 border border-white/5">
-    <div class="flex items-center gap-3 mb-6">
-      <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-        <Dna :size="20" class="text-indigo-400" />
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+          <Dna :size="20" class="text-indigo-400" />
+        </div>
+        <div>
+          <h3 class="text-lg font-black text-white">Your Reading DNA</h3>
+          <p class="text-xs text-slate-500">Based on {{ profile.vote_count || 0 }} rated books</p>
+        </div>
       </div>
-      <div>
-        <h3 class="text-lg font-black text-white">Your Reading DNA</h3>
-        <p class="text-xs text-slate-500">Based on {{ profile.vote_count || 0 }} rated books</p>
-      </div>
+      <router-link
+        to="/discover"
+        class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
+      >
+        View Full Profile <ArrowRight :size="12" />
+      </router-link>
     </div>
 
     <!-- Attributes Grid -->

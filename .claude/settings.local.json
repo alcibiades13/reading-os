@@ -40,7 +40,8 @@
       "Bash(playwright install --help:*)",
       "Bash(playwright install:*)",
       "Bash(python3:*)",
-      "Bash(./venv/bin/python:*)"
+      "Bash(./venv/bin/python:*)",
+      "Bash(xargs ls:*)"
     ]
   }
 }
