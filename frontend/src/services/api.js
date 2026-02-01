@@ -238,3 +238,16 @@ export const recommendationsAPI = {
   // Book DNA
   getBookDNA: (bookId) => api.get(`/recommendations/book-dna/${bookId}/`),
 }
+
+export const conversationsAPI = {
+  // Conversations
+  list: () => api.get('/social/conversations/'),
+  get: (id) => api.get(`/social/conversations/${id}/`),
+  start: (recipientId) => api.post('/social/conversations/start/', { recipient_id: recipientId }),
+  markRead: (id) => api.post(`/social/conversations/${id}/mark_read/`),
+
+  // Messages
+  listMessages: (params) => api.get('/social/messages/', { params }),
+  sendMessage: (data) => api.post('/social/messages/', data),
+  getMessage: (id) => api.get(`/social/messages/${id}/`),
+}

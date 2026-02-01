@@ -11,6 +11,7 @@ import BookEditModal from '@/components/BookEditModal.vue'
 import BookDNASurvey from '@/components/recommendations/BookDNASurvey.vue'
 import { recommendationsService } from '@/services/recommendationsService'
 import { booksAPI } from '@/services/api'
+import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -27,8 +28,15 @@ const quotesStore = useQuotesStore()
 const authStore = useAuthStore()
 const { addToast } = useToast()
 
-// Route params
-const bookId = computed(() => route.params.id)
+// Route params - extract numeric ID from slug format (e.g., "14-orkanski-visovi" -> "14")
+const bookId = computed(() => {
+  const param = route.params.id
+  // If it contains a dash, extract just the numeric prefix
+  if (param && param.includes('-')) {
+    return param.split('-')[0]
+  }
+  return param
+})
 
 // State
 const showFullDesc = ref(false)
@@ -206,7 +214,7 @@ onMounted(async () => {
   }
 
   // Check if user has already voted for this book's DNA
-  checkDNAVoteStatus()
+  await checkDNAVoteStatus()
 
   // Fetch sidebar data (similar books, book DNA)
   fetchSidebarData()
@@ -223,9 +231,11 @@ const checkDNAVoteStatus = async () => {
   if (!bookId.value) return
 
   try {
-    hasVotedForBook.value = await recommendationsService.hasVotedForBook(bookId.value)
+    const result = await recommendationsService.hasVotedForBook(bookId.value)
+    console.log('[DNA Check] Book ID:', bookId.value, '| hasVoted:', result)
+    hasVotedForBook.value = result
   } catch (error) {
-    console.error('Error checking DNA vote status:', error)
+    console.error('[DNA Check] Error:', error)
     hasVotedForBook.value = false
   }
 }
@@ -305,7 +315,7 @@ watch(bookId, async (newId, oldId) => {
     await quotesStore.fetchQuotes({ book: newId })
   }
 
-  checkDNAVoteStatus()
+  await checkDNAVoteStatus()
   fetchSidebarData()
   // Fetch potential editions after book data is loaded
   await nextTick()
@@ -540,7 +550,7 @@ const handleSaveBook = async (updatedData) => {
 
 const handleStudyMode = () => {
   router.push({
-    path: `/books/${bookId.value}/study`,
+    path: getBookUrlWithSuffix(book.value, 'study'),
     query: { title: book.value?.title || 'Study Session' }
   })
 }
@@ -567,8 +577,9 @@ const confirmSwitchEdition = async () => {
       // Close modal
       isSwitchEditionModalOpen.value = false
 
-      // Navigate to new edition
-      router.push(`/books/${newBookId}`)
+      // Navigate to new edition (find edition in other_editions for slug)
+      const edition = book.value?.other_editions?.find(e => e.id === newBookId)
+      router.push(edition ? getBookUrl(edition) : `/books/${newBookId}`)
 
       // Show success message
       addToast(
@@ -878,41 +889,45 @@ export const QuoteCard = defineComponent({
         </section>
 
         <!-- My Reading - Interaction Hub -->
-        <section class="p-8 rounded-3xl glass border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden">
+        <section class="p-6 sm:p-8 rounded-3xl glass border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden">
           <div class="absolute top-0 right-0 p-8 opacity-10">
             <Sparkles :size="120" class="text-indigo-500" />
           </div>
 
-          <div class="relative z-10 space-y-8">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="relative z-10 space-y-6">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 class="text-xl font-bold text-white mb-1">My Reading</h2>
                 <p class="text-slate-400 text-sm">Track your progress and thoughts</p>
               </div>
 
-              <div class="flex items-center gap-3">
+              <!-- Status Control -->
+              <div class="flex items-center gap-2">
                 <button
                   v-if="!isInLibrary"
                   @click="handleAddToLibrary"
-                  class="px-8 py-4 rounded-xl bg-indigo-500 text-white font-bold shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 transition-all flex items-center gap-3"
+                  class="px-6 py-3 rounded-xl bg-indigo-500 text-white font-bold shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 transition-all flex items-center gap-2"
                 >
-                  <Plus :size="20" />
+                  <Plus :size="18" />
                   Add to Library
                 </button>
 
-                <div v-else class="flex items-center gap-3">
+                <!-- Status Dropdown with colored indicator -->
+                <div v-else class="relative">
                   <div
                     :class="[
-                      'px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border',
-                      getStatusBadgeClass(currentStatus)
+                      'absolute left-0 top-0 bottom-0 w-1 rounded-l-lg',
+                      currentStatus === 'read' ? 'bg-emerald-500' :
+                      currentStatus === 'currently_reading' ? 'bg-sky-500' :
+                      currentStatus === 'abandoned' ? 'bg-red-500' : 'bg-slate-600'
                     ]"
-                  >
-                    {{ getStatusLabel(currentStatus) }}
-                  </div>
+                  />
                   <select
                     :value="currentStatus"
                     @change="handleStatusChange($event.target.value)"
-                    class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-300 outline-none focus:border-indigo-500"
+                    class="bg-slate-900 border border-slate-700 rounded-lg pl-4 pr-8 py-2.5 text-sm font-bold text-slate-200 outline-none focus:border-indigo-500 transition-all cursor-pointer appearance-none"
+                    style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center;"
                   >
                     <option value="want_to_read">Want to Read</option>
                     <option value="currently_reading">Currently Reading</option>
@@ -923,111 +938,106 @@ export const QuoteCard = defineComponent({
               </div>
             </div>
 
-            <div v-if="isInLibrary" :key="`library-${userBook?.id || 'new'}`" class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-800/50">
-              <!-- Rating (only for finished/abandoned) -->
+            <!-- Content for In-Library books -->
+            <div v-if="isInLibrary" :key="`library-${userBook?.id || 'new'}`" class="pt-6 border-t border-slate-800/50 space-y-6">
+
+              <!-- Rating Section (for finished/abandoned) -->
               <div v-if="currentStatus === 'read' || currentStatus === 'abandoned'" class="space-y-6">
+                <!-- Rating -->
                 <div>
-                  <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-4">My Rating</label>
-                  <StarRating
-                    v-if="userBook"
-                    :key="`rating-${userBook.id}`"
-                    v-model="personalRating"
-                    :readonly="false"
-                    :size="28"
-                    :show-value="true"
-                  />
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-3">My Rating</label>
+                  <div class="flex flex-wrap items-center gap-4">
+                    <StarRating
+                      v-if="userBook"
+                      :key="`rating-${userBook.id}`"
+                      v-model="personalRating"
+                      :readonly="false"
+                      :size="24"
+                      :show-value="true"
+                    />
+                  </div>
                   <p class="text-[10px] text-slate-500 mt-2">Click once for full star, double-click for half star</p>
                 </div>
 
                 <!-- Reading Dates -->
-                <div v-if="formattedStartedAt || formattedFinishedAt" class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 space-y-3">
-                  <div class="flex items-center gap-2 mb-2">
+                <div v-if="formattedStartedAt || formattedFinishedAt" class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 inline-flex items-center gap-6">
+                  <div class="flex items-center gap-2">
                     <Calendar :size="14" class="text-slate-500" />
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Reading Journey</span>
                   </div>
 
-                  <div v-if="formattedStartedAt" class="flex items-center justify-between">
+                  <div v-if="formattedStartedAt" class="flex items-center gap-2">
                     <span class="text-xs text-slate-500">Started</span>
                     <span class="text-sm font-semibold text-slate-300">{{ formattedStartedAt }}</span>
                   </div>
 
-                  <div v-if="formattedFinishedAt" class="flex items-center justify-between">
+                  <div v-if="formattedFinishedAt" class="flex items-center gap-2">
                     <span class="text-xs text-slate-500">Finished</span>
                     <span class="text-sm font-semibold text-emerald-400">{{ formattedFinishedAt }}</span>
                   </div>
                 </div>
 
-                <!-- Edit My Activity Button (Mobile) -->
-                <button
-                  @click="router.push(`/books/${bookId}/review`)"
-                  class="md:hidden w-full py-3 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-2 group/btn"
-                >
-                  <SquarePen :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
-                  <span class="transition-colors group-hover/btn:text-indigo-400">Edit My Activity</span>
-                </button>
+                <!-- Action Buttons Row -->
+                <div class="flex flex-wrap gap-3">
+                  <button
+                    @click="router.push(getBookUrlWithSuffix(book, 'review'))"
+                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                  >
+                    <SquarePen :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
+                    <span class="transition-colors group-hover/btn:text-indigo-400">Edit My Activity</span>
+                  </button>
+
+                  <button
+                    v-if="!hasVotedForBook"
+                    @click="openDNASurvey"
+                    class="px-4 py-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center gap-2"
+                  >
+                    <Sparkles :size="14" />
+                    <span>Rate Book DNA</span>
+                  </button>
+                </div>
               </div>
 
-              <!-- Right Column: Edit Button (Desktop) / Progress Tracking -->
-              <div class="space-y-6">
-                <!-- Edit My Activity Button (Desktop, only for finished/abandoned) -->
-                <button
-                  v-if="currentStatus === 'read' || currentStatus === 'abandoned'"
-                  @click="router.push(`/books/${bookId}/review`)"
-                  class="hidden md:flex w-full py-3 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all items-center justify-center gap-2 group/btn"
-                >
-                  <SquarePen :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
-                  <span class="transition-colors group-hover/btn:text-indigo-400">Edit My Activity</span>
-                </button>
+              <!-- Progress Tracking (for currently_reading) -->
+              <div v-if="currentStatus === 'currently_reading'" class="p-6 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-4">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block">Reading Progress</label>
 
-                <!-- Describe Book's Essence Button (only for finished/abandoned books not yet rated) -->
-                <button
-                  v-if="(currentStatus === 'read' || currentStatus === 'abandoned') && !hasVotedForBook"
-                  @click="openDNASurvey"
-                  class="w-full py-3 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2"
-                >
-                  <Sparkles :size="14" />
-                  <span>Rate Book DNA</span>
-                </button>
-                <div v-if="currentStatus === 'currently_reading'" class="p-6 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-4">
-                  <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block">Reading Progress</label>
+                <div class="flex flex-wrap items-center gap-3">
+                  <input
+                    type="number"
+                    v-model.number="currentPageInput"
+                    @keyup.enter="handleProgressUpdate"
+                    :min="0"
+                    :max="totalPages"
+                    class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-center font-bold text-indigo-400 outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  <span class="text-slate-500 text-sm">/ {{ totalPages }} pages</span>
+                  <button
+                    @click="handleProgressUpdate"
+                    class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
 
-                  <div class="flex items-center gap-2">
-                    <input
-                      type="number"
-                      v-model.number="currentPageInput"
-                      @keyup.enter="handleProgressUpdate"
-                      :min="0"
-                      :max="totalPages"
-                      class="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-center font-bold text-indigo-400 outline-none focus:border-indigo-500 transition-colors"
-                    />
-                    <span class="text-slate-500 text-sm">/ {{ totalPages }} pages</span>
-                    <button
-                      @click="handleProgressUpdate"
-                      class="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition-colors"
-                    >
-                      Save
-                    </button>
-                  </div>
+                <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000"
+                    :style="{ width: `${progressPercent}%` }"
+                  />
+                </div>
 
-                  <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      class="h-full bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000"
-                      :style="{ width: `${progressPercent}%` }"
-                    />
-                  </div>
-
-                  <div class="flex items-center justify-between">
-                    <button
-                      @click="handleStatusChange('read')"
-                      class="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-2"
-                    >
-                      <CheckCircle :size="14" />
-                      Mark as Completed
-                    </button>
-                    <div class="text-right">
-                      <span class="text-indigo-400 font-black text-xl">{{ progressPercent }}%</span>
-                      <p class="text-[10px] text-slate-500 font-medium">{{ currentPage }} / {{ totalPages }} pages</p>
-                    </div>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                  <button
+                    @click="handleStatusChange('read')"
+                    class="px-4 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-2"
+                  >
+                    <CheckCircle :size="14" />
+                    Mark as Completed
+                  </button>
+                  <div class="text-right">
+                    <span class="text-indigo-400 font-black text-xl">{{ progressPercent }}%</span>
+                    <p class="text-[10px] text-slate-500 font-medium">{{ currentPage }} / {{ totalPages }} pages</p>
                   </div>
                 </div>
               </div>
@@ -1046,14 +1056,14 @@ export const QuoteCard = defineComponent({
                 </div>
                 <div class="flex gap-3">
                   <button
-                    @click="router.push(`/books/${bookId}/review-view`)"
+                    @click="router.push(getBookUrlWithSuffix(book, 'review-view'))"
                     class="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 transition-all flex items-center justify-center gap-2"
                   >
                     <Eye :size="16" />
                     Read Full Review
                   </button>
                   <button
-                    @click="router.push(`/books/${bookId}/review`)"
+                    @click="router.push(getBookUrlWithSuffix(book, 'review'))"
                     class="flex-1 py-3 rounded-xl border border-slate-700 text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-2"
                   >
                     <SquarePen :size="16" />
@@ -1065,7 +1075,7 @@ export const QuoteCard = defineComponent({
               <!-- Show write button if no review -->
               <button
                 v-else
-                @click="router.push(`/books/${bookId}/review`)"
+                @click="router.push(getBookUrlWithSuffix(book, 'review'))"
                 class="w-full py-4 rounded-xl border-2 border-dashed border-slate-700 text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-3"
               >
                 <SquarePen :size="18" />
@@ -1177,7 +1187,7 @@ export const QuoteCard = defineComponent({
             <router-link
               v-for="simBook in similarBooks"
               :key="simBook.id"
-              :to="`/books/${simBook.id}`"
+              :to="getBookUrl(simBook)"
               class="group flex items-center gap-3 p-2 -mx-1 rounded-xl hover:bg-white/5 transition-all"
             >
               <div class="shrink-0 w-14 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
@@ -1394,7 +1404,7 @@ export const QuoteCard = defineComponent({
                   Link as edition
                 </button>
                 <router-link
-                  :to="`/books/${edition.id}`"
+                  :to="getBookUrl(edition)"
                   class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all"
                 >
                   View
@@ -1424,7 +1434,7 @@ export const QuoteCard = defineComponent({
               class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-indigo-500/30 transition-all space-y-3"
             >
               <!-- Edition info - Clickable to navigate -->
-              <router-link :to="`/books/${edition.id}`" class="flex gap-3 cursor-pointer group/card">
+              <router-link :to="getBookUrl(edition)" class="flex gap-3 cursor-pointer group/card">
                 <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
                   <img
                     v-if="edition.cover_image"
@@ -1468,7 +1478,7 @@ export const QuoteCard = defineComponent({
                 <!-- Current edition indicator -->
                 <router-link
                   v-if="userBook?.book?.id === edition.id"
-                  :to="`/books/${edition.id}`"
+                  :to="getBookUrl(edition)"
                   class="block w-full px-3 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-bold transition-all text-center"
                 >
                   View Your Edition
@@ -1487,7 +1497,7 @@ export const QuoteCard = defineComponent({
                 <!-- View button (if user doesn't have any edition) -->
                 <router-link
                   v-else
-                  :to="`/books/${edition.id}`"
+                  :to="getBookUrl(edition)"
                   class="block w-full px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all text-center"
                 >
                   View edition

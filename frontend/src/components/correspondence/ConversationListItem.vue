@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { Star } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -16,6 +17,19 @@ const emit = defineEmits(['select'])
 
 const otherParticipant = props.conversation.participants.find(p => p.id !== 'me')
 const lastMsg = props.conversation.lastMessage
+
+const hasAvatar = computed(() => {
+  return otherParticipant?.avatar && !otherParticipant.avatar.includes('placeholder')
+})
+
+const initials = computed(() => {
+  const name = otherParticipant?.name || ''
+  const parts = name.trim().split(' ')
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.charAt(0).toUpperCase() || '?'
+})
 
 const formatDate = (timestamp) => {
   if (!timestamp) return ''
@@ -35,11 +49,18 @@ const formatDate = (timestamp) => {
     ]"
   >
     <div class="flex gap-4 items-start">
-      <div class="w-12 h-12 rounded-2xl overflow-hidden ring-1 ring-white/10">
+      <div class="w-12 h-12 rounded-2xl overflow-hidden ring-1 ring-white/10 flex-shrink-0">
         <img
-          :src="otherParticipant?.avatar || 'https://via.placeholder.com/100'"
+          v-if="hasAvatar"
+          :src="otherParticipant.avatar"
           class="w-full h-full object-cover"
         />
+        <div
+          v-else
+          class="w-full h-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm"
+        >
+          {{ initials }}
+        </div>
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between mb-1">

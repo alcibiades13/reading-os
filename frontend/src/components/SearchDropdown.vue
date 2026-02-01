@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { booksAPI } from '@/services/api'
 import { useBookImportStore } from '@/stores/bookImportStore'
+import { getBookUrl } from '@/utils/bookUrl'
 import { Search, BookOpen, Plus, Loader2, ExternalLink } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -89,7 +90,7 @@ const getAuthorsString = (book) => {
 }
 
 const viewLocalBook = (book) => {
-  router.push(`/books/${book.id}`)
+  router.push(getBookUrl(book))
   closeDropdown()
 }
 

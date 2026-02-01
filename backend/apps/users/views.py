@@ -73,7 +73,7 @@ class UserViewSet(viewsets.ModelViewSet):
         
         headers = self.get_success_headers(serializer.data)
         return Response({
-            'user': UserSerializer(user).data,
+            'user': UserSerializer(user, context={'request': request}).data,
             'tokens': {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
@@ -108,7 +108,7 @@ class UserViewSet(viewsets.ModelViewSet):
         refresh = RefreshToken.for_user(user)
         
         return Response({
-            'user': UserSerializer(user).data,
+            'user': UserSerializer(user, context={'request': request}).data,
             'tokens': {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
@@ -121,7 +121,7 @@ class UserViewSet(viewsets.ModelViewSet):
         Get current user profile.
         GET /api/users/me/
         """
-        serializer = UserDetailSerializer(request.user)
+        serializer = UserDetailSerializer(request.user, context={'request': request})
         return Response(serializer.data)
     
     @action(detail=False, methods=['put', 'patch'], permission_classes=[permissions.IsAuthenticated])
@@ -137,7 +137,7 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(UserDetailSerializer(request.user).data)
+        return Response(UserDetailSerializer(request.user, context={'request': request}).data)
     
     @action(detail=True, methods=['get'])
     def stats(self, request, pk=None):
@@ -185,7 +185,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def search(self, request):
         """
-        Search users by name or username.
+        Search users by name or email.
         GET /api/users/search/?q=query
         """
         query = request.query_params.get('q', '').strip()
@@ -196,11 +196,11 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Search in first_name, last_name, username
+        # Search in first_name, last_name, email (no username field in this model)
         users = User.objects.filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
-            Q(username__icontains=query)
+            Q(email__icontains=query)
         )
 
         # Exclude current user if authenticated
@@ -220,7 +220,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         users_data = []
         for user in users:
-            user_serialized = UserSerializer(user).data
+            user_serialized = UserSerializer(user, context={'request': request}).data
 
             # Add stats (with safe defaults)
             try:
@@ -345,7 +345,7 @@ class UserViewSet(viewsets.ModelViewSet):
         ).order_by('-count').values_list('name', flat=True)[:5]
 
         # Serialize user data
-        user_data = UserDetailSerializer(user).data
+        user_data = UserDetailSerializer(user, context={'request': request}).data
         user_data.update({
             'is_following': is_following,
             'is_follower': is_follower,
@@ -436,7 +436,7 @@ class UserViewSet(viewsets.ModelViewSet):
         followers_data = []
         for friendship in follower_friendships:
             follower = friendship.from_user
-            follower_serialized = UserSerializer(follower).data
+            follower_serialized = UserSerializer(follower, context={'request': request}).data
 
             # Add stats
             from apps.reading.models import UserBook
@@ -491,7 +491,7 @@ class UserViewSet(viewsets.ModelViewSet):
         following_data = []
         for friendship in following_friendships:
             followed_user = friendship.to_user
-            followed_serialized = UserSerializer(followed_user).data
+            followed_serialized = UserSerializer(followed_user, context={'request': request}).data
 
             # Add stats
             from apps.reading.models import UserBook

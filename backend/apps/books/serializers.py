@@ -94,6 +94,7 @@ class BookListSerializer(serializers.ModelSerializer):
             'id',
             'isbn',
             'title',
+            'slug',
             'subtitle',
             'authors',
             'publisher_name',
@@ -103,7 +104,7 @@ class BookListSerializer(serializers.ModelSerializer):
             'cover_image',
             'book_group_id',
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'slug']
 
 
 class BookDetailSerializer(serializers.ModelSerializer):
@@ -152,6 +153,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
             'id',
             'isbn',
             'title',
+            'slug',
             'subtitle',
             'description',
             'authors',
@@ -174,7 +176,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
 
     def get_has_other_editions(self, obj):
         """Check if this book has other editions"""

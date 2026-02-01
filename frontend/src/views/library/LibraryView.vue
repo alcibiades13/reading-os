@@ -19,6 +19,7 @@ import {
 import { booksAPI } from '@/services/api'
 import { recommendationsService } from '@/services/recommendationsService'
 import TasteProfile from '@/components/recommendations/TasteProfile.vue'
+import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
   CheckCircle, Bookmark, BrainCircuit, Lightbulb,
@@ -118,7 +119,7 @@ const handleTabChange = (value) => {
 
 // Book actions
 const handleViewBook = (book) => {
-  router.push(`/books/${book.book.id}`)
+  router.push(getBookUrl(book.book))
 }
 
 const handleEditBook = (book) => {
@@ -425,10 +426,10 @@ onUnmounted(() => {
 const handleBookClick = (userBook, event) => {
   // Support middle-click to open in new tab
   if (event && (event.button === 1 || event.ctrlKey || event.metaKey)) {
-    const route = router.resolve(`/books/${userBook.book.id}`)
+    const route = router.resolve(getBookUrl(userBook.book))
     window.open(route.href, '_blank')
   } else {
-    router.push(`/books/${userBook.book.id}`)
+    router.push(getBookUrl(userBook.book))
   }
 }
 
@@ -631,7 +632,7 @@ const handleSaveChallenge = async (challengeData) => {
         <router-link
           v-for="expedition in activeExpeditions"
           :key="expedition.id"
-          :to="`/books/${expedition.book.id}`"
+          :to="getBookUrl(expedition.book)"
           class="group relative p-5 rounded-2xl glass border-slate-800 hover:border-indigo-500/30 transition-all duration-300 cursor-pointer overflow-hidden"
         >
           <!-- Badge: Currently Reading or Last Read -->
@@ -701,7 +702,7 @@ const handleSaveChallenge = async (challengeData) => {
                 </p>
                 <button
                   v-if="expedition.review"
-                  @click.stop="router.push(`/books/${expedition.book.id}/review-view`)"
+                  @click.stop="router.push(getBookUrlWithSuffix(expedition.book, 'review-view'))"
                   class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
                 >
                   Read Review <ArrowUpRight :size="10" />
@@ -822,7 +823,7 @@ const handleSaveChallenge = async (challengeData) => {
           <router-link
             v-for="userBook in paginatedLibrary"
             :key="userBook.id"
-            :to="`/books/${userBook.book.id}`"
+            :to="getBookUrl(userBook.book)"
             class="group relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 flex items-center justify-center"
           >
             <img
@@ -921,7 +922,7 @@ const handleSaveChallenge = async (challengeData) => {
           <router-link
             v-for="userBook in paginatedLibrary"
             :key="userBook.id"
-            :to="`/books/${userBook.book.id}`"
+            :to="getBookUrl(userBook.book)"
             class="group flex items-center gap-4 p-4 rounded-2xl glass border-slate-800 hover:border-indigo-500/30 transition-all duration-300"
           >
             <!-- Cover -->

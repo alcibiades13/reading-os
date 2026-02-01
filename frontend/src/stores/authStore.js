@@ -18,15 +18,18 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     // Initialize auth state from localStorage
-    initAuth() {
+    async initAuth() {
       const token = localStorage.getItem('access_token')
       const user = localStorage.getItem('user')
-      
+
       if (token && user) {
         this.accessToken = token
         this.refreshToken = localStorage.getItem('refresh_token')
         this.user = JSON.parse(user)
         this.isAuthenticated = true
+
+        // Refresh user data to get latest avatar URL
+        await this.fetchUser()
       }
     },
 

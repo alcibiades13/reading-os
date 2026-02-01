@@ -39,7 +39,8 @@
       "Bash(PGPASSWORD=47258789 psql:*)",
       "Bash(playwright install --help:*)",
       "Bash(playwright install:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(./venv/bin/python:*)"
     ]
   }
 }

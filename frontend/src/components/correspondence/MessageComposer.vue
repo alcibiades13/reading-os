@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Send, Book, Quote as QuoteIcon, Brain, Star, X, Maximize2, Minimize2 } from 'lucide-vue-next'
+import { Send, Book, Quote as QuoteIcon, Brain, Star, X, Maximize2, Minimize2, ChevronUp, ChevronDown, PenLine } from 'lucide-vue-next'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
 
@@ -14,6 +14,7 @@ const isImportant = ref(false)
 const attachments = ref([])
 const showPicker = ref('none') // 'none' | 'book' | 'quote'
 const isExpanded = ref(false)
+const isMinimized = ref(false)
 
 const handleSend = () => {
   if (!messageText.value.trim() && attachments.value.length === 0) return
@@ -63,11 +64,25 @@ const removeAttachment = (index) => {
 <template>
   <div
     :class="[
-      'p-6 border-t border-white/5 glass transition-all duration-500',
-      isExpanded ? 'h-[60vh]' : 'h-auto'
+      'border-t border-white/5 glass transition-all duration-300',
+      isMinimized ? 'py-2 px-6' : 'p-6',
+      isExpanded && !isMinimized ? 'h-[60vh]' : 'h-auto'
     ]"
   >
-    <div class="max-w-4xl mx-auto space-y-4">
+    <!-- Minimized State -->
+    <div v-if="isMinimized" class="max-w-4xl mx-auto flex items-center justify-between">
+      <button
+        @click="isMinimized = false"
+        class="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-500/30 transition-all"
+      >
+        <PenLine :size="16" />
+        <span class="text-xs font-bold uppercase tracking-wider">Compose Message</span>
+        <ChevronUp :size="16" />
+      </button>
+    </div>
+
+    <!-- Expanded Composer -->
+    <div v-else class="max-w-4xl mx-auto space-y-4">
       <!-- Attachment Preview Bar -->
       <div v-if="attachments.length > 0" class="flex flex-wrap gap-2 mb-4">
         <div
@@ -107,6 +122,15 @@ const removeAttachment = (index) => {
 
       <!-- Action Bar -->
       <div class="flex items-center justify-between px-4">
+        <!-- Minimize button -->
+        <button
+          @click="isMinimized = true"
+          class="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all mr-2"
+          title="Minimize composer"
+        >
+          <ChevronDown :size="18" />
+        </button>
+
         <div class="flex items-center gap-1 p-1 bg-white/5 rounded-2xl border border-white/5">
           <!-- Attach Book -->
           <button

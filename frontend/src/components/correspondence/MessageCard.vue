@@ -39,7 +39,7 @@ const formatDateTime = (timestamp) => {
     <!-- Message Card -->
     <div
       :class="[
-        'p-8 rounded-[2.5rem] border w-full',
+        'p-4 rounded-2xl border w-full',
         isMe
           ? 'bg-white/[0.04] border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.4)]'
           : 'bg-slate-900/30 border-white/5 shadow-xl'
@@ -48,15 +48,15 @@ const formatDateTime = (timestamp) => {
       <!-- Subject Line -->
       <h3
         v-if="message.subject"
-        class="text-indigo-400 font-black uppercase tracking-[0.2em] text-[11px] mb-6 flex items-center gap-3"
+        class="text-indigo-400 font-black uppercase tracking-[0.2em] text-[11px] mb-4 flex items-center gap-3"
       >
         <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
         Subject: {{ message.subject }}
       </h3>
 
       <!-- Message Content -->
-      <p class="text-xl font-serif text-slate-200 leading-relaxed italic mb-8 selection:bg-indigo-500/30">
-        "{{ message.content }}"
+      <p class="text-sm text-slate-200 leading-relaxed mb-3 selection:bg-indigo-500/30">
+        {{ message.content }}
       </p>
 
       <!-- Attachments -->

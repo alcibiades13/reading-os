@@ -1,113 +1,16 @@
 // Correspondence (Chat) Service
-import api from './api'
+import { conversationsAPI, socialAPI } from './api'
 
-const STORAGE_KEY_CONVS = 'reading_os_conversations'
-const CURRENT_USER_ID = 'me'
-
-// Mock conversations for development
-const MOCK_CONVERSATIONS = [
-  {
-    id: 'conv-1',
-    participants: [
-      { id: 'me', name: 'You' },
-      { id: 'u-1', name: 'Elena Rodriguez', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop' }
-    ],
-    unreadCount: 2,
-    type: 'direct',
-    relatedBookIds: [],
-    lastMessage: {
-      id: 'm-1',
-      senderId: 'u-1',
-      senderName: 'Elena Rodriguez',
-      timestamp: '2025-01-07T14:30:00Z',
-      content: 'I finally reached the third act of Dune and your notes on the "Litany Against Fear" were spot on. Let\'s discuss the philosophy of agency behind it.',
-      attachments: [],
-      isImportant: true,
-      status: 'read'
-    }
-  },
-  {
-    id: 'conv-2',
-    participants: [
-      { id: 'me', name: 'You' },
-      { id: 'u-2', name: 'Marcus Chen' }
-    ],
-    unreadCount: 0,
-    type: 'direct',
-    relatedBookIds: [],
-    lastMessage: {
-      id: 'm-2',
-      senderId: 'me',
-      senderName: 'You',
-      timestamp: '2025-01-06T09:15:00Z',
-      content: 'Have you checked out this specific edition of Meditations?',
-      attachments: [
-        {
-          type: 'book',
-          id: '1',
-          title: 'Meditations',
-          subtitle: 'Marcus Aurelius',
-          image: 'https://books.google.com/books/content?id=7S7mDwAAQBAJ&printsec=frontcover&img=1&zoom=1'
-        }
-      ],
-      isImportant: false,
-      status: 'sent'
-    }
+// Helper to ensure avatar URL is absolute
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return null
+  if (avatar.startsWith('http')) return avatar
+  // Prepend API base URL for relative paths
+  const baseUrl = import.meta.env.VITE_API_URL || ''
+  if (avatar.startsWith('/media/')) {
+    return `${baseUrl}${avatar}`
   }
-]
-
-const MOCK_MESSAGES = {
-  'conv-1': [
-    {
-      id: 'm-0',
-      senderId: 'me',
-      senderName: 'You',
-      timestamp: '2025-01-07T10:00:00Z',
-      subject: 'Stoic parallels in modern fiction',
-      content: 'Elena, I was thinking about our last conversation regarding Stoicism. I found this quote that perfectly bridges Marcus Aurelius and the themes in our current reading.',
-      attachments: [
-        {
-          type: 'quote',
-          id: 'q-1',
-          title: 'Meditations Insight',
-          content: 'The happiness of your life depends upon the quality of your thoughts.',
-          subtitle: 'Marcus Aurelius'
-        }
-      ],
-      isImportant: false,
-      status: 'read'
-    },
-    {
-      id: 'm-1',
-      senderId: 'u-1',
-      senderName: 'Elena Rodriguez',
-      timestamp: '2025-01-07T14:30:00Z',
-      content: 'I finally reached the third act of Dune and your notes on the "Litany Against Fear" were spot on. Let\'s discuss the philosophy of agency behind it.',
-      attachments: [],
-      isImportant: true,
-      status: 'read'
-    }
-  ],
-  'conv-2': [
-    {
-      id: 'm-2',
-      senderId: 'me',
-      senderName: 'You',
-      timestamp: '2025-01-06T09:15:00Z',
-      content: 'Have you checked out this specific edition of Meditations?',
-      attachments: [
-        {
-          type: 'book',
-          id: '1',
-          title: 'Meditations',
-          subtitle: 'Marcus Aurelius',
-          image: 'https://books.google.com/books/content?id=7S7mDwAAQBAJ&printsec=frontcover&img=1&zoom=1'
-        }
-      ],
-      isImportant: false,
-      status: 'sent'
-    }
-  ]
+  return `${baseUrl}/media/${avatar}`
 }
 
 export const correspondenceService = {
@@ -116,20 +19,30 @@ export const correspondenceService = {
    */
   async getConversations() {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.get('/api/correspondence/conversations/')
-      // return response.data
-
-      // For now, use mock data
-      const stored = localStorage.getItem(STORAGE_KEY_CONVS)
-      if (!stored) {
-        localStorage.setItem(STORAGE_KEY_CONVS, JSON.stringify(MOCK_CONVERSATIONS))
-        return MOCK_CONVERSATIONS
+      const response = await conversationsAPI.list()
+      // Handle paginated response or plain array
+      const data = response.data
+      if (Array.isArray(data)) {
+        return data
       }
-      return JSON.parse(stored)
+      // DRF paginated response
+      return data.results || []
     } catch (error) {
       console.error('Error fetching conversations:', error)
-      return MOCK_CONVERSATIONS
+      return []
+    }
+  },
+
+  /**
+   * Get a specific conversation with messages
+   */
+  async getConversation(conversationId) {
+    try {
+      const response = await conversationsAPI.get(conversationId)
+      return response.data
+    } catch (error) {
+      console.error('Error fetching conversation:', error)
+      return null
     }
   },
 
@@ -138,12 +51,13 @@ export const correspondenceService = {
    */
   async getMessages(conversationId) {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.get(`/api/correspondence/conversations/${conversationId}/messages/`)
-      // return response.data
-
-      // For now, use mock data
-      return MOCK_MESSAGES[conversationId] || []
+      const response = await conversationsAPI.listMessages({ conversation: conversationId })
+      // Handle paginated response or plain array
+      const data = response.data
+      if (Array.isArray(data)) {
+        return data
+      }
+      return data.results || []
     } catch (error) {
       console.error('Error fetching messages:', error)
       return []
@@ -152,32 +66,38 @@ export const correspondenceService = {
 
   /**
    * Send a new message in a conversation
+   * @param {number|null} conversationId - Existing conversation ID (null if starting new)
+   * @param {object} messageData - Message content and attachments
+   * @param {number|null} recipientId - Recipient user ID (for new conversations)
    */
-  async sendMessage(conversationId, messageData) {
+  async sendMessage(conversationId, messageData, recipientId = null) {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.post(`/api/correspondence/conversations/${conversationId}/messages/`, messageData)
-      // return response.data
-
-      // For now, create mock message
-      const newMessage = {
-        id: `m-${Date.now()}`,
-        senderId: 'me',
-        senderName: 'You',
-        timestamp: new Date().toISOString(),
+      const payload = {
         content: messageData.content || '',
-        attachments: messageData.attachments || [],
-        isImportant: messageData.isImportant || false,
-        status: 'sent',
-        subject: messageData.subject
+        subject: messageData.subject || '',
+        is_important: messageData.isImportant || false,
       }
 
-      if (!MOCK_MESSAGES[conversationId]) {
-        MOCK_MESSAGES[conversationId] = []
+      // Either conversation or recipient_id
+      if (conversationId) {
+        payload.conversation = conversationId
+      } else if (recipientId) {
+        payload.recipient_id = recipientId
       }
-      MOCK_MESSAGES[conversationId].push(newMessage)
 
-      return newMessage
+      // Handle attachments
+      if (messageData.attachments?.length > 0) {
+        for (const attachment of messageData.attachments) {
+          if (attachment.type === 'book') {
+            payload.attached_book_id = attachment.id
+          } else if (attachment.type === 'quote') {
+            payload.attached_quote_id = attachment.id
+          }
+        }
+      }
+
+      const response = await conversationsAPI.sendMessage(payload)
+      return response.data
     } catch (error) {
       console.error('Error sending message:', error)
       throw error
@@ -185,53 +105,151 @@ export const correspondenceService = {
   },
 
   /**
-   * Create a new conversation
+   * Start a new conversation with a user
+   * @param {number} recipientId - The user ID to start conversation with
    */
-  async createConversation(participantIds, initialMessage) {
+  async startConversation(recipientId) {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.post('/api/correspondence/conversations/', {
-      //   participants: participantIds,
-      //   initial_message: initialMessage
-      // })
-      // return response.data
-
-      throw new Error('Not implemented yet')
+      const response = await conversationsAPI.start(recipientId)
+      return response.data
     } catch (error) {
-      console.error('Error creating conversation:', error)
+      console.error('Error starting conversation:', error)
       throw error
     }
   },
 
   /**
-   * Mark message as read
+   * Mark all messages in a conversation as read
    */
-  async markAsRead(conversationId, messageId) {
+  async markAsRead(conversationId) {
     try {
-      // TODO: Replace with actual API call
-      // await api.post(`/api/correspondence/messages/${messageId}/mark_read/`)
+      await conversationsAPI.markRead(conversationId)
     } catch (error) {
-      console.error('Error marking message as read:', error)
+      console.error('Error marking messages as read:', error)
     }
   },
 
   /**
-   * Search conversations
+   * Search for users to start a conversation with
+   * @param {string} query - Search query
+   */
+  async searchUsers(query) {
+    if (!query || query.trim().length < 2) {
+      return []
+    }
+
+    try {
+      const response = await socialAPI.searchUsers(query)
+      // Handle paginated response or plain array
+      const data = response.data
+      if (Array.isArray(data)) {
+        return data
+      }
+      return data.results || []
+    } catch (error) {
+      console.error('Error searching users:', error)
+      return []
+    }
+  },
+
+  /**
+   * Search conversations by participant name or message content
    */
   async searchConversations(query) {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.get('/api/correspondence/conversations/search/', { params: { q: query } })
-      // return response.data
-
       const conversations = await this.getConversations()
-      return conversations.filter(conv =>
-        conv.participants.some(p => p.name.toLowerCase().includes(query.toLowerCase())) ||
-        conv.lastMessage?.content.toLowerCase().includes(query.toLowerCase())
-      )
+      if (!query) return conversations
+
+      const lowerQuery = query.toLowerCase()
+      return conversations.filter(conv => {
+        // Search in other participant's name
+        const otherParticipant = conv.other_participant
+        if (otherParticipant) {
+          const fullName = `${otherParticipant.first_name || ''} ${otherParticipant.last_name || ''}`.toLowerCase()
+          if (fullName.includes(lowerQuery)) return true
+          if (otherParticipant.email?.toLowerCase().includes(lowerQuery)) return true
+        }
+
+        // Search in last message preview
+        if (conv.last_message_preview?.toLowerCase().includes(lowerQuery)) return true
+
+        return false
+      })
     } catch (error) {
       console.error('Error searching conversations:', error)
       return []
     }
-  }
+  },
+
+  /**
+   * Transform API message to frontend format
+   * Normalizes the message structure for the UI components
+   */
+  transformMessage(message) {
+    const attachments = []
+
+    if (message.attached_book) {
+      attachments.push({
+        type: 'book',
+        id: message.attached_book.id,
+        title: message.attached_book.title,
+        subtitle: message.attached_book.authors?.map(a => a.name).join(', ') || '',
+        image: message.attached_book.cover_image,
+      })
+    }
+
+    if (message.attached_quote) {
+      attachments.push({
+        type: 'quote',
+        id: message.attached_quote.id,
+        content: message.attached_quote.text,
+        title: message.attached_quote.book_title || 'Quote',
+        subtitle: message.attached_quote.book_author || '',
+      })
+    }
+
+    return {
+      id: message.id,
+      senderId: message.sender?.id,
+      senderName: message.sender ? `${message.sender.first_name} ${message.sender.last_name}` : 'Unknown',
+      timestamp: message.created_at,
+      content: message.content,
+      subject: message.subject,
+      attachments,
+      isImportant: message.is_important,
+      status: message.read_at ? 'read' : 'sent',
+      isOwn: message.is_own_message,
+    }
+  },
+
+  /**
+   * Transform API conversation to frontend format
+   */
+  transformConversation(conversation) {
+    const lastMsg = conversation.last_message
+    const other = conversation.other_participant
+
+    return {
+      id: conversation.id,
+      participants: [
+        { id: 'me', name: 'You' },
+        other ? {
+          id: other.id,
+          name: `${other.first_name || ''} ${other.last_name || ''}`.trim() || other.email,
+          avatar: getAvatarUrl(other.avatar),
+          email: other.email,
+        } : null,
+      ].filter(Boolean),
+      unreadCount: conversation.unread_count || 0,
+      type: 'direct',
+      lastMessage: lastMsg ? {
+        id: lastMsg.id,
+        senderId: lastMsg.sender_id,
+        timestamp: lastMsg.created_at,
+        content: lastMsg.content,
+        isImportant: lastMsg.is_important,
+      } : null,
+      lastMessageAt: conversation.last_message_at,
+    }
+  },
 }

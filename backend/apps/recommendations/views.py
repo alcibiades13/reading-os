@@ -2,6 +2,7 @@ from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 from apps.books.models import Book, BookDNA, BookDNAVote
 from apps.books.serializers import BookListSerializer

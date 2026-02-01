@@ -389,3 +389,119 @@ class FeedItem(models.Model):
         return f"{self.actor.email} - {self.feed_type} (for {self.user.email})"
 
 
+class Conversation(models.Model):
+    """
+    A conversation between two users.
+    Supports 1:1 private messaging.
+    """
+    participants = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='conversations'
+    )
+
+    # Denormalized for quick access
+    last_message_at = models.DateTimeField(null=True, blank=True)
+    last_message_preview = models.CharField(max_length=100, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-last_message_at', '-created_at']
+        verbose_name = 'Conversation'
+        verbose_name_plural = 'Conversations'
+
+    def __str__(self):
+        participant_emails = ', '.join([u.email for u in self.participants.all()[:2]])
+        return f"Conversation: {participant_emails}"
+
+    def get_other_participant(self, user):
+        """Get the other participant in a 1:1 conversation"""
+        return self.participants.exclude(id=user.id).first()
+
+    def get_unread_count(self, user):
+        """Get count of unread messages for a user in this conversation"""
+        return self.messages.filter(read_at__isnull=True).exclude(sender=user).count()
+
+    @classmethod
+    def get_or_create_between(cls, user1, user2):
+        """Get existing conversation between two users or create a new one"""
+        # Find conversation where both users are participants
+        conversation = cls.objects.filter(
+            participants=user1
+        ).filter(
+            participants=user2
+        ).first()
+
+        if not conversation:
+            conversation = cls.objects.create()
+            conversation.participants.add(user1, user2)
+
+        return conversation
+
+
+class Message(models.Model):
+    """
+    A message in a conversation.
+    Can have optional book or quote attachments.
+    """
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name='messages'
+    )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_messages'
+    )
+
+    # Content
+    content = models.TextField()
+    subject = models.CharField(max_length=200, blank=True, help_text="Optional subject line")
+
+    # Attachments
+    attached_book = models.ForeignKey(
+        Book,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='message_attachments',
+        help_text="Attached book recommendation"
+    )
+    attached_quote = models.ForeignKey(
+        Quote,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='message_attachments',
+        help_text="Attached quote"
+    )
+
+    # Metadata
+    is_important = models.BooleanField(default=False, help_text="Starred/important message")
+    read_at = models.DateTimeField(null=True, blank=True, help_text="When recipient read the message")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Message'
+        verbose_name_plural = 'Messages'
+        indexes = [
+            models.Index(fields=['conversation', 'created_at']),
+            models.Index(fields=['sender', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"Message from {self.sender.email} at {self.created_at}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Update conversation's last message info
+        self.conversation.last_message_at = self.created_at
+        self.conversation.last_message_preview = self.content[:100] if self.content else ''
+        self.conversation.save(update_fields=['last_message_at', 'last_message_preview', 'updated_at'])
+
+

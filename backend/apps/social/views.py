@@ -4,7 +4,8 @@ from rest_framework.response import Response
 
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
-    CirclePost, CircleComment, FeedItem, Notification
+    CirclePost, CircleComment, FeedItem, Notification,
+    Conversation, Message
 )
 from apps.social.serializers import (
     FriendshipSerializer, FriendshipCreateSerializer,
@@ -13,6 +14,8 @@ from apps.social.serializers import (
     CircleInvitationCreateSerializer, CirclePostListSerializer,
     CirclePostDetailSerializer, CirclePostCreateSerializer,
     CircleCommentSerializer, FeedItemSerializer, NotificationSerializer,
+    ConversationListSerializer, ConversationDetailSerializer,
+    MessageSerializer, MessageCreateSerializer,
 )
 
 
@@ -528,7 +531,7 @@ class SuggestedUsersView(APIView):
             ).order_by('-count').values_list('name', flat=True)[:3]
 
             # Serialize user
-            user_data = UserSerializer(user).data
+            user_data = UserSerializer(user, context={'request': request}).data
             user_data.update({
                 'match_score': match_score,
                 'shared_books_count': shared_books_count,
@@ -548,4 +551,136 @@ class SuggestedUsersView(APIView):
 
         # Return top N users
         return Response(users_with_scores[:limit])
+
+
+# ===== MESSAGES & CONVERSATIONS =====
+
+from django.utils import timezone
+
+
+class ConversationViewSet(viewsets.ModelViewSet):
+    """ViewSet for Conversation model"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'retrieve':
+            return ConversationDetailSerializer
+        return ConversationListSerializer
+
+    def get_queryset(self):
+        """Get conversations for current user"""
+        return Conversation.objects.filter(
+            participants=self.request.user
+        ).prefetch_related('participants', 'messages').order_by('-last_message_at', '-created_at')
+
+    def retrieve(self, request, *args, **kwargs):
+        """Get conversation and mark messages as read"""
+        instance = self.get_object()
+
+        # Mark all unread messages from other participants as read
+        Message.objects.filter(
+            conversation=instance,
+            read_at__isnull=True
+        ).exclude(
+            sender=request.user
+        ).update(read_at=timezone.now())
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def start(self, request):
+        """Start a new conversation with a user"""
+        recipient_id = request.data.get('recipient_id')
+
+        if not recipient_id:
+            return Response(
+                {'error': 'recipient_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            recipient = User.objects.get(id=recipient_id)
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Recipient not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get or create conversation
+        conversation = Conversation.get_or_create_between(request.user, recipient)
+
+        serializer = ConversationDetailSerializer(conversation, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        """Mark all messages in conversation as read"""
+        conversation = self.get_object()
+
+        Message.objects.filter(
+            conversation=conversation,
+            read_at__isnull=True
+        ).exclude(
+            sender=request.user
+        ).update(read_at=timezone.now())
+
+        return Response({'status': 'Messages marked as read'})
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    """ViewSet for Message model"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'create':
+            return MessageCreateSerializer
+        return MessageSerializer
+
+    def get_queryset(self):
+        """Get messages for conversations user is part of"""
+        user_conversations = Conversation.objects.filter(participants=self.request.user)
+
+        queryset = Message.objects.filter(
+            conversation__in=user_conversations
+        ).select_related('sender', 'attached_book', 'attached_quote')
+
+        # Filter by conversation
+        conversation_id = self.request.query_params.get('conversation', None)
+        if conversation_id:
+            queryset = queryset.filter(conversation_id=conversation_id)
+
+        return queryset.order_by('created_at')
+
+    def perform_create(self, serializer):
+        """Create message and send notification"""
+        message = serializer.save(sender=self.request.user)
+
+        # Create notification for recipient
+        recipient = message.conversation.get_other_participant(self.request.user)
+        if recipient:
+            # Add 'new_message' to notification types if needed
+            Notification.objects.create(
+                recipient=recipient,
+                actor=self.request.user,
+                notification_type='new_follower',  # Reusing existing type; could add 'new_message'
+                message=f'{self.request.user.first_name} {self.request.user.last_name} sent you a message',
+                object_id=message.conversation_id
+            )
+
+    def create(self, request, *args, **kwargs):
+        """Override create to return detailed message"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # Get the created message with full details
+        message = Message.objects.select_related(
+            'sender', 'attached_book', 'attached_quote'
+        ).get(id=serializer.instance.id)
+
+        response_serializer = MessageSerializer(message, context={'request': request})
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 

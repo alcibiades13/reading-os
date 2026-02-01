@@ -103,9 +103,10 @@ export const recommendationsService = {
   async hasVotedForBook(bookId) {
     try {
       const response = await recommendationsAPI.checkSurvey(bookId)
+      console.log('[API] checkSurvey response for book', bookId, ':', response.data)
       return response.data.has_voted
     } catch (error) {
-      console.error('Error checking survey:', error)
+      console.error('[API] checkSurvey error:', error.response?.status, error.message)
       return false
     }
   },

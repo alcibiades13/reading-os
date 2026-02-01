@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
-    CirclePost, CircleComment, FeedItem, Notification
+    CirclePost, CircleComment, FeedItem, Notification,
+    Conversation, Message
 )
 from apps.users.serializers import UserSerializer
 from apps.books.serializers import BookListSerializer
@@ -401,5 +402,187 @@ class FeedItemSerializer(serializers.ModelSerializer):
             except Quote.DoesNotExist:
                 return None
         return None
+
+
+# ===== MESSAGES & CONVERSATIONS =====
+
+class MessageSerializer(serializers.ModelSerializer):
+    """Serializer for messages"""
+    sender = UserSerializer(read_only=True)
+    attached_book = BookListSerializer(read_only=True)
+    attached_quote = QuoteListSerializer(read_only=True)
+    is_own_message = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Message
+        fields = [
+            'id',
+            'conversation',
+            'sender',
+            'content',
+            'subject',
+            'attached_book',
+            'attached_quote',
+            'is_important',
+            'read_at',
+            'is_own_message',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'sender', 'read_at', 'created_at', 'updated_at']
+
+    def get_is_own_message(self, obj):
+        request = self.context.get('request')
+        if request and request.user:
+            return obj.sender_id == request.user.id
+        return False
+
+
+class MessageCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating messages"""
+    recipient_id = serializers.IntegerField(write_only=True, required=False)
+    attached_book_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    attached_quote_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+
+    class Meta:
+        model = Message
+        fields = [
+            'conversation',
+            'recipient_id',
+            'content',
+            'subject',
+            'attached_book_id',
+            'attached_quote_id',
+            'is_important',
+        ]
+
+    def validate(self, data):
+        """Validate message data"""
+        request = self.context.get('request')
+        conversation = data.get('conversation')
+        recipient_id = data.get('recipient_id')
+
+        # Either conversation or recipient_id must be provided
+        if not conversation and not recipient_id:
+            raise serializers.ValidationError(
+                "Either conversation or recipient_id must be provided"
+            )
+
+        # If recipient_id is provided, find or create conversation
+        if recipient_id and not conversation:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                recipient = User.objects.get(id=recipient_id)
+            except User.DoesNotExist:
+                raise serializers.ValidationError("Recipient not found")
+
+            # Get or create conversation between users
+            conversation = Conversation.get_or_create_between(request.user, recipient)
+            data['conversation'] = conversation
+
+        # Validate user is participant in conversation
+        if conversation and not conversation.participants.filter(id=request.user.id).exists():
+            raise serializers.ValidationError("You are not a participant in this conversation")
+
+        # Handle book attachment
+        if data.get('attached_book_id'):
+            from apps.books.models import Book
+            try:
+                data['attached_book'] = Book.objects.get(id=data['attached_book_id'])
+            except Book.DoesNotExist:
+                raise serializers.ValidationError("Attached book not found")
+
+        # Handle quote attachment
+        if data.get('attached_quote_id'):
+            from apps.reading.models import Quote
+            try:
+                data['attached_quote'] = Quote.objects.get(id=data['attached_quote_id'])
+            except Quote.DoesNotExist:
+                raise serializers.ValidationError("Attached quote not found")
+
+        return data
+
+
+class ConversationListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for conversation lists"""
+    other_participant = serializers.SerializerMethodField()
+    unread_count = serializers.SerializerMethodField()
+    last_message = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Conversation
+        fields = [
+            'id',
+            'other_participant',
+            'last_message_at',
+            'last_message_preview',
+            'last_message',
+            'unread_count',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+
+    def get_other_participant(self, obj):
+        request = self.context.get('request')
+        if request and request.user:
+            other = obj.get_other_participant(request.user)
+            if other:
+                return UserSerializer(other).data
+        return None
+
+    def get_unread_count(self, obj):
+        request = self.context.get('request')
+        if request and request.user:
+            return obj.get_unread_count(request.user)
+        return 0
+
+    def get_last_message(self, obj):
+        last_msg = obj.messages.order_by('-created_at').first()
+        if last_msg:
+            return {
+                'id': last_msg.id,
+                'content': last_msg.content[:100],
+                'sender_id': last_msg.sender_id,
+                'is_important': last_msg.is_important,
+                'created_at': last_msg.created_at,
+            }
+        return None
+
+
+class ConversationDetailSerializer(serializers.ModelSerializer):
+    """Detailed serializer for single conversation view"""
+    participants = UserSerializer(many=True, read_only=True)
+    other_participant = serializers.SerializerMethodField()
+    messages = MessageSerializer(many=True, read_only=True)
+    unread_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Conversation
+        fields = [
+            'id',
+            'participants',
+            'other_participant',
+            'messages',
+            'last_message_at',
+            'unread_count',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'participants', 'created_at', 'updated_at']
+
+    def get_other_participant(self, obj):
+        request = self.context.get('request')
+        if request and request.user:
+            other = obj.get_other_participant(request.user)
+            if other:
+                return UserSerializer(other).data
+        return None
+
+    def get_unread_count(self, obj):
+        request = self.context.get('request')
+        if request and request.user:
+            return obj.get_unread_count(request.user)
+        return 0
 
 

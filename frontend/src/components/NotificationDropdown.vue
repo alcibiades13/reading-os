@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import { Bell } from 'lucide-vue-next'
 import {
   DropdownMenu,
@@ -13,20 +14,28 @@ import {
 import api from '@/services/api'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const notifications = ref([])
 const loading = ref(false)
+let pollInterval = null
 
 const unreadCount = computed(() => {
   return notifications.value.filter(n => !n.is_read).length
 })
 
 const loadNotifications = async () => {
+  // Skip if not authenticated
+  if (!authStore.isAuthenticated) return
+
   loading.value = true
   try {
     const response = await api.get('/social/notifications/')
-    notifications.value = response.data.results || response.data
+    notifications.value = response.data.results || response.data || []
   } catch (error) {
-    console.error('Error loading notifications:', error)
+    // Silently fail for 401 errors (user logged out)
+    if (error.response?.status !== 401) {
+      console.error('Error loading notifications:', error)
+    }
   } finally {
     loading.value = false
   }
@@ -74,9 +83,17 @@ const formatTimeAgo = (dateString) => {
 }
 
 onMounted(() => {
-  loadNotifications()
-  // Poll for new notifications every 30 seconds
-  setInterval(loadNotifications, 30000)
+  if (authStore.isAuthenticated) {
+    loadNotifications()
+    // Poll for new notifications every 30 seconds
+    pollInterval = setInterval(loadNotifications, 30000)
+  }
+})
+
+onUnmounted(() => {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+  }
 })
 </script>
 

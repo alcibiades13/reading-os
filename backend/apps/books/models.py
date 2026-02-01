@@ -263,6 +263,7 @@ class Book(models.Model):
         help_text="ISBN-10 or ISBN-13"
     )
     title = models.CharField(max_length=500)
+    slug = models.SlugField(max_length=550, blank=True, db_index=True)
     subtitle = models.CharField(max_length=500, blank=True)
     description = models.TextField(blank=True)
     
@@ -401,6 +402,15 @@ class Book(models.Model):
             return self.dna
         except:
             return None
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title)
+            # Ensure slug is not empty (for non-ASCII titles that don't slugify well)
+            if not base_slug:
+                base_slug = f"book-{self.pk or 'new'}"
+            self.slug = base_slug
+        super().save(*args, **kwargs)
 
 
 class BookDNA(models.Model):

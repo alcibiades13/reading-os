@@ -72,13 +72,42 @@
     <!-- Main Workspace -->
     <div class="flex-1 flex overflow-hidden">
       <!-- Sidebar: References List - Hidden on mobile, shown as drawer -->
-      <aside :class="['border-r border-slate-900 flex flex-col bg-slate-950 transition-transform duration-300 z-10', showReferences ? 'fixed inset-y-0 left-0 w-64 md:w-72 shadow-2xl' : 'hidden md:flex md:w-72']">
-        <div class="p-4 md:p-6">
+      <aside
+        :class="[
+          'border-r border-slate-900 flex flex-col bg-slate-950 z-10 transition-all duration-300 ease-in-out',
+          showReferences ? 'fixed inset-y-0 left-0 w-64 md:w-72 shadow-2xl' : 'hidden md:flex',
+          !showReferences && isSidebarCollapsed ? 'md:w-12' : 'md:w-72'
+        ]"
+      >
+        <!-- Collapsed state - just show expand button -->
+        <div v-if="isSidebarCollapsed && !showReferences" class="hidden md:flex flex-col items-center py-4">
+          <button
+            @click="isSidebarCollapsed = false"
+            class="p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-indigo-400 transition-colors"
+            title="Expand references"
+          >
+            <PanelLeft :size="18" />
+          </button>
+        </div>
+
+        <!-- Expanded state -->
+        <div v-else class="p-4 md:p-6 flex-1 overflow-hidden flex flex-col">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">References</h3>
-            <button @click="showReferences = false" class="md:hidden p-1 rounded-lg hover:bg-slate-800 text-slate-500">
-              <X :size="16" />
-            </button>
+            <div class="flex items-center gap-1">
+              <!-- Desktop collapse button -->
+              <button
+                @click="isSidebarCollapsed = true"
+                class="hidden md:block p-1 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-indigo-400 transition-colors"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose :size="16" />
+              </button>
+              <!-- Mobile close button -->
+              <button @click="showReferences = false" class="md:hidden p-1 rounded-lg hover:bg-slate-800 text-slate-500">
+                <X :size="16" />
+              </button>
+            </div>
           </div>
           <button
             @click="selectedRef = null; showReferences = false"
@@ -86,7 +115,7 @@
           >
             All References ({{ notes.length }})
           </button>
-          <div class="space-y-1 overflow-y-auto max-h-[calc(100vh-200px)] custom-scrollbar">
+          <div class="space-y-1 overflow-y-auto flex-1 custom-scrollbar">
             <button
               v-for="ref in references"
               :key="ref"
@@ -165,6 +194,20 @@
                 <MessageSquare :size="12" class="md:hidden" />
                 <MessageSquare :size="14" class="hidden md:block" />
                 Notes
+              </button>
+
+              <!-- Divider -->
+              <div class="hidden md:block h-6 w-px bg-slate-800 mx-2" />
+
+              <!-- Sort Order Toggle -->
+              <button
+                @click="sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest'"
+                class="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all text-slate-500 hover:text-slate-300 hover:bg-slate-800/50"
+                :title="sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'"
+              >
+                <ArrowDownUp :size="12" class="md:hidden" />
+                <ArrowDownUp :size="14" class="hidden md:block" />
+                {{ sortOrder === 'newest' ? 'Newest' : 'Oldest' }}
               </button>
             </div>
           </div>
@@ -571,7 +614,10 @@ import {
   X,
   ChevronUp,
   ChevronDown,
-  Download
+  Download,
+  PanelLeftClose,
+  PanelLeft,
+  ArrowDownUp
 } from 'lucide-vue-next'
 import html2pdf from 'html2pdf.js'
 
@@ -603,6 +649,8 @@ const newNotePageNumber = ref('')
 const newNoteChapter = ref('')
 const showSearch = ref(false)
 const showReferences = ref(false)
+const isSidebarCollapsed = ref(false)
+const sortOrder = ref('newest') // 'newest' or 'oldest'
 const isFooterCollapsed = ref(false)
 const showEditModal = ref(false)
 const editingNote = ref(null)
@@ -680,6 +728,13 @@ const filteredNotes = computed(() => {
       n.reference?.toLowerCase().includes(search)
     )
   }
+
+  // Sort by date
+  filtered.sort((a, b) => {
+    const dateA = new Date(a.created_at || 0)
+    const dateB = new Date(b.created_at || 0)
+    return sortOrder.value === 'newest' ? dateB - dateA : dateA - dateB
+  })
 
   return filtered
 })
@@ -909,31 +964,11 @@ const exportToPDF = () => {
     day: 'numeric'
   })
 
-  // Sort notes by reference (case-insensitive)
+  // Sort notes by date (oldest first for chronological export)
   const sortedNotes = [...notes.value].sort((a, b) => {
-    const refA = (a.reference || 'General').toLowerCase()
-    const refB = (b.reference || 'General').toLowerCase()
-    return refA.localeCompare(refB)
-  })
-
-  // Group notes by reference (case-insensitive grouping)
-  const groupedNotes = {}
-  const refCaseMap = {} // Track original case for each lowercase reference
-
-  sortedNotes.forEach(note => {
-    const ref = note.reference || 'General'
-    const refLower = ref.toLowerCase()
-
-    // Use first occurrence's case as the key
-    if (!refCaseMap[refLower]) {
-      refCaseMap[refLower] = ref
-    }
-
-    const displayRef = refCaseMap[refLower]
-    if (!groupedNotes[displayRef]) {
-      groupedNotes[displayRef] = []
-    }
-    groupedNotes[displayRef].push(note)
+    const dateA = new Date(a.created_at || 0)
+    const dateB = new Date(b.created_at || 0)
+    return dateA - dateB // Always oldest first for export (chronological)
   })
 
   // Create HTML content
@@ -971,18 +1006,6 @@ const exportToPDF = () => {
           background: #f5f5f5;
           border-radius: 5px;
         }
-        .reference-section {
-          margin-bottom: 25px;
-          page-break-inside: avoid;
-        }
-        .reference-title {
-          font-size: 16pt;
-          font-weight: bold;
-          color: #4F46E5;
-          margin-bottom: 15px;
-          border-bottom: 2px solid #4F46E5;
-          padding-bottom: 5px;
-        }
         .note {
           margin-bottom: 20px;
           page-break-inside: avoid;
@@ -1018,26 +1041,24 @@ const exportToPDF = () => {
       </div>
   `
 
-  // Add notes grouped by reference
-  Object.entries(groupedNotes).forEach(([reference, refNotes]) => {
-    htmlContent += `<div class="reference-section">`
-    htmlContent += `<div class="reference-title">${reference}</div>`
+  // Add notes sorted by date (chronologically)
+  sortedNotes.forEach(note => {
+    const metaInfo = []
+    if (note.created_at) {
+      const noteDate = new Date(note.created_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'short', year: 'numeric' })
+      metaInfo.push(noteDate)
+    }
+    if (note.reference) metaInfo.push(note.reference)
+    if (note.page_number) metaInfo.push(`Page ${note.page_number}`)
+    if (note.chapter) metaInfo.push(`Chapter: ${note.chapter}`)
 
-    refNotes.forEach(note => {
-      const metaInfo = []
-      if (note.page_number) metaInfo.push(`Page ${note.page_number}`)
-      if (note.chapter) metaInfo.push(`Chapter: ${note.chapter}`)
-
-      htmlContent += `
-        <div class="note">
-          <div class="note-type ${note.note_type}">${note.note_type.toUpperCase()}</div>
-          ${metaInfo.length > 0 ? `<div class="note-meta">${metaInfo.join(' • ')}</div>` : ''}
-          <div class="note-content">${note.content}</div>
-        </div>
-      `
-    })
-
-    htmlContent += `</div>`
+    htmlContent += `
+      <div class="note">
+        <div class="note-type ${note.note_type}">${note.note_type.toUpperCase()}</div>
+        ${metaInfo.length > 0 ? `<div class="note-meta">${metaInfo.join(' • ')}</div>` : ''}
+        <div class="note-content">${note.content}</div>
+      </div>
+    `
   })
 
   htmlContent += `

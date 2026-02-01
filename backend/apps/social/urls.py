@@ -9,6 +9,8 @@ from apps.social.views import (
     FeedItemViewSet,
     NotificationViewSet,
     SuggestedUsersView,
+    ConversationViewSet,
+    MessageViewSet,
 )
 
 app_name = 'social'
@@ -22,6 +24,8 @@ router.register(r'circle-posts', CirclePostViewSet, basename='circlepost')
 router.register(r'circle-comments', CircleCommentViewSet, basename='circlecomment')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'feed', FeedItemViewSet, basename='feeditem')
+router.register(r'conversations', ConversationViewSet, basename='conversation')
+router.register(r'messages', MessageViewSet, basename='message')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -75,4 +79,17 @@ urlpatterns = [
 #   GET    /api/social/feed/{id}/             - Get feed item detail
 #   POST   /api/social/feed/{id}/mark_read/   - Mark item as read
 #   POST   /api/social/feed/mark_all_read/    - Mark all as read
+#
+# Conversations:
+#   GET    /api/social/conversations/         - List user's conversations
+#   POST   /api/social/conversations/         - Create conversation
+#   GET    /api/social/conversations/{id}/    - Get conversation with messages
+#   POST   /api/social/conversations/start/   - Start conversation with user
+#   POST   /api/social/conversations/{id}/mark_read/ - Mark all messages as read
+#
+# Messages:
+#   GET    /api/social/messages/              - List messages
+#   GET    /api/social/messages/?conversation=X - Filter by conversation
+#   POST   /api/social/messages/              - Send message
+#   GET    /api/social/messages/{id}/         - Get message detail
 
