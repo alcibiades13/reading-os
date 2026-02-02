@@ -16,6 +16,7 @@ services:
     branch: main
     rootDir: backend
     buildCommand: bash build.sh
+    preDeployCommand: python manage.py migrate
     startCommand: gunicorn config.wsgi:application
     healthCheckPath: /api/
     envVars:
