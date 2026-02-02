@@ -5,8 +5,8 @@ set -o errexit
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Collect static files (does not need database)
+# Collect static files
 python manage.py collectstatic --no-input
 
-# NOTE: migrations moved to preDeployCommand in render.yaml
-# because the internal DB hostname is not available during build
+# Run migrations (works because DB_HOST uses external hostname)
+python manage.py migrate
