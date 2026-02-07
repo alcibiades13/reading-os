@@ -563,6 +563,73 @@
   body.light .text-slate-400 {
     color: #64748b !important;
   }
+
+  /* Circles - discussions panel subtle background */
+  body.light .bg-slate-950\/20 {
+    background-color: #f1f5f9 !important; /* slate-100 */
+  }
+
+  /* Circles - topic cards white background in light mode */
+  body.light .bg-white\/5 {
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  body.light .bg-white\/5:hover,
+  body.light .hover\:bg-white\/\[0\.08\]:hover {
+    background-color: #f8fafc !important;
+  }
+
+  /* Circles - selected circle item lighter shadow */
+  body.light .shadow-\[0_10px_30px_rgba\(0\,0\,0\,0\.5\)\] {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  body.light .bg-white\/10 {
+    background-color: #f1f5f9 !important;
+  }
+
+  /* Header - border-bottom and element borders */
+  body.light .border-slate-800\/50 {
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Mobile Circles - header and containers */
+  body.light .bg-slate-900\/80,
+  body.light .bg-slate-900\/90 {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  body.light .bg-slate-950\/50 {
+    background-color: #f8fafc !important;
+  }
+
+  body.light .bg-slate-950\/90 {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  /* Mobile - topic cards and buttons */
+  body.light .active\:scale-\[0\.98\]:active {
+    transform: scale(0.98);
+  }
+
+  /* Mobile - current book gradient card */
+  body.light .bg-gradient-to-r.from-indigo-500\/10.to-purple-500\/10 {
+    background: linear-gradient(to right, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.08)) !important;
+  }
+
+  /* Mobile dropdown panel */
+  body.light .bg-slate-900.border-white\/10 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  /* Border colors for light mode */
+  body.light .border-white\/5,
+  body.light .border-white\/10 {
+    border-color: #e2e8f0 !important;
+  }
 }
 
 

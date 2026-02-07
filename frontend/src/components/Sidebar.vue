@@ -24,7 +24,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   Hexagon,
-  X
+  X,
+  CircleDot
 } from 'lucide-vue-next'
 import SidebarItem from './sidebar/SidebarItem.vue'
 import NavGroup from './sidebar/NavGroup.vue'
@@ -124,6 +125,9 @@ const isActive = (path) => {
   }
   if (path === '/correspondence') {
     return route.path === '/correspondence'
+  }
+  if (path === '/circles') {
+    return route.path === '/circles'
   }
   if (path === '/challenges') {
     return route.path === '/challenges'
@@ -273,14 +277,6 @@ const handleStudyModeClick = () => {
             :collapsed="isCollapsed && !isMobileOpen"
           />
           <SidebarItem
-            :active="isActive('/correspondence')"
-            @click="router.push('/correspondence')"
-            label="Messages"
-            :icon="MessageSquare"
-            :badge="unreadBadge"
-            :collapsed="isCollapsed && !isMobileOpen"
-          />
-          <SidebarItem
             :active="route.path.includes('/study')"
             @click="handleStudyModeClick"
             label="Study"
@@ -292,6 +288,24 @@ const handleStudyModeClick = () => {
             @click="router.push('/challenges')"
             label="Challenges"
             :icon="Trophy"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
+        </NavGroup>
+
+        <NavGroup label="Exchange" :collapsed="isCollapsed && !isMobileOpen">
+          <SidebarItem
+            :active="isActive('/correspondence')"
+            @click="router.push('/correspondence')"
+            label="Messages"
+            :icon="MessageSquare"
+            :badge="unreadBadge"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
+          <SidebarItem
+            :active="isActive('/circles')"
+            @click="router.push('/circles')"
+            label="Circles"
+            :icon="CircleDot"
             :collapsed="isCollapsed && !isMobileOpen"
           />
         </NavGroup>

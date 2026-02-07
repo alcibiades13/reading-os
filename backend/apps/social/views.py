@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
     CirclePost, CircleComment, FeedItem, Notification,
-    Conversation, Message
+    Conversation, Message, DiscussionTopic, TopicMessage,
+    TopicMessageLike, BookClubReading
 )
 from apps.social.serializers import (
     FriendshipSerializer, FriendshipCreateSerializer,
@@ -16,6 +17,10 @@ from apps.social.serializers import (
     CircleCommentSerializer, FeedItemSerializer, NotificationSerializer,
     ConversationListSerializer, ConversationDetailSerializer,
     MessageSerializer, MessageCreateSerializer,
+    DiscussionTopicListSerializer, DiscussionTopicDetailSerializer,
+    DiscussionTopicCreateSerializer, TopicMessageSerializer,
+    TopicMessageCreateSerializer, BookClubReadingSerializer,
+    BookClubReadingCreateSerializer,
 )
 
 
@@ -269,8 +274,17 @@ class CircleInvitationViewSet(viewsets.ModelViewSet):
         ).select_related('circle', 'from_user', 'to_user')
     
     def perform_create(self, serializer):
-        """Send invitation"""
-        serializer.save(from_user=self.request.user, status='pending')
+        """Send invitation and create notification"""
+        invitation = serializer.save(from_user=self.request.user, status='pending')
+
+        # Create notification for invited user
+        Notification.objects.create(
+            recipient=invitation.to_user,
+            actor=self.request.user,
+            notification_type='circle_invitation',
+            message=f'{self.request.user.first_name} {self.request.user.last_name} invited you to join {invitation.circle.name}',
+            object_id=invitation.id
+        )
     
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
@@ -683,4 +697,173 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         response_serializer = MessageSerializer(message, context={'request': request})
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+
+# ===== BOOK CLUBS / DISCUSSION TOPICS =====
+
+class DiscussionTopicViewSet(viewsets.ModelViewSet):
+    """ViewSet for DiscussionTopic model"""
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at', 'updated_at']
+    ordering = ['-is_pinned', '-updated_at']
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'create':
+            return DiscussionTopicCreateSerializer
+        elif self.action == 'retrieve':
+            return DiscussionTopicDetailSerializer
+        return DiscussionTopicListSerializer
+
+    def get_queryset(self):
+        """Get topics from circles user is member of"""
+        user_circles = Circle.objects.filter(members=self.request.user)
+
+        queryset = DiscussionTopic.objects.filter(
+            circle__in=user_circles
+        ).select_related('circle', 'creator', 'book')
+
+        # Filter by circle
+        circle_id = self.request.query_params.get('circle', None)
+        if circle_id:
+            queryset = queryset.filter(circle_id=circle_id)
+
+        # Filter by category
+        category = self.request.query_params.get('category', None)
+        if category:
+            queryset = queryset.filter(category=category)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        """Create topic"""
+        topic = serializer.save(creator=self.request.user)
+
+        # If this is for the current book, link it
+        if not topic.book and topic.circle.current_book:
+            topic.book = topic.circle.current_book
+            topic.save()
+
+
+class TopicMessageViewSet(viewsets.ModelViewSet):
+    """ViewSet for TopicMessage model"""
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at']
+    ordering = ['created_at']
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'create':
+            return TopicMessageCreateSerializer
+        return TopicMessageSerializer
+
+    def get_queryset(self):
+        """Get messages from topics in circles user is member of"""
+        user_circles = Circle.objects.filter(members=self.request.user)
+
+        queryset = TopicMessage.objects.filter(
+            topic__circle__in=user_circles
+        ).select_related('topic', 'author', 'attached_quote', 'attached_book')
+
+        # Filter by topic
+        topic_id = self.request.query_params.get('topic', None)
+        if topic_id:
+            queryset = queryset.filter(topic_id=topic_id)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        """Create message"""
+        serializer.save(author=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def toggle_like(self, request, pk=None):
+        """Toggle like on a message"""
+        message = self.get_object()
+
+        like, created = TopicMessageLike.objects.get_or_create(
+            message=message,
+            user=request.user
+        )
+
+        if not created:
+            # Already liked, so unlike
+            like.delete()
+            message.likes_count = max(0, message.likes_count - 1)
+            message.save(update_fields=['likes_count'])
+            return Response({'liked': False, 'likes_count': message.likes_count})
+        else:
+            # New like
+            message.likes_count += 1
+            message.save(update_fields=['likes_count'])
+            return Response({'liked': True, 'likes_count': message.likes_count})
+
+
+class BookClubReadingViewSet(viewsets.ModelViewSet):
+    """ViewSet for BookClubReading model"""
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['start_date', 'created_at']
+    ordering = ['-start_date']
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'create':
+            return BookClubReadingCreateSerializer
+        return BookClubReadingSerializer
+
+    def get_queryset(self):
+        """Get book readings from circles user is member of"""
+        user_circles = Circle.objects.filter(members=self.request.user)
+
+        queryset = BookClubReading.objects.filter(
+            circle__in=user_circles
+        ).select_related('circle', 'book')
+
+        # Filter by circle
+        circle_id = self.request.query_params.get('circle', None)
+        if circle_id:
+            queryset = queryset.filter(circle_id=circle_id)
+
+        # Filter by status
+        book_status = self.request.query_params.get('status', None)
+        if book_status:
+            queryset = queryset.filter(status=book_status)
+
+        return queryset
+
+    @action(detail=True, methods=['post'])
+    def set_as_current(self, request, pk=None):
+        """Set this book as the club's current reading"""
+        reading = self.get_object()
+
+        # Check if user is admin
+        if not CircleMembership.objects.filter(
+            circle=reading.circle,
+            user=request.user,
+            role='admin'
+        ).exists():
+            return Response(
+                {'error': 'Only club admins can set current book'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Update previous current to completed
+        BookClubReading.objects.filter(
+            circle=reading.circle,
+            status='current'
+        ).update(status='completed')
+
+        # Set this as current
+        reading.status = 'current'
+        reading.save()
+
+        # Update circle's current_book
+        reading.circle.current_book = reading.book
+        reading.circle.save(update_fields=['current_book'])
+
+        serializer = BookClubReadingSerializer(reading)
+        return Response(serializer.data)
 

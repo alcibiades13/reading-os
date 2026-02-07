@@ -11,6 +11,9 @@ from apps.social.views import (
     SuggestedUsersView,
     ConversationViewSet,
     MessageViewSet,
+    DiscussionTopicViewSet,
+    TopicMessageViewSet,
+    BookClubReadingViewSet,
 )
 
 app_name = 'social'
@@ -26,6 +29,10 @@ router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'feed', FeedItemViewSet, basename='feeditem')
 router.register(r'conversations', ConversationViewSet, basename='conversation')
 router.register(r'messages', MessageViewSet, basename='message')
+# Book Club / Discussion endpoints
+router.register(r'topics', DiscussionTopicViewSet, basename='discussiontopic')
+router.register(r'topic-messages', TopicMessageViewSet, basename='topicmessage')
+router.register(r'club-readings', BookClubReadingViewSet, basename='bookclubreading')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -107,6 +107,11 @@ export const booksAPI = {
     api.post(`/books/${book1Id}/link_edition/`, { book_id: book2Id }),
   potentialEditions: (bookId) =>
     api.get(`/books/${bookId}/potential_editions/`),
+  // Community activity
+  communityActivity: (bookId) =>
+    api.get(`/books/${bookId}/community_activity/`),
+  userReview: (bookId, userId) =>
+    api.get(`/books/${bookId}/review/${userId}/`),
 }
 
 export const authorsAPI = {

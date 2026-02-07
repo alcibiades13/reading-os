@@ -41,7 +41,8 @@
       "Bash(playwright install:*)",
       "Bash(python3:*)",
       "Bash(./venv/bin/python:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(move \"d:\\\\projects\\\\reading-os\\\\frontend\\\\src\\\\views\\\\circles\\\\CirclesView.vue\" \"d:\\\\projects\\\\reading-os\\\\frontend\\\\src\\\\views\\\\social\\\\CirclesView.vue\")"
     ]
   }
 }

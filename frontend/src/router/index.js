@@ -69,6 +69,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/books/:id/review/:userId',
+    name: 'UserReview',
+    component: () => import('@/views/books/UserReviewView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/import',
     name: 'ImportBooks',
     component: () => import('@/views/import/ImportBooksView.vue'),

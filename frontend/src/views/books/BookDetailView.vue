@@ -9,6 +9,7 @@ import { useToast } from '@/composables/useToast'
 import StarRating from '@/components/ui/StarRating.vue'
 import BookEditModal from '@/components/BookEditModal.vue'
 import BookDNASurvey from '@/components/recommendations/BookDNASurvey.vue'
+import CommunityActivity from '@/components/books/CommunityActivity.vue'
 import { recommendationsService } from '@/services/recommendationsService'
 import { booksAPI } from '@/services/api'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
@@ -1129,32 +1130,11 @@ export const QuoteCard = defineComponent({
           </div>
         </section>
 
-        <!-- Social - Community -->
-        <section class="space-y-6 pt-12 border-t border-slate-900">
-          <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
-            <Users :size="16" /> Community Activity
-          </h2>
-
-          <div class="flex flex-col gap-4">
-            <FriendActivity
-              user="Ana Kostić"
-              status="Finished"
-              :rating="9.0"
-              review="This book changed my perspective on the world!"
-            />
-            <FriendActivity
-              user="Marko Jovanović"
-              status="Currently Reading"
-              :rating="0"
-              review="Just started, but looks promising..."
-            />
-
-            <div class="p-6 rounded-2xl bg-slate-900/30 border border-slate-800/50 flex items-center justify-between">
-              <p class="text-slate-400 text-sm">Be the first of your friends to recommend this book!</p>
-              <button class="text-indigo-400 font-bold text-sm hover:underline">Invite Friends</button>
-            </div>
-          </div>
-        </section>
+        <!-- Community Activity -->
+        <CommunityActivity
+          :book-id="bookId"
+          :book-title="book.title"
+        />
       </div>
 
       <!-- Right Column - Sidebar -->

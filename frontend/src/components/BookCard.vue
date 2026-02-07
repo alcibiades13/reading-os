@@ -12,9 +12,16 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  showActions: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const emit = defineEmits(['edit', 'delete', 'view', 'toggle-favorite'])
+
+// Support both UserBook structure (book.book) and direct Book structure
+const bookData = computed(() => props.book.book || props.book)
 
 // Status badge variants
 const statusConfig = {
@@ -28,12 +35,12 @@ const statusInfo = computed(() => statusConfig[props.book.status] || statusConfi
 
 // Cover image with fallback
 const coverImage = computed(() => {
-  return props.book.book?.cover_image || null
+  return bookData.value?.cover_image || null
 })
 
 // Authors string
 const authorsString = computed(() => {
-  return props.book.book?.authors?.map((a) => a.name).join(', ') || 'Unknown Author'
+  return bookData.value?.authors?.map((a) => a.name).join(', ') || 'Unknown Author'
 })
 
 // Reading progress percentage
@@ -54,7 +61,7 @@ const progressPercent = computed(() => {
       <img
         v-if="coverImage"
         :src="coverImage"
-        :alt="book.book?.title"
+        :alt="bookData?.title"
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         @error="(e) => e.target.style.display = 'none'"
       />
@@ -81,7 +88,7 @@ const progressPercent = computed(() => {
     <CardContent class="p-4 space-y-2" @click="emit('view', book)">
       <!-- Title -->
       <h3 class="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
-        {{ book.book?.title }}
+        {{ bookData?.title }}
       </h3>
 
       <!-- Authors -->
@@ -89,8 +96,8 @@ const progressPercent = computed(() => {
         {{ authorsString }}
       </p>
 
-      <!-- Status badge -->
-      <Badge :variant="statusInfo.variant" class="text-xs">
+      <!-- Status badge (only for UserBook items with status) -->
+      <Badge v-if="book.status && showActions" :variant="statusInfo.variant" class="text-xs">
         {{ statusInfo.label }}
       </Badge>
 
@@ -107,7 +114,7 @@ const progressPercent = computed(() => {
       <div v-if="book.status === 'currently_reading'" class="text-xs text-muted-foreground">
         <div class="flex items-center gap-1">
           <BookOpen class="w-3 h-3" />
-          <span>{{ book.current_page || 0 }} / {{ book.book?.pages || '?' }} pages</span>
+          <span>{{ book.current_page || 0 }} / {{ bookData?.pages || '?' }} pages</span>
         </div>
       </div>
 
@@ -117,10 +124,10 @@ const progressPercent = computed(() => {
       </div>
     </CardContent>
 
-    <CardFooter class="p-4 pt-0 flex justify-between items-center">
+    <CardFooter v-if="showActions" class="p-4 pt-0 flex justify-between items-center">
       <!-- View button -->
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         size="sm"
         @click="emit('view', book)"
       >
@@ -143,7 +150,7 @@ const progressPercent = computed(() => {
             <Heart class="w-4 h-4 mr-2" />
             {{ book.is_favorite ? 'Remove from favorites' : 'Add to favorites' }}
           </DropdownMenuItem>
-          <DropdownMenuItem 
+          <DropdownMenuItem
             class="text-destructive focus:text-destructive"
             @click="emit('delete', book)"
           >

@@ -1,8 +1,10 @@
 from rest_framework import serializers
+from django.utils import timezone
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
     CirclePost, CircleComment, FeedItem, Notification,
-    Conversation, Message
+    Conversation, Message, DiscussionTopic, TopicMessage,
+    TopicMessageLike, BookClubReading
 )
 from apps.users.serializers import UserSerializer
 from apps.books.serializers import BookListSerializer
@@ -71,7 +73,9 @@ class CircleListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for circle lists"""
     creator = UserSerializer(read_only=True)
     members_count = serializers.IntegerField(read_only=True)
-    
+    average_progress = serializers.IntegerField(read_only=True)
+    current_book_data = serializers.SerializerMethodField()
+
     class Meta:
         model = Circle
         fields = [
@@ -83,9 +87,18 @@ class CircleListSerializer(serializers.ModelSerializer):
             'max_members',
             'is_invite_only',
             'image',
+            'accent_color',
+            'current_book',
+            'current_book_data',
+            'average_progress',
             'created_at',
         ]
         read_only_fields = ['id', 'creator', 'created_at']
+
+    def get_current_book_data(self, obj):
+        if obj.current_book:
+            return BookListSerializer(obj.current_book).data
+        return None
 
 
 class CircleDetailSerializer(serializers.ModelSerializer):
@@ -93,7 +106,10 @@ class CircleDetailSerializer(serializers.ModelSerializer):
     creator = UserSerializer(read_only=True)
     memberships = CircleMembershipSerializer(many=True, read_only=True)
     members_count = serializers.IntegerField(read_only=True)
-    
+    average_progress = serializers.IntegerField(read_only=True)
+    current_book_data = serializers.SerializerMethodField()
+    topics = serializers.SerializerMethodField()
+
     class Meta:
         model = Circle
         fields = [
@@ -106,15 +122,30 @@ class CircleDetailSerializer(serializers.ModelSerializer):
             'max_members',
             'is_invite_only',
             'image',
+            'accent_color',
+            'current_book',
+            'current_book_data',
+            'average_progress',
+            'topics',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'creator', 'created_at', 'updated_at']
 
+    def get_current_book_data(self, obj):
+        if obj.current_book:
+            return BookListSerializer(obj.current_book).data
+        return None
+
+    def get_topics(self, obj):
+        # Lazy import to avoid circular dependency
+        topics = obj.topics.all()[:10]  # Limit to first 10
+        return DiscussionTopicListSerializer(topics, many=True, context=self.context).data
+
 
 class CircleCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating circles"""
-    
+
     class Meta:
         model = Circle
         fields = [
@@ -123,14 +154,15 @@ class CircleCreateSerializer(serializers.ModelSerializer):
             'max_members',
             'is_invite_only',
             'image',
+            'accent_color',
         ]
-    
+
     def validate_max_members(self, value):
         """Validate max_members range"""
         if value < 2:
             raise serializers.ValidationError("Circle must allow at least 2 members")
-        if value > 20:
-            raise serializers.ValidationError("Circle cannot exceed 20 members")
+        if value > 100:
+            raise serializers.ValidationError("Circle cannot exceed 100 members")
         return value
 
 
@@ -157,7 +189,7 @@ class CircleInvitationSerializer(serializers.ModelSerializer):
 
 class CircleInvitationCreateSerializer(serializers.ModelSerializer):
     """Serializer for sending circle invitations"""
-    
+
     class Meta:
         model = CircleInvitation
         fields = [
@@ -165,40 +197,61 @@ class CircleInvitationCreateSerializer(serializers.ModelSerializer):
             'to_user',
             'message',
         ]
-    
+        # Disable automatic UniqueTogetherValidator - we handle this in validate()
+        validators = []
+
     def validate(self, data):
         """Validate invitation"""
         circle = data.get('circle')
         to_user = data.get('to_user')
         request = self.context.get('request')
-        
+
         # Check if user is admin of the circle
         membership = CircleMembership.objects.filter(
             circle=circle,
             user=request.user,
             role='admin'
         ).first()
-        
+
         if not membership:
             raise serializers.ValidationError("Only circle admins can send invitations")
-        
+
         # Check if circle is full
-        if circle.members_count >= circle.max_members:
+        if circle.members.count() >= circle.max_members:
             raise serializers.ValidationError("Circle is full")
-        
+
         # Check if user is already a member
         if CircleMembership.objects.filter(circle=circle, user=to_user).exists():
             raise serializers.ValidationError("User is already a member")
-        
-        # Check if invitation already exists
-        if CircleInvitation.objects.filter(
+
+        # Check for existing invitation - store it for create() method
+        existing_invitation = CircleInvitation.objects.filter(
             circle=circle,
-            to_user=to_user,
-            status='pending'
-        ).exists():
-            raise serializers.ValidationError("Invitation already sent")
-        
+            to_user=to_user
+        ).first()
+
+        if existing_invitation:
+            if existing_invitation.status == 'pending':
+                raise serializers.ValidationError("Invitation already sent")
+            # Store for reuse in create()
+            data['_existing_invitation'] = existing_invitation
+
         return data
+
+    def create(self, validated_data):
+        """Create or update invitation"""
+        existing = validated_data.pop('_existing_invitation', None)
+
+        if existing:
+            # Update existing declined/accepted invitation to pending
+            existing.status = validated_data.get('status', 'pending')
+            existing.message = validated_data.get('message', '')
+            existing.from_user = validated_data.get('from_user', self.context['request'].user)
+            existing.save()
+            return existing
+
+        # Create new invitation
+        return super().create(validated_data)
 
 
 # ===== CIRCLE POSTS =====
@@ -584,5 +637,269 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
         if request and request.user:
             return obj.get_unread_count(request.user)
         return 0
+
+
+# ===== BOOK CLUBS / DISCUSSION TOPICS =====
+
+class DiscussionTopicListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for discussion topic lists"""
+    message_count = serializers.IntegerField(read_only=True)
+    last_activity = serializers.DateTimeField(read_only=True)
+    can_access = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DiscussionTopic
+        fields = [
+            'id',
+            'title',
+            'description',
+            'category',
+            'is_locked',
+            'required_progress',
+            'is_pinned',
+            'book',
+            'message_count',
+            'last_activity',
+            'can_access',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+
+    def get_can_access(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            return obj.can_user_access(request.user)
+        return not obj.is_locked
+
+
+class DiscussionTopicDetailSerializer(serializers.ModelSerializer):
+    """Detailed serializer for single discussion topic"""
+    creator = UserSerializer(read_only=True)
+    circle = CircleListSerializer(read_only=True)
+    book_data = serializers.SerializerMethodField()
+    message_count = serializers.IntegerField(read_only=True)
+    last_activity = serializers.DateTimeField(read_only=True)
+    can_access = serializers.SerializerMethodField()
+    recent_messages = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DiscussionTopic
+        fields = [
+            'id',
+            'circle',
+            'creator',
+            'title',
+            'description',
+            'category',
+            'is_locked',
+            'required_progress',
+            'is_pinned',
+            'book',
+            'book_data',
+            'message_count',
+            'last_activity',
+            'can_access',
+            'recent_messages',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'creator', 'created_at', 'updated_at']
+
+    def get_book_data(self, obj):
+        if obj.book:
+            return BookListSerializer(obj.book).data
+        return None
+
+    def get_can_access(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            return obj.can_user_access(request.user)
+        return not obj.is_locked
+
+    def get_recent_messages(self, obj):
+        messages = obj.messages.order_by('-created_at')[:20]
+        return TopicMessageSerializer(messages, many=True, context=self.context).data
+
+
+class DiscussionTopicCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating discussion topics"""
+
+    class Meta:
+        model = DiscussionTopic
+        fields = [
+            'circle',
+            'title',
+            'description',
+            'category',
+            'is_locked',
+            'required_progress',
+            'book',
+        ]
+
+    def validate(self, data):
+        circle = data.get('circle')
+        request = self.context.get('request')
+
+        # Validate user is member of circle
+        if not CircleMembership.objects.filter(
+            circle=circle,
+            user=request.user
+        ).exists():
+            raise serializers.ValidationError("You must be a member of this circle")
+
+        # If locked, must have required_progress
+        if data.get('is_locked') and not data.get('required_progress'):
+            data['required_progress'] = 50  # Default to 50%
+
+        return data
+
+
+class TopicMessageSerializer(serializers.ModelSerializer):
+    """Serializer for topic messages"""
+    author = UserSerializer(read_only=True)
+    attached_quote_data = serializers.SerializerMethodField()
+    attached_book_data = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TopicMessage
+        fields = [
+            'id',
+            'topic',
+            'author',
+            'content',
+            'attached_quote',
+            'attached_quote_data',
+            'attached_book',
+            'attached_book_data',
+            'likes_count',
+            'is_liked',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'author', 'likes_count', 'created_at', 'updated_at']
+
+    def get_attached_quote_data(self, obj):
+        if obj.attached_quote:
+            return QuoteListSerializer(obj.attached_quote).data
+        return None
+
+    def get_attached_book_data(self, obj):
+        if obj.attached_book:
+            return BookListSerializer(obj.attached_book).data
+        return None
+
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            return TopicMessageLike.objects.filter(
+                message=obj,
+                user=request.user
+            ).exists()
+        return False
+
+
+class TopicMessageCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating topic messages"""
+    attached_quote_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    attached_book_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+
+    class Meta:
+        model = TopicMessage
+        fields = [
+            'topic',
+            'content',
+            'attached_quote_id',
+            'attached_book_id',
+        ]
+
+    def validate(self, data):
+        topic = data.get('topic')
+        request = self.context.get('request')
+
+        # Validate user is member of the topic's circle
+        if not CircleMembership.objects.filter(
+            circle=topic.circle,
+            user=request.user
+        ).exists():
+            raise serializers.ValidationError("You must be a member of this circle")
+
+        # Check if user can access the topic
+        if not topic.can_user_access(request.user):
+            raise serializers.ValidationError(
+                f"You need at least {topic.required_progress}% progress to access this topic"
+            )
+
+        # Handle attachments
+        if data.get('attached_quote_id'):
+            from apps.reading.models import Quote
+            try:
+                data['attached_quote'] = Quote.objects.get(id=data['attached_quote_id'])
+            except Quote.DoesNotExist:
+                raise serializers.ValidationError("Attached quote not found")
+
+        if data.get('attached_book_id'):
+            from apps.books.models import Book
+            try:
+                data['attached_book'] = Book.objects.get(id=data['attached_book_id'])
+            except Book.DoesNotExist:
+                raise serializers.ValidationError("Attached book not found")
+
+        return data
+
+
+class BookClubReadingSerializer(serializers.ModelSerializer):
+    """Serializer for book club reading history"""
+    book_data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BookClubReading
+        fields = [
+            'id',
+            'circle',
+            'book',
+            'book_data',
+            'status',
+            'start_date',
+            'end_date',
+            'notes',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_book_data(self, obj):
+        return BookListSerializer(obj.book).data
+
+
+class BookClubReadingCreateSerializer(serializers.ModelSerializer):
+    """Serializer for adding books to club reading list"""
+
+    class Meta:
+        model = BookClubReading
+        fields = [
+            'circle',
+            'book',
+            'status',
+            'start_date',
+            'end_date',
+            'notes',
+        ]
+
+    def validate(self, data):
+        circle = data.get('circle')
+        request = self.context.get('request')
+
+        # Validate user is admin of circle
+        membership = CircleMembership.objects.filter(
+            circle=circle,
+            user=request.user,
+            role='admin'
+        ).first()
+
+        if not membership:
+            raise serializers.ValidationError("Only club admins can manage book readings")
+
+        return data
 
 

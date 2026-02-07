@@ -164,15 +164,173 @@ class BookViewSet(viewsets.ModelViewSet):
         book = self.get_object()
         from apps.reading.models import Quote
         from apps.reading.serializers import QuoteListSerializer
-        
+
         quotes = Quote.objects.filter(
             book=book,
             is_public=True
         ).select_related('user', 'book').prefetch_related('tags')
-        
+
         serializer = QuoteListSerializer(quotes, many=True)
         return Response(serializer.data)
-    
+
+    @action(detail=True, methods=['get'])
+    def community_activity(self, request, pk=None):
+        """
+        Get community activity for this book:
+        - Reviews from other users (with truncated content)
+        - Public quotes from other users
+        Excludes the current user's content.
+        """
+        book = self.get_object()
+        from apps.reading.models import UserBook, Quote
+        import re
+
+        def get_avatar_url(user):
+            """Safely get avatar URL from user"""
+            if user.avatar and hasattr(user.avatar, 'url'):
+                return user.avatar.url
+            return None
+
+        # Get book group to include all editions
+        book_ids = [book.id]
+        if book.book_group:
+            book_ids = list(book.book_group.editions.values_list('id', flat=True))
+
+        # Get reviews from other users (excluding current user)
+        reviews_qs = UserBook.objects.filter(
+            book_id__in=book_ids,
+            review__isnull=False,
+            is_public=True  # Only public reviews
+        ).exclude(
+            review=''
+        ).select_related('user', 'book').order_by('-updated_at')
+
+        # Exclude current user if authenticated
+        if request.user.is_authenticated:
+            reviews_qs = reviews_qs.exclude(user=request.user)
+
+        # Limit to 10 reviews
+        reviews_data = []
+        for ub in reviews_qs[:10]:
+            # Strip HTML and truncate review
+            plain_text = re.sub(r'<[^>]+>', '', ub.review or '')
+            plain_text = plain_text.strip()
+            truncated = plain_text[:300] + '...' if len(plain_text) > 300 else plain_text
+
+            reviews_data.append({
+                'id': ub.id,
+                'user': {
+                    'id': ub.user.id,
+                    'first_name': ub.user.first_name,
+                    'last_name': ub.user.last_name,
+                    'avatar': get_avatar_url(ub.user),
+                },
+                'rating': float(ub.rating) if ub.rating else None,
+                'status': ub.status,
+                'review_preview': truncated,
+                'has_full_review': len(plain_text) > 300,
+                'finished_at': ub.finished_at.isoformat() if ub.finished_at else None,
+                'updated_at': ub.updated_at.isoformat() if ub.updated_at else None,
+                'book_id': ub.book_id,
+            })
+
+        # Get public quotes from other users
+        quotes_qs = Quote.objects.filter(
+            book_id__in=book_ids,
+            is_public=True
+        ).select_related('user', 'book').prefetch_related('tags').order_by('-created_at')
+
+        # Exclude current user if authenticated
+        if request.user.is_authenticated:
+            quotes_qs = quotes_qs.exclude(user=request.user)
+
+        # Limit to 10 quotes
+        quotes_data = []
+        for quote in quotes_qs[:10]:
+            quotes_data.append({
+                'id': quote.id,
+                'user': {
+                    'id': quote.user.id,
+                    'first_name': quote.user.first_name,
+                    'last_name': quote.user.last_name,
+                    'avatar': get_avatar_url(quote.user),
+                },
+                'text': quote.text[:500] + '...' if len(quote.text) > 500 else quote.text,
+                'page_number': quote.page_number,
+                'chapter': quote.chapter,
+                'is_favorite': quote.is_favorite,
+                'created_at': quote.created_at.isoformat() if quote.created_at else None,
+                'tags': [{'id': t.id, 'name': t.name} for t in quote.tags.all()],
+            })
+
+        return Response({
+            'reviews': reviews_data,
+            'quotes': quotes_data,
+            'reviews_count': reviews_qs.count(),
+            'quotes_count': quotes_qs.count(),
+        })
+
+    @action(detail=True, methods=['get'], url_path='review/(?P<user_id>[^/.]+)')
+    def user_review(self, request, pk=None, user_id=None):
+        """
+        Get a specific user's full review for this book.
+        URL: /api/books/{book_id}/review/{user_id}/
+        """
+        book = self.get_object()
+        from apps.reading.models import UserBook
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
+        def get_avatar_url(user):
+            """Safely get avatar URL from user"""
+            if user.avatar and hasattr(user.avatar, 'url'):
+                return user.avatar.url
+            return None
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get book group to include all editions
+        book_ids = [book.id]
+        if book.book_group:
+            book_ids = list(book.book_group.editions.values_list('id', flat=True))
+
+        # Get user's review for this book (or any edition)
+        user_book = UserBook.objects.filter(
+            book_id__in=book_ids,
+            user=user,
+            review__isnull=False,
+            is_public=True
+        ).exclude(review='').select_related('user', 'book').first()
+
+        if not user_book:
+            return Response({'error': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            'id': user_book.id,
+            'user': {
+                'id': user_book.user.id,
+                'first_name': user_book.user.first_name,
+                'last_name': user_book.user.last_name,
+                'avatar': get_avatar_url(user_book.user),
+            },
+            'book': {
+                'id': user_book.book.id,
+                'title': user_book.book.title,
+                'cover_image': user_book.book.cover_image,
+                'authors': [{'id': a.id, 'name': a.name} for a in user_book.book.authors.all()],
+            },
+            'rating': float(user_book.rating) if user_book.rating else None,
+            'status': user_book.status,
+            'review': user_book.review,  # Full review HTML
+            'finished_at': user_book.finished_at.isoformat() if user_book.finished_at else None,
+            'started_at': user_book.started_at.isoformat() if user_book.started_at else None,
+            'updated_at': user_book.updated_at.isoformat() if user_book.updated_at else None,
+        })
+
     @action(detail=False, methods=['get'])
     def popular(self, request):
         """Get most popular books with smart scoring"""

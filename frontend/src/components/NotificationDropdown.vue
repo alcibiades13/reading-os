@@ -56,8 +56,28 @@ const handleNotificationClick = async (notification) => {
   await markAsRead(notification)
 
   // Navigate based on notification type
-  if (notification.notification_type === 'new_follower' && notification.actor) {
-    router.push(`/users/${notification.actor.id}`)
+  switch (notification.notification_type) {
+    case 'new_follower':
+      if (notification.actor) {
+        router.push(`/users/${notification.actor.id}`)
+      }
+      break
+    case 'circle_invitation':
+      // Navigate to circles page where user can see pending invitations
+      router.push('/circles')
+      break
+    case 'friend_request':
+      // Navigate to user profile who sent the request
+      if (notification.actor) {
+        router.push(`/users/${notification.actor.id}`)
+      }
+      break
+    case 'new_message':
+      router.push('/correspondence')
+      break
+    default:
+      // For unknown types, just mark as read
+      break
   }
 }
 
