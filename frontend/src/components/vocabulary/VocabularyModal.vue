@@ -72,33 +72,34 @@ const handleKeyDown = (e) => {
 
 <template>
   <div
-    class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/90 light:bg-white/90 backdrop-blur-md animate-in fade-in duration-300"
+    class="fixed inset-0 z-[110] flex items-end lg:items-center justify-center lg:p-4 bg-slate-950/90 light:bg-white/90 backdrop-blur-md animate-in fade-in duration-300"
     @keydown="handleKeyDown"
+    @click.self="emit('close')"
   >
-    <div class="relative w-full max-w-2xl glass light:bg-white light:border light:border-slate-200 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+    <div class="relative w-full lg:max-w-2xl glass light:bg-white light:border light:border-slate-200 rounded-t-2xl lg:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] lg:max-h-[90vh] animate-in slide-in-from-bottom lg:zoom-in-95 duration-300">
 
       <!-- Header -->
-      <div class="flex items-center justify-between p-8 border-b border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/5">
-            <Type :size="24" class="text-emerald-400" />
+      <div class="flex items-center justify-between p-4 lg:p-8 border-b border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50">
+        <div class="flex items-center gap-3 lg:gap-4">
+          <div class="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/5">
+            <Type :size="18" class="lg:w-6 lg:h-6 text-emerald-400" />
           </div>
           <div>
-            <h2 class="text-xl font-black text-white light:text-slate-900">{{ word ? 'Edit Word' : 'Capture Vocabulary' }}</h2>
-            <p class="text-[10px] uppercase font-black tracking-widest text-slate-500 light:text-slate-600">Add to your lexicon</p>
+            <h2 class="text-base lg:text-xl font-black text-white light:text-slate-900">{{ word ? 'Edit Word' : 'Add Word' }}</h2>
+            <p class="text-[9px] lg:text-[10px] uppercase font-black tracking-wider lg:tracking-widest text-slate-500 light:text-slate-600">Add to your lexicon</p>
           </div>
         </div>
-        <button @click="emit('close')" class="p-2.5 rounded-full hover:bg-slate-800 light:hover:bg-slate-200 text-slate-400 light:text-slate-600 transition-colors">
+        <button @click="emit('close')" class="p-2 lg:p-2.5 rounded-full hover:bg-slate-800 light:hover:bg-slate-200 text-slate-400 light:text-slate-600 transition-colors">
           <X :size="20" />
         </button>
       </div>
 
       <!-- Form Content -->
-      <div class="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
+      <div class="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar space-y-5 lg:space-y-10">
         <!-- Main Word -->
-        <div class="space-y-4">
-          <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
-            <Type :size="14" class="text-emerald-400" /> The Word
+        <div class="space-y-2 lg:space-y-4">
+          <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+            <Type :size="12" class="lg:w-3.5 lg:h-3.5 text-emerald-400" /> The Word
           </label>
           <input
             ref="wordRef"
@@ -106,105 +107,106 @@ const handleKeyDown = (e) => {
             type="text"
             v-model="wordText"
             placeholder="e.g. Mellifluous"
-            class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-2xl px-6 py-4 text-3xl font-serif text-white light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
+            class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl px-4 lg:px-6 py-3 lg:py-4 text-xl lg:text-3xl font-serif text-white light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
           />
         </div>
 
         <!-- Context & Definition -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
-              <AlignLeft :size="14" /> Context / Sentence
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+          <div class="space-y-2 lg:space-y-4">
+            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+              <AlignLeft :size="12" class="lg:w-3.5 lg:h-3.5" /> Context / Sentence
             </label>
             <textarea
               v-model="context"
               placeholder="Where did you find it?"
-              class="w-full h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-2xl p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
+              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
             />
           </div>
-          <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
-              <Plus :size="14" /> Your Definition
+          <div class="space-y-2 lg:space-y-4">
+            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+              <Plus :size="12" class="lg:w-3.5 lg:h-3.5" /> Your Definition
             </label>
             <textarea
               v-model="definition"
               placeholder="What does it mean to you?"
-              class="w-full h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-2xl p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
+              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
             />
           </div>
         </div>
 
         <!-- Metadata -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
-              <Book :size="14" /> Source Book
+        <div class="grid grid-cols-2 lg:grid-cols-2 gap-3 lg:gap-8">
+          <div class="space-y-2 lg:space-y-4">
+            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+              <Book :size="12" class="lg:w-3.5 lg:h-3.5" /> Source Book
             </label>
             <input
               type="text"
               v-model="bookTitle"
               placeholder="Title..."
-              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
+              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
             />
           </div>
-          <div class="space-y-4">
-            <label class="text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-widest flex items-center gap-2">
-              <Hash :size="14" /> Page
+          <div class="space-y-2 lg:space-y-4">
+            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+              <Hash :size="12" class="lg:w-3.5 lg:h-3.5" /> Page
             </label>
             <input
               type="number"
               v-model.number="pageNumber"
-              placeholder="Page number..."
-              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
+              placeholder="Page..."
+              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
             />
           </div>
         </div>
 
         <!-- Toggles -->
-        <div class="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-2 lg:gap-4">
           <button
             type="button"
             @click="isFavorite = !isFavorite"
             :class="[
-              'flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all',
+              'flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl border-2 transition-all',
               isFavorite ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-slate-800 text-slate-600'
             ]"
           >
-            <Star :size="18" :fill="isFavorite ? 'currentColor' : 'none'" />
-            <span class="text-xs font-black uppercase tracking-widest">Favorite</span>
+            <Star :size="16" class="lg:w-[18px] lg:h-[18px]" :fill="isFavorite ? 'currentColor' : 'none'" />
+            <span class="text-[10px] lg:text-xs font-black uppercase tracking-wider lg:tracking-widest">Favorite</span>
           </button>
           <button
             type="button"
             @click="isPublic = !isPublic"
             :class="[
-              'flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all',
+              'flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl border-2 transition-all',
               isPublic ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-slate-800 text-slate-600'
             ]"
           >
-            <Globe v-if="isPublic" :size="18" />
-            <Lock v-else :size="18" />
-            <span class="text-xs font-black uppercase tracking-widest">{{ isPublic ? 'Public' : 'Private' }}</span>
+            <Globe v-if="isPublic" :size="16" class="lg:w-[18px] lg:h-[18px]" />
+            <Lock v-else :size="16" class="lg:w-[18px] lg:h-[18px]" />
+            <span class="text-[10px] lg:text-xs font-black uppercase tracking-wider lg:tracking-widest">{{ isPublic ? 'Public' : 'Private' }}</span>
           </button>
         </div>
       </div>
 
       <!-- Footer Actions -->
-      <div class="p-8 border-t border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex flex-wrap gap-4">
+      <div class="p-4 lg:p-8 border-t border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex gap-3 lg:gap-4 safe-area-bottom">
         <button
           @click="handleSubmit(true)"
           type="button"
-          class="px-6 py-4 rounded-2xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 font-black text-xs uppercase tracking-widest hover:bg-slate-800 light:hover:bg-slate-200 transition-all"
+          class="px-4 lg:px-6 py-3 lg:py-4 rounded-xl lg:rounded-2xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 font-bold lg:font-black text-[10px] lg:text-xs uppercase tracking-wider lg:tracking-widest hover:bg-slate-800 light:hover:bg-slate-200 transition-all"
         >
-          Save & Add Another
+          <span class="hidden lg:inline">Save & Add Another</span>
+          <span class="lg:hidden">+ Another</span>
         </button>
-        <div class="flex-1 min-w-0" />
         <button
           @click="handleSubmit(false)"
           type="button"
-          class="flex items-center gap-3 px-10 py-4 rounded-2xl bg-emerald-500 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all"
+          class="flex-1 lg:flex-none flex items-center justify-center gap-2 lg:gap-3 px-6 lg:px-10 py-3 lg:py-4 rounded-xl lg:rounded-2xl bg-emerald-500 text-white font-bold lg:font-black text-xs uppercase tracking-wider lg:tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all"
         >
-          <Save :size="20" />
-          Capture Entry
+          <Save :size="18" class="lg:w-5 lg:h-5" />
+          <span class="hidden lg:inline">Capture Entry</span>
+          <span class="lg:hidden">Save</span>
         </button>
       </div>
     </div>
@@ -227,5 +229,30 @@ const handleKeyDown = (e) => {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgb(71 85 105 / 0.7);
+}
+
+/* Safe area for bottom nav */
+.safe-area-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .safe-area-bottom {
+    padding-bottom: 2rem;
+  }
+}
+
+/* Mobile slide-in animation */
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.slide-in-from-bottom {
+  animation: slide-in-from-bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 </style>

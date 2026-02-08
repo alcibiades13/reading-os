@@ -174,31 +174,35 @@ onUnmounted(() => {
         </div>
 
         <!-- Back -->
-        <div class="flip-card-back glass bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20 p-6 sm:p-10 flex flex-col border border-emerald-500/20 shadow-2xl overflow-hidden">
-          <div class="mb-4 sm:mb-6">
-            <span class="text-[10px] sm:text-xs font-black text-emerald-400 uppercase tracking-widest block mb-2">Definition</span>
-            <p class="text-base sm:text-xl text-white font-medium leading-relaxed">
-              {{ currentWord.definition || "No definition provided." }}
-            </p>
+        <div class="flip-card-back glass bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20 p-4 sm:p-10 flex flex-col border border-emerald-500/20 shadow-2xl">
+          <!-- Scrollable content area -->
+          <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0">
+            <div class="mb-3 sm:mb-6">
+              <span class="text-[10px] sm:text-xs font-black text-emerald-400 uppercase tracking-widest block mb-2">Definition</span>
+              <p class="text-sm sm:text-lg text-white font-medium leading-relaxed">
+                {{ currentWord.definition || "No definition provided." }}
+              </p>
+            </div>
+
+            <div v-if="currentWord.context" class="mb-3 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-500/5 border-l-4 border-emerald-500/30 italic text-slate-300 font-serif text-xs sm:text-base">
+              "{{ currentWord.context }}"
+            </div>
           </div>
 
-          <div v-if="currentWord.context" class="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-500/5 border-l-4 border-emerald-500/30 italic text-slate-300 font-serif text-sm sm:text-base">
-            "{{ currentWord.context }}"
-          </div>
-
-          <div class="mt-auto flex items-center justify-between pt-4 sm:pt-6 border-t border-slate-800">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
-                <RotateCcw :size="14" />
+          <!-- Fixed footer -->
+          <div class="flex-shrink-0 flex items-center justify-between pt-3 sm:pt-6 border-t border-slate-800 mt-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
+                <RotateCcw :size="12" class="sm:w-3.5 sm:h-3.5" />
               </div>
               <div>
-                <p class="text-[10px] font-black text-slate-500 uppercase">Book Source</p>
-                <p class="text-xs font-bold text-white">{{ currentWord.bookTitle || "Manual Entry" }}</p>
+                <p class="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase">Source</p>
+                <p class="text-[10px] sm:text-xs font-bold text-white truncate max-w-[100px] sm:max-w-none">{{ currentWord.bookTitle || "Manual" }}</p>
               </div>
             </div>
             <div v-if="currentWord.pageNumber" class="text-right">
-              <p class="text-[10px] font-black text-slate-500 uppercase">Page</p>
-              <p class="text-xs font-bold text-white">{{ currentWord.pageNumber }}</p>
+              <p class="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase">Page</p>
+              <p class="text-[10px] sm:text-xs font-bold text-white">{{ currentWord.pageNumber }}</p>
             </div>
           </div>
         </div>

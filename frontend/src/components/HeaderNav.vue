@@ -50,29 +50,29 @@ const handleLogout = () => {
     <SearchDropdown />
 
     <div class="flex items-center gap-2 sm:gap-3 lg:gap-6 ml-2 sm:ml-4 lg:ml-8">
-      <!-- Theme Toggle -->
-      <div class="flex items-center gap-0.5 p-0.5 lg:p-1 bg-white/5 rounded-lg lg:rounded-xl border border-slate-800/50">
+      <!-- Theme Toggle (Desktop only - on mobile it's in avatar dropdown) -->
+      <div class="hidden lg:flex items-center gap-0.5 p-1 bg-white/5 rounded-xl border border-slate-800/50">
         <button
           @click="themeStore.setTheme('light')"
           :class="[
-            'p-1.5 lg:p-2 rounded-md lg:rounded-lg transition-all',
+            'p-2 rounded-lg transition-all',
             themeStore.theme === 'light'
               ? 'bg-indigo-500 text-white shadow-lg'
               : 'text-slate-400 hover:text-indigo-500'
           ]"
         >
-          <Sun :size="14" class="lg:!w-[18px] lg:!h-[18px]" />
+          <Sun :size="18" />
         </button>
         <button
           @click="themeStore.setTheme('dark')"
           :class="[
-            'p-1.5 lg:p-2 rounded-md lg:rounded-lg transition-all',
+            'p-2 rounded-lg transition-all',
             themeStore.theme === 'dark'
               ? 'bg-indigo-500 text-white shadow-lg'
               : 'text-slate-400 hover:text-indigo-500'
           ]"
         >
-          <Moon :size="14" class="lg:!w-[18px] lg:!h-[18px]" />
+          <Moon :size="18" />
         </button>
       </div>
 
@@ -117,6 +117,36 @@ const handleLogout = () => {
             <Settings class="w-4 h-4 mr-2" />
             Settings
           </DropdownMenuItem>
+          <!-- Theme Toggle (shown inside dropdown) -->
+          <div class="px-2 py-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-400">Theme</span>
+              <div class="flex items-center gap-0.5 p-0.5 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                <button
+                  @click.stop="themeStore.setTheme('light')"
+                  :class="[
+                    'p-1.5 rounded-md transition-all',
+                    themeStore.theme === 'light'
+                      ? 'bg-indigo-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-indigo-400'
+                  ]"
+                >
+                  <Sun :size="14" />
+                </button>
+                <button
+                  @click.stop="themeStore.setTheme('dark')"
+                  :class="[
+                    'p-1.5 rounded-md transition-all',
+                    themeStore.theme === 'dark'
+                      ? 'bg-indigo-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-indigo-400'
+                  ]"
+                >
+                  <Moon :size="14" />
+                </button>
+              </div>
+            </div>
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem @click="handleLogout" class="text-destructive focus:text-destructive">
             <LogOut class="w-4 h-4 mr-2" />

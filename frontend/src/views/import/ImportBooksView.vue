@@ -5,7 +5,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Search, BookPlus, Command, Hash, Filter, Library, BookOpen } from 'lucide-vue-next'
+import { Search, BookPlus, Command, Hash, Filter, Library, BookOpen, X } from 'lucide-vue-next'
+
+const showMobileFilters = ref(false)
 import ImportBookCard from '@/components/import/ImportBookCard.vue'
 import SkeletonCard from '@/components/import/SkeletonCard.vue'
 import BookPreviewModal from '@/components/BookPreviewModal.vue'
@@ -116,8 +118,177 @@ const handleDelfiUrlSubmit = async () => {
 
 <template>
   <div class="relative z-10 pb-20">
-    <!-- Header Section -->
-    <div class="w-full max-w-7xl mx-auto pt-12 pb-8 px-6">
+    <!-- Mobile Header (Sticky - minimal) -->
+    <div class="lg:hidden sticky top-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 safe-area-top">
+      <div class="flex items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+            <BookPlus :size="18" class="text-indigo-400" />
+          </div>
+          <div>
+            <h1 class="text-base font-bold text-white">Import Books</h1>
+            <p class="text-xs text-slate-500">Search & discover</p>
+          </div>
+        </div>
+        <button
+          @click="showMobileFilters = true"
+          class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-slate-400 active:scale-95 transition-transform"
+        >
+          <Filter :size="18" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Content Area (Not sticky) -->
+    <div class="lg:hidden px-4 pt-4 space-y-3">
+      <!-- Mobile Tabs -->
+      <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        <button
+          @click="tab = 'general'"
+          :class="tab === 'general' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+          class="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all"
+        >
+          <Search :size="14" />
+          Search
+        </button>
+        <button
+          @click="tab = 'isbn'"
+          :class="tab === 'isbn' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+          class="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all"
+        >
+          <Hash :size="14" />
+          ISBN
+        </button>
+        <button
+          @click="tab = 'delfi'"
+          :class="tab === 'delfi' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+          class="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all"
+        >
+          <BookOpen :size="14" />
+          Delfi URL
+        </button>
+      </div>
+
+      <!-- Mobile Search Input -->
+      <div class="relative">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+        <input
+          v-if="tab === 'general'"
+          v-model="searchInput"
+          type="text"
+          placeholder="Search books..."
+          class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+        />
+        <input
+          v-else-if="tab === 'isbn'"
+          v-model="isbnInput"
+          type="text"
+          placeholder="Enter ISBN..."
+          class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+        />
+        <input
+          v-else-if="tab === 'delfi'"
+          v-model="delfiUrlInput"
+          type="text"
+          @keyup.enter="handleDelfiUrlSubmit"
+          placeholder="Paste Delfi.rs URL..."
+          class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-12 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+        />
+        <button
+          v-if="tab === 'delfi' && delfiUrlInput"
+          @click="handleDelfiUrlSubmit"
+          class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-bold"
+        >
+          Find
+        </button>
+      </div>
+
+      <!-- Active Source Indicator -->
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Source:</span>
+        <span class="text-xs font-bold text-indigo-400">
+          {{ importStore.importSource === 'google_books' ? 'Google Books' :
+             importStore.importSource === 'open_library' ? 'Open Library' :
+             importStore.importSource === 'both' ? 'All Sources' : 'Delfi.rs' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Mobile Filter Panel -->
+    <Teleport to="body">
+      <Transition name="slide">
+        <div
+          v-if="showMobileFilters"
+          class="fixed inset-0 z-50 lg:hidden"
+        >
+          <!-- Backdrop -->
+          <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            @click="showMobileFilters = false"
+          />
+
+          <!-- Panel -->
+          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto safe-area-inset">
+            <!-- Panel Header -->
+            <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 px-4 py-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-white">Search Source</h2>
+                <button
+                  @click="showMobileFilters = false"
+                  class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400"
+                >
+                  <X :size="20" />
+                </button>
+              </div>
+            </div>
+
+            <div class="p-4 space-y-6">
+              <!-- Source Selection -->
+              <div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Choose Source</h3>
+                <div class="space-y-2">
+                  <button
+                    @click="importStore.setImportSource('google_books'); showMobileFilters = false"
+                    :class="importStore.importSource === 'google_books' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 text-slate-400'"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
+                  >
+                    <Search :size="18" />
+                    <span class="font-bold">Google Books</span>
+                  </button>
+                  <button
+                    @click="importStore.setImportSource('open_library'); showMobileFilters = false"
+                    :class="importStore.importSource === 'open_library' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 text-slate-400'"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
+                  >
+                    <BookOpen :size="18" />
+                    <span class="font-bold">Open Library</span>
+                  </button>
+                  <button
+                    @click="importStore.setImportSource('both'); showMobileFilters = false"
+                    :class="importStore.importSource === 'both' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 text-slate-400'"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
+                  >
+                    <Library :size="18" />
+                    <span class="font-bold">Both Sources</span>
+                  </button>
+                  <button
+                    @click="importStore.setImportSource('delfi_rs'); showMobileFilters = false"
+                    :class="importStore.importSource === 'delfi_rs' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 text-slate-400'"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
+                  >
+                    <BookOpen :size="18" />
+                    <span class="font-bold">Delfi.rs 🇷🇸</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Header Section (Desktop) -->
+    <div class="hidden lg:block w-full max-w-7xl mx-auto pt-12 pb-8 px-6">
       <header class="mb-12">
         <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
           Discover & <AccentText>Import</AccentText>
@@ -138,8 +309,7 @@ const handleDelfiUrlSubmit = async () => {
               class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <Search :size="14" />
-              <span class="hidden sm:inline">Google Books</span>
-              <span class="sm:hidden">Google</span>
+              Google Books
             </button>
             <button
               @click="importStore.setImportSource('open_library')"
@@ -147,8 +317,7 @@ const handleDelfiUrlSubmit = async () => {
               class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <BookOpen :size="14" />
-              <span class="hidden sm:inline">Open Library</span>
-              <span class="sm:hidden">Open Lib</span>
+              Open Library
             </button>
             <button
               @click="importStore.setImportSource('both')"
@@ -324,3 +493,50 @@ const handleDelfiUrlSubmit = async () => {
     />
   </div>
 </template>
+
+<style scoped>
+/* Slide transition for mobile filter panel */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-enter-active > div:last-child,
+.slide-leave-active > div:last-child {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-from > div:last-child,
+.slide-leave-to > div:last-child {
+  transform: translateX(100%);
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area support */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Touch feedback */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+</style>

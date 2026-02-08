@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink } from 'lucide-vue-next'
+import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter } from 'lucide-vue-next'
 
 const router = useRouter()
 const quotesStore = useQuotesStore()
@@ -18,6 +18,7 @@ const showFavorites = ref(false)
 const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const editingQuote = ref(null)
+const showMobileFilters = ref(false)
 
 // Book autocomplete (for create)
 const bookSearchQuery = ref('')
@@ -396,8 +397,181 @@ const handleEditQuote = async () => {
 
 <template>
   <div class="animate-in fade-in duration-700 pb-20">
-    <!-- Page Header -->
-    <div class="max-w-7xl mx-auto pt-12 pb-8 px-6">
+    <!-- Mobile Header (Sticky - minimal) -->
+    <div class="lg:hidden sticky top-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 safe-area-top">
+      <div class="flex items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+            <Type :size="18" class="text-indigo-400" />
+          </div>
+          <div>
+            <h1 class="text-base font-bold text-white">Quotes & Insights</h1>
+            <p class="text-xs text-slate-500">{{ stats.total }} collected</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            @click="showMobileFilters = true"
+            class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-slate-400 active:scale-95 transition-transform"
+          >
+            <Filter :size="18" />
+          </button>
+          <button
+            @click="isCreateDialogOpen = true"
+            class="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-transform"
+          >
+            <Plus :size="20" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Content Area (Not sticky) -->
+    <div class="lg:hidden px-4 pt-4 space-y-3">
+      <!-- Mobile Stats Row -->
+      <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        <div class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+          <Sparkles :size="12" class="text-indigo-400" />
+          <span class="text-[11px] font-bold text-white">{{ stats.total }}</span>
+          <span class="text-[11px] text-indigo-400/70">insights</span>
+        </div>
+        <div class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+          <Star :size="12" class="text-amber-400" />
+          <span class="text-[11px] font-bold text-white">{{ stats.favorites }}</span>
+          <span class="text-[11px] text-amber-400/70">favorites</span>
+        </div>
+        <div class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
+          <BookOpen :size="12" class="text-sky-400" />
+          <span class="text-[11px] font-bold text-white">{{ stats.books }}</span>
+          <span class="text-[11px] text-sky-400/70">sources</span>
+        </div>
+      </div>
+
+      <!-- Active Filters -->
+      <div v-if="selectedTag || showFavorites || searchQuery" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0">Active:</span>
+        <button
+          v-if="searchQuery"
+          @click="searchQuery = ''; handleSearch()"
+          class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-700/50 border border-slate-600 text-slate-300 text-xs font-bold"
+        >
+          <Search :size="12" />
+          "{{ searchQuery.length > 12 ? searchQuery.slice(0, 12) + '...' : searchQuery }}"
+          <X :size="12" />
+        </button>
+        <button
+          v-if="showFavorites"
+          @click="toggleFavorites"
+          class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold"
+        >
+          <Star :size="12" fill="currentColor" />
+          Favorites
+          <X :size="12" />
+        </button>
+        <button
+          v-if="selectedTag"
+          @click="selectedTag = null; quotesStore.setFilter('tag', null)"
+          class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 text-xs font-bold"
+        >
+          #{{ quotesStore.tags?.find(t => t.id === selectedTag)?.name || selectedTag }}
+          <X :size="12" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Filter Panel -->
+    <Teleport to="body">
+      <Transition name="slide">
+        <div
+          v-if="showMobileFilters"
+          class="fixed inset-0 z-50 lg:hidden"
+        >
+          <!-- Backdrop -->
+          <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            @click="showMobileFilters = false"
+          />
+
+          <!-- Panel -->
+          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto safe-area-inset">
+            <!-- Panel Header -->
+            <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 px-4 py-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-white">Filters & Tags</h2>
+                <button
+                  @click="showMobileFilters = false"
+                  class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400"
+                >
+                  <X :size="20" />
+                </button>
+              </div>
+            </div>
+
+            <div class="p-4 space-y-6">
+              <!-- Search -->
+              <div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Search</h3>
+                <div class="relative">
+                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+                  <input
+                    type="text"
+                    v-model="searchQuery"
+                    @input="handleSearch"
+                    placeholder="Search quotes..."
+                    class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <!-- Quick Filters -->
+              <div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Filters</h3>
+                <div class="space-y-2">
+                  <button
+                    @click="toggleFavorites(); showMobileFilters = false"
+                    :class="showFavorites ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-400'"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
+                  >
+                    <Star :size="18" :fill="showFavorites ? 'currentColor' : 'none'" />
+                    <span class="font-bold">Favorites Only</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tags -->
+              <div v-if="quotesStore.tags?.length > 0">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Tags</h3>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="tag in quotesStore.tags"
+                    :key="tag.id"
+                    @click="filterByTag(tag.id); showMobileFilters = false"
+                    :class="selectedTag === tag.id
+                      ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-600'"
+                    class="px-3 py-2 rounded-xl border text-sm font-semibold transition-all"
+                  >
+                    #{{ tag.name }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Clear Filters -->
+              <button
+                v-if="selectedTag || showFavorites || searchQuery"
+                @click="clearFilters(); showMobileFilters = false"
+                class="w-full px-4 py-3 rounded-xl border border-red-500/30 text-red-400 font-bold text-sm hover:bg-red-500/10 transition-all"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Page Header (Desktop) -->
+    <div class="hidden lg:block max-w-7xl mx-auto pt-12 pb-8 px-6">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
         <header>
           <div class="flex items-center gap-2 sm:gap-3 mb-4">
@@ -590,8 +764,8 @@ const handleEditQuote = async () => {
         </Dialog>
       </div>
 
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-12">
+      <!-- Stats Grid (Desktop) -->
+      <div class="hidden lg:grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-12">
         <div class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-indigo-400 bg-indigo-500/10 border-indigo-500/20 shadow-xl shadow-indigo-500/5 transition-all duration-500 hover:scale-[1.02]">
           <div class="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4 opacity-70">
             <Sparkles :size="16" class="sm:w-5 sm:h-5" />
@@ -617,8 +791,8 @@ const handleEditQuote = async () => {
         </div>
       </div>
 
-      <!-- Filter Bar -->
-      <div class="space-y-6">
+      <!-- Filter Bar (Desktop) -->
+      <div class="hidden lg:block space-y-6">
         <div class="flex flex-col lg:flex-row gap-4">
           <div class="flex-1 relative group">
             <Search class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" :size="20" />
@@ -700,7 +874,7 @@ const handleEditQuote = async () => {
             </p>
 
             <!-- Book Info -->
-            <div class="flex flex-col sm:flex-row items-start gap-2 sm:gap-3 pt-3 border-t border-slate-800/50">
+            <div class="flex items-start gap-2 sm:gap-3 pt-3 border-t border-slate-800/50">
               <!-- Book Cover or Placeholder -->
               <div
                 v-if="quote.book_cover"
@@ -983,3 +1157,50 @@ const handleEditQuote = async () => {
     </Dialog>
   </div>
 </template>
+
+<style scoped>
+/* Slide transition for mobile filter panel */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-enter-active > div:last-child,
+.slide-leave-active > div:last-child {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-from > div:last-child,
+.slide-leave-to > div:last-child {
+  transform: translateX(100%);
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area support */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Touch feedback */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+</style>

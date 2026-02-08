@@ -26,24 +26,24 @@ const returnToLearning = () => {
 
 <template>
   <div class="group glass bg-slate-900/40 rounded-2xl p-6 border border-slate-800/50 hover:border-emerald-500/30 transition-all duration-300">
-    <div class="flex items-start justify-between mb-4 gap-1">
+    <div class="flex items-start justify-between mb-4 gap-2">
       <div class="min-w-0 flex-1">
-        <h3 class="text-xl font-serif font-black text-white group-hover:text-emerald-400 transition-colors overflow-wrap-anywhere">
-          {{ word.word }}
-        </h3>
-        <div class="flex items-center gap-2 mt-2">
-          <span :class="['px-2 py-0.5 rounded text-[8px] font-black uppercase text-white tracking-widest', config.color]">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h3 class="text-xl font-serif font-black text-white group-hover:text-emerald-400 transition-colors overflow-wrap-anywhere">
+            {{ word.word }}
+          </h3>
+          <span :class="['px-2 py-0.5 rounded text-[8px] font-black uppercase text-white tracking-widest flex-shrink-0', config.color]">
             {{ config.label }}
           </span>
           <button
             v-if="word.mastery === 'mastered'"
             @click="returnToLearning"
-            class="p-1 rounded hover:bg-amber-500/20 text-amber-400/60 hover:text-amber-400 transition-all group/reset"
+            class="p-1 rounded hover:bg-amber-500/20 text-amber-400/60 hover:text-amber-400 transition-all group/reset flex-shrink-0"
             title="Return to practice rotation"
           >
             <RotateCcw :size="10" class="group-hover/reset:rotate-180 transition-transform duration-500" />
           </button>
-          <Star v-if="word.isFavorite" :size="12" class="text-amber-400" fill="currentColor" />
+          <Star v-if="word.isFavorite" :size="12" class="text-amber-400 flex-shrink-0" fill="currentColor" />
         </div>
       </div>
       <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
