@@ -17,8 +17,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   ArrowLeft, ArrowRight, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2, X, MoreHorizontal, ChevronDown
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -55,6 +62,7 @@ const currentPageInput = ref(0)
 const reviewInput = ref('')
 const coverLoaded = ref(false)
 const currentCoverUrl = ref('')
+const showMobileSidebar = ref(false)
 
 // Sidebar state
 const similarBooks = ref([])
@@ -775,21 +783,161 @@ export const QuoteCard = defineComponent({
 </script>
 
 <template>
-  <div v-if="book" class="w-full max-w-[1600px] mx-auto px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <div v-if="book" class="w-full max-w-[1600px] mx-auto lg:px-6 lg:py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-    <!-- Back Button -->
+    <!-- MOBILE HEADER -->
+    <header class="lg:hidden sticky top-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-white/5">
+      <div class="flex items-center justify-between px-4 py-3">
+        <button
+          @click="handleBack"
+          class="p-2 -ml-2 rounded-xl text-slate-400 active:bg-slate-800"
+        >
+          <ArrowLeft :size="22" />
+        </button>
+        <div class="flex-1 min-w-0 mx-3">
+          <h1 class="text-sm font-bold text-white truncate">{{ book.title }}</h1>
+          <p class="text-[10px] text-slate-500 truncate">{{ authorsString }}</p>
+        </div>
+        <div class="flex items-center gap-1">
+          <button
+            @click="handleToggleFavorite"
+            :class="[
+              'p-2 rounded-xl transition-colors',
+              isFavorite ? 'text-rose-400' : 'text-slate-400'
+            ]"
+          >
+            <Heart :size="20" :fill="isFavorite ? 'currentColor' : 'none'" />
+          </button>
+          <button
+            @click="showMobileSidebar = true"
+            class="p-2 rounded-xl text-slate-400 active:bg-slate-800"
+          >
+            <MoreHorizontal :size="20" />
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Desktop Back Button -->
     <button
       @click="handleBack"
-      class="flex items-center gap-2 text-slate-400 hover:text-indigo-400 mb-10 transition-colors font-bold group"
+      class="hidden lg:flex items-center gap-2 text-slate-400 hover:text-indigo-400 mb-10 transition-colors font-bold group"
     >
       <ArrowLeft :size="20" class="group-hover:-translate-x-1 transition-transform" />
       Back to Results
     </button>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+    <!-- MOBILE HERO - Cover + Quick Info -->
+    <div class="lg:hidden">
+      <!-- Cover Section -->
+      <div class="relative px-4 pt-4 pb-6">
+        <div class="flex gap-4">
+          <!-- Cover -->
+          <div class="relative shrink-0 w-28 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 animate-pulse" />
+            <img
+              :key="coverUrl"
+              :src="coverUrl"
+              :alt="book.title"
+              @load="handleCoverLoad"
+              v-show="coverLoaded"
+              class="w-full h-full object-cover"
+            />
+          </div>
 
-      <!-- Left Column - Cover & Main Info -->
-      <div class="lg:col-span-3 min-w-0 space-y-8">
+          <!-- Quick Info -->
+          <div class="flex-1 min-w-0 py-1">
+            <div v-if="book.genres?.length > 0" class="flex flex-wrap gap-1 mb-2">
+              <span
+                v-for="genre in book.genres.slice(0, 2)"
+                :key="genre.id"
+                class="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold"
+              >
+                {{ genre.name }}
+              </span>
+            </div>
+            <h1 class="text-lg font-black text-white leading-tight mb-1 line-clamp-2">{{ book.title }}</h1>
+            <p class="text-sm text-slate-400 mb-2">
+              by <span class="text-indigo-400">{{ authorsString }}</span>
+            </p>
+
+            <!-- Rating -->
+            <div class="flex items-center gap-2 mb-3">
+              <StarRating :model-value="averageRating" :readonly="true" :size="14" :show-value="true" />
+            </div>
+
+            <!-- Quick Stats 2x2 Grid -->
+            <div class="grid grid-cols-2 gap-1.5">
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                <BookOpen :size="12" class="text-slate-400" />
+                <span class="text-[11px] font-bold text-white">{{ book.pages || '---' }}</span>
+                <span class="text-[9px] text-slate-500">pg</span>
+              </div>
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                <Globe :size="12" class="text-slate-400" />
+                <span class="text-[11px] font-bold text-white">{{ book.language?.toUpperCase() || '---' }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                <Calendar :size="12" class="text-slate-400" />
+                <span class="text-[11px] font-bold text-white">{{ publishedYear }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                <Bookmark :size="12" class="text-indigo-400" />
+                <span class="text-[11px] font-bold text-white">{{ bookQuotes.length }}</span>
+                <span class="text-[9px] text-slate-500">quotes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Status Button -->
+      <div class="px-4 pb-4">
+        <div v-if="!isInLibrary">
+          <button
+            @click="handleAddToLibrary"
+            class="w-full py-3.5 rounded-xl bg-indigo-500 text-white font-bold shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
+            <Plus :size="18" />
+            Add to Library
+          </button>
+        </div>
+        <div v-else class="flex gap-2">
+          <div class="flex-1 relative">
+            <div
+              :class="[
+                'absolute left-0 top-0 bottom-0 w-1 rounded-l-xl z-10',
+                currentStatus === 'read' ? 'bg-emerald-500' :
+                currentStatus === 'currently_reading' ? 'bg-sky-500' :
+                currentStatus === 'abandoned' ? 'bg-red-500' : 'bg-slate-600'
+              ]"
+            />
+            <Select :model-value="currentStatus" @update:model-value="handleStatusChange">
+              <SelectTrigger class="w-full bg-slate-800 border-slate-700 rounded-xl pl-4 pr-3 py-3 h-auto text-sm font-bold text-slate-200">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent class="bg-slate-800 border-slate-700">
+                <SelectItem value="want_to_read" class="text-slate-200 focus:bg-slate-700 focus:text-white">Want to Read</SelectItem>
+                <SelectItem value="currently_reading" class="text-slate-200 focus:bg-slate-700 focus:text-white">Currently Reading</SelectItem>
+                <SelectItem value="read" class="text-slate-200 focus:bg-slate-700 focus:text-white">Finished</SelectItem>
+                <SelectItem value="abandoned" class="text-slate-200 focus:bg-slate-700 focus:text-white">Abandoned</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <button
+            @click="handleStudyMode"
+            class="px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-bold active:scale-[0.98] transition-transform"
+          >
+            <Brain :size="18" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
+
+      <!-- Left Column - Cover & Main Info (Desktop only) -->
+      <div class="hidden lg:block lg:col-span-3 min-w-0 space-y-8">
         <div class="relative aspect-[2/3] w-full max-w-[200px] sm:max-w-xs mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
           <!-- Skeleton loader -->
           <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 animate-pulse z-10" />
@@ -849,10 +997,10 @@ export const QuoteCard = defineComponent({
       </div>
 
       <!-- Middle Column - Interaction & Content -->
-      <div class="lg:col-span-6 min-w-0 space-y-12">
+      <div class="lg:col-span-6 min-w-0 space-y-6 lg:space-y-12 px-4 lg:px-0">
 
-        <!-- Header Info -->
-        <section>
+        <!-- Header Info (Desktop only) -->
+        <section class="hidden lg:block">
           <div v-if="book.genres?.length > 0" class="flex flex-wrap gap-2 mb-6">
             <span
               v-for="genre in book.genres"
@@ -890,14 +1038,14 @@ export const QuoteCard = defineComponent({
         </section>
 
         <!-- My Reading - Interaction Hub -->
-        <section class="p-6 sm:p-8 rounded-3xl glass border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden">
-          <div class="absolute top-0 right-0 p-8 opacity-10">
-            <Sparkles :size="120" class="text-indigo-500" />
+        <section class="p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl glass border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-4 lg:p-8 opacity-10">
+            <Sparkles :size="80" class="lg:w-[120px] lg:h-[120px] text-indigo-500" />
           </div>
 
-          <div class="relative z-10 space-y-6">
-            <!-- Header -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="relative z-10 space-y-4 lg:space-y-6">
+            <!-- Header (Desktop shows full, mobile shows compact) -->
+            <div class="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 class="text-xl font-bold text-white mb-1">My Reading</h2>
                 <p class="text-slate-400 text-sm">Track your progress and thoughts</p>
@@ -937,6 +1085,14 @@ export const QuoteCard = defineComponent({
                   </select>
                 </div>
               </div>
+            </div>
+
+            <!-- Mobile Header -->
+            <div class="lg:hidden flex items-center justify-between">
+              <h2 class="text-base font-bold text-white">My Reading</h2>
+              <span :class="['px-2 py-1 rounded-lg text-[10px] font-bold border', getStatusBadgeClass(currentStatus)]">
+                {{ getStatusLabel(currentStatus) }}
+              </span>
             </div>
 
             <!-- Content for In-Library books -->
@@ -1135,10 +1291,55 @@ export const QuoteCard = defineComponent({
           :book-id="bookId"
           :book-title="book.title"
         />
+
+        <!-- Mobile Similar Books -->
+        <section v-if="similarBooks.length > 0" class="lg:hidden">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2">
+              <Sparkles :size="14" class="text-indigo-400" />
+              Similar Books
+            </h2>
+            <button
+              @click="showMobileSidebar = true"
+              class="text-xs font-bold text-indigo-400"
+            >
+              See All
+            </button>
+          </div>
+
+          <div class="flex gap-3 overflow-x-auto hide-scrollbar -mx-4 px-4 pb-2">
+            <router-link
+              v-for="simBook in similarBooks"
+              :key="simBook.id"
+              :to="getBookUrl(simBook)"
+              class="shrink-0 w-24 group"
+            >
+              <div class="aspect-[2/3] rounded-lg overflow-hidden bg-slate-800 shadow-lg mb-2">
+                <img
+                  v-if="simBook.cover_image"
+                  :src="simBook.cover_image"
+                  :alt="simBook.title"
+                  class="w-full h-full object-cover group-active:scale-105 transition-transform"
+                />
+                <div v-else class="w-full h-full flex items-center justify-center">
+                  <BookOpen :size="20" class="text-slate-600" />
+                </div>
+              </div>
+              <h4 class="text-xs font-bold text-white line-clamp-2 leading-tight">{{ simBook.title }}</h4>
+              <p class="text-[10px] text-slate-500 truncate">{{ simBook.authors?.map(a => a.name).join(', ') }}</p>
+              <span v-if="simBook.similarity_score" class="text-[10px] font-bold text-indigo-400">
+                {{ Math.round(simBook.similarity_score) }}% match
+              </span>
+            </router-link>
+          </div>
+        </section>
+
+        <!-- Mobile bottom padding -->
+        <div class="lg:hidden h-8"></div>
       </div>
 
-      <!-- Right Column - Sidebar -->
-      <div class="lg:col-span-3 min-w-0 space-y-6">
+      <!-- Right Column - Sidebar (Desktop only) -->
+      <div class="hidden lg:block lg:col-span-3 min-w-0 space-y-6">
 
         <!-- Similar Books -->
         <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
@@ -1706,6 +1907,180 @@ export const QuoteCard = defineComponent({
     </DialogContent>
   </Dialog>
 
+  <!-- Mobile Sidebar Slide-out -->
+  <Teleport to="body">
+    <Transition name="slide">
+      <div
+        v-if="showMobileSidebar"
+        class="lg:hidden fixed inset-0 z-50"
+      >
+        <!-- Backdrop -->
+        <div
+          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          @click="showMobileSidebar = false"
+        />
+
+        <!-- Panel -->
+        <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto">
+          <!-- Header -->
+          <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
+            <h2 class="text-lg font-bold text-white">More Info</h2>
+            <button
+              @click="showMobileSidebar = false"
+              class="p-2 rounded-xl bg-slate-800 text-slate-400"
+            >
+              <X :size="18" />
+            </button>
+          </div>
+
+          <!-- Content -->
+          <div class="p-4 space-y-4">
+            <!-- Similar Books -->
+            <div v-if="similarBooks.length > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+              <div class="flex items-center gap-2 mb-4">
+                <Sparkles :size="16" class="text-indigo-400" />
+                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Similar Books</h3>
+              </div>
+              <div class="space-y-3">
+                <router-link
+                  v-for="simBook in similarBooks"
+                  :key="simBook.id"
+                  :to="getBookUrl(simBook)"
+                  @click="showMobileSidebar = false"
+                  class="flex items-center gap-3 p-2 -mx-2 rounded-xl active:bg-white/5 transition-all"
+                >
+                  <div class="shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                    <img
+                      v-if="simBook.cover_image"
+                      :src="simBook.cover_image"
+                      :alt="simBook.title"
+                      class="w-full h-full object-cover"
+                    />
+                    <BookOpen v-else :size="14" class="text-slate-600" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-white text-sm leading-snug line-clamp-1">{{ simBook.title }}</h4>
+                    <p class="text-slate-400 text-[10px] truncate">{{ simBook.authors?.map(a => a.name).join(', ') }}</p>
+                    <span v-if="simBook.similarity_score" class="text-[10px] font-bold text-indigo-400">
+                      {{ Math.round(simBook.similarity_score) }}% match
+                    </span>
+                  </div>
+                </router-link>
+              </div>
+            </div>
+
+            <!-- Book DNA -->
+            <div v-if="bookDNA" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+              <div class="flex items-center gap-2 mb-4">
+                <Dna :size="16" class="text-indigo-400" />
+                <div>
+                  <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Book DNA</h3>
+                  <p class="text-slate-600 text-[9px]">{{ bookDNA.vote_count || 0 }} reader{{ bookDNA.vote_count !== 1 ? 's' : '' }} rated</p>
+                </div>
+              </div>
+
+              <!-- DNA Attributes (compact) -->
+              <div class="space-y-2">
+                <div v-if="bookDNA.pace !== undefined" class="flex items-center gap-2">
+                  <span class="text-[9px] font-bold text-slate-500 uppercase w-16">Pace</span>
+                  <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500 rounded-full" :style="{ width: `${bookDNA.pace * 100}%` }" />
+                  </div>
+                  <span class="text-[9px] text-slate-600 w-12 text-right">{{ bookDNA.pace > 0.5 ? 'Fast' : 'Slow' }}</span>
+                </div>
+                <div v-if="bookDNA.complexity !== undefined" class="flex items-center gap-2">
+                  <span class="text-[9px] font-bold text-slate-500 uppercase w-16">Complexity</span>
+                  <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-purple-500 rounded-full" :style="{ width: `${bookDNA.complexity * 100}%` }" />
+                  </div>
+                  <span class="text-[9px] text-slate-600 w-12 text-right">{{ bookDNA.complexity > 0.5 ? 'Dense' : 'Light' }}</span>
+                </div>
+                <div v-if="bookDNA.emotional_intensity !== undefined" class="flex items-center gap-2">
+                  <span class="text-[9px] font-bold text-slate-500 uppercase w-16">Emotion</span>
+                  <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-rose-500 rounded-full" :style="{ width: `${bookDNA.emotional_intensity * 100}%` }" />
+                  </div>
+                  <span class="text-[9px] text-slate-600 w-12 text-right">{{ bookDNA.emotional_intensity > 0.5 ? 'Intense' : 'Calm' }}</span>
+                </div>
+              </div>
+
+              <!-- Themes -->
+              <div v-if="bookDNA.themes?.length > 0" class="mt-3 pt-3 border-t border-slate-800">
+                <div class="flex flex-wrap gap-1">
+                  <span
+                    v-for="theme in bookDNA.themes.slice(0, 4)"
+                    :key="theme"
+                    class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400"
+                  >
+                    {{ theme }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Other Editions -->
+            <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+              <div class="flex items-center gap-2 mb-4">
+                <BookOpen :size="16" class="text-indigo-400" />
+                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
+              </div>
+              <div class="space-y-3">
+                <div
+                  v-for="edition in book.other_editions"
+                  :key="edition.id"
+                  class="p-3 rounded-xl bg-slate-950/50 border border-slate-800"
+                >
+                  <router-link :to="getBookUrl(edition)" @click="showMobileSidebar = false" class="flex gap-3">
+                    <div class="shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                      <img v-if="edition.cover_image" :src="edition.cover_image" :alt="edition.title" class="w-full h-full object-cover" />
+                      <BookOpen v-else :size="14" class="text-slate-600" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h4 class="font-semibold text-slate-100 text-sm line-clamp-1">{{ edition.title }}</h4>
+                      <div class="flex items-center gap-2 text-[10px] mt-1">
+                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">{{ edition.language?.toUpperCase() || 'N/A' }}</span>
+                        <span class="text-slate-500">{{ edition.pages }} pages</span>
+                      </div>
+                    </div>
+                  </router-link>
+                  <button
+                    v-if="isInLibrary && userBook?.book?.id !== edition.id"
+                    @click="switchToEdition(edition.id); showMobileSidebar = false"
+                    class="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-bold"
+                  >
+                    Switch to this edition
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Publisher Info -->
+            <div class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40 space-y-3">
+              <div class="flex items-center gap-2">
+                <Building2 :size="16" class="text-slate-400" />
+                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Publisher</h3>
+              </div>
+              <p class="text-slate-100 font-semibold text-sm">{{ book.publisher?.name || 'Unknown Publisher' }}</p>
+              <div class="pt-3 border-t border-slate-800/50">
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">ISBN-13</span>
+                <code class="text-xs text-indigo-400">{{ book.isbn || 'N/A' }}</code>
+              </div>
+            </div>
+
+            <!-- Edit Book Button -->
+            <button
+              @click="handleEditBook(); showMobileSidebar = false"
+              class="w-full p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-sm flex items-center justify-center gap-2"
+            >
+              <Edit3 :size="16" />
+              Edit Book Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
   <!-- Link Edition Modal -->
   <Dialog :open="isLinkEditionModalOpen" @update:open="isLinkEditionModalOpen = $event">
     <DialogContent class="max-w-2xl glass border-slate-700 max-h-[80vh] flex flex-col">
@@ -1816,6 +2191,49 @@ export const QuoteCard = defineComponent({
 </template>
 
 <style>
+/* Mobile utilities */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Slide transition for mobile sidebar */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-enter-active > div:last-child,
+.slide-leave-active > div:last-child {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-from > div:last-child,
+.slide-leave-to > div:last-child {
+  transform: translateX(100%);
+}
+
+/* Touch feedback for mobile */
+@media (max-width: 1023px) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 .review-content {
   font-size: 14px !important;
 }

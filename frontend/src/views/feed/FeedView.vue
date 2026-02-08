@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import FeedPostCard from '@/components/feed/FeedPostCard.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import DiscoverTab from '@/components/social/DiscoverTab.vue'
-import { Users, TrendingUp, Sparkles, Filter, ChevronDown, CheckCircle, BookOpen, Bookmark, Quote as QuoteIcon, MessageSquare, Star, MessageCircle, Compass, ArrowRight, Dna, Heart } from 'lucide-vue-next'
+import { Users, TrendingUp, Sparkles, Filter, ChevronDown, CheckCircle, BookOpen, Bookmark, Quote as QuoteIcon, MessageSquare, Star, MessageCircle, Compass, ArrowRight, Dna, Heart, X } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/authStore'
 import { useQuotesStore } from '@/stores/quotesStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
@@ -27,6 +27,7 @@ const loadingRecommendations = ref(true)
 const showFilters = ref(false)
 const selectedActivityTypes = ref(['all'])
 const userBooks = ref([])
+const showMobileSidebar = ref(false)
 
 // Helper function to format timestamps
 const formatTimestamp = (dateString) => {
@@ -637,11 +638,130 @@ const handleBookUpdated = (updatedUserBook) => {
 
 <template>
   <div class="animate-in fade-in duration-700">
-    <!-- Page Container with max width -->
-    <div class="w-full max-w-[1600px] mx-auto px-6 py-12">
 
-      <!-- Page Header -->
-      <header class="mb-12">
+    <!-- ==================== MOBILE HEADER ==================== -->
+    <header class="lg:hidden relative border-b border-white/5 bg-slate-900">
+      <div class="px-4 pt-4 pb-3">
+        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <Users :size="20" class="text-white" />
+          </div>
+          <div>
+            <h1 class="text-lg font-black text-white">Activity</h1>
+            <p class="text-[10px] text-slate-500 uppercase tracking-wider">{{ filteredPosts.length }} updates</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            @click="showMobileSidebar = true"
+            class="p-2.5 rounded-xl bg-white/5 text-slate-400 active:bg-slate-800 transition-colors"
+          >
+            <Sparkles :size="18" />
+          </button>
+          <button
+            @click.stop="showFilters = !showFilters"
+            :class="[
+              'p-2.5 rounded-xl transition-colors',
+              !selectedActivityTypes.includes('all') ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400'
+            ]"
+          >
+            <Filter :size="18" />
+          </button>
+        </div>
+        </div>
+      </div>
+
+      <!-- Mobile Filters Dropdown -->
+      <div
+        v-if="showFilters"
+        class="absolute top-full left-0 right-0 bg-slate-900 border-b border-slate-700 p-4 z-50 shadow-xl shadow-black/50"
+        @click.stop
+      >
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Filter by Activity</h3>
+        <div class="grid grid-cols-2 gap-2 mb-4">
+          <button
+            v-for="type in activityTypes"
+            :key="type.value"
+            @click="toggleActivityType(type.value)"
+            :class="[
+              'flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all',
+              isActivityTypeSelected(type.value)
+                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                : 'bg-white/5 text-slate-400 border border-transparent'
+            ]"
+          >
+            <component :is="type.icon" :size="14" />
+            {{ type.label }}
+          </button>
+        </div>
+        <div class="flex gap-2">
+          <button
+            @click="selectedActivityTypes = ['all']; showFilters = false"
+            class="flex-1 px-4 py-2.5 rounded-xl bg-white/5 text-slate-300 text-xs font-bold"
+          >
+            Reset
+          </button>
+          <button
+            @click="showFilters = false"
+            class="flex-1 px-4 py-2.5 rounded-xl bg-indigo-500 text-white text-xs font-bold"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Tabs -->
+      <div class="flex items-center gap-1 overflow-x-auto px-4 pb-3 hide-scrollbar">
+        <button
+          @click="activeTab = 'all'"
+          :class="[
+            'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
+            activeTab === 'all' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+          ]"
+        >
+          <Sparkles :size="14" />
+          All
+        </button>
+        <button
+          @click="activeTab = 'following'"
+          :class="[
+            'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
+            activeTab === 'following' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+          ]"
+        >
+          <Users :size="14" />
+          Following
+        </button>
+        <button
+          @click="activeTab = 'books'"
+          :class="[
+            'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
+            activeTab === 'books' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+          ]"
+        >
+          <TrendingUp :size="14" />
+          Mine
+        </button>
+        <button
+          @click="activeTab = 'discover'"
+          :class="[
+            'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
+            activeTab === 'discover' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+          ]"
+        >
+          <Compass :size="14" />
+          Discover
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Container with max width -->
+    <div class="w-full max-w-[1600px] mx-auto px-4 lg:px-6 py-4 lg:py-12">
+
+      <!-- Desktop Page Header -->
+      <header class="mb-12 hidden lg:block">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
             <Users :size="24" class="text-indigo-400" />
@@ -662,8 +782,8 @@ const handleBookUpdated = (updatedUserBook) => {
         <!-- LEFT COLUMN: Main Feed -->
         <div class="lg:col-span-8 min-w-0">
 
-      <!-- Filter Tabs -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+      <!-- Filter Tabs - Desktop Only -->
+      <div class="hidden lg:flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
         <div class="flex items-center gap-1 p-1 bg-slate-900/80 rounded-2xl border border-slate-800 overflow-x-auto">
           <button
             @click="activeTab = 'all'"
@@ -789,7 +909,7 @@ const handleBookUpdated = (updatedUserBook) => {
             @book-updated="handleBookUpdated"
           />
 
-          <div class="flex justify-center pt-8">
+          <div class="flex justify-center pt-8 pb-4">
             <button class="px-8 py-4 rounded-2xl bg-slate-900 border border-slate-800 text-white font-bold hover:bg-slate-800 hover:border-slate-700 transition-all flex items-center gap-3 active:scale-95">
               <TrendingUp :size="20" class="text-indigo-400" />
               Load Older Activity
@@ -797,10 +917,93 @@ const handleBookUpdated = (updatedUserBook) => {
           </div>
         </template>
       </div>
+
+          <!-- Mobile: For You Recommendations (inline) -->
+          <div v-if="!loading && activeTab !== 'discover'" class="lg:hidden mt-8">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                  <Sparkles :size="14" class="text-white" />
+                </div>
+                <h3 class="text-sm font-black text-white">For You</h3>
+              </div>
+              <router-link
+                to="/discover"
+                class="text-xs font-bold text-indigo-400 flex items-center gap-1"
+              >
+                See All <ArrowRight :size="12" />
+              </router-link>
+            </div>
+
+            <!-- Horizontal scroll of book covers -->
+            <div v-if="!loadingRecommendations && recommendedBooks.length > 0" class="overflow-x-auto -mx-4 px-4 pb-4 hide-scrollbar">
+              <div class="flex gap-3">
+                <router-link
+                  v-for="book in recommendedBooks.slice(0, 6)"
+                  :key="book.id"
+                  :to="`/books/${book.id}`"
+                  class="shrink-0 w-28 group"
+                >
+                  <div class="aspect-[2/3] rounded-xl overflow-hidden bg-slate-800 shadow-lg mb-2">
+                    <img
+                      v-if="book.cover_image"
+                      :src="book.cover_image"
+                      :alt="book.title"
+                      class="w-full h-full object-cover group-active:scale-105 transition-transform"
+                    />
+                    <div v-else class="w-full h-full flex items-center justify-center">
+                      <BookOpen :size="24" class="text-slate-600" />
+                    </div>
+                  </div>
+                  <h4 class="text-xs font-bold text-white line-clamp-2 leading-tight">{{ book.title }}</h4>
+                  <p class="text-[10px] text-slate-500 truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
+                  <div v-if="book.match_score" class="flex items-center gap-1 mt-1">
+                    <Heart :size="10" class="text-indigo-400" />
+                    <span class="text-[10px] font-bold text-indigo-400">{{ Math.round(book.match_score) }}%</span>
+                  </div>
+                </router-link>
+              </div>
+            </div>
+
+            <!-- Mobile Quick Picks -->
+            <div class="mt-6 grid grid-cols-4 gap-2">
+              <router-link
+                to="/discover?mood=peaceful"
+                class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center active:scale-95 transition-transform"
+              >
+                <span class="text-lg block">🌿</span>
+                <span class="text-[9px] font-bold text-emerald-400 mt-1 block">Peaceful</span>
+              </router-link>
+              <router-link
+                to="/discover?mood=challenge"
+                class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-center active:scale-95 transition-transform"
+              >
+                <span class="text-lg block">🧠</span>
+                <span class="text-[9px] font-bold text-purple-400 mt-1 block">Challenge</span>
+              </router-link>
+              <router-link
+                to="/discover?mood=emotional"
+                class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center active:scale-95 transition-transform"
+              >
+                <span class="text-lg block">💔</span>
+                <span class="text-[9px] font-bold text-rose-400 mt-1 block">Emotional</span>
+              </router-link>
+              <router-link
+                to="/discover?mood=quick"
+                class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center active:scale-95 transition-transform"
+              >
+                <span class="text-lg block">⚡</span>
+                <span class="text-[9px] font-bold text-amber-400 mt-1 block">Quick</span>
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Safe area bottom spacer for mobile -->
+          <div class="lg:hidden h-6 safe-area-bottom"></div>
         </div>
 
-        <!-- RIGHT COLUMN: Recommendations Sidebar -->
-        <div class="lg:col-span-4 min-w-0 space-y-6">
+        <!-- RIGHT COLUMN: Recommendations Sidebar - Desktop only -->
+        <div class="hidden lg:block lg:col-span-4 min-w-0 space-y-6">
 
           <!-- For You - Recommended Books -->
           <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
@@ -992,6 +1195,185 @@ const handleBookUpdated = (updatedUserBook) => {
         </div>
       </div>
     </div>
+
+    <!-- Mobile Sidebar Slide-out Panel -->
+    <Teleport to="body">
+      <Transition name="slide">
+        <div
+          v-if="showMobileSidebar"
+          class="lg:hidden fixed inset-0 z-50"
+        >
+          <!-- Backdrop -->
+          <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            @click="showMobileSidebar = false"
+          />
+
+          <!-- Panel -->
+          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto">
+            <!-- Header -->
+            <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
+              <h2 class="text-lg font-bold text-white">For You</h2>
+              <button
+                @click="showMobileSidebar = false"
+                class="p-2 rounded-xl bg-slate-800 text-slate-400"
+              >
+                <X :size="18" />
+              </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4 space-y-4">
+              <!-- Recommended Books -->
+              <div class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                      <Sparkles :size="16" class="text-indigo-400" />
+                    </div>
+                    <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Recommendations</h3>
+                  </div>
+                  <router-link
+                    to="/discover"
+                    @click="showMobileSidebar = false"
+                    class="text-[10px] font-bold text-indigo-400"
+                  >
+                    See All
+                  </router-link>
+                </div>
+
+                <!-- Loading State -->
+                <div v-if="loadingRecommendations" class="space-y-3">
+                  <div v-for="n in 3" :key="n" class="flex items-center gap-3 animate-pulse">
+                    <div class="w-10 h-14 rounded-lg bg-slate-800" />
+                    <div class="flex-1 space-y-2">
+                      <div class="h-3 bg-slate-800 rounded w-3/4" />
+                      <div class="h-2 bg-slate-800 rounded w-1/2" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Books List -->
+                <div v-else-if="recommendedBooks.length > 0" class="space-y-1">
+                  <router-link
+                    v-for="book in recommendedBooks.slice(0, 5)"
+                    :key="book.id"
+                    :to="`/books/${book.id}`"
+                    @click="showMobileSidebar = false"
+                    class="flex items-center gap-3 p-2 -mx-1 rounded-xl active:bg-white/5 transition-all"
+                  >
+                    <div class="shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                      <img
+                        v-if="book.cover_image"
+                        :src="book.cover_image"
+                        :alt="book.title"
+                        class="w-full h-full object-cover"
+                      />
+                      <BookOpen v-else :size="14" class="text-slate-600" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h4 class="font-bold text-white text-sm leading-snug line-clamp-1">{{ book.title }}</h4>
+                      <p class="text-slate-500 text-xs truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
+                      <div v-if="book.match_score" class="flex items-center gap-1 mt-0.5">
+                        <Heart :size="10" class="text-indigo-400" />
+                        <span class="text-[10px] font-bold text-indigo-400">{{ Math.round(book.match_score) }}%</span>
+                      </div>
+                    </div>
+                  </router-link>
+                </div>
+
+                <!-- Empty State -->
+                <div v-else class="text-center py-4">
+                  <p class="text-slate-500 text-xs">Rate more books to get recommendations</p>
+                </div>
+              </div>
+
+              <!-- Your DNA Mini -->
+              <div v-if="tasteProfile && tasteProfile.vote_count > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                    <Dna :size="16" class="text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Your DNA</h3>
+                    <p class="text-slate-600 text-[9px]">{{ tasteProfile.vote_count }} books rated</p>
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <div v-if="tasteProfile.pace_preference !== undefined">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-[9px] font-bold text-slate-500 uppercase">Pace</span>
+                      <span class="text-[9px] text-slate-600">{{ tasteProfile.pace_preference > 0.5 ? 'Fast' : 'Slow' }}</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                      <div class="h-full bg-indigo-500 rounded-full" :style="{ width: `${tasteProfile.pace_preference * 100}%` }" />
+                    </div>
+                  </div>
+                  <div v-if="tasteProfile.complexity_tolerance !== undefined">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-[9px] font-bold text-slate-500 uppercase">Complexity</span>
+                      <span class="text-[9px] text-slate-600">{{ tasteProfile.complexity_tolerance > 0.5 ? 'Dense' : 'Light' }}</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                      <div class="h-full bg-purple-500 rounded-full" :style="{ width: `${tasteProfile.complexity_tolerance * 100}%` }" />
+                    </div>
+                  </div>
+                  <div v-if="tasteProfile.darkness_tolerance !== undefined">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-[9px] font-bold text-slate-500 uppercase">Tone</span>
+                      <span class="text-[9px] text-slate-600">{{ tasteProfile.darkness_tolerance > 0.5 ? 'Dark' : 'Light' }}</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                      <div class="h-full bg-rose-500 rounded-full" :style="{ width: `${tasteProfile.darkness_tolerance * 100}%` }" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Mood Picks -->
+              <div class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] mb-3">Quick Picks</h3>
+                <div class="grid grid-cols-2 gap-2">
+                  <router-link
+                    to="/discover?mood=peaceful"
+                    @click="showMobileSidebar = false"
+                    class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center active:scale-95 transition-transform"
+                  >
+                    <span class="text-lg block">🌿</span>
+                    <span class="text-[9px] font-bold text-emerald-400 mt-1 block">Peaceful</span>
+                  </router-link>
+                  <router-link
+                    to="/discover?mood=challenge"
+                    @click="showMobileSidebar = false"
+                    class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-center active:scale-95 transition-transform"
+                  >
+                    <span class="text-lg block">🧠</span>
+                    <span class="text-[9px] font-bold text-purple-400 mt-1 block">Challenge</span>
+                  </router-link>
+                  <router-link
+                    to="/discover?mood=emotional"
+                    @click="showMobileSidebar = false"
+                    class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center active:scale-95 transition-transform"
+                  >
+                    <span class="text-lg block">💔</span>
+                    <span class="text-[9px] font-bold text-rose-400 mt-1 block">Emotional</span>
+                  </router-link>
+                  <router-link
+                    to="/discover?mood=quick"
+                    @click="showMobileSidebar = false"
+                    class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center active:scale-95 transition-transform"
+                  >
+                    <span class="text-lg block">⚡</span>
+                    <span class="text-[9px] font-bold text-amber-400 mt-1 block">Quick</span>
+                  </router-link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -1008,5 +1390,51 @@ const handleBookUpdated = (updatedUserBook) => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Safe area support for notched devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar while allowing scroll */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch feedback optimization */
+@media (hover: none) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Slide transition for mobile sidebar panel */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-enter-active > div:last-child,
+.slide-leave-active > div:last-child {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-from > div:last-child,
+.slide-leave-to > div:last-child {
+  transform: translateX(100%);
 }
 </style>

@@ -74,7 +74,7 @@ const mockRecentQuotes = ref([
 const mockChallenges = ref([
   {
     id: 1,
-    title: '2024 Reading Challenge',
+    title: '2026 Reading Challenge',
     target_books: 50,
     completed_books: 23,
     progress_percentage: 46,

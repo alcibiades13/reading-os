@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useChallengesStore } from '@/stores/challengesStore'
-import { Target, Edit2, Plus, TrendingUp } from 'lucide-vue-next'
+import { useUserBooksStore } from '@/stores/userBooksStore'
+import { Target, Edit2, Plus, TrendingUp, BookOpen } from 'lucide-vue-next'
 
 const challengesStore = useChallengesStore()
+const booksStore = useUserBooksStore()
 
 const emit = defineEmits(['edit', 'create'])
 
@@ -21,6 +23,27 @@ const yearlyChallenge = computed(() => challengesStore.currentYearChallenge)
 const progressPercentage = computed(() => {
   if (!yearlyChallenge.value) return 0
   return yearlyChallenge.value.progress_percentage || 0
+})
+
+// Calculate pages read this year
+const pagesReadThisYear = computed(() => {
+  let totalPages = 0
+
+  booksStore.books.forEach(userBook => {
+    const book = userBook.book
+    const finishedAt = userBook.finished_at ? new Date(userBook.finished_at) : null
+
+    // Completed books finished this year
+    if (userBook.status === 'read' && finishedAt && finishedAt.getFullYear() === currentYear) {
+      totalPages += book?.pages || 0
+    }
+    // Currently reading books - add current progress
+    else if (userBook.status === 'currently_reading') {
+      totalPages += userBook.current_page || 0
+    }
+  })
+
+  return totalPages
 })
 
 // Handle edit click
@@ -81,6 +104,14 @@ const handleEdit = () => {
         </div>
         <span v-else class="text-slate-500">
           {{ (yearlyChallenge.target_books || 0) - (yearlyChallenge.completed_books || 0) }} to go
+        </span>
+      </div>
+
+      <!-- Pages Read This Year -->
+      <div class="flex items-center gap-2 pt-3 mt-3 border-t border-slate-800/50">
+        <BookOpen :size="14" class="text-indigo-400" />
+        <span class="text-xs text-slate-400">
+          <span class="font-bold text-white">{{ pagesReadThisYear.toLocaleString() }}</span> pages read this year
         </span>
       </div>
 

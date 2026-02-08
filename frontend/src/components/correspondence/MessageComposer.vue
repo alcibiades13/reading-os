@@ -65,36 +65,36 @@ const removeAttachment = (index) => {
   <div
     :class="[
       'border-t border-white/5 glass transition-all duration-300',
-      isMinimized ? 'py-2 px-6' : 'p-6',
-      isExpanded && !isMinimized ? 'h-[60vh]' : 'h-auto'
+      isMinimized ? 'py-2 px-4' : 'px-4 py-3',
+      isExpanded && !isMinimized ? 'h-[50vh]' : 'h-auto'
     ]"
   >
     <!-- Minimized State -->
-    <div v-if="isMinimized" class="max-w-4xl mx-auto flex items-center justify-between">
+    <div v-if="isMinimized" class="max-w-4xl mx-auto">
       <button
         @click="isMinimized = false"
-        class="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-500/30 transition-all"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-500/30 transition-all"
       >
-        <PenLine :size="16" />
-        <span class="text-xs font-bold uppercase tracking-wider">Compose Message</span>
-        <ChevronUp :size="16" />
+        <PenLine :size="14" />
+        <span class="text-[10px] font-bold uppercase tracking-wider">Compose</span>
+        <ChevronUp :size="14" />
       </button>
     </div>
 
     <!-- Expanded Composer -->
-    <div v-else class="max-w-4xl mx-auto space-y-4">
+    <div v-else class="max-w-4xl mx-auto space-y-2">
       <!-- Attachment Preview Bar -->
-      <div v-if="attachments.length > 0" class="flex flex-wrap gap-2 mb-4">
+      <div v-if="attachments.length > 0" class="flex flex-wrap gap-1.5">
         <div
           v-for="(attachment, idx) in attachments"
           :key="idx"
-          class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-400"
+          class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-bold text-indigo-400"
         >
-          <Book v-if="attachment.type === 'book'" :size="12" />
-          <QuoteIcon v-else :size="12" />
-          <span class="truncate max-w-[120px]">{{ attachment.title }}</span>
-          <button @click="removeAttachment(idx)">
-            <X :size="12" />
+          <Book v-if="attachment.type === 'book'" :size="10" />
+          <QuoteIcon v-else :size="10" />
+          <span class="truncate max-w-[100px]">{{ attachment.title }}</span>
+          <button @click="removeAttachment(idx)" class="hover:text-indigo-300">
+            <X :size="10" />
           </button>
         </div>
       </div>
@@ -105,79 +105,80 @@ const removeAttachment = (index) => {
           v-model="messageText"
           placeholder="Draft a thoughtful response..."
           :class="[
-            'w-full bg-white/5 border-2 border-white/5 rounded-[2rem] px-8 py-6 text-lg font-serif text-slate-200 placeholder-slate-600 focus:border-indigo-500 transition-all outline-none resize-none',
-            isExpanded ? 'h-full' : 'h-32'
+            'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:border-indigo-500 transition-all outline-none resize-none',
+            isExpanded ? 'h-full' : 'h-20'
           ]"
         />
-        <div class="absolute bottom-4 right-8 flex items-center gap-4">
+        <div class="absolute bottom-2 right-3 flex items-center gap-2">
           <button
             @click="isExpanded = !isExpanded"
-            class="p-2 text-slate-600 hover:text-white transition-colors"
+            class="p-1.5 text-slate-600 hover:text-white transition-colors"
           >
-            <Minimize2 v-if="isExpanded" :size="18" />
-            <Maximize2 v-else :size="18" />
+            <Minimize2 v-if="isExpanded" :size="14" />
+            <Maximize2 v-else :size="14" />
           </button>
         </div>
       </div>
 
       <!-- Action Bar -->
-      <div class="flex items-center justify-between px-4">
+      <div class="flex items-center justify-between">
         <!-- Minimize button -->
         <button
           @click="isMinimized = true"
-          class="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all mr-2"
+          class="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
           title="Minimize composer"
         >
-          <ChevronDown :size="18" />
+          <ChevronDown :size="16" />
         </button>
 
-        <div class="flex items-center gap-1 p-1 bg-white/5 rounded-2xl border border-white/5">
+        <div class="flex items-center gap-0.5 p-0.5 bg-white/5 rounded-xl border border-white/5">
           <!-- Attach Book -->
           <button
             @click="showPicker = 'book'"
-            class="p-3 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 group"
+            class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+            title="Attach book"
           >
-            <Book :size="16" />
-            <span class="text-[10px] font-black uppercase tracking-widest hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity">Library</span>
+            <Book :size="14" />
           </button>
 
           <!-- Attach Quote -->
           <button
             @click="showPicker = 'quote'"
-            class="p-3 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 group"
+            class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+            title="Attach quote"
           >
-            <QuoteIcon :size="16" />
-            <span class="text-[10px] font-black uppercase tracking-widest hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity">Quote</span>
+            <QuoteIcon :size="14" />
           </button>
 
           <!-- Attach Note -->
           <button
-            class="p-3 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 group"
+            class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+            title="Attach note"
           >
-            <Brain :size="16" />
-            <span class="text-[10px] font-black uppercase tracking-widest hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity">Note</span>
+            <Brain :size="14" />
           </button>
 
-          <div class="w-px h-6 bg-white/10 mx-2" />
+          <div class="w-px h-5 bg-white/10 mx-1" />
 
           <!-- Mark Important -->
           <button
             @click="isImportant = !isImportant"
             :class="[
-              'p-2 rounded-xl transition-all',
+              'p-2 rounded-lg transition-all',
               isImportant ? 'text-amber-400 bg-amber-400/10' : 'text-slate-500 hover:text-slate-300'
             ]"
+            title="Mark important"
           >
-            <Star :size="18" :fill="isImportant ? 'currentColor' : 'none'" />
+            <Star :size="14" :fill="isImportant ? 'currentColor' : 'none'" />
           </button>
         </div>
 
         <!-- Send Button -->
         <button
           @click="handleSend"
-          class="flex items-center gap-3 px-8 py-4 rounded-2xl bg-indigo-500 text-white font-black text-[11px] uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 active:scale-95 transition-all"
         >
-          Send Correspondence <Send :size="16" />
+          Send <Send :size="14" />
         </button>
       </div>
     </div>

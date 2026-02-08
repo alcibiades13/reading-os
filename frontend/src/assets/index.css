@@ -596,7 +596,8 @@
 
   /* Mobile Circles - header and containers */
   body.light .bg-slate-900\/80,
-  body.light .bg-slate-900\/90 {
+  body.light .bg-slate-900\/90,
+  body.light .bg-slate-900\/95 {
     background-color: rgba(255, 255, 255, 0.95) !important;
   }
 

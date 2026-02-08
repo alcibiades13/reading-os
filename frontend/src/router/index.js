@@ -51,10 +51,15 @@ const routes = [
     name: 'BookStudy',
     component: () => import('@/views/study/StudyView.vue'),
     meta: { requiresAuth: true },
-    props: (route) => ({
-      bookId: route.params.id,
-      bookTitle: route.query.title || 'Study Session'
-    })
+    props: (route) => {
+      // Extract numeric ID from slug format (e.g., "14-ohridski-prolog" -> "14")
+      const param = route.params.id
+      const bookId = param && param.includes('-') ? param.split('-')[0] : param
+      return {
+        bookId,
+        bookTitle: route.query.title || 'Study Session'
+      }
+    }
   },
   {
     path: '/books/:id/review',

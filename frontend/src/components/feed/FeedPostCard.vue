@@ -137,9 +137,9 @@ const handleBookClick = () => {
 </script>
 
 <template>
-  <div class="group glass bg-slate-900/50 rounded-2xl border border-slate-800 p-6 hover:border-indigo-500/50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 shadow-xl shadow-slate-950/20">
+  <div class="group glass bg-slate-900/50 rounded-2xl border border-slate-800 p-4 sm:p-5 hover:border-indigo-500/50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 shadow-xl shadow-slate-950/20">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-slate-800 ring-offset-2 ring-offset-slate-900">
           {{ getInitials(post.user.name) }}
@@ -161,7 +161,7 @@ const handleBookClick = () => {
     </div>
 
     <!-- Content Area -->
-    <div class="flex gap-6 mb-6">
+    <div class="flex gap-4 sm:gap-6 mb-4">
       <!-- Book Cover -->
       <div
         v-if="post.book.cover"
@@ -257,34 +257,27 @@ const handleBookClick = () => {
     </div>
 
     <!-- Footer Actions -->
-    <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
-      <div class="flex items-center gap-6">
+    <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-4">
         <button
           @click="toggleLike"
           :class="[
-            'flex items-center gap-2 group/btn transition-colors',
+            'flex items-center gap-1.5 transition-colors',
             liked ? 'text-indigo-400' : 'text-slate-500 hover:text-indigo-400'
           ]"
         >
-          <div :class="['p-2 rounded-full transition-colors', liked ? 'bg-indigo-400/10' : 'group-hover/btn:bg-indigo-400/10']">
-            <Heart :size="18" :fill="liked ? 'currentColor' : 'none'" :class="liked ? 'animate-in zoom-in-50 duration-300' : ''" />
-          </div>
+          <Heart :size="16" :fill="liked ? 'currentColor' : 'none'" :class="liked ? 'animate-in zoom-in-50 duration-300' : ''" />
           <span class="text-xs font-bold">{{ likeCount }}</span>
         </button>
 
-        <button class="flex items-center gap-2 group/btn text-slate-500 hover:text-sky-400 transition-colors">
-          <div class="p-2 rounded-full group-hover/btn:bg-sky-400/10 transition-colors">
-            <MessageCircle :size="18" />
-          </div>
+        <button class="flex items-center gap-1.5 text-slate-500 hover:text-sky-400 transition-colors">
+          <MessageCircle :size="16" />
           <span class="text-xs font-bold">{{ post.stats.comments }}</span>
         </button>
       </div>
 
-      <button class="flex items-center gap-2 group/btn text-slate-500 hover:text-emerald-400 transition-colors">
-        <div class="p-2 rounded-full group-hover/btn:bg-emerald-400/10 transition-colors">
-          <Share2 :size="18" />
-        </div>
-        <span class="text-xs font-bold hidden sm:inline">Share Insight</span>
+      <button class="flex items-center gap-1.5 text-slate-500 hover:text-emerald-400 transition-colors">
+        <Share2 :size="16" />
       </button>
     </div>
   </div>

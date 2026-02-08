@@ -111,6 +111,9 @@ const isActive = (path) => {
   if (path === '/import') {
     return route.path === '/import'
   }
+  if (path === '/discover') {
+    return route.path === '/discover'
+  }
   if (path === '/books') {
     return route.path === '/books'
   }

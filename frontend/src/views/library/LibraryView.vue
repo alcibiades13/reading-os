@@ -24,7 +24,7 @@ import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
   CheckCircle, Bookmark, BrainCircuit, Lightbulb,
   Quote, ArrowUpRight, Upload, FileUp, LayoutGrid, List, Star,
-  MoreVertical, Trash2
+  MoreVertical, Trash2, X, ChevronRight
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -41,6 +41,8 @@ const isQuoteExpanded = ref(false)
 const showChallengeModal = ref(false)
 const editingChallenge = ref(null)
 const viewMode = ref('grid') // 'grid' or 'list'
+const showMobileWidgets = ref(false)
+const mobileQuoteExpanded = ref(false)
 
 // Import state
 const showImportDialog = ref(false)
@@ -532,16 +534,77 @@ const handleSaveChallenge = async (challengeData) => {
 
 <template>
   <!-- Loading State -->
-  <div v-if="loading" class="max-w-7xl mx-auto px-6 py-20 flex flex-col items-center justify-center space-y-4">
-    <div class="w-12 h-12 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin" />
-    <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">Accessing Command Center...</p>
+  <div v-if="loading" class="max-w-7xl mx-auto px-4 lg:px-6 py-12 lg:py-20 flex flex-col items-center justify-center space-y-4">
+    <div class="w-10 h-10 lg:w-12 lg:h-12 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin" />
+    <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px] lg:text-xs">Accessing Library...</p>
   </div>
 
   <!-- Main Content -->
-  <div v-else class="w-full max-w-[1800px] mx-auto px-8 py-12">
+  <div v-else class="w-full max-w-[1800px] mx-auto lg:px-8 lg:py-12">
 
-    <!-- HERO SECTION -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 items-start">
+    <!-- MOBILE HEADER -->
+    <header class="lg:hidden relative border-b border-white/5 bg-slate-900">
+      <div class="px-4 pt-4 pb-3">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <BookOpen :size="20" class="text-white" />
+            </div>
+            <div>
+              <h1 class="text-lg font-bold text-white">Library</h1>
+              <p class="text-xs text-slate-500">{{ stats.total }} books</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              @click="showMobileWidgets = true"
+              class="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <TrendingUp :size="18" />
+            </button>
+            <button
+              @click="openImportDialog"
+              class="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <Upload :size="18" />
+            </button>
+            <button
+              @click="router.push('/import')"
+              class="p-2.5 rounded-xl bg-indigo-500 text-white"
+            >
+              <Plus :size="18" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Stats Row -->
+        <div class="flex items-center gap-3 overflow-x-auto hide-scrollbar -mx-4 px-4 pb-1">
+          <div class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
+            <Zap :size="14" class="text-indigo-400" />
+            <span class="text-xs font-bold text-white">{{ stats.currently_reading || 0 }}</span>
+            <span class="text-[10px] text-slate-500">Reading</span>
+          </div>
+          <div class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
+            <CheckCircle :size="14" class="text-emerald-400" />
+            <span class="text-xs font-bold text-white">{{ stats.read || 0 }}</span>
+            <span class="text-[10px] text-slate-500">Finished</span>
+          </div>
+          <div class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
+            <Bookmark :size="14" class="text-sky-400" />
+            <span class="text-xs font-bold text-white">{{ stats.want_to_read || 0 }}</span>
+            <span class="text-[10px] text-slate-500">To Read</span>
+          </div>
+          <div class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
+            <Heart :size="14" class="text-red-400 fill-current" />
+            <span class="text-xs font-bold text-white">{{ booksStore.favoriteBooks.length }}</span>
+            <span class="text-[10px] text-slate-500">Favorites</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- DESKTOP HERO SECTION -->
+    <div class="hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 items-start">
 
       <!-- Welcome Briefing -->
       <div class="lg:col-span-7 space-y-4 sm:space-y-8">
@@ -617,8 +680,109 @@ const handleSaveChallenge = async (challengeData) => {
       </div>
     </div>
 
-    <!-- ACTIVE EXPEDITIONS -->
-    <div v-if="activeExpeditions.length > 0" class="mb-16">
+    <!-- MOBILE WISDOM SPOTLIGHT -->
+    <div v-if="dailyQuote" class="lg:hidden px-4 py-4">
+      <div class="relative p-4 rounded-2xl glass border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/5 overflow-hidden">
+        <div class="absolute top-0 right-0 p-3 opacity-[0.03] text-indigo-400">
+          <Quote :size="48" />
+        </div>
+        <div class="relative z-10">
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[8px] font-black uppercase text-indigo-400 mb-3 tracking-widest">
+            <Lightbulb :size="10" /> Daily Musing
+          </span>
+          <p class="text-sm font-serif italic text-slate-200 leading-relaxed mb-2" :class="{ 'line-clamp-3': !mobileQuoteExpanded }">
+            "{{ mobileQuoteExpanded ? dailyQuote.text : (dailyQuote.text.length > 150 ? dailyQuote.text.substring(0, 150) + '...' : dailyQuote.text) }}"
+          </p>
+          <div class="flex items-center justify-between">
+            <p class="text-indigo-400 font-bold text-[10px]">— {{ dailyQuote.book_author }}</p>
+            <button
+              v-if="dailyQuote.text.length > 150"
+              @click="mobileQuoteExpanded = !mobileQuoteExpanded"
+              class="text-[10px] font-bold text-indigo-400/70 hover:text-indigo-400"
+            >
+              {{ mobileQuoteExpanded ? 'less' : 'more...' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE EXPEDITIONS - Mobile -->
+    <div v-if="activeExpeditions.length > 0" class="lg:hidden px-4 py-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
+          <BookOpen :size="12" class="text-indigo-500" />
+          Active Expeditions
+        </h2>
+        <span class="text-[10px] font-bold text-slate-600">{{ currentlyReading.length }} reading</span>
+      </div>
+
+      <div class="flex gap-3 overflow-x-auto hide-scrollbar -mx-4 px-4 pb-2">
+        <router-link
+          v-for="expedition in activeExpeditions"
+          :key="expedition.id"
+          :to="getBookUrl(expedition.book)"
+          class="shrink-0 w-[280px] relative p-3 rounded-xl glass border-slate-800 active:scale-[0.98] transition-transform"
+        >
+          <!-- Badge -->
+          <div class="absolute top-2 right-2 z-10">
+            <span
+              :class="expedition.isLastRead ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'"
+              class="px-1.5 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-wider"
+            >
+              {{ expedition.isLastRead ? 'Last Read' : 'Reading' }}
+            </span>
+          </div>
+
+          <div class="flex gap-3">
+            <div class="shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg flex items-center justify-center">
+              <img
+                v-if="getCoverUrl(expedition.book)"
+                :src="getCoverUrl(expedition.book)"
+                :alt="expedition.book?.title"
+                class="w-full h-full object-cover"
+                @error="(e) => e.target.style.display = 'none'"
+              />
+              <BookOpen v-else :size="18" class="text-slate-600" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-white text-sm mb-0.5 line-clamp-1">
+                {{ expedition.book?.title }}
+              </h3>
+              <p class="text-slate-500 text-[10px] mb-2 line-clamp-1">
+                {{ expedition.book?.authors?.map(a => a.name).join(', ') }}
+              </p>
+
+              <!-- Progress bar for currently reading -->
+              <div v-if="!expedition.isLastRead" class="space-y-1">
+                <div class="flex items-center justify-between text-[10px]">
+                  <span class="text-slate-400">{{ getProgress(expedition) }}%</span>
+                  <span class="text-slate-600">{{ expedition.current_page || 0 }}/{{ expedition.book?.pages || 0 }}</span>
+                </div>
+                <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                  <div
+                    :style="{ width: getProgress(expedition) + '%' }"
+                    class="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                  />
+                </div>
+              </div>
+
+              <!-- Rating for last read -->
+              <div v-else class="flex items-center gap-2">
+                <div v-if="expedition.rating" class="flex items-center gap-1">
+                  <Heart :size="10" class="text-yellow-400 fill-current" />
+                  <span class="text-yellow-400 font-bold text-xs">{{ expedition.rating }}/10</span>
+                </div>
+                <span v-else class="text-slate-600 text-[10px]">No rating</span>
+              </div>
+            </div>
+          </div>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- ACTIVE EXPEDITIONS - Desktop -->
+    <div v-if="activeExpeditions.length > 0" class="hidden lg:block mb-16">
       <div class="flex items-center justify-between mb-8">
         <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] flex items-center gap-3">
           <BookOpen :size="14" class="text-indigo-500" />
@@ -715,13 +879,26 @@ const handleSaveChallenge = async (challengeData) => {
     </div>
 
     <!-- MAIN GRID: LEFT CONTENT + RIGHT SIDEBAR -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
 
       <!-- LEFT COLUMN: SEARCH, TABS & BOOKS -->
-      <div class="lg:col-span-8 space-y-8 pt-6 border-t border-slate-900">
+      <div class="lg:col-span-8 space-y-4 lg:space-y-8 lg:pt-6 lg:border-t lg:border-slate-900">
 
-        <!-- Search Bar with Import Button -->
-        <div class="flex items-center gap-4">
+        <!-- Mobile Search Bar -->
+        <div class="lg:hidden px-4">
+          <div class="relative">
+            <Search :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search books..."
+              class="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/40 focus:bg-slate-800 outline-none transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Desktop Search Bar with Import Button -->
+        <div class="hidden lg:flex items-center gap-4">
           <div class="relative group flex-1">
             <div class="absolute inset-0 bg-indigo-500/5 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
             <Search :size="24" class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors" />
@@ -743,8 +920,79 @@ const handleSaveChallenge = async (challengeData) => {
           </button>
         </div>
 
-        <!-- Tabs and View Toggle -->
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <!-- Mobile Tabs (Horizontal Scroll) -->
+        <div class="lg:hidden">
+          <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar px-4 pb-2">
+            <button
+              @click="handleTabChange('all')"
+              :class="selectedTab === 'all' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+              class="shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2"
+            >
+              <BookOpen :size="14" />
+              All
+            </button>
+            <button
+              @click="handleTabChange('currently_reading')"
+              :class="selectedTab === 'currently_reading' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+              class="shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2"
+            >
+              <Zap :size="14" />
+              Reading
+            </button>
+            <button
+              @click="handleTabChange('read')"
+              :class="selectedTab === 'read' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+              class="shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2"
+            >
+              <CheckCircle :size="14" />
+              Finished
+            </button>
+            <button
+              @click="handleTabChange('want_to_read')"
+              :class="selectedTab === 'want_to_read' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+              class="shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2"
+            >
+              <Bookmark :size="14" />
+              To Read
+            </button>
+            <button
+              @click="handleTabChange('favorites')"
+              :class="selectedTab === 'favorites' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+              class="shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2"
+            >
+              <Heart :size="14" :class="selectedTab === 'favorites' ? 'fill-current' : ''" />
+              Favorites
+            </button>
+          </div>
+
+          <!-- Mobile View Toggle -->
+          <div class="flex items-center justify-between px-4 mt-2">
+            <span class="text-xs text-slate-500">{{ filteredLibrary.length }} books</span>
+            <div class="flex items-center gap-1 p-0.5 bg-slate-800/50 rounded-lg border border-slate-700">
+              <button
+                @click="viewMode = 'grid'"
+                :class="[
+                  'p-2 rounded-md transition-all',
+                  viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'text-slate-500'
+                ]"
+              >
+                <LayoutGrid :size="16" />
+              </button>
+              <button
+                @click="viewMode = 'list'"
+                :class="[
+                  'p-2 rounded-md transition-all',
+                  viewMode === 'list' ? 'bg-indigo-500 text-white' : 'text-slate-500'
+                ]"
+              >
+                <List :size="16" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop Tabs and View Toggle -->
+        <div class="hidden lg:flex flex-wrap items-center justify-between gap-4">
           <div class="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-900/80 rounded-2xl border border-slate-800 w-fit">
             <button
               @click="handleTabChange('all')"
@@ -814,37 +1062,37 @@ const handleSaveChallenge = async (challengeData) => {
         </div>
 
         <!-- Empty State -->
-        <div v-if="filteredLibrary.length === 0" class="py-20 text-center glass border-slate-800 rounded-[2.5rem]">
+        <div v-if="filteredLibrary.length === 0" class="mx-4 lg:mx-0 py-12 lg:py-20 text-center glass border-slate-800 rounded-2xl lg:rounded-[2.5rem]">
           <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">No entries found in archive</p>
         </div>
 
         <!-- Grid View -->
-        <div v-else-if="viewMode === 'grid'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
+        <div v-else-if="viewMode === 'grid'" class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 lg:gap-x-6 lg:gap-y-10 px-4 lg:px-0">
           <router-link
             v-for="userBook in paginatedLibrary"
             :key="userBook.id"
             :to="getBookUrl(userBook.book)"
-            class="group relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 flex items-center justify-center"
+            class="group relative aspect-[2/3] rounded-lg lg:rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 cursor-pointer shadow-lg lg:hover:shadow-2xl lg:hover:shadow-indigo-500/10 transition-all duration-300 flex items-center justify-center active:scale-[0.98]"
           >
             <img
               v-if="getCoverUrl(userBook.book)"
               :src="getCoverUrl(userBook.book)"
               :alt="userBook.book?.title"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              class="w-full h-full object-cover lg:group-hover:scale-105 transition-transform duration-500"
               @error="(e) => e.target.style.display = 'none'"
             />
-            <BookOpen v-if="!getCoverUrl(userBook.book)" :size="48" class="text-slate-600" />
+            <BookOpen v-if="!getCoverUrl(userBook.book)" :size="24" class="text-slate-600 lg:w-12 lg:h-12" />
 
-            <!-- Hover Overlay -->
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+            <!-- Hover Overlay (Desktop only) -->
+            <div class="hidden lg:flex absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-col justify-end p-4">
               <h3 class="font-bold text-white text-sm mb-1 line-clamp-2">{{ userBook.book?.title }}</h3>
               <p class="text-slate-400 text-xs line-clamp-1">{{ userBook.book?.authors?.map(a => a.name).join(', ') }}</p>
             </div>
 
             <!-- Status Badge -->
-            <div v-if="getStatusBadge(userBook.status)" class="absolute top-3 left-3">
+            <div v-if="getStatusBadge(userBook.status)" class="absolute top-1.5 left-1.5 lg:top-3 lg:left-3">
               <span
-                :class="['px-2 py-1 rounded-lg text-[10px] font-bold shadow-lg', getStatusBadge(userBook.status).class]"
+                :class="['px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md lg:rounded-lg text-[8px] lg:text-[10px] font-bold shadow-lg', getStatusBadge(userBook.status).class]"
               >
                 {{ getStatusBadge(userBook.status).text }}
               </span>
@@ -854,13 +1102,13 @@ const handleSaveChallenge = async (challengeData) => {
             <button
               v-if="userBook.is_favorite"
               @click.stop="handleToggleFavorite(userBook)"
-              class="absolute top-3 right-3 p-1.5 rounded-lg bg-slate-950/80 backdrop-blur-sm"
+              class="absolute top-1.5 right-1.5 lg:top-3 lg:right-3 p-1 lg:p-1.5 rounded-md lg:rounded-lg bg-slate-950/80 backdrop-blur-sm"
             >
-              <Heart :size="14" class="text-red-400 fill-current" />
+              <Heart :size="12" class="text-red-400 fill-current lg:w-3.5 lg:h-3.5" />
             </button>
 
-            <!-- More Options (Grid View) -->
-            <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <!-- More Options (Grid View - Desktop only) -->
+            <div class="hidden lg:block absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
@@ -893,9 +1141,9 @@ const handleSaveChallenge = async (challengeData) => {
         </div>
 
         <!-- List/Table View -->
-        <div v-else-if="viewMode === 'list'" class="space-y-3">
-          <!-- Table Header -->
-          <div class="flex items-center gap-4 px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+        <div v-else-if="viewMode === 'list'" class="space-y-2 lg:space-y-3 px-4 lg:px-0">
+          <!-- Table Header (Desktop only) -->
+          <div class="hidden lg:flex items-center gap-4 px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
             <!-- Cover -->
             <div class="shrink-0 w-12"></div>
 
@@ -923,10 +1171,10 @@ const handleSaveChallenge = async (challengeData) => {
             v-for="userBook in paginatedLibrary"
             :key="userBook.id"
             :to="getBookUrl(userBook.book)"
-            class="group flex items-center gap-4 p-4 rounded-2xl glass border-slate-800 hover:border-indigo-500/30 transition-all duration-300"
+            class="group flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl glass border-slate-800 lg:hover:border-indigo-500/30 transition-all duration-300 active:scale-[0.99]"
           >
             <!-- Cover -->
-            <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg flex items-center justify-center">
+            <div class="shrink-0 w-10 h-14 lg:w-12 lg:h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg flex items-center justify-center">
               <img
                 v-if="getCoverUrl(userBook.book)"
                 :src="getCoverUrl(userBook.book)"
@@ -934,21 +1182,31 @@ const handleSaveChallenge = async (challengeData) => {
                 class="w-full h-full object-cover"
                 @error="(e) => e.target.style.display = 'none'"
               />
-              <BookOpen v-else :size="20" class="text-slate-600" />
+              <BookOpen v-else :size="16" class="text-slate-600 lg:w-5 lg:h-5" />
             </div>
 
             <!-- Title & Author -->
             <div class="flex-1 min-w-0">
-              <h3 class="font-bold text-white text-sm truncate group-hover:text-indigo-400 transition-colors">
+              <h3 class="font-bold text-white text-sm truncate lg:group-hover:text-indigo-400 transition-colors">
                 {{ userBook.book?.title }}
               </h3>
               <p class="text-slate-400 text-xs truncate">
                 {{ userBook.book?.authors?.map(a => a.name).join(', ') || 'Unknown Author' }}
               </p>
+              <!-- Mobile: Show rating and status inline -->
+              <div class="lg:hidden flex items-center gap-2 mt-1">
+                <span
+                  v-if="getStatusBadge(userBook.status)"
+                  :class="['px-1.5 py-0.5 rounded-md text-[8px] font-bold', getStatusBadge(userBook.status).class]"
+                >
+                  {{ getStatusBadge(userBook.status).text }}
+                </span>
+                <span v-if="userBook.rating" class="text-[10px] font-bold text-amber-400">{{ userBook.rating }}/10</span>
+              </div>
             </div>
 
-            <!-- Star Rating (10-point scale) -->
-            <div class="hidden sm:flex flex-col items-center gap-1 w-32">
+            <!-- Star Rating (10-point scale) - Desktop -->
+            <div class="hidden lg:flex flex-col items-center gap-1 w-32">
               <span v-if="userBook.rating" class="text-xs font-bold text-amber-400">{{ userBook.rating }}</span>
               <div class="flex items-center gap-0.5">
                 <Star
@@ -960,17 +1218,17 @@ const handleSaveChallenge = async (challengeData) => {
               </div>
             </div>
 
-            <!-- Date Read -->
-            <div class="hidden md:block text-xs text-slate-500 w-24 text-center">
+            <!-- Date Read - Desktop -->
+            <div class="hidden lg:block text-xs text-slate-500 w-24 text-center">
               {{ userBook.finished_at ? new Date(userBook.finished_at).toLocaleDateString() : '—' }}
             </div>
 
-            <!-- Date Added -->
-            <div class="hidden lg:block text-xs text-slate-500 w-24 text-center">
+            <!-- Date Added - Desktop -->
+            <div class="hidden xl:block text-xs text-slate-500 w-24 text-center">
               {{ userBook.created_at ? new Date(userBook.created_at).toLocaleDateString() : '—' }}
             </div>
 
-            <!-- Status Badge -->
+            <!-- Status Badge - Desktop -->
             <div class="hidden xl:flex w-28 justify-center">
               <span
                 v-if="getStatusBadge(userBook.status)"
@@ -981,21 +1239,21 @@ const handleSaveChallenge = async (challengeData) => {
             </div>
 
             <!-- Actions -->
-            <div class="flex items-center gap-2 w-16 justify-end">
+            <div class="flex items-center gap-1 lg:gap-2 lg:w-16 justify-end">
               <button
                 v-if="userBook.is_favorite"
                 @click.stop="handleToggleFavorite(userBook)"
-                class="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+                class="p-1.5 lg:p-2 rounded-lg hover:bg-slate-800 transition-colors"
               >
-                <Heart :size="16" class="text-red-400 fill-current" />
+                <Heart :size="14" class="text-red-400 fill-current lg:w-4 lg:h-4" />
               </button>
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
                     @click.stop
-                    class="p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-500 hover:text-white"
+                    class="p-1.5 lg:p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-500 hover:text-white"
                   >
-                    <MoreVertical :size="18" />
+                    <MoreVertical :size="16" class="lg:w-[18px] lg:h-[18px]" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="bg-slate-900 border-slate-800">
@@ -1013,17 +1271,20 @@ const handleSaveChallenge = async (challengeData) => {
         </div>
 
         <!-- Infinite scroll loading indicator (for both grid and list views) -->
-        <div v-if="hasMoreItems" class="flex justify-center mt-12 py-8">
+        <div v-if="hasMoreItems" class="flex justify-center mt-8 lg:mt-12 py-6 lg:py-8 px-4 lg:px-0">
           <div class="flex items-center gap-2 text-slate-500 text-sm">
             <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
             <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style="animation-delay: 0.2s"></div>
             <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" style="animation-delay: 0.4s"></div>
           </div>
         </div>
+
+        <!-- Mobile bottom padding for safe area -->
+        <div class="lg:hidden h-8"></div>
       </div>
 
-      <!-- RIGHT COLUMN: Analytics Sidebar -->
-      <div class="lg:col-span-4 space-y-8">
+      <!-- RIGHT COLUMN: Analytics Sidebar (Desktop only) -->
+      <div class="hidden lg:block lg:col-span-4 space-y-8">
         <!-- Reading Circle Widget -->
         <ReadingCircleWidget />
 
@@ -1076,17 +1337,92 @@ const handleSaveChallenge = async (challengeData) => {
       @save="handleSaveChallenge"
     />
 
+    <!-- Mobile Widgets Slide-out Panel -->
+    <Teleport to="body">
+      <Transition name="slide">
+        <div
+          v-if="showMobileWidgets"
+          class="lg:hidden fixed inset-0 z-50"
+        >
+          <!-- Backdrop -->
+          <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            @click="showMobileWidgets = false"
+          />
+
+          <!-- Panel -->
+          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto">
+            <!-- Header -->
+            <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
+              <h2 class="text-lg font-bold text-white">Insights</h2>
+              <button
+                @click="showMobileWidgets = false"
+                class="p-2 rounded-xl bg-slate-800 text-slate-400"
+              >
+                <X :size="18" />
+              </button>
+            </div>
+
+            <!-- Widgets -->
+            <div class="p-4 space-y-4">
+              <!-- Reading Circle Widget -->
+              <ReadingCircleWidget />
+
+              <!-- Yearly Challenge Widget -->
+              <YearlyChallengeWidget
+                @edit="handleEditChallenge"
+                @create="handleCreateChallenge"
+              />
+
+              <!-- Taste Profile -->
+              <TasteProfile v-if="tasteProfile" :profile="tasteProfile" />
+
+              <!-- DNA Loading/Empty State -->
+              <div v-else class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/40">
+                <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-4">Your Reading DNA</h3>
+                <p class="text-sm text-slate-500">
+                  Rate more books to build your profile.
+                </p>
+              </div>
+
+              <!-- Consistency Heatmap -->
+              <div class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/40">
+                <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-4">Consistency</h3>
+                <div class="grid grid-cols-7 gap-1 mb-4">
+                  <div
+                    v-for="i in 28"
+                    :key="i"
+                    :class="i > 20 ? 'bg-indigo-500' : i > 10 ? 'bg-indigo-500/30' : 'bg-slate-800'"
+                    class="aspect-square rounded-[2px]"
+                  />
+                </div>
+                <div class="flex justify-between items-center">
+                  <div>
+                    <span class="text-lg font-black text-white block">12 Days</span>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Streak</span>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                    <Zap :size="16" class="fill-current" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Import Dialog -->
     <Dialog v-model:open="showImportDialog">
-      <DialogContent class="glass border-slate-700 sm:max-w-md">
+      <DialogContent class="glass border-slate-700 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle class="text-2xl font-bold flex items-center gap-3">
-            <FileUp :size="28" class="text-emerald-400" />
+          <DialogTitle class="text-lg sm:text-xl lg:text-2xl font-bold flex items-center gap-2 lg:gap-3">
+            <FileUp :size="20" class="text-emerald-400 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
             Import from Goodreads
           </DialogTitle>
         </DialogHeader>
 
-        <div class="space-y-6 py-4">
+        <div class="space-y-4 lg:space-y-6 py-3 lg:py-4">
           <!-- Instructions -->
           <div class="space-y-3">
             <p class="text-sm text-slate-300 leading-relaxed">
@@ -1177,5 +1513,49 @@ const handleSaveChallenge = async (challengeData) => {
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* Hide scrollbar for horizontal scroll areas */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area support for notched phones */
+@supports (padding-top: env(safe-area-inset-top)) {
+  header {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+}
+
+/* Touch feedback for mobile */
+@media (max-width: 1023px) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Slide transition for mobile widgets panel */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-enter-active > div:last-child,
+.slide-leave-active > div:last-child {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-from > div:last-child,
+.slide-leave-to > div:last-child {
+  transform: translateX(100%);
 }
 </style>

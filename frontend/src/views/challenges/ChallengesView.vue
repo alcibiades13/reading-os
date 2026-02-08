@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useChallengesStore } from '@/stores/challengesStore'
+import { useUserBooksStore } from '@/stores/userBooksStore'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,9 +11,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Target, Plus, Calendar, TrendingUp, Award, Edit, Trash2, Play, Pause } from 'lucide-vue-next'
+import { Target, Plus, Calendar, TrendingUp, Award, Edit, Trash2, Play, Pause, BookOpen } from 'lucide-vue-next'
 
 const challengesStore = useChallengesStore()
+const booksStore = useUserBooksStore()
 
 const isCreateDialogOpen = ref(false)
 const selectedYear = ref(new Date().getFullYear())
@@ -31,6 +33,29 @@ const newChallenge = ref({
 
 onMounted(async () => {
   await challengesStore.fetchChallenges()
+})
+
+const currentYear = new Date().getFullYear()
+
+// Calculate pages read this year
+const pagesReadThisYear = computed(() => {
+  let totalPages = 0
+
+  booksStore.books.forEach(userBook => {
+    const book = userBook.book
+    const finishedAt = userBook.finished_at ? new Date(userBook.finished_at) : null
+
+    // Completed books finished this year
+    if (userBook.status === 'read' && finishedAt && finishedAt.getFullYear() === currentYear) {
+      totalPages += book?.pages || 0
+    }
+    // Currently reading books - add current progress
+    else if (userBook.status === 'currently_reading') {
+      totalPages += userBook.current_page || 0
+    }
+  })
+
+  return totalPages
 })
 
 const activeChallenges = computed(() => challengesStore.activeChallenges)
@@ -111,7 +136,7 @@ const formatDate = (date) => {
               <p class="text-page-subtitle text-muted-foreground">Track your reading goals</p>
             </div>
           </div>
-          
+
           <Dialog v-model:open="isCreateDialogOpen">
             <DialogTrigger as-child>
               <Button size="lg">
@@ -129,7 +154,7 @@ const formatDate = (date) => {
                   <Input
                     id="title"
                     v-model="newChallenge.title"
-                    placeholder="2024 Reading Challenge"
+                    placeholder="2026 Reading Challenge"
                     required
                   />
                 </div>
@@ -273,6 +298,14 @@ const formatDate = (date) => {
                     {{ (challenge.target_books || 0) - (challenge.completed_books || 0) }} to go
                   </span>
                 </div>
+              </div>
+
+              <!-- Pages Read This Year -->
+              <div class="flex items-center gap-2 pt-3 border-t border-border">
+                <BookOpen class="w-4 h-4 text-indigo-400" />
+                <span class="text-xs text-muted-foreground">
+                  <span class="font-bold text-foreground">{{ pagesReadThisYear.toLocaleString() }}</span> pages read in {{ currentYear }}
+                </span>
               </div>
 
               <!-- Dates -->
