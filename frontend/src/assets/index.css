@@ -631,6 +631,45 @@
   body.light .border-white\/10 {
     border-color: #e2e8f0 !important;
   }
+
+  /* Codex - custom dark backgrounds → light */
+  body.light .bg-ink {
+    background-color: #f8fafc !important; /* slate-50 */
+  }
+
+  body.light .bg-ink\/90 {
+    background-color: rgba(248, 250, 252, 0.95) !important; /* slate-50 with blur */
+  }
+
+  body.light .bg-ink-light {
+    background-color: #ffffff !important; /* white cards */
+  }
+
+  body.light .bg-\[\#010206\] {
+    background-color: #ffffff !important; /* white for focus mode */
+  }
+
+  /* Codex - dark placeholder colors → visible in light mode */
+  body.light .placeholder-slate-700::placeholder,
+  body.light .placeholder-slate-800::placeholder,
+  body.light .placeholder-slate-900::placeholder {
+    color: #94a3b8 !important; /* slate-400 */
+  }
+
+  /* Codex - indigo accent backgrounds in light mode */
+  body.light .bg-indigo-500\/5 {
+    background-color: rgba(99, 102, 241, 0.05) !important;
+  }
+
+  body.light .bg-indigo-500\/10 {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+  }
+
+  /* Codex - ring offset for mood selector */
+  body.light .ring-offset-\[\#02040a\],
+  body.light .ring-offset-ink {
+    --tw-ring-offset-color: #f8fafc !important;
+  }
 }
 
 

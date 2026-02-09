@@ -179,9 +179,9 @@ const handleStudyModeClick = () => {
     :class="[
       'flex flex-col glass border-r border-slate-800/50 bg-slate-950/90 lg:bg-slate-950/50 backdrop-blur-3xl transition-transform duration-300 ease-in-out',
       // Desktop: static sidebar
-      'max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:left-0 max-lg:z-[70] max-lg:w-72',
+      'max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:left-0 max-lg:z-[70] max-lg:w-60',
       'lg:flex lg:sticky lg:top-0 lg:h-screen lg:z-50 lg:transition-all',
-      isCollapsed ? 'lg:w-20' : 'lg:w-72',
+      isCollapsed ? 'lg:w-20' : 'lg:w-60',
       // Mobile: slide in/out via transform
       isMobileOpen
         ? 'max-lg:translate-x-0 max-lg:pointer-events-auto'

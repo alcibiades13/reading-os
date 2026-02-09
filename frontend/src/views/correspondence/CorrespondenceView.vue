@@ -269,7 +269,7 @@ const mentionedBooks = computed(() => {
     <!-- ==================== DESKTOP LAYOUT ==================== -->
     <div class="hidden lg:flex flex-1">
       <!-- DESKTOP: INBOX SIDEBAR (Secondary Sidebar) -->
-      <aside class="w-80 border-r border-slate-800/50 flex flex-col bg-slate-950/50 backdrop-blur-md">
+      <aside class="w-72 border-r border-slate-800/50 flex flex-col bg-slate-950/50 backdrop-blur-md">
       <div class="p-6 border-b border-slate-800/50">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xs font-black text-slate-50 uppercase tracking-[0.3em]">Correspondents</h2>
