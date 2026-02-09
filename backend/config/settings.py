@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.challenges',
     'apps.social',
     'apps.recommendations',
+    'apps.codex',
 ]
 
 MIDDLEWARE = [

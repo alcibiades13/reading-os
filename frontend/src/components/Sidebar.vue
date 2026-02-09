@@ -25,7 +25,8 @@ import {
   PanelLeft,
   Hexagon,
   X,
-  CircleDot
+  CircleDot,
+  PenTool
 } from 'lucide-vue-next'
 import SidebarItem from './sidebar/SidebarItem.vue'
 import NavGroup from './sidebar/NavGroup.vue'
@@ -134,6 +135,9 @@ const isActive = (path) => {
   }
   if (path === '/challenges') {
     return route.path === '/challenges'
+  }
+  if (path === '/codex') {
+    return route.path === '/codex'
   }
   return false
 }
@@ -291,6 +295,13 @@ const handleStudyModeClick = () => {
             @click="router.push('/challenges')"
             label="Challenges"
             :icon="Trophy"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
+          <SidebarItem
+            :active="isActive('/codex')"
+            @click="router.push('/codex')"
+            label="Codex"
+            :icon="PenTool"
             :collapsed="isCollapsed && !isMobileOpen"
           />
         </NavGroup>

@@ -146,6 +146,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/codex',
+    name: 'Codex',
+    component: () => import('@/views/codex/CodexView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('@/views/profile/ProfileView.vue'),
