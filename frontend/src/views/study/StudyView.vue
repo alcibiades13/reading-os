@@ -189,9 +189,19 @@
               </button>
             </div>
           </div>
+          <!-- Clear filter button - prominent when filter is active -->
           <button
+            v-if="selectedRef"
+            @click="selectedRef = null"
+            class="w-full flex items-center justify-between px-4 py-2 rounded-xl text-xs font-bold transition-all mb-2 bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25 group"
+          >
+            <span class="truncate">{{ selectedRef }}</span>
+            <X :size="14" class="text-indigo-400/60 group-hover:text-indigo-300 flex-shrink-0" />
+          </button>
+          <button
+            v-else
             @click="selectedRef = null; showReferences = false"
-            :class="['w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all mb-2', !selectedRef ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:bg-slate-900']"
+            class="w-full text-left px-4 py-2 rounded-xl text-xs font-bold transition-all mb-2 bg-indigo-500 text-white"
           >
             All References ({{ notes.length }})
           </button>
@@ -200,11 +210,11 @@
               v-for="ref in references"
               :key="ref"
               @click="selectedRef = ref; showReferences = false"
-              :class="['w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex justify-between items-center', selectedRef === ref ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-900']"
+              :class="['w-full text-left px-4 py-1.5 rounded-xl text-xs transition-all flex justify-between items-center', selectedRef === ref ? 'bg-slate-800 text-white font-bold' : 'text-slate-500 hover:bg-slate-900']"
             >
               <span class="truncate">{{ ref }}</span>
               <span class="text-[8px] bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
-                {{ notes.filter(n => n.reference === ref).length }}
+                {{ notes.filter(n => (n.references_list || (n.reference ? n.reference.split(',').map(r => r.trim()) : [])).some(r => r.toUpperCase() === ref)).length }}
               </span>
             </button>
           </div>
@@ -219,21 +229,30 @@
         <div class="max-w-[1800px] mx-auto space-y-4 lg:space-y-8">
 
           <!-- Mobile Reference Toggle -->
-          <button
-            @click="showReferences = true"
-            class="lg:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-800 text-sm font-bold text-white active:bg-slate-800 transition-all"
-          >
-            <div class="flex items-center gap-2">
-              <Filter :size="16" class="text-indigo-400" />
-              <span>{{ selectedRef || 'All References' }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] bg-slate-800 px-2 py-1 rounded-lg border border-slate-700 text-slate-400">
-                {{ filteredNotes.length }}
-              </span>
-              <ChevronRight :size="16" class="text-slate-500" />
-            </div>
-          </button>
+          <div class="lg:hidden flex items-center gap-2">
+            <button
+              @click="showReferences = true"
+              class="flex-1 flex items-center justify-between px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-800 text-sm font-bold text-white active:bg-slate-800 transition-all"
+            >
+              <div class="flex items-center gap-2">
+                <Filter :size="16" class="text-indigo-400" />
+                <span>{{ selectedRef || 'All References' }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] bg-slate-800 px-2 py-1 rounded-lg border border-slate-700 text-slate-400">
+                  {{ filteredNotes.length }}
+                </span>
+                <ChevronRight :size="16" class="text-slate-500" />
+              </div>
+            </button>
+            <button
+              v-if="selectedRef"
+              @click="selectedRef = null"
+              class="p-3 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 active:bg-indigo-500/25 transition-all"
+            >
+              <X :size="18" />
+            </button>
+          </div>
 
           <!-- Desktop Type Filtering -->
           <div class="hidden lg:flex items-center gap-2 flex-wrap">
@@ -720,7 +739,7 @@ import {
   PanelLeft,
   ArrowDownUp
 } from 'lucide-vue-next'
-import html2pdf from 'html2pdf.js'
+
 
 const props = defineProps({
   bookId: {
@@ -799,24 +818,22 @@ const noteCountByType = computed(() => {
 })
 
 const references = computed(() => {
-  const refsMap = new Map() // Use Map to track lowercase -> original case mapping
+  const countMap = new Map() // uppercase ref -> count
 
   notes.value.forEach(note => {
-    // If backend sends references_list, use it; otherwise split by comma
     const refList = note.references_list || (note.reference ? note.reference.split(',').map(r => r.trim()) : ['General'])
     refList.forEach(ref => {
       if (ref) {
-        const lowerRef = ref.toLowerCase()
-        // Keep first occurrence's case
-        if (!refsMap.has(lowerRef)) {
-          refsMap.set(lowerRef, ref)
-        }
+        const upper = ref.toUpperCase()
+        countMap.set(upper, (countMap.get(upper) || 0) + 1)
       }
     })
   })
 
-  // Return sorted references (case-insensitive sort)
-  return Array.from(refsMap.values()).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+  // Sort by count descending
+  return Array.from(countMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([ref]) => ref)
 })
 
 const filteredNotes = computed(() => {
@@ -824,9 +841,8 @@ const filteredNotes = computed(() => {
 
   if (selectedRef.value) {
     filtered = filtered.filter(n => {
-      // Check if note contains the selected reference (case-insensitive, supports multiple references)
       const refList = n.references_list || (n.reference ? n.reference.split(',').map(r => r.trim()) : [])
-      return refList.some(ref => ref.toLowerCase() === selectedRef.value.toLowerCase())
+      return refList.some(ref => ref.toUpperCase() === selectedRef.value.toUpperCase())
     })
   }
 
@@ -1061,11 +1077,10 @@ const filteredBooks = computed(() => {
   )
 })
 
-// Export study notes to PDF
+// Export study notes to PDF via browser print (proper page break support)
 const exportToPDF = () => {
   if (notes.value.length === 0) return
 
-  // Stats
   const quoteCount = notes.value.filter(n => n.note_type === 'quote').length
   const insightCount = notes.value.filter(n => n.note_type === 'insight').length
   const questionCount = notes.value.filter(n => n.note_type === 'question').length
@@ -1077,84 +1092,13 @@ const exportToPDF = () => {
     day: 'numeric'
   })
 
-  // Sort notes by date (oldest first for chronological export)
   const sortedNotes = [...notes.value].sort((a, b) => {
     const dateA = new Date(a.created_at || 0)
     const dateB = new Date(b.created_at || 0)
-    return dateA - dateB // Always oldest first for export (chronological)
+    return dateA - dateB
   })
 
-  // Create HTML content
-  let htmlContent = `
-    <!DOCTYPE html>
-    <html lang="sr">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        @page {
-          margin: 20mm;
-          size: A4;
-        }
-        body {
-          font-family: 'Arial', 'Helvetica', sans-serif;
-          font-size: 11pt;
-          line-height: 1.6;
-          color: #000;
-        }
-        h1 {
-          font-size: 24pt;
-          font-weight: bold;
-          margin-bottom: 10px;
-          color: #000;
-        }
-        .date {
-          font-size: 10pt;
-          color: #666;
-          margin-bottom: 15px;
-        }
-        .stats {
-          font-size: 10pt;
-          margin-bottom: 20px;
-          padding: 10px;
-          background: #f5f5f5;
-          border-radius: 5px;
-        }
-        .note {
-          margin-bottom: 20px;
-          page-break-inside: avoid;
-        }
-        .note-type {
-          font-size: 9pt;
-          font-weight: bold;
-          text-transform: uppercase;
-          margin-bottom: 3px;
-        }
-        .note-type.quote { color: #A855F7; }
-        .note-type.insight { color: #FBBF24; }
-        .note-type.question { color: #3B82F6; }
-        .note-type.note { color: #64748B; }
-        .note-meta {
-          font-size: 8pt;
-          color: #999;
-          margin-bottom: 8px;
-        }
-        .note-content {
-          font-size: 10pt;
-          line-height: 1.5;
-          white-space: pre-wrap;
-          word-wrap: break-word;
-        }
-      </style>
-    </head>
-    <body>
-      <h1>Study Notes: ${props.bookTitle}</h1>
-      <div class="date">Exported on ${exportDate}</div>
-      <div class="stats">
-        Total Notes: ${notes.value.length} (${quoteCount} Quotes, ${insightCount} Insights, ${questionCount} Questions, ${noteCount} Notes)
-      </div>
-  `
-
-  // Add notes sorted by date (chronologically)
+  let notesHtml = ''
   sortedNotes.forEach(note => {
     const metaInfo = []
     if (note.created_at) {
@@ -1165,35 +1109,99 @@ const exportToPDF = () => {
     if (note.page_number) metaInfo.push(`Page ${note.page_number}`)
     if (note.chapter) metaInfo.push(`Chapter: ${note.chapter}`)
 
-    htmlContent += `
+    notesHtml += `
       <div class="note">
         <div class="note-type ${note.note_type}">${note.note_type.toUpperCase()}</div>
-        ${metaInfo.length > 0 ? `<div class="note-meta">${metaInfo.join(' • ')}</div>` : ''}
+        ${metaInfo.length > 0 ? `<div class="note-meta">${metaInfo.join(' &bull; ')}</div>` : ''}
         <div class="note-content">${note.content}</div>
       </div>
     `
   })
 
-  htmlContent += `
-    </body>
-    </html>
-  `
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) return
 
-  // Create a temporary element
-  const element = document.createElement('div')
-  element.innerHTML = htmlContent
-
-  // PDF options
-  const opt = {
-    margin: 10,
-    filename: `${props.bookTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_study_notes.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  printWindow.document.write(`<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <title>Study Notes: ${props.bookTitle}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    @page { margin: 20mm; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #1a1a1a;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      font-size: 22pt;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .date {
+      font-size: 10pt;
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .stats {
+      font-size: 9pt;
+      color: #888;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #ddd;
+    }
+    .note {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #eee;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .note-type {
+      font-size: 8pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .note-type.quote { color: #9333EA; }
+    .note-type.insight { color: #D97706; }
+    .note-type.question { color: #2563EB; }
+    .note-type.note { color: #64748B; }
+    .note-meta {
+      font-size: 8pt;
+      color: #999;
+      margin-bottom: 6px;
+    }
+    .note-content {
+      font-size: 10pt;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .note:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>${props.bookTitle}</h1>
+  <div class="date">${exportDate}</div>
+  <div class="stats">${notes.value.length} notes (${quoteCount} Quotes, ${insightCount} Insights, ${questionCount} Questions, ${noteCount} Notes)</div>
+  ${notesHtml}
+</body>
+</html>`)
+  printWindow.document.close()
+  printWindow.onload = () => {
+    printWindow.print()
   }
-
-  // Generate PDF
-  html2pdf().set(opt).from(element).save()
 }
 
 // Select book and navigate to study mode
