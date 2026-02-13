@@ -97,6 +97,7 @@ const userInitials = computed(() => {
 })
 
 const userAvatarUrl = computed(() => getMediaUrl(authStore.user?.avatar))
+const sidebarAvatarError = ref(false)
 
 const userName = computed(() => {
   const user = authStore.user
@@ -340,7 +341,7 @@ const handleStudyModeClick = () => {
             >
               <div class="p-0.5 rounded-lg bg-transparent group-hover:bg-gradient-to-tr group-hover:from-indigo-500 group-hover:to-purple-500 transition-all flex-shrink-0">
                 <div class="w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center text-xs font-bold text-white overflow-hidden">
-                  <img v-if="userAvatarUrl" :src="userAvatarUrl" class="w-full h-full object-cover" />
+                  <img v-if="userAvatarUrl && !sidebarAvatarError" :src="userAvatarUrl" @error="sidebarAvatarError = true" class="w-full h-full object-cover" />
                   <span v-else>{{ userInitials }}</span>
                 </div>
               </div>

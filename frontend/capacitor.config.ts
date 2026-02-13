@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Reading OS',
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
+    androidScheme: 'http',
     cleartext: true
   },
   plugins: {

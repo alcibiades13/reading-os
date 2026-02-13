@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useThemeStore } from '@/stores/themeStore'
@@ -31,6 +31,7 @@ const userInitials = computed(() => {
 })
 
 const userAvatarUrl = computed(() => getMediaUrl(authStore.user?.avatar))
+const headerAvatarError = ref(false)
 
 const handleLogout = () => {
   authStore.logout()
@@ -87,7 +88,7 @@ const handleLogout = () => {
         <DropdownMenuTrigger as-child>
           <div class="group p-0.5 rounded-full bg-transparent hover:bg-gradient-to-tr hover:from-indigo-500 hover:to-purple-500 transition-all cursor-pointer">
             <div class="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-black text-white overflow-hidden">
-              <img v-if="userAvatarUrl" :src="userAvatarUrl" class="w-full h-full object-cover" />
+              <img v-if="userAvatarUrl && !headerAvatarError" :src="userAvatarUrl" @error="headerAvatarError = true" class="w-full h-full object-cover" />
               <span v-else>{{ userInitials }}</span>
             </div>
           </div>

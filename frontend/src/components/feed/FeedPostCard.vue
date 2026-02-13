@@ -98,6 +98,8 @@ const statusOptions = [
   { value: 'abandoned', label: 'Abandoned', icon: Star }
 ]
 
+const avatarError = ref(false)
+
 // Like state
 const liked = ref(props.post.stats.hasLiked)
 const likeCount = ref(props.post.stats.likes)
@@ -225,7 +227,7 @@ const formatCommentTime = (dateStr) => {
     <!-- Header -->
     <div class="flex items-center gap-2.5 mb-2 lg:mb-4">
       <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[9px] lg:text-xs font-bold ring-1 lg:ring-2 ring-slate-800 shrink-0 overflow-hidden">
-        <img v-if="post.user.avatar" :src="getMediaUrl(post.user.avatar)" class="w-full h-full object-cover" />
+        <img v-if="post.user.avatar && !avatarError" :src="getMediaUrl(post.user.avatar)" @error="avatarError = true" class="w-full h-full object-cover" />
         <span v-else>{{ getInitials(post.user.name) }}</span>
       </div>
       <div class="min-w-0 flex-1">

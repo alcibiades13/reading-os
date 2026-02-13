@@ -863,7 +863,7 @@ export const QuoteCard = defineComponent({
 
             <!-- Rating -->
             <div class="flex items-center gap-2 mb-3">
-              <StarRating :model-value="averageRating" :readonly="true" :size="14" :show-value="true" />
+              <StarRating :model-value="averageRating" :readonly="true" :size="12" :show-value="true" />
             </div>
 
             <!-- Quick Stats 2x2 Grid -->
@@ -1024,7 +1024,7 @@ export const QuoteCard = defineComponent({
         <!-- Description -->
         <section class="space-y-4">
           <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em]">About the Book</h2>
-          <div :class="['text-slate-300 leading-relaxed space-y-4 relative', !showFullDesc ? 'max-h-48 overflow-hidden' : '']">
+          <div :class="['text-slate-300 text-sm lg:text-base leading-relaxed space-y-4 relative', !showFullDesc ? 'max-h-48 overflow-hidden' : '']">
             <div v-html="descriptionHtml" />
             <div v-if="!showFullDesc && descriptionHtml.length > 300" class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-950 to-transparent" />
           </div>
@@ -1109,7 +1109,7 @@ export const QuoteCard = defineComponent({
                       :key="`rating-${userBook.id}`"
                       v-model="personalRating"
                       :readonly="false"
-                      :size="24"
+                      :size="18"
                       :show-value="true"
                     />
                   </div>
@@ -1117,20 +1117,22 @@ export const QuoteCard = defineComponent({
                 </div>
 
                 <!-- Reading Dates -->
-                <div v-if="formattedStartedAt || formattedFinishedAt" class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 inline-flex items-center gap-6">
+                <div v-if="formattedStartedAt || formattedFinishedAt" class="p-3 lg:p-4 rounded-xl bg-slate-950/50 border border-slate-800 flex flex-col sm:flex-row sm:inline-flex items-start sm:items-center gap-3 sm:gap-6">
                   <div class="flex items-center gap-2">
                     <Calendar :size="14" class="text-slate-500" />
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Reading Journey</span>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">Reading Journey</span>
                   </div>
 
-                  <div v-if="formattedStartedAt" class="flex items-center gap-2">
-                    <span class="text-xs text-slate-500">Started</span>
-                    <span class="text-sm font-semibold text-slate-300">{{ formattedStartedAt }}</span>
-                  </div>
+                  <div class="flex flex-wrap items-center gap-3 sm:gap-6">
+                    <div v-if="formattedStartedAt" class="flex items-center gap-2">
+                      <span class="text-[10px] sm:text-xs text-slate-500">Started</span>
+                      <span class="text-xs sm:text-sm font-semibold text-slate-300">{{ formattedStartedAt }}</span>
+                    </div>
 
-                  <div v-if="formattedFinishedAt" class="flex items-center gap-2">
-                    <span class="text-xs text-slate-500">Finished</span>
-                    <span class="text-sm font-semibold text-emerald-400">{{ formattedFinishedAt }}</span>
+                    <div v-if="formattedFinishedAt" class="flex items-center gap-2">
+                      <span class="text-[10px] sm:text-xs text-slate-500">Finished</span>
+                      <span class="text-xs sm:text-sm font-semibold text-emerald-400">{{ formattedFinishedAt }}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -1211,20 +1213,20 @@ export const QuoteCard = defineComponent({
                     "{{ getReviewPreview(reviewInput, 300) }}"
                   </p>
                 </div>
-                <div class="flex gap-3">
+                <div class="flex gap-2 sm:gap-3">
                   <button
                     @click="router.push(getBookUrlWithSuffix(book, 'review-view'))"
-                    class="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 transition-all flex items-center justify-center gap-2"
+                    class="flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-bold hover:bg-indigo-500 transition-all flex items-center justify-center gap-1.5 sm:gap-2"
                   >
-                    <Eye :size="16" />
-                    Read Full Review
+                    <Eye :size="14" class="sm:hidden" /><Eye :size="16" class="hidden sm:block" />
+                    <span class="whitespace-nowrap">Full Review</span>
                   </button>
                   <button
                     @click="router.push(getBookUrlWithSuffix(book, 'review'))"
-                    class="flex-1 py-3 rounded-xl border border-slate-700 text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-2"
+                    class="flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-700 text-slate-400 text-xs sm:text-sm font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-1.5 sm:gap-2"
                   >
-                    <SquarePen :size="16" />
-                    Edit Review
+                    <SquarePen :size="14" class="sm:hidden" /><SquarePen :size="16" class="hidden sm:block" />
+                    <span class="whitespace-nowrap">Edit Review</span>
                   </button>
                 </div>
               </div>
@@ -1244,20 +1246,20 @@ export const QuoteCard = defineComponent({
 
         <!-- Quotes Section -->
         <section class="space-y-6">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-2">
             <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em]">My Quotes</h2>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
               <button
                 @click="handleStudyMode"
-                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-sm hover:bg-indigo-500/20 transition-all"
+                class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-xs sm:text-sm hover:bg-indigo-500/20 transition-all"
               >
-                <Brain :size="16" /> Study Mode
+                <Brain :size="14" /> <span class="hidden sm:inline">Study Mode</span><span class="sm:hidden">Study</span>
               </button>
               <button
                 @click="handleAddQuote"
-                class="flex items-center gap-2 text-indigo-400 font-bold text-sm hover:text-indigo-300 transition-colors"
+                class="flex items-center gap-1.5 sm:gap-2 text-indigo-400 font-bold text-xs sm:text-sm hover:text-indigo-300 transition-colors"
               >
-                <Plus :size="16" /> Add Quote
+                <Plus :size="14" class="sm:hidden" /><Plus :size="16" class="hidden sm:block" /> <span class="hidden sm:inline">Add Quote</span><span class="sm:hidden">Add</span>
               </button>
             </div>
           </div>
