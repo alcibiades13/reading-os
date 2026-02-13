@@ -1295,7 +1295,7 @@ const handleSaveChallenge = async (challengeData) => {
         />
 
         <!-- Your Reading DNA -->
-        <TasteProfile v-if="tasteProfile" :profile="tasteProfile" />
+        <TasteProfile v-if="tasteProfile" :profile="tasteProfile" compact />
 
         <!-- DNA Loading/Empty State -->
         <div v-else class="p-8 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
@@ -1375,7 +1375,7 @@ const handleSaveChallenge = async (challengeData) => {
               />
 
               <!-- Taste Profile -->
-              <TasteProfile v-if="tasteProfile" :profile="tasteProfile" />
+              <TasteProfile v-if="tasteProfile" :profile="tasteProfile" compact />
 
               <!-- DNA Loading/Empty State -->
               <div v-else class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/40">

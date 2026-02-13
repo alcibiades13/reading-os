@@ -46,6 +46,30 @@ def aggregate_book_dna(book_id: int) -> BookDNA:
     min_count = max(1, votes.count() * 0.3)
     top_themes = [theme for theme, count in theme_counts.most_common(10) if count >= min_count]
 
+    # Aggregate primary themes (most commonly marked as primary)
+    all_primary_themes = []
+    for vote in votes:
+        all_primary_themes.extend(vote.primary_themes or [])
+    primary_theme_counts = Counter(all_primary_themes)
+    top_primary_themes = [t for t, _ in primary_theme_counts.most_common(3)]
+
+    # Aggregate genre tags
+    all_genre_tags = []
+    for vote in votes:
+        all_genre_tags.extend(vote.genre_tags or [])
+    genre_tag_counts = Counter(all_genre_tags)
+    min_genre_count = max(1, votes.count() * 0.3)
+    top_genre_tags = [
+        tag for tag, count in genre_tag_counts.most_common(10)
+        if count >= min_genre_count
+    ]
+
+    # Aggregate primary genre tag (most common)
+    primary_genre_votes = [v.primary_genre_tag for v in votes if v.primary_genre_tag]
+    primary_genre_tag = None
+    if primary_genre_votes:
+        primary_genre_tag = Counter(primary_genre_votes).most_common(1)[0][0]
+
     # Calculate confidence score based on vote count
     # 1 vote = 0.1, 5 votes = 0.5, 10+ votes = 1.0
     vote_count = votes.count()
@@ -62,6 +86,9 @@ def aggregate_book_dna(book_id: int) -> BookDNA:
             'character_focus': aggregations['character_focus'] or 0.5,
             'introspection': aggregations['introspection'] or 0.5,
             'themes': top_themes,
+            'primary_themes': top_primary_themes,
+            'genre_tags': top_genre_tags,
+            'primary_genre_tag': primary_genre_tag,
             'source': 'user_votes',
             'vote_count': vote_count,
             'confidence_score': confidence,
@@ -118,14 +145,40 @@ def update_user_taste_profile(user_id: int) -> dict:
         else:
             taste_profile[preference_mapping[attr]] = 0.5
 
-    # Aggregate themes affinity
+    # Aggregate themes affinity (primary themes get 3x weight)
     all_themes = []
     for vote in votes:
         all_themes.extend(vote.themes or [])
+        # Primary themes count triple
+        for pt in (vote.primary_themes or []):
+            all_themes.extend([pt, pt])  # +2 extra = 3x total
 
     theme_counts = Counter(all_themes)
     top_themes = [theme for theme, _ in theme_counts.most_common(10)]
     taste_profile['themes_affinity'] = top_themes
+
+    # Primary themes affinity
+    all_primary_themes = []
+    for vote in votes:
+        all_primary_themes.extend(vote.primary_themes or [])
+    primary_counts = Counter(all_primary_themes)
+    taste_profile['primary_themes_affinity'] = [t for t, _ in primary_counts.most_common(5)]
+
+    # Genre tags affinity (primary genre gets 3x weight)
+    all_genre_tags = []
+    for vote in votes:
+        all_genre_tags.extend(vote.genre_tags or [])
+        if vote.primary_genre_tag:
+            all_genre_tags.extend([vote.primary_genre_tag, vote.primary_genre_tag])  # 3x total
+    genre_counts = Counter(all_genre_tags)
+    taste_profile['genre_tags_affinity'] = [t for t, _ in genre_counts.most_common(10)]
+
+    # Primary genre tag affinity
+    primary_genres = [v.primary_genre_tag for v in votes if v.primary_genre_tag]
+    if primary_genres:
+        taste_profile['primary_genre_tag_affinity'] = Counter(primary_genres).most_common(1)[0][0]
+    else:
+        taste_profile['primary_genre_tag_affinity'] = None
 
     # Add implicit signals from UserBook data
     user_books = UserBook.objects.filter(user=user)

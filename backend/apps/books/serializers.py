@@ -1,3 +1,4 @@
+from django.utils.text import slugify
 from rest_framework import serializers
 from apps.books.models import Author, Publisher, Genre, Tag, Book
 
@@ -410,18 +411,19 @@ class BookImportSerializer(serializers.Serializer):
                 author_objs.append(author)
             book.authors.set(author_objs)
 
-        # Handle genres
+        # Handle genres — match by slug to avoid case-based duplicates
         if genre_names:
             genre_objs = []
             for genre_name in genre_names:
-                # Convert genre name to lowercase for consistency
-                genre_name_lower = genre_name.lower() if genre_name else ''
-                if genre_name_lower:
-                    genre, _ = Genre.objects.get_or_create(
-                        name=genre_name_lower,
-                        defaults={'description': ''}
-                    )
-                    genre_objs.append(genre)
+                genre_name_clean = genre_name.strip() if genre_name else ''
+                if genre_name_clean:
+                    slug = slugify(genre_name_clean)[:50]
+                    if slug:
+                        genre, _ = Genre.objects.get_or_create(
+                            slug=slug,
+                            defaults={'name': genre_name_clean.lower(), 'description': ''}
+                        )
+                        genre_objs.append(genre)
             book.genres.set(genre_objs)
 
         return book

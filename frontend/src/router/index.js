@@ -152,6 +152,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Codex' },
   },
   {
+    path: '/authors/:id',
+    name: 'AuthorDetail',
+    component: () => import('@/views/authors/AuthorDetailView.vue'),
+    meta: { requiresAuth: true, title: 'Author' },
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('@/views/profile/ProfileView.vue'),

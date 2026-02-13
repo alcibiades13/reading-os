@@ -106,31 +106,58 @@ const truncatedDescription = computed(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6 pt-20 bg-slate-950/90 light:bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
-    <div :class="['relative w-full max-w-5xl h-[85vh] glass light:bg-white light:border light:border-slate-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300', isEditMode ? 'ring-2 ring-indigo-500' : '']">
+  <div class="fixed inset-0 z-[70] flex items-end md:items-center justify-center md:p-6 bg-slate-950/90 light:bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
+    <div :class="['relative w-full max-w-5xl max-h-[95vh] md:max-h-[85vh] glass light:bg-white light:border light:border-slate-200 rounded-t-2xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in slide-in-from-bottom-4 md:zoom-in-95 duration-300', isEditMode ? 'ring-2 ring-indigo-500' : '']">
 
       <!-- Close Button -->
       <button
         @click="handleClose"
-        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700 transition-colors"
+        class="absolute top-3 right-3 md:top-6 md:right-6 z-20 p-2 rounded-full bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700 transition-colors"
       >
-        <X :size="20" />
+        <X :size="18" />
       </button>
 
       <!-- Edit Toggle Button -->
       <button
         @click="isEditMode = !isEditMode"
         :class="[
-          'absolute top-6 right-20 z-20 px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all',
+          'absolute top-3 right-14 md:top-6 md:right-20 z-20 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg text-[10px] md:text-xs font-bold flex items-center gap-1.5 transition-all',
           isEditMode ? 'bg-indigo-500 text-white' : 'bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700'
         ]"
       >
-        <Edit3 :size="14" />
-        {{ isEditMode ? 'View Mode' : 'Edit Details' }}
+        <Edit3 :size="12" />
+        <span class="hidden sm:inline">{{ isEditMode ? 'View Mode' : 'Edit Details' }}</span>
+        <span class="sm:hidden">{{ isEditMode ? 'View' : 'Edit' }}</span>
       </button>
 
-      <!-- Left Column - Cover & Quick Stats -->
-      <div class="w-full md:w-[40%] bg-slate-900/50 light:bg-slate-50 p-8 flex flex-col items-center overflow-y-auto border-r border-slate-700/30 light:border-slate-200">
+      <!-- ===== MOBILE: Compact Cover Header ===== -->
+      <div class="md:hidden flex items-start gap-3 p-4 pt-12 bg-slate-900/50 light:bg-slate-50 border-b border-slate-700/30 light:border-slate-200 shrink-0">
+        <div class="shrink-0 w-16 h-24 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/10">
+          <img
+            v-if="hasCover"
+            :src="editableData.cover_image_url"
+            :alt="editableData.title"
+            class="w-full h-full object-cover"
+            @error="editableData.cover_image_url = ''"
+          />
+          <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950">
+            <BookOpen :size="20" class="text-indigo-500/40" />
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h1 class="text-sm font-bold text-white light:text-slate-900 leading-tight line-clamp-2">{{ editableData.title }}</h1>
+          <p v-if="editableData.authors" class="text-xs text-indigo-400/80 light:text-indigo-600 mt-0.5 truncate">{{ editableData.authors }}</p>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] text-slate-500 font-medium">
+            <span v-if="editableData.page_count" class="flex items-center gap-1"><BookOpen :size="10" /> {{ editableData.page_count }} pg</span>
+            <span v-if="book.language">{{ languageName }}</span>
+            <span v-if="book.published_date">{{ formattedDate }}</span>
+            <span v-if="book.average_rating" class="flex items-center gap-0.5"><Star :size="10" class="text-amber-400" fill="currentColor" /> {{ book.average_rating }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DESKTOP: Left Column - Cover & Quick Stats ===== -->
+      <div class="hidden md:flex w-[40%] bg-slate-900/50 light:bg-slate-50 p-8 flex-col items-center overflow-y-auto border-r border-slate-700/30 light:border-slate-200">
         <div class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
           <img
             v-if="hasCover"
@@ -239,16 +266,17 @@ const truncatedDescription = computed(() => {
       </div>
 
       <!-- Right Column - Details & Actions -->
-      <div class="w-full md:w-[60%] flex flex-col h-full bg-slate-900/20 light:bg-white">
-        <div :class="['flex-1 overflow-y-auto p-8 custom-scrollbar', isEditMode ? 'pt-24' : '']">
-          <header class="mb-6">
+      <div class="w-full md:w-[60%] flex flex-col flex-1 min-h-0 bg-slate-900/20 light:bg-white">
+        <div :class="['flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar', isEditMode ? 'md:pt-24' : '']">
+          <!-- Title/Author (desktop only, mobile has it in compact header) -->
+          <header class="mb-4 md:mb-6">
             <div v-if="isEditMode" class="space-y-3">
               <div>
                 <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Title</label>
                 <input
                   v-model="editableData.title"
                   type="text"
-                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-2xl md:text-3xl font-bold text-white light:text-slate-900 focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-xl md:text-3xl font-bold text-white light:text-slate-900 focus:border-indigo-500 focus:outline-none"
                   placeholder="Book Title"
                 />
               </div>
@@ -257,7 +285,7 @@ const truncatedDescription = computed(() => {
                 <input
                   v-model="editableData.authors"
                   type="text"
-                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-lg text-indigo-400/80 light:text-indigo-600 font-medium focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-base md:text-lg text-indigo-400/80 light:text-indigo-600 font-medium focus:border-indigo-500 focus:outline-none"
                   placeholder="Author 1, Author 2"
                 />
               </div>
@@ -271,7 +299,7 @@ const truncatedDescription = computed(() => {
                 />
               </div>
             </div>
-            <div v-else>
+            <div v-else class="hidden md:block">
               <h1 class="text-2xl md:text-3xl font-bold text-white light:text-slate-900 leading-tight">{{ editableData.title }}</h1>
               <p v-if="editableData.authors" class="text-lg text-indigo-400/80 light:text-indigo-600 mt-2 font-medium">
                 {{ editableData.authors }}
@@ -279,8 +307,8 @@ const truncatedDescription = computed(() => {
             </div>
           </header>
 
-          <section class="mb-6">
-            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-3">Description</h2>
+          <section class="mb-4 md:mb-6">
+            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-2 md:mb-3">Description</h2>
             <div v-if="isEditMode">
               <textarea
                 v-model="editableData.description"
@@ -291,14 +319,14 @@ const truncatedDescription = computed(() => {
             </div>
             <div v-else-if="editableData.description">
               <div
-                :class="showFullDescription ? '' : 'line-clamp-6'"
+                :class="showFullDescription ? '' : 'line-clamp-4 md:line-clamp-6'"
                 class="text-slate-300 light:text-slate-700 text-sm leading-relaxed"
                 v-html="showFullDescription ? editableData.description : truncatedDescription"
               />
               <button
                 v-if="editableData.description && editableData.description.replace(/<[^>]*>/g, '').split(' ').length > 100"
                 @click="showFullDescription = !showFullDescription"
-                class="mt-3 text-xs text-indigo-400 light:text-indigo-600 hover:text-indigo-300 light:hover:text-indigo-500 font-semibold underline underline-offset-4"
+                class="mt-2 text-xs text-indigo-400 light:text-indigo-600 hover:text-indigo-300 light:hover:text-indigo-500 font-semibold underline underline-offset-4"
               >
                 {{ showFullDescription ? 'Show Less' : 'Read More' }}
               </button>
@@ -308,13 +336,13 @@ const truncatedDescription = computed(() => {
             </p>
           </section>
 
-          <section class="mb-8">
-            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-3">Categories</h2>
-            <div class="flex flex-wrap gap-2">
+          <section class="mb-4 md:mb-8">
+            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-2 md:mb-3">Categories</h2>
+            <div class="flex flex-wrap gap-1.5 md:gap-2">
               <span
                 v-for="category in (book.categories || [])"
                 :key="category"
-                class="px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/20 transition-colors cursor-default"
+                class="px-2.5 py-1 md:px-3 md:py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs md:text-sm font-medium hover:bg-indigo-500/20 transition-colors cursor-default"
               >
                 {{ category }}
               </span>
@@ -325,24 +353,24 @@ const truncatedDescription = computed(() => {
           </section>
 
           <!-- Import Logic -->
-          <section class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/50">
-            <h3 class="text-base font-semibold text-white mb-5 flex items-center gap-2">
+          <section class="p-4 md:p-5 rounded-xl md:rounded-2xl bg-slate-800/40 border border-slate-700/50">
+            <h3 class="text-sm md:text-base font-semibold text-white mb-3 md:mb-5 flex items-center gap-2">
               Add to Shelf (Optional)
             </h3>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-3 sm:grid-cols-3">
               <button
                 @click="handleStatusToggle('want_to_read')"
                 :class="selectedAction === 'want_to_read'
                   ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
                   : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
-                class="p-3 rounded-xl flex items-center gap-3 border-2 transition-all duration-300"
+                class="p-2.5 md:p-3 rounded-xl flex flex-col md:flex-row items-center gap-1.5 md:gap-3 border-2 transition-all duration-300"
               >
                 <span :class="selectedAction === 'want_to_read' ? 'scale-110' : ''" class="transition-transform duration-300">
-                  <Bookmark :size="18" />
+                  <Bookmark :size="16" />
                 </span>
-                <span class="text-sm font-semibold">Want to Read</span>
-                <Check v-if="selectedAction === 'want_to_read'" :size="16" class="ml-auto" />
+                <span class="text-[10px] md:text-sm font-semibold text-center md:text-left">Want to Read</span>
+                <Check v-if="selectedAction === 'want_to_read'" :size="14" class="hidden md:block ml-auto" />
               </button>
 
               <button
@@ -350,13 +378,13 @@ const truncatedDescription = computed(() => {
                 :class="selectedAction === 'currently_reading'
                   ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
                   : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
-                class="p-3 rounded-xl flex items-center gap-3 border-2 transition-all duration-300"
+                class="p-2.5 md:p-3 rounded-xl flex flex-col md:flex-row items-center gap-1.5 md:gap-3 border-2 transition-all duration-300"
               >
                 <span :class="selectedAction === 'currently_reading' ? 'scale-110' : ''" class="transition-transform duration-300">
-                  <PlayCircle :size="18" />
+                  <PlayCircle :size="16" />
                 </span>
-                <span class="text-sm font-semibold">Reading</span>
-                <Check v-if="selectedAction === 'currently_reading'" :size="16" class="ml-auto" />
+                <span class="text-[10px] md:text-sm font-semibold text-center md:text-left">Reading</span>
+                <Check v-if="selectedAction === 'currently_reading'" :size="14" class="hidden md:block ml-auto" />
               </button>
 
               <button
@@ -364,25 +392,24 @@ const truncatedDescription = computed(() => {
                 :class="selectedAction === 'read'
                   ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
                   : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
-                class="p-3 rounded-xl flex items-center gap-3 border-2 transition-all duration-300"
+                class="p-2.5 md:p-3 rounded-xl flex flex-col md:flex-row items-center gap-1.5 md:gap-3 border-2 transition-all duration-300"
               >
                 <span :class="selectedAction === 'read' ? 'scale-110' : ''" class="transition-transform duration-300">
-                  <CheckCircle :size="18" />
+                  <CheckCircle :size="16" />
                 </span>
-                <span class="text-sm font-semibold">Finished</span>
-                <Check v-if="selectedAction === 'read'" :size="16" class="ml-auto" />
+                <span class="text-[10px] md:text-sm font-semibold text-center md:text-left">Finished</span>
+                <Check v-if="selectedAction === 'read'" :size="14" class="hidden md:block ml-auto" />
               </button>
             </div>
 
-            <div v-if="selectedAction === 'read'" class="mt-8 pt-8 border-t border-slate-700/50 animate-in slide-in-from-top-4 duration-300">
-              <p class="text-sm font-medium text-slate-300 mb-4">
+            <div v-if="selectedAction === 'read'" class="mt-4 md:mt-8 pt-4 md:pt-8 border-t border-slate-700/50 animate-in slide-in-from-top-4 duration-300">
+              <p class="text-xs md:text-sm font-medium text-slate-300 mb-3 md:mb-4">
                 Your Rating (Optional)
-                <span class="text-xs text-slate-500 ml-2">Click once for full star, double-click for half star</span>
               </p>
               <div class="flex items-center gap-2">
                 <StarRating
                   v-model="rating"
-                  :size="32"
+                  :size="24"
                   :show-value="true"
                 />
                 <button
@@ -398,18 +425,18 @@ const truncatedDescription = computed(() => {
         </div>
 
         <!-- Footer Actions -->
-        <div class="p-6 border-t border-slate-700/30 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex flex-col sm:flex-row gap-3">
+        <div class="p-3 md:p-6 border-t border-slate-700/30 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex gap-2 md:gap-3 shrink-0">
           <button
             @click="handleClose"
-            class="px-5 py-3 rounded-xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 text-sm font-semibold hover:bg-slate-800 light:hover:bg-slate-200 transition-colors"
+            class="px-4 py-2.5 md:px-5 md:py-3 rounded-xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 text-xs md:text-sm font-semibold hover:bg-slate-800 light:hover:bg-slate-200 transition-colors"
           >
             Cancel
           </button>
           <button
             @click="handleImport"
-            class="flex-[2] px-5 py-3 rounded-xl bg-indigo-500 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 active:scale-[0.98] transition-all"
+            class="flex-1 px-4 py-2.5 md:px-5 md:py-3 rounded-xl bg-indigo-500 text-white text-xs md:text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 active:scale-[0.98] transition-all"
           >
-            <Library :size="18" />
+            <Library :size="16" />
             Import Book
           </button>
         </div>

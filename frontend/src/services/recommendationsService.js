@@ -127,13 +127,16 @@ export const recommendationsService = {
   /**
    * Submit book DNA survey
    */
-  async submitSurvey(bookId, userBookId, responses, themes) {
+  async submitSurvey(bookId, userBookId, responses, themes, primaryThemes = [], genreTags = [], primaryGenreTag = null) {
     try {
       const response = await recommendationsAPI.submitSurvey({
         book_id: bookId,
         user_book_id: userBookId,
         responses,
         themes,
+        primary_themes: primaryThemes,
+        genre_tags: genreTags,
+        primary_genre_tag: primaryGenreTag,
       })
       return response.data
     } catch (error) {
@@ -161,14 +164,10 @@ export const recommendationsService = {
           { id: 'darkness', question: 'Overall tone?', left_label: 'Light', right_label: 'Dark' },
           { id: 'introspection', question: 'What drives the narrative?', left_label: 'Action', right_label: 'Reflection' },
         ],
-        theme_options: [
-          { id: 'faith', label: 'Faith & Spirituality' },
-          { id: 'identity', label: 'Identity' },
-          { id: 'philosophy', label: 'Philosophy' },
-          { id: 'love', label: 'Love' },
-          { id: 'family', label: 'Family' },
-          { id: 'redemption', label: 'Redemption' },
-        ],
+        theme_options: [],
+        theme_categories: [],
+        genre_tag_options: [],
+        theme_popularity: {},
       }
     }
   },

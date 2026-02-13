@@ -129,6 +129,12 @@ class RecommendationEngine:
             # Boost score based on confidence
             adjusted_score = similarity * (0.7 + 0.3 * dna.confidence_score)
 
+            # Primary theme affinity boost
+            user_primary = set((self.user.reading_dna or {}).get('primary_themes_affinity', []))
+            book_primary = set(dna.primary_themes or [])
+            primary_match = len(user_primary & book_primary)
+            adjusted_score += primary_match * 0.05
+
             results.append({
                 'book': dna.book,
                 'match_score': round(adjusted_score * 100, 1),
@@ -139,7 +145,18 @@ class RecommendationEngine:
         # Sort by match score
         results.sort(key=lambda x: x['match_score'], reverse=True)
 
-        return results[:limit]
+        # Deduplicate by book_group: keep highest-scored edition
+        seen_groups = set()
+        deduped = []
+        for rec in results:
+            group_id = rec['book'].book_group_id
+            if group_id:
+                if group_id in seen_groups:
+                    continue
+                seen_groups.add(group_id)
+            deduped.append(rec)
+
+        return deduped[:limit]
 
     def _get_fallback_recommendations(self, limit: int) -> List[Dict[str, Any]]:
         """Get fallback recommendations when no DNA data available."""
@@ -236,18 +253,24 @@ class RecommendationEngine:
 
         results = []
         for dna in books:
-            book_themes = dna.themes or []
-            matching_themes = set(themes) & set(book_themes)
+            book_themes = set(dna.themes or [])
+            book_primary = set(dna.primary_themes or [])
+            matching_themes = set(themes) & book_themes
 
             if matching_themes:
+                # Primary matches count double
+                matching_primary = set(themes) & book_primary
+                matching_regular = matching_themes - matching_primary
+                theme_score = len(matching_regular) + len(matching_primary) * 2
+
                 results.append({
                     'book': dna.book,
                     'matching_themes': list(matching_themes),
-                    'theme_match_count': len(matching_themes),
+                    'theme_match_count': theme_score,
                     'dna': dna,
                 })
 
-        # Sort by number of matching themes
+        # Sort by weighted theme match score
         results.sort(key=lambda x: x['theme_match_count'], reverse=True)
 
         return results[:limit]
@@ -292,13 +315,20 @@ class RecommendationEngine:
         for dna in other_books:
             similarity = cosine_similarity(book_vector, dna.to_vector())
 
-            # Also consider theme overlap
+            # Also consider theme overlap with primary theme boost
             book_themes = set(book_dna.themes or [])
             other_themes = set(dna.themes or [])
-            theme_overlap = len(book_themes & other_themes) / max(len(book_themes | other_themes), 1)
+            base_overlap = len(book_themes & other_themes) / max(len(book_themes | other_themes), 1)
 
-            # Combined score: 70% DNA similarity, 30% theme overlap
-            combined_score = 0.7 * similarity + 0.3 * theme_overlap
+            # Primary theme overlap bonus
+            book_primary = set(book_dna.primary_themes or [])
+            other_primary = set(dna.primary_themes or [])
+            primary_bonus = len(book_primary & other_primary) * 0.1
+
+            theme_overlap = min(base_overlap + primary_bonus, 1.0)
+
+            # Combined score: 65% DNA similarity, 35% theme overlap
+            combined_score = 0.65 * similarity + 0.35 * theme_overlap
 
             results.append({
                 'book': dna.book,
@@ -309,4 +339,16 @@ class RecommendationEngine:
 
         results.sort(key=lambda x: x['similarity_score'], reverse=True)
 
-        return results[:limit]
+        # Deduplicate by book_group: keep the edition with most votes
+        seen_groups = set()
+        deduped = []
+        for rec in results:
+            b = rec['book']
+            group_id = b.book_group_id
+            if group_id:
+                if group_id in seen_groups:
+                    continue
+                seen_groups.add(group_id)
+            deduped.append(rec)
+
+        return deduped[:limit]

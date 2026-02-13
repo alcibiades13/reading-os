@@ -13,6 +13,7 @@ import CommunityActivity from '@/components/books/CommunityActivity.vue'
 import { recommendationsService } from '@/services/recommendationsService'
 import { booksAPI } from '@/services/api'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
+import { getAuthorUrl } from '@/utils/authorUrl'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -54,6 +55,7 @@ const showDNASurvey = ref(false)
 const isSwitchEditionModalOpen = ref(false)
 const editionToSwitchTo = ref(null)
 const hasVotedForBook = ref(false)
+const existingVote = ref(null)
 const isLinkEditionModalOpen = ref(false)
 const editionSearchQuery = ref('')
 const editionSearchResults = ref([])
@@ -235,7 +237,7 @@ onMounted(async () => {
   window.scrollTo(0, 0)
 })
 
-// Check DNA vote status
+// Check DNA vote status and fetch existing vote
 const checkDNAVoteStatus = async () => {
   if (!bookId.value) return
 
@@ -243,6 +245,9 @@ const checkDNAVoteStatus = async () => {
     const result = await recommendationsService.hasVotedForBook(bookId.value)
     console.log('[DNA Check] Book ID:', bookId.value, '| hasVoted:', result)
     hasVotedForBook.value = result
+    if (result) {
+      existingVote.value = await recommendationsService.getVoteForBook(bookId.value)
+    }
   } catch (error) {
     console.error('[DNA Check] Error:', error)
     hasVotedForBook.value = false
@@ -296,9 +301,11 @@ const openDNASurvey = () => {
 }
 
 // Handle survey submitted
-const handleSurveySubmitted = () => {
+const handleSurveySubmitted = async () => {
   hasVotedForBook.value = true
   addToast('Thanks for rating! Your profile has been updated.', 'success')
+  // Refresh existing vote data for future updates
+  existingVote.value = await recommendationsService.getVoteForBook(bookId.value)
 }
 
 // Reset cover loaded state when bookId or coverUrl changes
@@ -307,6 +314,7 @@ watch(bookId, async (newId, oldId) => {
   booksStore.currentBook = null
   coverLoaded.value = false
   hasVotedForBook.value = false
+  existingVote.value = null
   similarBooks.value = []
   bookDNA.value = null
   await nextTick()
@@ -858,7 +866,7 @@ export const QuoteCard = defineComponent({
             </div>
             <h1 class="text-lg font-black text-white leading-tight mb-1 line-clamp-2">{{ book.title }}</h1>
             <p class="text-sm text-slate-400 mb-2">
-              by <span class="text-indigo-400">{{ authorsString }}</span>
+              by <span v-for="(author, idx) in (book.authors || [])" :key="author.id"><router-link :to="getAuthorUrl(author)" class="text-indigo-400 hover:underline">{{ author.name }}</router-link><span v-if="idx < book.authors.length - 1">, </span></span><span v-if="!book.authors?.length">Unknown Author</span>
             </p>
 
             <!-- Rating -->
@@ -1012,7 +1020,7 @@ export const QuoteCard = defineComponent({
           </div>
           <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-4">{{ book.title }}</h1>
           <p class="text-base sm:text-lg lg:text-xl text-slate-400 font-medium">
-            by <span class="text-indigo-400 hover:underline cursor-pointer">{{ authorsString }}</span>
+            by <span v-for="(author, idx) in (book.authors || [])" :key="author.id"><router-link :to="getAuthorUrl(author)" class="text-indigo-400 hover:underline">{{ author.name }}</router-link><span v-if="idx < book.authors.length - 1">, </span></span><span v-if="!book.authors?.length">Unknown Author</span>
           </p>
 
           <div class="flex items-center gap-4 mt-6">
@@ -1153,6 +1161,14 @@ export const QuoteCard = defineComponent({
                   >
                     <Sparkles :size="14" />
                     <span>Rate Book DNA</span>
+                  </button>
+                  <button
+                    v-else
+                    @click="openDNASurvey"
+                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-500 text-xs font-bold hover:border-indigo-500/30 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                  >
+                    <Sparkles :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
+                    <span class="transition-colors group-hover/btn:text-indigo-400">Update DNA</span>
                   </button>
                 </div>
               </div>
@@ -1860,6 +1876,7 @@ export const QuoteCard = defineComponent({
     :open="showDNASurvey"
     :book="book"
     :user-book-id="userBook?.id"
+    :existing-vote="existingVote"
     @close="showDNASurvey = false"
     @submitted="handleSurveySubmitted"
   />

@@ -7,6 +7,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  compact: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const attributes = [
@@ -48,7 +52,7 @@ const getProgressWidth = (value) => {
     </div>
 
     <!-- Attributes Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div :class="['grid gap-4 mb-6', compact ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-2']">
       <div v-for="attr in attributes" :key="attr.key" class="space-y-1.5">
         <div class="flex justify-between text-[10px] text-slate-500 uppercase tracking-wider font-bold">
           <span>{{ attr.left }}</span>

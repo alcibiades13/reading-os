@@ -205,6 +205,22 @@ class BookGroupDNA(models.Model):
         blank=True,
         help_text="List of theme slugs: ['faith', 'identity', 'suffering']"
     )
+    primary_themes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Top 3 primary theme slugs (higher weight)"
+    )
+    genre_tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Genre tag slugs: ['literary_fiction', 'sci_fi']"
+    )
+    primary_genre_tag = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Single primary genre tag slug"
+    )
 
     # Meta
     SOURCE_CHOICES = [
@@ -456,6 +472,22 @@ class BookDNA(models.Model):
         blank=True,
         help_text="List of theme slugs: ['faith', 'identity', 'suffering']"
     )
+    primary_themes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Top 3 primary theme slugs (higher weight)"
+    )
+    genre_tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Genre tag slugs: ['literary_fiction', 'sci_fi']"
+    )
+    primary_genre_tag = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Single primary genre tag slug"
+    )
 
     # Meta
     SOURCE_CHOICES = [
@@ -534,6 +566,22 @@ class BookDNAVote(models.Model):
     themes = models.JSONField(
         default=list,
         blank=True
+    )
+    primary_themes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Up to 3 primary theme slugs (higher weight)"
+    )
+    genre_tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Genre tag slugs selected by user"
+    )
+    primary_genre_tag = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Single primary genre tag slug"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

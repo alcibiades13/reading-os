@@ -117,6 +117,7 @@ export const booksAPI = {
 export const authorsAPI = {
   list: (params) => api.get('/books/authors/', { params }),
   get: (id) => api.get(`/books/authors/${id}/`),
+  books: (id) => api.get(`/books/authors/${id}/books/`),
 }
 
 export const genresAPI = {

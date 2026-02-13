@@ -16,7 +16,7 @@ from .serializers import (
     SurveyConfigSerializer,
     BookDNASerializer,
 )
-from .survey import SURVEY_QUESTIONS, THEME_OPTIONS
+from .survey import SURVEY_QUESTIONS, THEME_OPTIONS, THEME_CATEGORIES, GENRE_TAG_OPTIONS
 
 # Create theme ID to label mapping
 THEME_LABELS = {t['id']: t['label'] for t in THEME_OPTIONS}
@@ -207,6 +207,9 @@ class BookDNASurveyView(APIView):
                 'character_focus': responses.get('character_focus'),
                 'introspection': responses.get('introspection'),
                 'themes': themes,
+                'primary_themes': serializer.validated_data.get('primary_themes', []),
+                'genre_tags': serializer.validated_data.get('genre_tags', []),
+                'primary_genre_tag': serializer.validated_data.get('primary_genre_tag') or None,
             }
         )
 
@@ -261,6 +264,9 @@ class CheckSurveyView(APIView):
                 'character_focus': vote.character_focus,
                 'introspection': vote.introspection,
                 'themes': vote.themes,
+                'primary_themes': vote.primary_themes,
+                'genre_tags': vote.genre_tags,
+                'primary_genre_tag': vote.primary_genre_tag,
             }
 
         return Response({
@@ -272,14 +278,39 @@ class CheckSurveyView(APIView):
 class SurveyConfigView(APIView):
     """
     GET /api/recommendations/survey/config/
-    Get survey configuration (questions and theme options).
+    Get survey configuration (questions, categorized themes, genre tags, popularity).
     """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
+        from collections import Counter
+
+        # Calculate theme popularity (count across all votes)
+        all_votes = BookDNAVote.objects.values_list('themes', flat=True)
+        theme_counter = Counter()
+        for themes_list in all_votes:
+            if themes_list:
+                theme_counter.update(themes_list)
+
+        # Sort themes within each category by popularity
+        sorted_categories = []
+        for cat in THEME_CATEGORIES:
+            sorted_themes = sorted(
+                cat["themes"],
+                key=lambda t: theme_counter.get(t["id"], 0),
+                reverse=True
+            )
+            sorted_categories.append({
+                **cat,
+                "themes": sorted_themes
+            })
+
         return Response({
             'questions': SURVEY_QUESTIONS,
-            'theme_options': THEME_OPTIONS
+            'theme_options': THEME_OPTIONS,
+            'theme_categories': sorted_categories,
+            'genre_tag_options': GENRE_TAG_OPTIONS,
+            'theme_popularity': dict(theme_counter),
         })
 
 

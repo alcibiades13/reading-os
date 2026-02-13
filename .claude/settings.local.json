@@ -59,7 +59,9 @@
       "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\frontend && npm install @capacitor/app\")",
       "Bash(powershell -Command \"Set-Location ''d:\\\\projects\\\\reading-os\\\\frontend''; npm install @capacitor/app\")",
       "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\backend && python manage.py makemigrations social && python manage.py migrate\")",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(ls:*)",
+      "Bash(node -e:*)"
     ]
   }
 }
