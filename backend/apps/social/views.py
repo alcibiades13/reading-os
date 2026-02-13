@@ -4,8 +4,8 @@ from rest_framework.response import Response
 
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
-    CirclePost, CircleComment, FeedItem, Notification,
-    Conversation, Message, DiscussionTopic, TopicMessage,
+    CirclePost, CircleComment, FeedItem, FeedItemLike, FeedItemComment,
+    Notification, Conversation, Message, DiscussionTopic, TopicMessage,
     TopicMessageLike, BookClubReading
 )
 from apps.social.serializers import (
@@ -14,7 +14,8 @@ from apps.social.serializers import (
     CircleMembershipSerializer, CircleInvitationSerializer,
     CircleInvitationCreateSerializer, CirclePostListSerializer,
     CirclePostDetailSerializer, CirclePostCreateSerializer,
-    CircleCommentSerializer, FeedItemSerializer, NotificationSerializer,
+    CircleCommentSerializer, FeedItemSerializer, FeedItemCommentSerializer,
+    NotificationSerializer,
     ConversationListSerializer, ConversationDetailSerializer,
     MessageSerializer, MessageCreateSerializer,
     DiscussionTopicListSerializer, DiscussionTopicDetailSerializer,
@@ -449,6 +450,52 @@ class FeedItemViewSet(viewsets.ReadOnlyModelViewSet):
             is_read=False
         ).update(is_read=True)
         return Response({'status': 'All items marked as read'})
+
+    @action(detail=True, methods=['post'])
+    def toggle_like(self, request, pk=None):
+        """Toggle like on a feed item"""
+        feed_item = self.get_object()
+        like, created = FeedItemLike.objects.get_or_create(
+            feed_item=feed_item,
+            user=request.user
+        )
+        if not created:
+            like.delete()
+            feed_item.likes_count = max(0, feed_item.likes_count - 1)
+            feed_item.save(update_fields=['likes_count'])
+            return Response({'liked': False, 'likes_count': feed_item.likes_count})
+        else:
+            feed_item.likes_count += 1
+            feed_item.save(update_fields=['likes_count'])
+            return Response({'liked': True, 'likes_count': feed_item.likes_count})
+
+    @action(detail=True, methods=['get'])
+    def comments(self, request, pk=None):
+        """List comments for a feed item"""
+        feed_item = self.get_object()
+        comments = feed_item.comments.select_related('author').all()
+        serializer = FeedItemCommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def add_comment(self, request, pk=None):
+        """Add a comment to a feed item"""
+        feed_item = self.get_object()
+        content = request.data.get('content', '').strip()
+        if not content:
+            return Response(
+                {'error': 'Content is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        comment = FeedItemComment.objects.create(
+            feed_item=feed_item,
+            author=request.user,
+            content=content
+        )
+        feed_item.comments_count += 1
+        feed_item.save(update_fields=['comments_count'])
+        serializer = FeedItemCommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # ===== USER DISCOVERY =====

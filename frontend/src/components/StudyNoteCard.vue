@@ -1,5 +1,5 @@
 <template>
-  <div class="group glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-6 hover:border-slate-700 transition-all duration-300">
+  <div class="group glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-4 lg:p-6 hover:border-slate-700 transition-all duration-300">
     <div class="flex items-start justify-between mb-4">
       <div class="flex items-center gap-3 flex-wrap">
         <div :class="['flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border', typeConfig.color]">
@@ -58,7 +58,7 @@
       <div
         @mouseup="handleTextSelection"
         @click="handleClickOnContent"
-        class="font-serif text-lg text-slate-200 leading-relaxed mb-6 whitespace-pre-wrap select-text"
+        class="font-serif text-sm lg:text-lg text-slate-200 leading-relaxed mb-4 lg:mb-6 whitespace-pre-wrap select-text"
         v-html="contentWithHighlights"
       />
 

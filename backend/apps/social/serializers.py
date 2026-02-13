@@ -2,8 +2,8 @@ from rest_framework import serializers
 from django.utils import timezone
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
-    CirclePost, CircleComment, FeedItem, Notification,
-    Conversation, Message, DiscussionTopic, TopicMessage,
+    CirclePost, CircleComment, FeedItem, FeedItemLike, FeedItemComment,
+    Notification, Conversation, Message, DiscussionTopic, TopicMessage,
     TopicMessageLike, BookClubReading
 )
 from apps.users.serializers import UserSerializer
@@ -381,11 +381,22 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 # ===== FEED =====
 
+class FeedItemCommentSerializer(serializers.ModelSerializer):
+    """Serializer for feed item comments"""
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = FeedItemComment
+        fields = ['id', 'author', 'content', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
+
+
 class FeedItemSerializer(serializers.ModelSerializer):
     """Serializer for feed items"""
     actor = UserSerializer(read_only=True)
     book_data = serializers.SerializerMethodField()
     review_data = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = FeedItem
@@ -399,10 +410,19 @@ class FeedItemSerializer(serializers.ModelSerializer):
             'preview_image',
             'book_data',
             'review_data',
+            'likes_count',
+            'comments_count',
+            'is_liked',
             'is_read',
             'created_at',
         ]
         read_only_fields = ['id', 'user', 'actor', 'created_at']
+
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(user=request.user).exists()
+        return False
 
     def get_review_data(self, obj):
         """Get review data for book_finished feed items"""

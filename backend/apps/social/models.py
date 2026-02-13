@@ -631,9 +631,12 @@ class FeedItem(models.Model):
         default=False,
         help_text="Has user seen this feed item?"
     )
-    
+
+    likes_count = models.IntegerField(default=0)
+    comments_count = models.IntegerField(default=0)
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Feed Item'
@@ -642,9 +645,56 @@ class FeedItem(models.Model):
             models.Index(fields=['user', '-created_at']),
             models.Index(fields=['user', 'is_read']),
         ]
-    
+
     def __str__(self):
         return f"{self.actor.email} - {self.feed_type} (for {self.user.email})"
+
+
+class FeedItemLike(models.Model):
+    """Like on a feed item."""
+    feed_item = models.ForeignKey(
+        FeedItem,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='feed_likes'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['feed_item', 'user']
+        verbose_name = 'Feed Item Like'
+        verbose_name_plural = 'Feed Item Likes'
+
+    def __str__(self):
+        return f"{self.user.email} likes feed item {self.feed_item.id}"
+
+
+class FeedItemComment(models.Model):
+    """Comment on a feed item."""
+    feed_item = models.ForeignKey(
+        FeedItem,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='feed_comments'
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Feed Item Comment'
+        verbose_name_plural = 'Feed Item Comments'
+
+    def __str__(self):
+        return f"Comment by {self.author.email} on feed item {self.feed_item.id}"
 
 
 class Conversation(models.Model):

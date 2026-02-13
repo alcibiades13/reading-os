@@ -192,6 +192,9 @@ CORS_ALLOWED_ORIGINS = config(
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Allow Capacitor app origin (Android WebView)
+CORS_ALLOW_ALL_ORIGINS = config('DEBUG', default=False, cast=bool)
+
 
 # Django Allauth settings
 # ACCOUNT_AUTHENTICATION_METHOD = 'email'

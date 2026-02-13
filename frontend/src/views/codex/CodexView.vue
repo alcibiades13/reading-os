@@ -917,12 +917,12 @@ const formatDate = (dateString) => {
         <div v-if="currentChapter" class="flex-1 overflow-y-auto p-5">
           <input
             v-model="currentChapter.title"
-            class="bg-transparent border-none text-2xl font-black text-white outline-none w-full tracking-tighter mb-4 placeholder-slate-800"
+            class="bg-transparent border-none text-xl font-black text-white outline-none w-full tracking-tighter mb-4 placeholder-slate-800"
             placeholder="Chapter Title"
           />
           <textarea
             v-model="currentChapter.content"
-            class="w-full bg-transparent border-none outline-none text-lg text-slate-300 leading-loose placeholder-slate-700 min-h-[60vh] resize-none font-serif"
+            class="w-full bg-transparent border-none outline-none text-base text-slate-300 leading-loose placeholder-slate-700 min-h-[60vh] resize-none font-serif"
             placeholder="Continue the legacy..."
           />
         </div>

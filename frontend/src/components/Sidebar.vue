@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { getBookUrlWithSuffix } from '@/utils/bookUrl'
+import { getMediaUrl } from '@/utils/mediaUrl'
 import { correspondenceService } from '@/services/correspondenceService'
 import { useMobileSidebar } from '@/composables/useMobileSidebar'
 import {
@@ -95,7 +96,7 @@ const userInitials = computed(() => {
   return user?.email?.[0]?.toUpperCase() || 'U'
 })
 
-const userAvatarUrl = computed(() => authStore.user?.avatar || null)
+const userAvatarUrl = computed(() => getMediaUrl(authStore.user?.avatar))
 
 const userName = computed(() => {
   const user = authStore.user

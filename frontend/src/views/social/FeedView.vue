@@ -79,9 +79,9 @@ const loadFeed = async () => {
       rating: null,
       review: item.review_data || null,
       timestamp: item.created_at,
-      likes_count: 0,
-      comments_count: 0,
-      is_liked: false,
+      likes_count: item.likes_count || 0,
+      comments_count: item.comments_count || 0,
+      is_liked: item.is_liked || false,
       preview_text: item.preview_text,
       preview_image: item.preview_image,
     }))
@@ -181,9 +181,20 @@ const formatTimestamp = (timestamp) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const handleLike = (activity) => {
+const handleLike = async (activity) => {
+  // Optimistic update
   activity.is_liked = !activity.is_liked
   activity.likes_count += activity.is_liked ? 1 : -1
+  try {
+    const response = await api.post(`/social/feed/${activity.id}/toggle_like/`)
+    activity.is_liked = response.data.liked
+    activity.likes_count = response.data.likes_count
+  } catch (err) {
+    // Revert on error
+    activity.is_liked = !activity.is_liked
+    activity.likes_count += activity.is_liked ? 1 : -1
+    console.error('Failed to toggle like:', err)
+  }
 }
 
 const goToBook = (bookId) => {

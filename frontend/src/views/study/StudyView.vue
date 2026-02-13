@@ -698,9 +698,12 @@
                   </p>
                 </div>
 
-                <!-- Active indicator -->
-                <div v-if="userBook.book?.id == bookId" class="flex-shrink-0">
-                  <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                <!-- Note count + Active indicator -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <span v-if="booksWithNotesMap.get(userBook.book?.id)" class="text-[10px] font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-lg">
+                    {{ booksWithNotesMap.get(userBook.book?.id) }} notes
+                  </span>
+                  <div v-if="userBook.book?.id == bookId" class="w-2 h-2 rounded-full bg-indigo-500"></div>
                 </div>
               </button>
             </div>
@@ -717,6 +720,7 @@ import { useRouter } from 'vue-router'
 import { useStudyNotesStore } from '@/stores/studyNotesStore'
 import { useQuotesStore } from '@/stores/quotesStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
+import { studyNotesAPI } from '@/services/api'
 import StudyNoteCard from '@/components/StudyNoteCard.vue'
 import {
   ArrowLeft,
@@ -786,6 +790,7 @@ const newNoteTextareaRef = ref(null)
 const showBookSelector = ref(false)
 const bookSearchQuery = ref('')
 const userBooks = ref([])
+const booksWithNotesMap = ref(new Map()) // book_id -> note count
 
 const loadStudyData = async () => {
   await studyNotesStore.fetchNotes({ book: props.bookId })
@@ -794,7 +799,12 @@ const loadStudyData = async () => {
 onMounted(async () => {
   await Promise.all([
     loadStudyData(),
-    booksStore.fetchBooks()
+    booksStore.fetchBooks(),
+    studyNotesAPI.booksWithNotes().then(res => {
+      const map = new Map()
+      ;(res.data || []).forEach(b => map.set(b.book_id, b.count))
+      booksWithNotesMap.value = map
+    }).catch(() => {})
   ])
   userBooks.value = booksStore.userBooks || []
   window.scrollTo(0, 0)
@@ -1066,15 +1076,24 @@ const applyNewNoteHighlight = () => {
   selection.removeAllRanges()
 }
 
-// Filter books based on search
+// Filter and sort books - books with study notes first
 const filteredBooks = computed(() => {
-  if (!bookSearchQuery.value) return userBooks.value
+  let books = userBooks.value
 
-  const query = bookSearchQuery.value.toLowerCase()
-  return userBooks.value.filter(userBook =>
-    userBook.book?.title?.toLowerCase().includes(query) ||
-    userBook.book?.authors?.some(author => author.name?.toLowerCase().includes(query))
-  )
+  if (bookSearchQuery.value) {
+    const query = bookSearchQuery.value.toLowerCase()
+    books = books.filter(userBook =>
+      userBook.book?.title?.toLowerCase().includes(query) ||
+      userBook.book?.authors?.some(author => author.name?.toLowerCase().includes(query))
+    )
+  }
+
+  // Sort: books with study notes first (by note count desc), then the rest
+  return [...books].sort((a, b) => {
+    const countA = booksWithNotesMap.value.get(a.book?.id) || 0
+    const countB = booksWithNotesMap.value.get(b.book?.id) || 0
+    return countB - countA
+  })
 })
 
 // Export study notes to PDF via browser print (proper page break support)

@@ -1,17 +1,9 @@
 // Correspondence (Chat) Service
 import { conversationsAPI, socialAPI } from './api'
+import { getMediaUrl } from '@/utils/mediaUrl'
 
 // Helper to ensure avatar URL is absolute
-const getAvatarUrl = (avatar) => {
-  if (!avatar) return null
-  if (avatar.startsWith('http')) return avatar
-  // Prepend API base URL for relative paths
-  const baseUrl = import.meta.env.VITE_API_URL || ''
-  if (avatar.startsWith('/media/')) {
-    return `${baseUrl}${avatar}`
-  }
-  return `${baseUrl}/media/${avatar}`
-}
+const getAvatarUrl = (avatar) => getMediaUrl(avatar)
 
 export const correspondenceService = {
   /**

@@ -373,9 +373,23 @@ class StudyNoteViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    def perform_create(self, serializer):
-        """Set user to current user"""
-        serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        """Create note and return full data using list serializer"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save(user=request.user)
+        output = StudyNoteListSerializer(instance).data
+        return Response(output, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        """Update note and return full data using list serializer"""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        output = StudyNoteListSerializer(instance).data
+        return Response(output)
 
     @action(detail=False, methods=['get'])
     def references(self, request):
@@ -395,6 +409,16 @@ class StudyNoteViewSet(viewsets.ModelViewSet):
         ).order_by('reference')
 
         return Response(references)
+
+    @action(detail=False, methods=['get'])
+    def books_with_notes(self, request):
+        """Get book IDs that have study notes, sorted by count"""
+        books = StudyNote.objects.filter(
+            user=request.user
+        ).values('book_id').annotate(
+            count=Count('id')
+        ).order_by('-count')
+        return Response(list(books))
 
     @action(detail=True, methods=['post'])
     def promote_to_quote(self, request, pk=None):

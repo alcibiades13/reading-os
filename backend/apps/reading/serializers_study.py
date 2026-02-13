@@ -81,6 +81,8 @@ class StudyNoteCreateSerializer(serializers.ModelSerializer):
         source='tags',
         required=False
     )
+    chapter = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
+    page_number = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = StudyNote

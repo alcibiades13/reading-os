@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useThemeStore } from '@/stores/themeStore'
+import { getMediaUrl } from '@/utils/mediaUrl'
 import { useMobileSidebar } from '@/composables/useMobileSidebar'
 import SearchDropdown from '@/components/SearchDropdown.vue'
 import NotificationDropdown from '@/components/NotificationDropdown.vue'
@@ -29,7 +30,7 @@ const userInitials = computed(() => {
   return user?.email?.[0]?.toUpperCase() || 'U'
 })
 
-const userAvatarUrl = computed(() => authStore.user?.avatar || null)
+const userAvatarUrl = computed(() => getMediaUrl(authStore.user?.avatar))
 
 const handleLogout = () => {
   authStore.logout()

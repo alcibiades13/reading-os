@@ -835,7 +835,7 @@ function getUserInitial(user) {
       <!-- END DESKTOP LAYOUT -->
 
       <!-- ==================== MOBILE LAYOUT ==================== -->
-      <div class="lg:hidden flex flex-col h-full">
+      <div class="lg:hidden flex flex-col h-full w-full">
 
         <!-- MOBILE: Topics View -->
         <template v-if="mobileView === 'topics'">

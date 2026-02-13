@@ -578,7 +578,7 @@ onMounted(async () => {
         } : {
           note: item.preview_text
         },
-        stats: { likes: 0, comments: 0, hasLiked: false }
+        stats: { likes: item.likes_count || 0, comments: item.comments_count || 0, hasLiked: item.is_liked || false }
       }
     })
 
@@ -892,7 +892,7 @@ const handleBookUpdated = (updatedUserBook) => {
       <div v-if="activeTab === 'discover'">
         <DiscoverTab />
       </div>
-      <div v-else class="space-y-8">
+      <div v-else class="space-y-2 lg:space-y-8">
         <div v-if="loading" class="space-y-8">
           <div v-for="n in 3" :key="n" class="h-64 glass bg-slate-900/50 rounded-2xl animate-pulse flex items-center justify-center">
             <div class="w-12 h-12 rounded-full border-4 border-slate-800 border-t-indigo-500 animate-spin" />

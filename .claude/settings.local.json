@@ -47,7 +47,19 @@
       "Bash(PGPASSWORD=47258789 pg_dump:*)",
       "Bash(d:projectsreading-osbackendvenvScriptspython.exe -c \"import os, sys, json, io; sys.stdout = io.TextIOWrapper\\(sys.stdout.buffer, encoding=''utf-8''\\); os.environ[''DJANGO_SETTINGS_MODULE''] = ''config.settings''; sys.path.insert\\(0, r''d:\\\\projects\\\\reading-os\\\\backend''\\); import django; django.setup\\(\\); from apps.reading.models_study import StudyNote; from django.utils.dateparse import parse_datetime; f = open\\(r''d:\\\\projects\\\\reading-os\\\\backend\\\\feb_notes_backup.json'', ''r'', encoding=''utf-8''\\); notes = json.load\\(f\\); f.close\\(\\); [exec_restore\\(n\\) for n in notes]\")",
       "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\backend && venv\\\\Scripts\\\\python.exe restore_feb_notes.py\")",
-      "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\backend && venv\\\\Scripts\\\\python.exe restore_feb_notes.py > restore_output.txt 2>&1\")"
+      "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\backend && venv\\\\Scripts\\\\python.exe restore_feb_notes.py > restore_output.txt 2>&1\")",
+      "Bash(npm install:*)",
+      "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\frontend && npm install @capacitor/core @capacitor/cli\")",
+      "Bash(powershell -Command \"Set-Location ''d:\\\\projects\\\\reading-os\\\\frontend''; npm install ''@capacitor/core'' ''@capacitor/cli'' 2>&1\")",
+      "Bash(powershell -Command \"Set-Location ''d:\\\\projects\\\\reading-os\\\\frontend''; npm run build 2>&1\")",
+      "Bash(powershell -Command \"Set-Location 'd:\\\\projects\\\\reading-os\\\\frontend'; npm install '@capacitor/android' 2>&1\":*)",
+      "Bash(powershell -Command \"Set-Location ''d:\\\\projects\\\\reading-os\\\\frontend''; npx cap add android 2>&1\")",
+      "Bash(powershell -Command \"Set-Location ''d:\\\\projects\\\\reading-os\\\\frontend''; npm install -D typescript 2>&1\")",
+      "Bash(powershell -Command \"Set-Location 'd:\\\\projects\\\\reading-os\\\\frontend'; npx cap sync android 2>&1\":*)",
+      "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\frontend && npm install @capacitor/app\")",
+      "Bash(powershell -Command \"Set-Location ''d:\\\\projects\\\\reading-os\\\\frontend''; npm install @capacitor/app\")",
+      "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\backend && python manage.py makemigrations social && python manage.py migrate\")",
+      "Bash(powershell -Command:*)"
     ]
   }
 }

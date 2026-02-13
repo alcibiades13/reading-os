@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     Friendship, Circle, CircleMembership, CircleInvitation, CirclePost,
-    CircleComment, FeedItem, DiscussionTopic, TopicMessage, TopicMessageLike,
+    CircleComment, FeedItem, FeedItemLike, FeedItemComment,
+    DiscussionTopic, TopicMessage, TopicMessageLike,
     BookClubReading, Notification, Conversation, Message
 )
 
@@ -115,6 +116,23 @@ class FeedItemAdmin(admin.ModelAdmin):
             'fields': ('is_read',)
         }),
     )
+
+
+@admin.register(FeedItemLike)
+class FeedItemLikeAdmin(admin.ModelAdmin):
+    list_display = ['feed_item', 'user', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__email']
+
+
+@admin.register(FeedItemComment)
+class FeedItemCommentAdmin(admin.ModelAdmin):
+    list_display = ['feed_item', 'author', 'content_preview', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['author__email', 'content']
+
+    def content_preview(self, obj):
+        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
 
 
 # Book Club Admin

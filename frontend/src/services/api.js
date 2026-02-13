@@ -161,6 +161,7 @@ export const studyNotesAPI = {
   delete: (id) => api.delete(`/reading/study-notes/${id}/`),
   references: (bookId) => api.get('/reading/study-notes/references/', { params: { book: bookId } }),
   promoteToQuote: (id) => api.post(`/reading/study-notes/${id}/promote_to_quote/`),
+  booksWithNotes: () => api.get('/reading/study-notes/books_with_notes/'),
 }
 
 export const listsAPI = {
