@@ -344,6 +344,70 @@ class UserViewSet(viewsets.ModelViewSet):
             count=Count('books')
         ).order_by('-count').values_list('name', flat=True)[:5]
 
+        # Compute shared books and match score (only when viewing someone else's profile)
+        shared_books_data = []
+        shared_books_count = 0
+        match_score = 0
+        if request.user.is_authenticated and user != request.user:
+            current_user_book_ids = set(
+                UserBook.objects.filter(
+                    user=request.user,
+                    replaced_by__isnull=True
+                ).values_list('book_id', flat=True)
+            )
+            shared_user_books = UserBook.objects.filter(
+                user=user,
+                replaced_by__isnull=True,
+                book_id__in=current_user_book_ids
+            ).select_related('book').prefetch_related('book__authors')
+
+            shared_books_count = shared_user_books.count()
+
+            from apps.books.serializers import BookListSerializer
+            shared_books_data = [
+                {
+                    'id': ub.id,
+                    'book': BookListSerializer(ub.book).data,
+                    'status': ub.status,
+                    'rating': str(ub.rating) if ub.rating else None,
+                }
+                for ub in shared_user_books
+            ]
+
+            # Compute match score based on shared books and genres
+            current_user_genres = set(
+                Genre.objects.filter(
+                    books__user_books__user=request.user,
+                    books__user_books__status='read'
+                ).values_list('name', flat=True)
+            )
+            other_user_genres = set(top_genres)
+            shared_genres_count = len(current_user_genres & other_user_genres)
+
+            # Total books for both users
+            current_total = len(current_user_book_ids)
+            other_total = UserBook.objects.filter(
+                user=user, replaced_by__isnull=True
+            ).count()
+            min_total = min(current_total, other_total) or 1
+
+            # Match score with diminishing returns on shared book count
+            # Books score (0-60): first 10 books = 2pts each, then 0.8pts each
+            if shared_books_count <= 10:
+                books_score = shared_books_count * 2
+            else:
+                books_score = 20 + (shared_books_count - 10) * 0.8
+            books_score = min(books_score, 60)
+
+            # Genres score (0-30): 8pts per shared genre
+            genres_score = min(shared_genres_count * 8, 30)
+
+            # Overlap ratio bonus (0-10): how much of the smaller library overlaps
+            overlap_ratio = shared_books_count / min_total
+            overlap_bonus = min(overlap_ratio * 10, 10)
+
+            match_score = round(min(books_score + genres_score + overlap_bonus, 100))
+
         # Serialize user data
         user_data = UserDetailSerializer(user, context={'request': request}).data
         user_data.update({
@@ -355,6 +419,9 @@ class UserViewSet(viewsets.ModelViewSet):
             'books_read_count': books_read_count,
             'quotes_count': quotes_count,
             'top_genres': list(top_genres),
+            'shared_books': shared_books_data,
+            'shared_books_count': shared_books_count,
+            'match_score': match_score,
         })
 
         return Response(user_data)
@@ -378,8 +445,11 @@ class UserViewSet(viewsets.ModelViewSet):
         from apps.reading.serializers import UserBookListSerializer
         from django.core.paginator import Paginator
 
-        # Get user's books
-        queryset = UserBook.objects.filter(user=user).select_related(
+        # Get user's books (exclude replaced editions)
+        queryset = UserBook.objects.filter(
+            user=user,
+            replaced_by__isnull=True
+        ).select_related(
             'book'
         ).prefetch_related(
             'book__authors',

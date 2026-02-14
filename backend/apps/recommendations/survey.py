@@ -93,7 +93,6 @@ THEME_CATEGORIES = [
             {"id": "anxiety", "label": "Anxiety", "icon": "activity"},
             {"id": "depression", "label": "Depression", "icon": "cloud"},
             {"id": "addiction", "label": "Addiction", "icon": "pill"},
-            {"id": "inner_conflict", "label": "Inner Conflict", "icon": "swords"},
             {"id": "self_discovery", "label": "Self-Discovery", "icon": "search"},
             {"id": "identity_crisis", "label": "Identity Crisis", "icon": "circle-help"},
             {"id": "manipulation", "label": "Manipulation", "icon": "eye-off"},
@@ -109,7 +108,7 @@ THEME_CATEGORIES = [
         "themes": [
             {"id": "philosophy", "label": "Philosophy", "icon": "lightbulb"},
             {"id": "existentialism", "label": "Existentialism", "icon": "infinity"},
-            {"id": "moral_dilemma", "label": "Moral Dilemma", "icon": "scale"},
+            {"id": "moral_dilemma", "label": "Moral & Inner Conflict", "icon": "scale"},
             {"id": "faith", "label": "Faith & Spirituality", "icon": "church"},
             {"id": "redemption", "label": "Redemption", "icon": "sunrise"},
             {"id": "mortality", "label": "Mortality", "icon": "hourglass"},
@@ -183,6 +182,8 @@ THEME_CATEGORIES = [
             {"id": "bittersweet", "label": "Bittersweet", "icon": "cloud-sun"},
             {"id": "wholesome", "label": "Wholesome", "icon": "flower-2"},
             {"id": "dark_humor", "label": "Dark Humor", "icon": "smile"},
+            {"id": "satire", "label": "Satire", "icon": "drama"},
+            {"id": "gothic", "label": "Gothic", "icon": "castle"},
             {"id": "nature", "label": "Nature", "icon": "leaf"},
             {"id": "art", "label": "Art & Beauty", "icon": "palette"},
         ]
@@ -267,6 +268,7 @@ GENRE_TAG_OPTIONS = [
     {"id": "true_crime", "label": "True Crime", "icon": "shield-alert"},
     {"id": "classics", "label": "Classics", "icon": "book-marked"},
     {"id": "childrens", "label": "Children's", "icon": "baby"},
+    {"id": "religion", "label": "Religion & Theology", "icon": "church"},
 ]
 
 # Helper sets for validation

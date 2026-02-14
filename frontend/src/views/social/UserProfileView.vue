@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { socialService } from '@/services/socialService'
-import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useAuthStore } from '@/stores/authStore'
 import FollowButton from '@/components/social/FollowButton.vue'
 import BookCard from '@/components/BookCard.vue'
@@ -15,10 +14,10 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const booksStore = useUserBooksStore()
 const authStore = useAuthStore()
 
 const userId = computed(() => route.params.id)
+const isOwnProfile = computed(() => String(userId.value) === String(authStore.user?.id))
 const userProfile = ref(null)
 const userBooks = ref([])
 const userStats = ref(null)
@@ -62,12 +61,12 @@ watch(() => route.params.id, async (newId, oldId) => {
       loadUserStats(),
     ])
 
-    // Load current user's books for comparison (only if viewing someone else)
-    if (newId != authStore.user?.id) {
-      await booksStore.fetchBooks()
+    // Use shared books and match score from backend profile response
+    if (userProfile.value) {
+      sharedBooks.value = userProfile.value.shared_books || []
+      matchScore.value = userProfile.value.match_score || 0
     }
 
-    calculateMatchAndSharedBooks()
     loading.value = false
   }
 })
@@ -80,12 +79,12 @@ onMounted(async () => {
     loadUserStats(),
   ])
 
-  // Load current user's books for comparison (only if viewing someone else)
-  if (userId.value != authStore.user?.id) {
-    await booksStore.fetchBooks()
+  // Use shared books and match score from backend profile response
+  if (userProfile.value) {
+    sharedBooks.value = userProfile.value.shared_books || []
+    matchScore.value = userProfile.value.match_score || 0
   }
 
-  calculateMatchAndSharedBooks()
   loading.value = false
 })
 
@@ -184,28 +183,6 @@ const switchTab = async (tab) => {
   } else if (tab === 'following' && following.value.length === 0) {
     await loadFollowing()
   }
-}
-
-const calculateMatchAndSharedBooks = () => {
-  const currentUserBooks = booksStore.books.map(ub => ub.book)
-  const otherUserBooks = userBooks.value.map(ub => ub.book)
-
-  // Find shared books
-  const shared = userBooks.value.filter(userBook =>
-    booksStore.books.some(myBook => myBook.book.id === userBook.book.id)
-  )
-  sharedBooks.value = shared
-
-  // Calculate match score
-  const currentUserGenres = [...new Set(currentUserBooks.flatMap(b => b.genres?.map(g => g.name) || []))]
-  const otherUserGenres = [...new Set(otherUserBooks.flatMap(b => b.genres?.map(g => g.name) || []))]
-
-  matchScore.value = socialService.calculateMatchScore(
-    currentUserBooks,
-    otherUserBooks,
-    currentUserGenres,
-    otherUserGenres
-  )
 }
 
 const filteredBooks = computed(() => {
@@ -904,11 +881,14 @@ const getStatusBadge = (status) => {
             </div>
 
             <!-- Shared Books Widget -->
-            <div v-if="sharedBooks.length > 0" class="p-5 lg:p-6 rounded-2xl lg:rounded-[2rem] glass border-slate-800 light:border-slate-200">
-              <h3 class="text-xs lg:text-sm font-black text-white light:text-slate-900 uppercase tracking-wider mb-4 lg:mb-6">Books in Common</h3>
-              <div class="grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-4">
+            <div v-if="!isOwnProfile && sharedBooks.length > 0" class="p-5 lg:p-6 rounded-2xl lg:rounded-[2rem] glass border-slate-800 light:border-slate-200">
+              <h3 class="text-xs lg:text-sm font-black text-white light:text-slate-900 uppercase tracking-wider mb-4 lg:mb-6">
+                Books in Common
+                <span class="text-slate-500 font-bold ml-1">({{ sharedBooks.length }})</span>
+              </h3>
+              <div class="grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-4 max-h-[480px] overflow-y-auto shared-books-scroll pr-1">
                 <div
-                  v-for="userBook in sharedBooks.slice(0, 5)"
+                  v-for="userBook in sharedBooks"
                   :key="userBook.id"
                   class="flex items-center gap-2.5 lg:gap-3 p-2.5 lg:p-3 rounded-xl lg:rounded-2xl bg-white/[0.02] light:bg-slate-100 border border-white/5 light:border-slate-200 hover:bg-white/[0.04] light:hover:bg-slate-200 transition-all cursor-pointer group"
                 >
@@ -982,6 +962,25 @@ const getStatusBadge = (status) => {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Thin scrollbar for shared books */
+.shared-books-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.shared-books-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.shared-books-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 2px;
+}
+.shared-books-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+.shared-books-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
 }
 
 /* Safe area for notched devices */

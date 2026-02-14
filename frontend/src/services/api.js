@@ -208,6 +208,13 @@ export const socialAPI = {
   feed: () => api.get('/social/feed/'),
   markFeedRead: (id) => api.post(`/social/feed/${id}/mark_read/`),
 
+  // Review Comments & Likes
+  reviewComments: (userBookId) => api.get('/social/review-comments/', { params: { user_book: userBookId } }),
+  addReviewComment: (userBookId, content) => api.post('/social/review-comments/', { user_book_id: userBookId, content }),
+  deleteReviewComment: (commentId) => api.delete(`/social/review-comments/${commentId}/`),
+  toggleReviewLike: (userBookId) => api.post('/social/review-likes/toggle/', { user_book_id: userBookId }),
+  reviewLikeStatus: (userBookId) => api.get('/social/review-likes/toggle/', { params: { user_book_id: userBookId } }),
+
   // User Discovery & Profiles
   suggestedUsers: (params) => api.get('/social/suggested-users/', { params }),
   searchUsers: (query) => api.get('/users/search/', { params: { q: query } }),

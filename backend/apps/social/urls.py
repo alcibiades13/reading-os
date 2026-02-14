@@ -14,6 +14,8 @@ from apps.social.views import (
     DiscussionTopicViewSet,
     TopicMessageViewSet,
     BookClubReadingViewSet,
+    ReviewCommentViewSet,
+    ReviewLikeToggleView,
 )
 
 app_name = 'social'
@@ -33,10 +35,12 @@ router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'topics', DiscussionTopicViewSet, basename='discussiontopic')
 router.register(r'topic-messages', TopicMessageViewSet, basename='topicmessage')
 router.register(r'club-readings', BookClubReadingViewSet, basename='bookclubreading')
+router.register(r'review-comments', ReviewCommentViewSet, basename='reviewcomment')
 
 urlpatterns = [
     path('', include(router.urls)),
     path('suggested-users/', SuggestedUsersView.as_view(), name='suggested-users'),
+    path('review-likes/toggle/', ReviewLikeToggleView.as_view(), name='review-like-toggle'),
 ]
 
 # This creates the following URLs:

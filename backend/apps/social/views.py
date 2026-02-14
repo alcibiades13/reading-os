@@ -6,7 +6,7 @@ from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
     CirclePost, CircleComment, FeedItem, FeedItemLike, FeedItemComment,
     Notification, Conversation, Message, DiscussionTopic, TopicMessage,
-    TopicMessageLike, BookClubReading
+    TopicMessageLike, BookClubReading, ReviewLike, ReviewComment
 )
 from apps.social.serializers import (
     FriendshipSerializer, FriendshipCreateSerializer,
@@ -22,6 +22,7 @@ from apps.social.serializers import (
     DiscussionTopicCreateSerializer, TopicMessageSerializer,
     TopicMessageCreateSerializer, BookClubReadingSerializer,
     BookClubReadingCreateSerializer,
+    ReviewCommentSerializer, ReviewCommentCreateSerializer,
 )
 
 
@@ -913,4 +914,118 @@ class BookClubReadingViewSet(viewsets.ModelViewSet):
 
         serializer = BookClubReadingSerializer(reading)
         return Response(serializer.data)
+
+
+# ===== REVIEW COMMENTS & LIKES =====
+
+class ReviewCommentViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for review comments.
+    GET /api/social/review-comments/?user_book=<id>
+    POST /api/social/review-comments/
+    DELETE /api/social/review-comments/<id>/
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ReviewCommentCreateSerializer
+        return ReviewCommentSerializer
+
+    def get_queryset(self):
+        queryset = ReviewComment.objects.select_related('author').all()
+        user_book_id = self.request.query_params.get('user_book')
+        if user_book_id:
+            queryset = queryset.filter(user_book_id=user_book_id)
+        return queryset
+
+    def create(self, request):
+        serializer = ReviewCommentCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        from apps.reading.models import UserBook
+        user_book = UserBook.objects.get(id=serializer.validated_data['user_book_id'])
+
+        comment = ReviewComment.objects.create(
+            user_book=user_book,
+            author=request.user,
+            content=serializer.validated_data['content']
+        )
+
+        return Response(
+            ReviewCommentSerializer(comment).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        comment = self.get_object()
+        if comment.author != request.user:
+            return Response(
+                {'error': 'You can only delete your own comments'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ReviewLikeToggleView(APIView):
+    """
+    POST /api/social/review-likes/toggle/
+    Toggle like on a review. Body: { "user_book_id": <int> }
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        """Check like status for a review."""
+        user_book_id = request.query_params.get('user_book_id')
+        if not user_book_id:
+            return Response(
+                {'error': 'user_book_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        liked = ReviewLike.objects.filter(
+            user_book_id=user_book_id, user=request.user
+        ).exists()
+        like_count = ReviewLike.objects.filter(user_book_id=user_book_id).count()
+
+        return Response({
+            'liked': liked,
+            'like_count': like_count,
+        })
+
+    def post(self, request):
+        user_book_id = request.data.get('user_book_id')
+        if not user_book_id:
+            return Response(
+                {'error': 'user_book_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from apps.reading.models import UserBook
+        try:
+            user_book = UserBook.objects.get(id=user_book_id)
+        except UserBook.DoesNotExist:
+            return Response(
+                {'error': 'Review not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        like, created = ReviewLike.objects.get_or_create(
+            user_book=user_book,
+            user=request.user
+        )
+
+        if not created:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+
+        like_count = ReviewLike.objects.filter(user_book=user_book).count()
+
+        return Response({
+            'liked': liked,
+            'like_count': like_count,
+        })
 

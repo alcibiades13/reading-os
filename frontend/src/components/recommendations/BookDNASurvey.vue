@@ -38,7 +38,7 @@ import {
   // Children / YA icons
   GraduationCap, Cat,
   // Extra
-  Mail,
+  Mail, Castle,
   // UI
   Star,
 } from 'lucide-vue-next'
@@ -140,7 +140,6 @@ const themeIcons = {
   anxiety: Activity,
   depression: Cloud,
   addiction: Pill,
-  inner_conflict: Swords,
   self_discovery: Search,
   identity_crisis: HelpCircle,
   manipulation: EyeOff,
@@ -205,6 +204,8 @@ const themeIcons = {
   bittersweet: CloudSun,
   wholesome: Flower2,
   dark_humor: Smile,
+  satire: Drama,
+  gothic: Castle,
   nature: Leaf,
   art: Palette,
   // Growth & Change
@@ -253,6 +254,7 @@ const genreIcons = {
   true_crime: ShieldAlert,
   classics: BookMarked,
   childrens: Baby,
+  religion: Church,
 }
 
 // Default questions if API fails

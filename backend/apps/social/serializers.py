@@ -4,7 +4,7 @@ from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
     CirclePost, CircleComment, FeedItem, FeedItemLike, FeedItemComment,
     Notification, Conversation, Message, DiscussionTopic, TopicMessage,
-    TopicMessageLike, BookClubReading
+    TopicMessageLike, BookClubReading, ReviewLike, ReviewComment
 )
 from apps.users.serializers import UserSerializer
 from apps.books.serializers import BookListSerializer
@@ -923,3 +923,31 @@ class BookClubReadingCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+# ===== REVIEW COMMENTS & LIKES =====
+
+class ReviewCommentSerializer(serializers.ModelSerializer):
+    """Serializer for ReviewComment model"""
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = ReviewComment
+        fields = ['id', 'user_book', 'author', 'content', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
+
+
+class ReviewCommentCreateSerializer(serializers.Serializer):
+    """Serializer for creating a review comment"""
+    user_book_id = serializers.IntegerField()
+    content = serializers.CharField(max_length=2000)
+
+    def validate_user_book_id(self, value):
+        from apps.reading.models import UserBook
+        try:
+            ub = UserBook.objects.get(id=value)
+            if not ub.review:
+                raise serializers.ValidationError("This book entry has no review to comment on")
+            if not ub.is_public:
+                raise serializers.ValidationError("This review is private")
+        except UserBook.DoesNotExist:
+            raise serializers.ValidationError("Review not found")
+        return value

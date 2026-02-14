@@ -5,7 +5,7 @@ import { useBooksStore } from '@/stores/booksStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useQuotesStore } from '@/stores/quotesStore'
-import { booksAPI } from '@/services/api'
+import { booksAPI, socialAPI } from '@/services/api'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import { ArrowLeft, SquarePen, Calendar, Star, Heart, MessageCircle, Share2, Send, BookOpen, Clock, Bookmark, Hash, ChevronRight } from 'lucide-vue-next'
 
@@ -98,30 +98,96 @@ const liked = ref(false)
 const likeCount = ref(0)
 const comments = ref([])
 const newComment = ref('')
+const isSubmittingComment = ref(false)
+const isTogglingLike = ref(false)
 
-const toggleLike = () => {
-  liked.value = !liked.value
-  likeCount.value = liked.value ? likeCount.value + 1 : likeCount.value - 1
+const toggleLike = async () => {
+  if (isTogglingLike.value || !userBook.value?.id) return
+  isTogglingLike.value = true
+  try {
+    const response = await socialAPI.toggleReviewLike(userBook.value.id)
+    liked.value = response.data.liked
+    likeCount.value = response.data.like_count
+  } catch (err) {
+    console.error('Failed to toggle like:', err)
+  } finally {
+    isTogglingLike.value = false
+  }
 }
 
 const handleShare = () => {
   navigator.clipboard.writeText(window.location.href)
 }
 
-const addComment = () => {
-  if (!newComment.value.trim()) return
-  comments.value.unshift({
-    id: Date.now(),
-    user: { name: 'You', avatar: null },
-    text: newComment.value,
-    timestamp: 'Just now',
-    likes: 0
-  })
-  newComment.value = ''
+const addComment = async () => {
+  if (!newComment.value.trim() || isSubmittingComment.value || !userBook.value?.id) return
+  isSubmittingComment.value = true
+  try {
+    const response = await socialAPI.addReviewComment(userBook.value.id, newComment.value.trim())
+    comments.value.unshift(response.data)
+    newComment.value = ''
+  } catch (err) {
+    console.error('Failed to add comment:', err)
+  } finally {
+    isSubmittingComment.value = false
+  }
 }
 
-const getInitials = (name) => {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase()
+const deleteComment = async (commentId) => {
+  try {
+    await socialAPI.deleteReviewComment(commentId)
+    comments.value = comments.value.filter(c => c.id !== commentId)
+  } catch (err) {
+    console.error('Failed to delete comment:', err)
+  }
+}
+
+const fetchInteractionData = async () => {
+  if (!userBook.value?.id) return
+  try {
+    const [commentsRes, likeRes] = await Promise.all([
+      socialAPI.reviewComments(userBook.value.id).catch(() => null),
+      socialAPI.reviewLikeStatus(userBook.value.id).catch(() => null)
+    ])
+
+    if (commentsRes?.data) {
+      const data = commentsRes.data?.results || commentsRes.data || []
+      comments.value = Array.isArray(data) ? data : []
+    }
+    if (likeRes?.data) {
+      liked.value = likeRes.data.liked
+      likeCount.value = likeRes.data.like_count
+    }
+  } catch (err) {
+    console.error('Failed to fetch interaction data:', err)
+  }
+}
+
+const getCommentAuthorName = (comment) => {
+  if (!comment.author) return 'Unknown'
+  return `${comment.author.first_name || ''} ${comment.author.last_name || ''}`.trim() || 'Unknown'
+}
+
+const getCommentAuthorInitials = (comment) => {
+  if (!comment.author) return '?'
+  const first = comment.author.first_name?.charAt(0) || ''
+  const last = comment.author.last_name?.charAt(0) || ''
+  return (first + last).toUpperCase() || '?'
+}
+
+const formatCommentDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now - date
+  const diffMins = Math.floor(diffMs / 60000)
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `${diffHours}h ago`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 onMounted(async () => {
@@ -144,6 +210,9 @@ onMounted(async () => {
   } catch (err) {
     console.error('Failed to fetch community reviews:', err)
   }
+
+  // Fetch comments and likes
+  await fetchInteractionData()
 })
 </script>
 
@@ -311,11 +380,11 @@ onMounted(async () => {
                   <div class="flex justify-end mt-2">
                     <button
                       @click="addComment"
-                      :disabled="!newComment.trim()"
+                      :disabled="!newComment.trim() || isSubmittingComment"
                       class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Send :size="12" />
-                      Post
+                      {{ isSubmittingComment ? 'Posting...' : 'Post' }}
                     </button>
                   </div>
                 </div>
@@ -326,19 +395,22 @@ onMounted(async () => {
             <div v-if="comments.length > 0" class="space-y-4">
               <div v-for="comment in comments" :key="comment.id" class="flex gap-3">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
-                  {{ getInitials(comment.user.name) }}
+                  {{ getCommentAuthorInitials(comment) }}
                 </div>
                 <div class="flex-1">
                   <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3">
                     <div class="flex items-center gap-2 mb-1">
-                      <span class="font-bold text-slate-200 text-xs">{{ comment.user.name }}</span>
-                      <span class="text-[10px] text-slate-500">{{ comment.timestamp }}</span>
+                      <span class="font-bold text-slate-200 text-xs">{{ getCommentAuthorName(comment) }}</span>
+                      <span class="text-[10px] text-slate-500">{{ formatCommentDate(comment.created_at) }}</span>
                     </div>
-                    <p class="text-slate-300 text-xs leading-relaxed">{{ comment.text }}</p>
+                    <p class="text-slate-300 text-xs leading-relaxed">{{ comment.content }}</p>
                   </div>
                   <div class="flex items-center gap-4 mt-1.5 pl-3">
-                    <button class="text-[10px] text-slate-500 hover:text-slate-400 transition-colors font-bold">Like</button>
-                    <button class="text-[10px] text-slate-500 hover:text-slate-400 transition-colors font-bold">Reply</button>
+                    <button
+                      v-if="comment.author?.id === currentUser?.id"
+                      @click="deleteComment(comment.id)"
+                      class="text-[10px] text-rose-500/70 hover:text-rose-400 transition-colors font-bold"
+                    >Delete</button>
                   </div>
                 </div>
               </div>

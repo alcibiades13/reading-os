@@ -813,3 +813,55 @@ class Message(models.Model):
         self.conversation.save(update_fields=['last_message_at', 'last_message_preview', 'updated_at'])
 
 
+class ReviewLike(models.Model):
+    """
+    Like on a book review (UserBook with review content).
+    """
+    user_book = models.ForeignKey(
+        'reading.UserBook',
+        on_delete=models.CASCADE,
+        related_name='review_likes',
+        help_text="The review (UserBook) being liked"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='review_likes'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user_book', 'user']
+        verbose_name = 'Review Like'
+        verbose_name_plural = 'Review Likes'
+
+    def __str__(self):
+        return f"{self.user.email} likes review on {self.user_book.book}"
+
+
+class ReviewComment(models.Model):
+    """
+    Comment on a book review (UserBook with review content).
+    """
+    user_book = models.ForeignKey(
+        'reading.UserBook',
+        on_delete=models.CASCADE,
+        related_name='review_comments',
+        help_text="The review (UserBook) being commented on"
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='review_comments'
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Review Comment'
+        verbose_name_plural = 'Review Comments'
+
+    def __str__(self):
+        return f"Comment by {self.author.email} on review {self.user_book.id}"

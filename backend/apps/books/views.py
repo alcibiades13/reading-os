@@ -309,6 +309,16 @@ class BookViewSet(viewsets.ModelViewSet):
         if not user_book:
             return Response({'error': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)
 
+        # Get like/comment counts
+        from apps.social.models import ReviewLike, ReviewComment
+        likes_count = ReviewLike.objects.filter(user_book=user_book).count()
+        comments_count = ReviewComment.objects.filter(user_book=user_book).count()
+        has_liked = False
+        if request.user.is_authenticated:
+            has_liked = ReviewLike.objects.filter(
+                user_book=user_book, user=request.user
+            ).exists()
+
         return Response({
             'id': user_book.id,
             'user': {
@@ -329,6 +339,9 @@ class BookViewSet(viewsets.ModelViewSet):
             'finished_at': user_book.finished_at.isoformat() if user_book.finished_at else None,
             'started_at': user_book.started_at.isoformat() if user_book.started_at else None,
             'updated_at': user_book.updated_at.isoformat() if user_book.updated_at else None,
+            'likes_count': likes_count,
+            'comments_count': comments_count,
+            'has_liked': has_liked,
         })
 
     @action(detail=False, methods=['get'])
