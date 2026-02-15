@@ -9,6 +9,7 @@ import { useToast } from '@/composables/useToast'
 import YearlyChallengeWidget from '@/components/YearlyChallengeWidget.vue'
 import YearlyChallengeModal from '@/components/YearlyChallengeModal.vue'
 import ReadingCircleWidget from '@/components/social/ReadingCircleWidget.vue'
+import FriendsWidget from '@/components/social/FriendsWidget.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   DropdownMenu,
@@ -607,15 +608,15 @@ const handleSaveChallenge = async (challengeData) => {
     <div class="hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 items-start">
 
       <!-- Welcome Briefing -->
-      <div class="lg:col-span-7 space-y-4 sm:space-y-8">
-        <div class="flex items-center gap-2 text-indigo-400 font-bold text-page-meta uppercase tracking-[0.3em] sm:tracking-[0.4em]">
+      <div class="lg:col-span-7">
+        <div class="flex items-center gap-2 text-indigo-400 font-bold text-page-meta uppercase tracking-[0.3em] sm:tracking-[0.4em] mb-4">
           <BrainCircuit :size="12" class="sm:w-3.5 sm:h-3.5 fill-current" />
           Reading OS / V2.5
         </div>
-        <h1 class="text-page-heading font-black text-white tracking-tighter">
+        <h1 class="text-page-heading font-black text-white tracking-tighter mb-3">
           Hello, <span class="text-indigo-500">{{ userName }}</span>.
         </h1>
-        <p class="text-page-subtitle text-slate-400 leading-relaxed max-w-xl -mt-2 sm:mt-0">
+        <p class="text-page-subtitle text-slate-400 leading-relaxed max-w-xl">
           Your personal archive of knowledge and wonder. Revisit your insights, track your growth, and find your next great exploration.
         </p>
 
@@ -1285,6 +1286,9 @@ const handleSaveChallenge = async (challengeData) => {
 
       <!-- RIGHT COLUMN: Analytics Sidebar (Desktop only) -->
       <div class="hidden lg:block lg:col-span-4 space-y-8">
+        <!-- Friends Widget -->
+        <FriendsWidget />
+
         <!-- Reading Circle Widget -->
         <ReadingCircleWidget />
 
@@ -1365,6 +1369,9 @@ const handleSaveChallenge = async (challengeData) => {
 
             <!-- Widgets -->
             <div class="p-4 space-y-4">
+              <!-- Friends Widget -->
+              <FriendsWidget />
+
               <!-- Reading Circle Widget -->
               <ReadingCircleWidget />
 

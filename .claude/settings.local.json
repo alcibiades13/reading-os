@@ -61,7 +61,8 @@
       "Bash(cmd /c \"cd /d d:\\\\projects\\\\reading-os\\\\backend && python manage.py makemigrations social && python manage.py migrate\")",
       "Bash(powershell -Command:*)",
       "Bash(ls:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npx vue-tsc:*)"
     ]
   }
 }

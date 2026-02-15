@@ -829,7 +829,7 @@ export const QuoteCard = defineComponent({
     <!-- Desktop Back Button -->
     <button
       @click="handleBack"
-      class="hidden lg:flex items-center gap-2 text-slate-400 hover:text-indigo-400 mb-10 transition-colors font-bold group"
+      class="hidden lg:flex items-center gap-2 text-slate-400 hover:text-indigo-400 mb-4 transition-colors font-bold group"
     >
       <ArrowLeft :size="20" class="group-hover:-translate-x-1 transition-transform" />
       Back to Results

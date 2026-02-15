@@ -190,6 +190,8 @@ export const challengesAPI = {
 export const socialAPI = {
   // Friendships
   friendships: () => api.get('/social/friendships/'),
+  myFriends: () => api.get('/social/friendships/my_friends/'),
+  pendingRequests: () => api.get('/social/friendships/pending/'),
   sendFriendRequest: (userId) => api.post('/social/friendships/', { to_user: userId }),
   acceptFriend: (id) => api.post(`/social/friendships/${id}/accept/`),
   declineFriend: (id) => api.post(`/social/friendships/${id}/decline/`),

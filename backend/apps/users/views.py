@@ -408,6 +408,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
             match_score = round(min(books_score + genres_score + overlap_bonus, 100))
 
+        # Get user's reading DNA
+        from apps.recommendations.aggregation import get_user_taste_profile
+        reading_dna = get_user_taste_profile(user)
+
         # Serialize user data
         user_data = UserDetailSerializer(user, context={'request': request}).data
         user_data.update({
@@ -422,6 +426,7 @@ class UserViewSet(viewsets.ModelViewSet):
             'shared_books': shared_books_data,
             'shared_books_count': shared_books_count,
             'match_score': match_score,
+            'reading_dna': reading_dna,
         })
 
         return Response(user_data)

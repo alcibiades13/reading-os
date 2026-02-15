@@ -248,6 +248,7 @@ const genreIcons = {
   poetry: Feather,
   essays: FileText,
   satire: Drama,
+  drama: Drama,
   young_adult: Sprout,
   graphic_novel: Image,
   self_help: Compass,

@@ -86,7 +86,8 @@ class DelfiScraper:
 
     def _parse_serbian_date(self, date_str: str) -> Optional[str]:
         """
-        Parse Serbian date format like "6. septembar 2024." to YYYY-MM-DD
+        Parse Serbian date format to YYYY-MM-DD.
+        Handles: "6. septembar 2024.", "5. 01 2018.", "5. 01. 2018.", "2018"
 
         Args:
             date_str: Date string in Serbian format
@@ -113,7 +114,19 @@ class DelfiScraper:
             'decembar': 12, 'decembra': 12
         }
 
-        # Try to parse "6. septembar 2024." format
+        # Try numeric format: "5. 01 2018." or "5. 01. 2018." or "05.01.2018"
+        numeric_match = re.search(r'(\d{1,2})\.\s*(\d{1,2})\.?\s*(\d{4})', date_str)
+        if numeric_match:
+            day = int(numeric_match.group(1))
+            month = int(numeric_match.group(2))
+            year = int(numeric_match.group(3))
+            if 1 <= month <= 12 and 1 <= day <= 31:
+                try:
+                    return f"{year:04d}-{month:02d}-{day:02d}"
+                except:
+                    return f"{year:04d}-01-01"
+
+        # Try Serbian month name format: "6. septembar 2024."
         match = re.search(r'(\d+)\.\s*(\w+)\s*(\d{4})', date_str)
         if match:
             day = int(match.group(1))
@@ -125,7 +138,7 @@ class DelfiScraper:
                 try:
                     return f"{year:04d}-{month:02d}-{day:02d}"
                 except:
-                    return f"{year:04d}-01-01"  # Fallback to Jan 1
+                    return f"{year:04d}-01-01"
 
         # If just a year (4 digits), return as YYYY-01-01
         match = re.search(r'(\d{4})', date_str)
@@ -172,12 +185,26 @@ class DelfiScraper:
                 # Try to click "Deklaracija" tab to load product details table
                 html_with_details = None
                 try:
-                    # Look for tab with text "Deklaracija" or similar
-                    deklaracija_tab = page.locator('text=/deklaracija/i').first
-                    if deklaracija_tab.is_visible(timeout=2000):
-                        deklaracija_tab.click()
-                        page.wait_for_timeout(1000)  # Wait for content to load
-                        html_with_details = page.content()
+                    # Try multiple selectors for the Deklaracija tab
+                    tab_selectors = [
+                        'text=/deklaracija/i',
+                        'button:has-text("Deklaracija")',
+                        'a:has-text("Deklaracija")',
+                        '[role="tab"]:has-text("Deklaracija")',
+                        'li:has-text("Deklaracija")',
+                        '.tab:has-text("Deklaracija")',
+                        '.nav-link:has-text("Deklaracija")',
+                    ]
+                    for selector in tab_selectors:
+                        try:
+                            tab = page.locator(selector).first
+                            if tab.is_visible(timeout=1500):
+                                tab.click()
+                                page.wait_for_timeout(1500)
+                                html_with_details = page.content()
+                                break
+                        except:
+                            continue
                 except:
                     pass  # Tab might not exist on all pages
 
@@ -443,6 +470,7 @@ class DelfiScraper:
                 # Year / Published Date
                 if not book_data["published_date"]:
                     year_patterns = [
+                        r'Godina izdanja:?\s*(\d{1,2}\.\s*\d{1,2}\.?\s*\d{4}\.?)',  # "5. 01 2018." or "5. 01. 2018."
                         r'Godina izdanja:?\s*(\d+\.\s*\w+\s*\d{4}\.?)',  # "6. septembar 2024."
                         r'Godina izdanja:?\s*(\d{4})',
                         r'Godina:?\s*(\d{4})',
@@ -494,7 +522,9 @@ class DelfiScraper:
 
                     # Published Date
                     if not book_data["published_date"]:
-                        match = re.search(r'Godina izdanja:?\s*(\d+\.\s*\w+\s*\d{4}\.?)', container_text, re.IGNORECASE)
+                        match = re.search(r'Godina izdanja:?\s*(\d{1,2}\.\s*\d{1,2}\.?\s*\d{4}\.?)', container_text, re.IGNORECASE)
+                        if not match:
+                            match = re.search(r'Godina izdanja:?\s*(\d+\.\s*\w+\s*\d{4}\.?)', container_text, re.IGNORECASE)
                         if not match:
                             match = re.search(r'Godina izdanja:?\s*(\d{4})', container_text, re.IGNORECASE)
                         if match:
@@ -508,6 +538,26 @@ class DelfiScraper:
                         match = re.search(r'Format:?\s*(\d+x\d+\s*cm)', container_text, re.IGNORECASE)
                         if match:
                             book_data["format"] = self._clean_text(match.group(1))
+
+            # Full-text fallback: if page_count or published_date still missing,
+            # try extracting from the entire page text (handles changed DOM structures)
+            for fallback_soup in [soup_details, soup]:
+                if fallback_soup and (not book_data["page_count"] or not book_data["published_date"]):
+                    full_text = fallback_soup.get_text()
+                    if not book_data["page_count"]:
+                        match = re.search(r'Broj\s+strana:?\s*(\d+)', full_text, re.IGNORECASE)
+                        if match:
+                            book_data["page_count"] = int(match.group(1))
+                    if not book_data["published_date"]:
+                        match = re.search(r'Godina\s+izdanja:?\s*(\d{1,2}\.\s*\d{1,2}\.?\s*\d{4}\.?)', full_text, re.IGNORECASE)
+                        if not match:
+                            match = re.search(r'Godina\s+izdanja:?\s*(\d+\.\s*\w+\s*\d{4}\.?)', full_text, re.IGNORECASE)
+                        if not match:
+                            match = re.search(r'Godina\s+izdanja:?\s*(\d{4})', full_text, re.IGNORECASE)
+                        if match:
+                            parsed_date = self._parse_serbian_date(match.group(1))
+                            if parsed_date:
+                                book_data["published_date"] = parsed_date
 
             # Price
             if not book_data["price"]:

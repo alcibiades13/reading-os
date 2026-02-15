@@ -140,6 +140,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Circles' },
   },
   {
+    path: '/friends',
+    name: 'Friends',
+    component: () => import('@/views/social/FriendsView.vue'),
+    meta: { requiresAuth: true, title: 'Friends' },
+  },
+  {
     path: '/discover',
     name: 'Discover',
     component: () => import('@/views/recommendations/RecommendationsView.vue'),

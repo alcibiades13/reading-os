@@ -7,7 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter } from 'lucide-vue-next'
+import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image } from 'lucide-vue-next'
+import QuoteCardDesigner from '@/components/quotes/QuoteCardDesigner.vue'
 
 const router = useRouter()
 const quotesStore = useQuotesStore()
@@ -19,6 +20,13 @@ const isCreateDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const editingQuote = ref(null)
 const showMobileFilters = ref(false)
+const isDesignerOpen = ref(false)
+const designerQuote = ref(null)
+
+const openDesigner = (quote) => {
+  designerQuote.value = quote
+  isDesignerOpen.value = true
+}
 
 // Book autocomplete (for create)
 const bookSearchQuery = ref('')
@@ -951,34 +959,48 @@ const handleEditQuote = async () => {
 
             <!-- Actions -->
             <div class="flex items-center justify-between pt-4">
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-0.5 sm:gap-1">
                 <button
                   @click="toggleFavorite(quote)"
                   :class="quote.is_favorite ? 'text-amber-400 bg-amber-400/10' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'"
-                  class="p-2 rounded-full transition-all"
+                  class="p-1.5 sm:p-2 rounded-full transition-all"
                 >
-                  <Star :size="20" :fill="quote.is_favorite ? 'currentColor' : 'none'" />
+                  <Star :size="18" class="sm:hidden" :fill="quote.is_favorite ? 'currentColor' : 'none'" />
+                  <Star :size="20" class="hidden sm:block" :fill="quote.is_favorite ? 'currentColor' : 'none'" />
                 </button>
                 <button
                   @click="copyQuote(quote)"
-                  class="p-2 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-slate-800 transition-all"
+                  class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-slate-800 transition-all"
                 >
-                  <Copy :size="20" />
+                  <Copy :size="18" class="sm:hidden" />
+                  <Copy :size="20" class="hidden sm:block" />
+                </button>
+                <button
+                  @click="openDesigner(quote)"
+                  class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-slate-800 transition-all"
+                  title="Design card"
+                >
+                  <Image :size="18" class="sm:hidden" />
+                  <Image :size="20" class="hidden sm:block" />
                 </button>
               </div>
 
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1 sm:gap-2">
                 <button
                   @click="openEditDialog(quote)"
-                  class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2"
+                  class="p-1.5 sm:px-4 sm:py-2 rounded-full sm:rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2"
                 >
-                  <Edit :size="14" /> Edit
+                  <Edit :size="16" class="sm:hidden" />
+                  <Edit :size="14" class="hidden sm:block" />
+                  <span class="hidden sm:inline">Edit</span>
                 </button>
                 <button
                   @click="deleteQuote(quote)"
-                  class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2"
+                  class="p-1.5 sm:px-4 sm:py-2 rounded-full sm:rounded-xl text-xs font-bold text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2"
                 >
-                  <Trash2 :size="14" /> Delete
+                  <Trash2 :size="16" class="sm:hidden" />
+                  <Trash2 :size="14" class="hidden sm:block" />
+                  <span class="hidden sm:inline">Delete</span>
                 </button>
               </div>
             </div>
@@ -986,6 +1008,13 @@ const handleEditQuote = async () => {
         </div>
       </div>
     </div>
+
+    <!-- Quote Card Designer -->
+    <QuoteCardDesigner
+      v-if="designerQuote"
+      :quote="designerQuote"
+      v-model:open="isDesignerOpen"
+    />
 
     <!-- Edit Quote Dialog -->
     <Dialog v-model:open="isEditDialogOpen">

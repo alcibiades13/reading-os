@@ -5,6 +5,7 @@ import { socialService } from '@/services/socialService'
 import { useAuthStore } from '@/stores/authStore'
 import FollowButton from '@/components/social/FollowButton.vue'
 import BookCard from '@/components/BookCard.vue'
+import TasteProfile from '@/components/recommendations/TasteProfile.vue'
 import api from '@/services/api'
 import {
   BookOpen, Quote, Users, TrendingUp, Heart,
@@ -23,6 +24,7 @@ const userBooks = ref([])
 const userStats = ref(null)
 const sharedBooks = ref([])
 const matchScore = ref(0)
+const readingDna = ref(null)
 const loading = ref(true)
 const activeTab = ref('books') // 'books', 'quotes', 'followers', 'following'
 const booksSubTab = ref('all') // 'all', 'reading', 'finished', 'want_to_read'
@@ -47,6 +49,7 @@ watch(() => route.params.id, async (newId, oldId) => {
     userStats.value = null
     sharedBooks.value = []
     matchScore.value = 0
+    readingDna.value = null
     userQuotes.value = []
     followers.value = []
     following.value = []
@@ -61,10 +64,11 @@ watch(() => route.params.id, async (newId, oldId) => {
       loadUserStats(),
     ])
 
-    // Use shared books and match score from backend profile response
+    // Use data from backend profile response
     if (userProfile.value) {
       sharedBooks.value = userProfile.value.shared_books || []
       matchScore.value = userProfile.value.match_score || 0
+      readingDna.value = userProfile.value.reading_dna || null
     }
 
     loading.value = false
@@ -79,10 +83,11 @@ onMounted(async () => {
     loadUserStats(),
   ])
 
-  // Use shared books and match score from backend profile response
+  // Use data from backend profile response
   if (userProfile.value) {
     sharedBooks.value = userProfile.value.shared_books || []
     matchScore.value = userProfile.value.match_score || 0
+    readingDna.value = userProfile.value.reading_dna || null
   }
 
   loading.value = false
@@ -340,7 +345,7 @@ const getStatusBadge = (status) => {
         <!-- Back Button - Desktop Only -->
         <button
           @click="goBack"
-          class="hidden lg:flex mb-8 items-center gap-2 text-slate-400 hover:text-white transition-colors group"
+          class="hidden lg:flex mb-4 items-center gap-2 text-slate-400 hover:text-white transition-colors group"
         >
           <ArrowLeft :size="18" class="group-hover:-translate-x-1 transition-transform" />
           <span class="text-xs font-bold uppercase tracking-widest">Back</span>
@@ -802,6 +807,14 @@ const getStatusBadge = (status) => {
 
           <!-- Sidebar - Shows below main content on mobile -->
           <div class="lg:col-span-4 space-y-4 lg:space-y-8">
+            <!-- Reading DNA Widget -->
+            <TasteProfile
+              v-if="readingDna?.vote_count > 0"
+              :profile="readingDna"
+              :title="isOwnProfile ? 'Your Reading DNA' : 'Reading DNA'"
+              compact
+            />
+
             <!-- Match Score Widget -->
             <div v-if="userId != authStore.user?.id" class="p-5 lg:p-6 rounded-2xl lg:rounded-[2rem] glass border-slate-800 light:border-slate-200 bg-gradient-to-br from-emerald-500/5 via-transparent to-indigo-500/5">
               <div class="flex items-center gap-3 mb-4 lg:mb-6">

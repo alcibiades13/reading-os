@@ -24,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
     """Basic User serializer"""
     profile = UserProfileSerializer(read_only=True)
     full_name = serializers.CharField(read_only=True)
+    books_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -41,9 +42,13 @@ class UserSerializer(serializers.ModelSerializer):
             'birth_date',
             'reading_dna',
             'profile',
+            'books_count',
             'created_at',
         ]
         read_only_fields = ['id', 'created_at', 'reading_dna', 'username']
+
+    def get_books_count(self, obj):
+        return obj.user_books.filter(status='read').count()
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

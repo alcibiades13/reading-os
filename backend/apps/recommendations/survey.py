@@ -262,6 +262,7 @@ GENRE_TAG_OPTIONS = [
     {"id": "poetry", "label": "Poetry", "icon": "feather"},
     {"id": "essays", "label": "Essays", "icon": "file-text"},
     {"id": "satire", "label": "Satire", "icon": "drama"},
+    {"id": "drama", "label": "Drama", "icon": "drama"},
     {"id": "young_adult", "label": "Young Adult", "icon": "sprout"},
     {"id": "graphic_novel", "label": "Graphic Novel", "icon": "image"},
     {"id": "self_help", "label": "Self-Help", "icon": "compass"},

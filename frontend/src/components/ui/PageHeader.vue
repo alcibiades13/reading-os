@@ -16,7 +16,7 @@ defineProps({
 </script>
 
 <template>
-  <header class="mb-10">
+  <header class="mb-6">
     <h1 class="text-page-heading font-black text-white tracking-tight mb-3">
       <template v-if="accentWord">
         <span v-html="title.replace(accentWord, `<span class='text-indigo-400'>${accentWord}</span>`)"></span>

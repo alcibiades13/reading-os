@@ -11,6 +11,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  title: {
+    type: String,
+    default: 'Your Reading DNA',
+  },
 })
 
 const attributes = [
@@ -39,7 +43,7 @@ const getProgressWidth = (value) => {
           <Dna :size="20" class="text-indigo-400" />
         </div>
         <div>
-          <h3 class="text-lg font-black text-white">Your Reading DNA</h3>
+          <h3 class="text-lg font-black text-white">{{ title }}</h3>
           <p class="text-xs text-slate-500">Based on {{ profile.vote_count || 0 }} rated books</p>
         </div>
       </div>

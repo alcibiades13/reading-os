@@ -48,6 +48,12 @@ export default {
             light: '#0f1116',
           },
         },
+        fontFamily: {
+          'playfair': ['"Playfair Display"', 'serif'],
+          'lora': ['Lora', 'serif'],
+          'crimson': ['"Crimson Text"', 'serif'],
+          'garamond': ['"EB Garamond"', 'serif'],
+        },
         borderRadius: {
           lg: 'var(--radius)',
           md: 'calc(var(--radius) - 2px)',
