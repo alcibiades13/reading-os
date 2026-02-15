@@ -114,6 +114,12 @@ export function useQuoteCardDesigner() {
   }
 
   // ── Image Generation ──────────────────────────────────
+  const isNative = () => {
+    try {
+      return window.Capacitor?.isNativePlatform?.() ?? false
+    } catch { return false }
+  }
+
   const downloadImage = async (element, bookTitle) => {
     isGenerating.value = true
     try {
@@ -138,11 +144,46 @@ export function useQuoteCardDesigner() {
 
       document.body.removeChild(clone)
 
-      const link = document.createElement('a')
       const slug = (bookTitle || 'quote').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase().slice(0, 40)
-      link.download = `quote-${slug}.png`
-      link.href = canvas.toDataURL('image/png')
+      const fileName = `quote-${slug}.png`
+
+      // Capacitor native app: save to device then share
+      if (isNative()) {
+        const { Filesystem, Directory } = await import('@capacitor/filesystem')
+        const { Share } = await import('@capacitor/share')
+
+        const base64 = canvas.toDataURL('image/png').split(',')[1]
+
+        const saved = await Filesystem.writeFile({
+          path: fileName,
+          data: base64,
+          directory: Directory.Cache,
+        })
+
+        await Share.share({
+          title: 'Quote Card',
+          url: saved.uri,
+        })
+        return
+      }
+
+      // Web: convert canvas to blob
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
+
+      // Try Web Share API (works on mobile browsers with file support)
+      if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] })) {
+        const file = new File([blob], fileName, { type: 'image/png' })
+        await navigator.share({ files: [file] })
+        return
+      }
+
+      // Fallback: download via blob URL (desktop browsers)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.download = fileName
+      link.href = url
       link.click()
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
     } finally {
       isGenerating.value = false
     }

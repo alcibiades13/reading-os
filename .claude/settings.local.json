@@ -62,7 +62,9 @@
       "Bash(powershell -Command:*)",
       "Bash(ls:*)",
       "Bash(node -e:*)",
-      "Bash(npx vue-tsc:*)"
+      "Bash(npx vue-tsc:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx cap sync:*)"
     ]
   }
 }
