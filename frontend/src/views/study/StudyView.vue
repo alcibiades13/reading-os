@@ -743,6 +743,7 @@ import {
   PanelLeft,
   ArrowDownUp
 } from 'lucide-vue-next'
+import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 
 
 const props = defineProps({
@@ -1029,7 +1030,8 @@ const handleRemoveHighlight = async (highlightData) => {
 }
 
 const handleBack = () => {
-  router.push(`/books/${props.bookId}`)
+  const userBook = booksStore.books.find(b => String(b.book?.id) === String(props.bookId))
+  router.push(userBook ? getBookUrl(userBook.book) : `/books/${props.bookId}`)
 }
 
 const handleNewNoteTextSelection = () => {
@@ -1227,7 +1229,7 @@ const exportToPDF = () => {
 const selectBook = (userBook) => {
   showBookSelector.value = false
   bookSearchQuery.value = ''
-  router.push(`/books/${userBook.book.id}/study?title=${encodeURIComponent(userBook.book.title)}`)
+  router.push(`${getBookUrlWithSuffix(userBook.book, 'study')}?title=${encodeURIComponent(userBook.book.title)}`)
 }
 </script>
 

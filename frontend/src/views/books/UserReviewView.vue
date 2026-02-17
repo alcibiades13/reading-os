@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBooksStore } from '@/stores/booksStore'
 import { useAuthStore } from '@/stores/authStore'
 import { booksAPI, socialAPI } from '@/services/api'
-import { getBookUrlWithSuffix } from '@/utils/bookUrl'
+import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import { ArrowLeft, Calendar, Star, Heart, MessageCircle, Share2, Send, Loader2, User, SquarePen, BookOpen, Hash, Clock, ChevronRight } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -203,7 +203,7 @@ const formatCommentDate = (dateStr) => {
 }
 
 const goBack = () => {
-  router.push(`/books/${route.params.id}`)
+  router.push(book.value ? getBookUrl(book.value) : `/books/${route.params.id}`)
 }
 
 // Fetch review data

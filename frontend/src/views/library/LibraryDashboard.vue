@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserBooksStore } from '@/stores/userBooksStore'
+import { getBookUrl } from '@/utils/bookUrl'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -103,7 +104,7 @@ const goToBrowse = () => router.push('/books')
 const goToFeed = () => router.push('/feed')
 
 // Book actions
-const viewBook = (book) => router.push(`/books/${book.book.id}`)
+const viewBook = (book) => router.push(getBookUrl(book.book))
 const updateProgress = (book) => {
   // TODO: Open progress update dialog
   console.log('Update progress for:', book)

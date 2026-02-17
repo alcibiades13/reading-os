@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { booksAPI } from '@/services/api'
 import { Star, Users, Quote, MessageSquare, ChevronRight, Loader2 } from 'lucide-vue-next'
+import { getBookUrlWithSuffix } from '@/utils/bookUrl'
 
 const props = defineProps({
   bookId: {
@@ -67,7 +68,7 @@ const getUserName = (user) => {
 }
 
 const viewFullReview = (review) => {
-  router.push(`/books/${review.book_id}/review/${review.user.id}`)
+  router.push(`${getBookUrlWithSuffix({ id: review.book_id, slug: review.book_slug }, 'review')}/${review.user.id}`)
 }
 </script>
 

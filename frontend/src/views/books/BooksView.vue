@@ -12,6 +12,7 @@ import SectionHeader from '@/components/ui/SectionHeader.vue'
 import SearchBar from '@/components/ui/SearchBar.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import { BookOpen, Plus, TrendingUp, Calendar, Trash2, Check, ChevronDown, Filter, Search, X } from 'lucide-vue-next'
+import { getBookUrl } from '@/utils/bookUrl'
 
 const showMobileFilters = ref(false)
 
@@ -166,7 +167,7 @@ const addToLibrary = async () => {
 }
 
 const viewBook = (book) => {
-  router.push(`/books/${book.id}`)
+  router.push(getBookUrl(book))
 }
 
 const getAuthorsString = (book) => {

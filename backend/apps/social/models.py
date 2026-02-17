@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator
 
 from apps.books.models import Book
 from apps.reading.models import Quote
+from apps.reading.models_study import StudyNote
 
 
 class Friendship(models.Model):
@@ -983,6 +984,14 @@ class Message(models.Model):
         on_delete=models.SET_NULL,
         related_name='message_attachments',
         help_text="Attached quote"
+    )
+    attached_study_note = models.ForeignKey(
+        StudyNote,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='message_attachments',
+        help_text="Attached study note"
     )
 
     # Metadata

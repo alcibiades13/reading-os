@@ -527,6 +527,7 @@ onMounted(async () => {
       const bookAuthor = item.book_data?.authors?.map(a => a.name).join(', ') || 'Unknown Author'
       const bookCover = item.book_data?.cover_image || item.preview_image
       const bookId = item.book_data?.id || item.object_id
+      const bookSlug = item.book_data?.slug || ''
 
       // Parse rating and progress from preview_text
       let rating = null
@@ -560,6 +561,7 @@ onMounted(async () => {
         timestamp: formatTimestamp(item.created_at),
         rawTimestamp: item.created_at,
         bookId: bookId,
+        bookSlug: bookSlug,
         book: {
           title: bookTitle,
           author: bookAuthor,
@@ -942,7 +944,7 @@ const handleBookUpdated = (updatedUserBook) => {
                 <router-link
                   v-for="book in recommendedBooks.slice(0, 6)"
                   :key="book.id"
-                  :to="`/books/${book.id}`"
+                  :to="getBookUrl(book)"
                   class="shrink-0 w-28 group"
                 >
                   <div class="aspect-[2/3] rounded-xl overflow-hidden bg-slate-800 shadow-lg mb-2">
@@ -1039,7 +1041,7 @@ const handleBookUpdated = (updatedUserBook) => {
               <router-link
                 v-for="book in recommendedBooks.slice(0, 5)"
                 :key="book.id"
-                :to="`/books/${book.id}`"
+                :to="getBookUrl(book)"
                 class="group flex items-center gap-3 p-2 -mx-1 rounded-xl hover:bg-white/5 transition-all"
               >
                 <div class="shrink-0 w-14 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
@@ -1259,7 +1261,7 @@ const handleBookUpdated = (updatedUserBook) => {
                   <router-link
                     v-for="book in recommendedBooks.slice(0, 5)"
                     :key="book.id"
-                    :to="`/books/${book.id}`"
+                    :to="getBookUrl(book)"
                     @click="showMobileSidebar = false"
                     class="flex items-center gap-3 p-2 -mx-1 rounded-xl active:bg-white/5 transition-all"
                   >

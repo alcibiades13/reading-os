@@ -6,12 +6,13 @@ from apps.books.models import Author, Publisher, Genre, Tag, Book
 class AuthorSerializer(serializers.ModelSerializer):
     """Serializer for Author model"""
     books_count = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Author
         fields = [
             'id',
             'name',
+            'slug',
             'bio',
             'birth_date',
             'death_date',
@@ -19,7 +20,7 @@ class AuthorSerializer(serializers.ModelSerializer):
             'books_count',
             'created_at',
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'slug', 'created_at']
     
     def get_books_count(self, obj):
         """Count books by this author"""

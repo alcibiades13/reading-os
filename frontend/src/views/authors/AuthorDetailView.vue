@@ -12,7 +12,13 @@ import {
 const route = useRoute()
 const router = useRouter()
 
-const authorId = computed(() => route.params.id)
+const authorId = computed(() => {
+  const param = route.params.id
+  if (param && param.includes('-')) {
+    return param.split('-')[0]
+  }
+  return param
+})
 
 const author = ref(null)
 const authorBooks = ref([])

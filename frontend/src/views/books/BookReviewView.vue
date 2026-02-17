@@ -11,6 +11,7 @@ import {
   Link as LinkIcon, Save, Send, Globe, Lock, Eye,
   Info, Sparkles, Check, BookmarkPlus, Calendar
 } from 'lucide-vue-next'
+import { getBookUrl } from '@/utils/bookUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -353,7 +354,7 @@ const handlePublish = async () => {
     localStorage.removeItem(`draft_review_${bookId.value}`)
 
     // Navigate back to book detail
-    router.push(`/books/${bookId.value}`)
+    router.push(book.value ? getBookUrl(book.value) : `/books/${bookId.value}`)
   } catch (error) {
     console.error('Failed to publish review:', error)
   } finally {
@@ -362,7 +363,7 @@ const handlePublish = async () => {
 }
 
 const handleBack = () => {
-  router.push(`/books/${bookId.value}`)
+  router.push(book.value ? getBookUrl(book.value) : `/books/${bookId.value}`)
 }
 
 const saveQuoteMetadata = () => {
