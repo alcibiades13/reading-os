@@ -401,13 +401,20 @@ const handleBack = () => {
 const handleSubmit = async () => {
   submitting.value = true
   try {
+    // Ensure primary themes are included in themes list
+    const allThemes = [...new Set([...selectedThemes.value, ...primaryThemes.value])]
+    // Ensure primary genre tag is included in genre tags list
+    const allGenreTags = primaryGenreTag.value
+      ? [...new Set([...selectedGenreTags.value, primaryGenreTag.value])]
+      : [...selectedGenreTags.value]
+
     await recommendationsService.submitSurvey(
       props.book.id,
       props.userBookId,
       responses.value,
-      selectedThemes.value,
+      allThemes,
       primaryThemes.value,
-      selectedGenreTags.value,
+      allGenreTags,
       primaryGenreTag.value
     )
     currentStep.value = 2
