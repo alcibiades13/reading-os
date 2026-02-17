@@ -4,7 +4,9 @@ import { useVocabularyStore } from '@/stores/vocabularyStore'
 import WordCard from '@/components/vocabulary/WordCard.vue'
 import FlashcardPlayer from '@/components/vocabulary/FlashcardPlayer.vue'
 import VocabularyModal from '@/components/vocabulary/VocabularyModal.vue'
-import { Brain, LayoutGrid, BarChart3, Plus, Search, Sparkles, BookOpen, CheckCircle, Clock, X, Filter } from 'lucide-vue-next'
+import { Brain, LayoutGrid, BarChart3, Plus, Search, Sparkles, BookOpen, CheckCircle, Clock, X, Filter, Download } from 'lucide-vue-next'
+import { vocabularyAPI } from '@/services/api'
+import { downloadBlob } from '@/utils/downloadFile'
 
 const vocabularyStore = useVocabularyStore()
 
@@ -65,6 +67,19 @@ const handleOpenModal = () => {
 
 const handlePracticeComplete = () => {
   activeView.value = 'library'
+}
+
+const showExportMenu = ref(false)
+
+const handleExportVocabulary = async (format) => {
+  showExportMenu.value = false
+  try {
+    const response = await vocabularyAPI.export(format)
+    const filenames = { json: 'vocabulary.json', csv: 'vocabulary.csv', anki: 'vocabulary_anki.txt' }
+    downloadBlob(response, filenames[format] || 'vocabulary.json')
+  } catch (error) {
+    console.error('Error exporting vocabulary:', error)
+  }
 }
 </script>
 
@@ -261,14 +276,32 @@ const handlePracticeComplete = () => {
           </p>
         </header>
 
-        <button
-          @click="handleOpenModal"
-          class="group flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-5 rounded-2xl bg-emerald-500 text-white text-sm sm:text-base font-bold shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all"
-        >
-          <Plus :size="18" class="sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
-          <span class="hidden sm:inline">Capture New Word</span>
-          <span class="sm:hidden">Add Word</span>
-        </button>
+        <div class="flex items-center gap-3">
+          <!-- Export dropdown -->
+          <div class="relative">
+            <button
+              @click="showExportMenu = !showExportMenu"
+              class="flex items-center gap-2 px-4 py-3 sm:py-5 rounded-2xl bg-white/5 border border-white/5 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all text-sm font-bold"
+            >
+              <Download :size="16" />
+              <span class="hidden sm:inline">Export</span>
+            </button>
+            <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 p-2 rounded-xl bg-slate-800 border border-white/10 shadow-2xl z-50 min-w-[140px]">
+              <button @click="handleExportVocabulary('json')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">JSON</button>
+              <button @click="handleExportVocabulary('csv')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">CSV</button>
+              <button @click="handleExportVocabulary('anki')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">Anki</button>
+            </div>
+          </div>
+
+          <button
+            @click="handleOpenModal"
+            class="group flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-5 rounded-2xl bg-emerald-500 text-white text-sm sm:text-base font-bold shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all"
+          >
+            <Plus :size="18" class="sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
+            <span class="hidden sm:inline">Capture New Word</span>
+            <span class="sm:hidden">Add Word</span>
+          </button>
+        </div>
       </div>
 
       <!-- Navigation Tabs (Desktop) -->

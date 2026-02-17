@@ -7,7 +7,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image } from 'lucide-vue-next'
+import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image, Download } from 'lucide-vue-next'
+import { quotesAPI } from '@/services/api'
+import { downloadBlob } from '@/utils/downloadFile'
 import QuoteCardDesigner from '@/components/quotes/QuoteCardDesigner.vue'
 
 const router = useRouter()
@@ -104,6 +106,18 @@ const clearFilters = () => {
   selectedTag.value = null
   showFavorites.value = false
   quotesStore.resetFilters()
+}
+
+const showExportMenu = ref(false)
+
+const handleExportQuotes = async (format) => {
+  showExportMenu.value = false
+  try {
+    const response = await quotesAPI.export(format)
+    downloadBlob(response, format === 'csv' ? 'quotes.csv' : 'quotes.json')
+  } catch (error) {
+    console.error('Error exporting quotes:', error)
+  }
 }
 
 const handleCreateQuote = async () => {
@@ -596,7 +610,23 @@ const handleEditQuote = async () => {
           </p>
         </header>
 
-        <Dialog v-model:open="isCreateDialogOpen">
+        <div class="flex items-center gap-3">
+          <!-- Export dropdown -->
+          <div class="relative">
+            <button
+              @click="showExportMenu = !showExportMenu"
+              class="flex items-center gap-2 px-4 py-3 sm:py-5 rounded-2xl bg-white/5 border border-white/5 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all text-sm font-bold"
+            >
+              <Download :size="16" />
+              <span class="hidden sm:inline">Export</span>
+            </button>
+            <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 p-2 rounded-xl bg-slate-800 border border-white/10 shadow-2xl z-50 min-w-[140px]">
+              <button @click="handleExportQuotes('json')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">JSON</button>
+              <button @click="handleExportQuotes('csv')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">CSV</button>
+            </div>
+          </div>
+
+          <Dialog v-model:open="isCreateDialogOpen">
           <DialogTrigger as-child>
             <button class="group flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-5 rounded-2xl bg-indigo-500 text-white text-sm sm:text-base font-bold shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 active:scale-95 transition-all">
               <Plus :size="18" class="sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
@@ -770,6 +800,7 @@ const handleEditQuote = async () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <!-- Stats Grid (Desktop) -->

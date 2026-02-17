@@ -1,3 +1,7 @@
+import io
+import json
+import zipfile
+from django.http import HttpResponse
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -594,4 +598,44 @@ class UserViewSet(viewsets.ModelViewSet):
             following_data.append(followed_serialized)
 
         return Response(following_data)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def export_all_data(self, request):
+        """Export all user data as a ZIP file containing JSON files"""
+        from apps.reading.models import UserBook, Quote, VocabularyWord
+        from apps.reading.models_study import StudyNote
+        from apps.codex.models import JournalEntry, Manuscript
+        from apps.reading.serializers import (
+            UserBookListSerializer, QuoteListSerializer, VocabularyWordSerializer,
+        )
+        from apps.reading.serializers_study import StudyNoteListSerializer
+        from apps.codex.serializers import JournalEntrySerializer, ManuscriptDetailSerializer
+
+        user = request.user
+
+        def to_json(serializer_data):
+            return json.dumps(serializer_data, indent=2, default=str, ensure_ascii=False)
+
+        # Gather all data
+        journal_entries = JournalEntry.objects.filter(user=user)
+        manuscripts = Manuscript.objects.filter(user=user).prefetch_related('chapters')
+        quotes = Quote.objects.filter(user=user).select_related('book').prefetch_related('tags')
+        vocabulary = VocabularyWord.objects.filter(user=user)
+        study_notes = StudyNote.objects.filter(user=user).prefetch_related('tags')
+        user_books = UserBook.objects.filter(user=user).select_related('book').prefetch_related('book__authors', 'book__genres')
+
+        # Create ZIP in memory
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr('journal_entries.json', to_json(JournalEntrySerializer(journal_entries, many=True).data))
+            zf.writestr('manuscripts.json', to_json(ManuscriptDetailSerializer(manuscripts, many=True).data))
+            zf.writestr('quotes.json', to_json(QuoteListSerializer(quotes, many=True).data))
+            zf.writestr('vocabulary.json', to_json(VocabularyWordSerializer(vocabulary, many=True).data))
+            zf.writestr('study_notes.json', to_json(StudyNoteListSerializer(study_notes, many=True).data))
+            zf.writestr('reading_progress.json', to_json(UserBookListSerializer(user_books, many=True).data))
+
+        buffer.seek(0)
+        response = HttpResponse(buffer.getvalue(), content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="reading_os_export_{user.id}.zip"'
+        return response
 

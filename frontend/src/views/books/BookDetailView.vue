@@ -10,6 +10,7 @@ import StarRating from '@/components/ui/StarRating.vue'
 import BookEditModal from '@/components/BookEditModal.vue'
 import BookDNASurvey from '@/components/recommendations/BookDNASurvey.vue'
 import CommunityActivity from '@/components/books/CommunityActivity.vue'
+import BookKnowledgeHub from '@/components/books/BookKnowledgeHub.vue'
 import { recommendationsService } from '@/services/recommendationsService'
 import { booksAPI } from '@/services/api'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
@@ -1303,6 +1304,13 @@ export const QuoteCard = defineComponent({
             <p class="text-slate-500 text-sm italic">You haven't saved any quotes from this book yet.</p>
           </div>
         </section>
+
+        <!-- Book Knowledge Hub -->
+        <BookKnowledgeHub
+          v-if="userBook"
+          :book-id="bookId"
+          :book-title="book.title"
+        />
 
         <!-- Community Activity -->
         <CommunityActivity

@@ -4,7 +4,9 @@ from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
     CirclePost, CircleComment, FeedItem, FeedItemLike, FeedItemComment,
     Notification, Conversation, Message, DiscussionTopic, TopicMessage,
-    TopicMessageLike, BookClubReading, ReviewLike, ReviewComment
+    TopicMessageLike, BookClubReading, ReviewLike, ReviewComment,
+    MessageReaction, TopicReadStatus, Poll, PollOption, PollVote,
+    CircleEvent,
 )
 from apps.users.serializers import UserSerializer
 from apps.books.serializers import BookListSerializer
@@ -86,6 +88,7 @@ class CircleListSerializer(serializers.ModelSerializer):
             'members_count',
             'max_members',
             'is_invite_only',
+            'is_public',
             'image',
             'accent_color',
             'current_book',
@@ -121,6 +124,7 @@ class CircleDetailSerializer(serializers.ModelSerializer):
             'members_count',
             'max_members',
             'is_invite_only',
+            'is_public',
             'image',
             'accent_color',
             'current_book',
@@ -153,6 +157,7 @@ class CircleCreateSerializer(serializers.ModelSerializer):
             'description',
             'max_members',
             'is_invite_only',
+            'is_public',
             'image',
             'accent_color',
         ]
@@ -780,20 +785,29 @@ class TopicMessageSerializer(serializers.ModelSerializer):
     attached_quote_data = serializers.SerializerMethodField()
     attached_book_data = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
+    reactions_summary = serializers.SerializerMethodField()
+    reply_to_data = serializers.SerializerMethodField()
+    topic_title = serializers.CharField(source='topic.title', read_only=True)
 
     class Meta:
         model = TopicMessage
         fields = [
             'id',
             'topic',
+            'topic_title',
             'author',
             'content',
+            'reply_to',
+            'reply_to_data',
             'attached_quote',
             'attached_quote_data',
             'attached_book',
             'attached_book_data',
+            'attachment_image',
+            'mentions',
             'likes_count',
             'is_liked',
+            'reactions_summary',
             'created_at',
             'updated_at',
         ]
@@ -818,6 +832,30 @@ class TopicMessageSerializer(serializers.ModelSerializer):
             ).exists()
         return False
 
+    def get_reactions_summary(self, obj):
+        from django.db.models import Count
+        reactions = obj.reactions.values('emoji').annotate(count=Count('id'))
+        summary = {r['emoji']: r['count'] for r in reactions}
+        request = self.context.get('request')
+        user_reactions = []
+        if request and request.user and request.user.is_authenticated:
+            user_reactions = list(
+                obj.reactions.filter(user=request.user).values_list('emoji', flat=True)
+            )
+        return {
+            'counts': summary,
+            'user_reactions': user_reactions,
+        }
+
+    def get_reply_to_data(self, obj):
+        if obj.reply_to:
+            return {
+                'id': obj.reply_to.id,
+                'author_name': f"{obj.reply_to.author.first_name} {obj.reply_to.author.last_name}".strip(),
+                'content_preview': obj.reply_to.content[:100],
+            }
+        return None
+
 
 class TopicMessageCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating topic messages"""
@@ -829,8 +867,11 @@ class TopicMessageCreateSerializer(serializers.ModelSerializer):
         fields = [
             'topic',
             'content',
+            'reply_to',
             'attached_quote_id',
             'attached_book_id',
+            'attachment_image',
+            'mentions',
         ]
 
     def validate(self, data):
@@ -951,3 +992,127 @@ class ReviewCommentCreateSerializer(serializers.Serializer):
         except UserBook.DoesNotExist:
             raise serializers.ValidationError("Review not found")
         return value
+
+
+# ===== POLLS =====
+
+class PollOptionSerializer(serializers.ModelSerializer):
+    """Serializer for poll options"""
+    vote_count = serializers.IntegerField(read_only=True)
+    user_voted = serializers.SerializerMethodField()
+    book_data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PollOption
+        fields = ['id', 'text', 'book', 'book_data', 'order', 'vote_count', 'user_voted']
+        read_only_fields = ['id']
+
+    def get_user_voted(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            return obj.votes.filter(user=request.user).exists()
+        return False
+
+    def get_book_data(self, obj):
+        if obj.book:
+            return BookListSerializer(obj.book).data
+        return None
+
+
+class PollSerializer(serializers.ModelSerializer):
+    """Serializer for polls"""
+    options = PollOptionSerializer(many=True, read_only=True)
+    is_closed = serializers.BooleanField(read_only=True)
+    total_votes = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Poll
+        fields = [
+            'id', 'topic', 'question', 'poll_type',
+            'allows_multiple', 'is_anonymous', 'closes_at',
+            'is_closed', 'total_votes', 'options', 'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+
+
+class PollCreateSerializer(serializers.Serializer):
+    """Serializer for creating polls with options"""
+    topic_id = serializers.IntegerField()
+    question = serializers.CharField(max_length=300)
+    poll_type = serializers.ChoiceField(choices=Poll.POLL_TYPE_CHOICES, default='general')
+    allows_multiple = serializers.BooleanField(default=False)
+    is_anonymous = serializers.BooleanField(default=False)
+    closes_at = serializers.DateTimeField(required=False, allow_null=True)
+    options = serializers.ListField(
+        child=serializers.DictField(),
+        min_length=2,
+        max_length=10,
+    )
+
+    def validate_topic_id(self, value):
+        try:
+            topic = DiscussionTopic.objects.get(id=value)
+        except DiscussionTopic.DoesNotExist:
+            raise serializers.ValidationError("Topic not found")
+
+        request = self.context.get('request')
+        if not CircleMembership.objects.filter(
+            circle=topic.circle,
+            user=request.user
+        ).exists():
+            raise serializers.ValidationError("You must be a member of this circle")
+
+        if hasattr(topic, 'poll'):
+            raise serializers.ValidationError("This topic already has a poll")
+
+        return value
+
+    def create(self, validated_data):
+        options_data = validated_data.pop('options')
+        topic_id = validated_data.pop('topic_id')
+        topic = DiscussionTopic.objects.get(id=topic_id)
+
+        poll = Poll.objects.create(topic=topic, **validated_data)
+
+        for idx, opt in enumerate(options_data):
+            book_id = opt.get('book_id') or opt.get('book')
+            PollOption.objects.create(
+                poll=poll,
+                text=opt.get('text', ''),
+                book_id=book_id if book_id else None,
+                order=idx,
+            )
+
+        return poll
+
+
+# ===== CIRCLE EVENT =====
+
+class CircleEventSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer(read_only=True)
+    book_data = BookListSerializer(source='book', read_only=True)
+
+    class Meta:
+        model = CircleEvent
+        fields = [
+            'id', 'circle', 'title', 'description', 'event_type',
+            'event_date', 'target_progress', 'book', 'book_data',
+            'created_by', 'created_at',
+        ]
+        read_only_fields = ['id', 'created_by', 'created_at']
+
+
+# ===== CIRCLE DISCOVERY =====
+
+class CircleDiscoverySerializer(serializers.ModelSerializer):
+    """Lightweight serializer for public circle discovery."""
+    creator = UserSerializer(read_only=True)
+    current_book_data = BookListSerializer(source='current_book', read_only=True)
+
+    class Meta:
+        model = Circle
+        fields = [
+            'id', 'name', 'description', 'accent_color', 'image',
+            'members_count', 'is_invite_only', 'current_book_data',
+            'creator', 'created_at',
+        ]

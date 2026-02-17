@@ -150,10 +150,14 @@ export const bookClubService = {
   // ===== TOPIC MESSAGES =====
 
   /**
-   * Get messages for a topic
+   * Get messages for a topic, optionally filtered by timestamp
    */
-  async getTopicMessages(topicId) {
-    const response = await api.get(`/social/topic-messages/?topic=${topicId}`)
+  async getTopicMessages(topicId, options = {}) {
+    const params = new URLSearchParams()
+    params.append('topic', topicId)
+    if (options.after) params.append('after', options.after)
+
+    const response = await api.get(`/social/topic-messages/?${params.toString()}`)
     return response.data
   },
 
@@ -225,6 +229,90 @@ export const bookClubService = {
     await api.delete(`/social/club-readings/${id}/`)
   },
 
+  // ===== MEMBER PROGRESS =====
+
+  /**
+   * Get member progress on circle's current book
+   */
+  async getMemberProgress(circleId) {
+    const response = await api.get(`/social/circles/${circleId}/member_progress/`)
+    return response.data
+  },
+
+  // ===== UNREAD TRACKING =====
+
+  /**
+   * Get unread counts for topics in a circle
+   */
+  async getUnreadCounts(circleId) {
+    const response = await api.get(`/social/circles/${circleId}/unread_counts/`)
+    return response.data
+  },
+
+  /**
+   * Mark a topic as read
+   */
+  async markTopicRead(topicId) {
+    const response = await api.post(`/social/topics/${topicId}/mark_read/`)
+    return response.data
+  },
+
+  // ===== TOPIC ACTIONS =====
+
+  /**
+   * Toggle pin on a topic (admin only)
+   */
+  async togglePinTopic(topicId) {
+    const response = await api.post(`/social/topics/${topicId}/toggle_pin/`)
+    return response.data
+  },
+
+  // ===== MESSAGE SEARCH =====
+
+  /**
+   * Search messages within a circle
+   */
+  async searchMessages(circleId, query) {
+    const response = await api.get(`/social/topic-messages/search/?circle=${circleId}&q=${encodeURIComponent(query)}`)
+    return response.data
+  },
+
+  // ===== REACTIONS =====
+
+  /**
+   * Toggle a reaction on a message
+   */
+  async toggleReaction(messageId, emoji) {
+    const response = await api.post(`/social/topic-messages/${messageId}/toggle_reaction/`, { emoji })
+    return response.data
+  },
+
+  // ===== POLLS =====
+
+  /**
+   * Create a poll
+   */
+  async createPoll(data) {
+    const response = await api.post('/social/polls/', data)
+    return response.data
+  },
+
+  /**
+   * Vote on a poll
+   */
+  async votePoll(pollId, optionId) {
+    const response = await api.post(`/social/polls/${pollId}/vote/`, { option_id: optionId })
+    return response.data
+  },
+
+  /**
+   * Close a poll (admin only)
+   */
+  async closePoll(pollId) {
+    const response = await api.post(`/social/polls/${pollId}/close/`)
+    return response.data
+  },
+
   // ===== HELPERS =====
 
   /**
@@ -257,7 +345,31 @@ export const bookClubService = {
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
     if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
     return `${Math.floor(seconds / 604800)}w ago`
-  }
+  },
+
+  // ===== CIRCLE DISCOVERY =====
+
+  async discoverCircles() {
+    const response = await api.get('/social/circles/discover/')
+    return response.data
+  },
+
+  async joinCircle(circleId) {
+    const response = await api.post(`/social/circles/${circleId}/join/`)
+    return response.data
+  },
+
+  // ===== CIRCLE EVENTS =====
+
+  async getCircleEvents(circleId) {
+    const response = await api.get(`/social/circles/${circleId}/events/`)
+    return response.data
+  },
+
+  async createCircleEvent(circleId, data) {
+    const response = await api.post(`/social/circles/${circleId}/events/`, data)
+    return response.data
+  },
 }
 
 export default bookClubService

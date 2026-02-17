@@ -64,7 +64,8 @@
       "Bash(node -e:*)",
       "Bash(npx vue-tsc:*)",
       "Bash(npm ls:*)",
-      "Bash(npx cap sync:*)"
+      "Bash(npx cap sync:*)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

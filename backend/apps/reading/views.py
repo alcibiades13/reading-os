@@ -1,3 +1,7 @@
+import csv
+import json
+import io
+from django.http import HttpResponse
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -159,6 +163,40 @@ class UserBookViewSet(viewsets.ModelViewSet):
         serializer = UserBookDetailSerializer(user_book)
         return Response(serializer.data)
     
+    @action(detail=False, methods=['get'])
+    def book_knowledge(self, request):
+        """Aggregated knowledge for a specific book: quotes, study notes, vocabulary, journal entries"""
+        book_id = request.query_params.get('book')
+        if not book_id:
+            return Response({'error': 'book parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from apps.codex.models import JournalEntry
+        from apps.codex.serializers import JournalEntrySerializer
+
+        quotes = Quote.objects.filter(user=request.user, book_id=book_id).select_related('book').prefetch_related('tags')
+        study_notes = StudyNote.objects.filter(user=request.user, book_id=book_id).prefetch_related('tags')
+        vocabulary = VocabularyWord.objects.filter(user=request.user, book_id=book_id)
+        journal_entries = JournalEntry.objects.filter(user=request.user, book_id=book_id)
+
+        return Response({
+            'quotes': {
+                'count': quotes.count(),
+                'recent': QuoteListSerializer(quotes[:5], many=True).data,
+            },
+            'study_notes': {
+                'count': study_notes.count(),
+                'recent': StudyNoteListSerializer(study_notes[:5], many=True).data,
+            },
+            'vocabulary': {
+                'count': vocabulary.count(),
+                'recent': VocabularyWordSerializer(vocabulary[:5], many=True).data,
+            },
+            'journal_entries': {
+                'count': journal_entries.count(),
+                'recent': JournalEntrySerializer(journal_entries[:5], many=True).data,
+            },
+        })
+
     @action(detail=True, methods=['post'])
     def mark_finished(self, request, pk=None):
         """Mark book as finished"""
@@ -321,6 +359,38 @@ class QuoteViewSet(viewsets.ModelViewSet):
         serializer = QuoteListSerializer(quotes, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        """Export all quotes as JSON or CSV"""
+        quotes = self.get_queryset()
+        fmt = request.query_params.get('format', 'json')
+
+        if fmt == 'csv':
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['Text', 'Book Title', 'Book Author', 'Page', 'Chapter', 'Note', 'Tags', 'Favorite', 'Date'])
+            for q in quotes:
+                writer.writerow([
+                    q.text,
+                    q.book_title or (q.book.title if q.book else ''),
+                    q.book_author or '',
+                    q.page_number or '',
+                    q.chapter or '',
+                    q.note or '',
+                    ', '.join(t.name for t in q.tags.all()),
+                    'Yes' if q.is_favorite else 'No',
+                    q.created_at.strftime('%Y-%m-%d') if q.created_at else '',
+                ])
+            response = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="quotes.csv"'
+            return response
+        else:
+            serializer = QuoteListSerializer(quotes, many=True)
+            data = json.dumps(serializer.data, indent=2, default=str, ensure_ascii=False)
+            response = HttpResponse(data, content_type='application/json; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="quotes.json"'
+            return response
+
 
 class StudyNoteViewSet(viewsets.ModelViewSet):
     """ViewSet for StudyNote model - deep study and scholarship"""
@@ -420,6 +490,16 @@ class StudyNoteViewSet(viewsets.ModelViewSet):
         ).order_by('-count')
         return Response(list(books))
 
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        """Export study notes as JSON (optionally filtered by book)"""
+        notes = self.get_queryset()
+        serializer = StudyNoteListSerializer(notes, many=True)
+        data = json.dumps(serializer.data, indent=2, default=str, ensure_ascii=False)
+        response = HttpResponse(data, content_type='application/json; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="study_notes.json"'
+        return response
+
     @action(detail=True, methods=['post'])
     def promote_to_quote(self, request, pk=None):
         """Promote a study note to a main quote"""
@@ -436,6 +516,8 @@ class StudyNoteViewSet(viewsets.ModelViewSet):
             user=request.user,
             book=study_note.book,
             user_book=study_note.user_book,
+            book_title=study_note.book.title if study_note.book else '',
+            book_author=', '.join(a.name for a in study_note.book.authors.all()) if study_note.book else '',
             text=study_note.content,
             page_number=study_note.page_number,
             chapter=study_note.chapter,
@@ -517,4 +599,54 @@ class VocabularyWordViewSet(viewsets.ModelViewSet):
         word.is_favorite = not word.is_favorite
         word.save()
         return Response(VocabularyWordSerializer(word).data)
+
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        """Export vocabulary as JSON, CSV, or Anki-compatible format"""
+        words = self.get_queryset()
+        fmt = request.query_params.get('format', 'json')
+
+        if fmt == 'csv':
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['Word', 'Definition', 'Context', 'Book', 'Author', 'Page', 'Mastery', 'Date'])
+            for w in words:
+                writer.writerow([
+                    w.word,
+                    w.definition or '',
+                    w.context or '',
+                    w.book_title or (w.book.title if w.book else ''),
+                    w.book_author or '',
+                    w.page_number or '',
+                    w.mastery,
+                    w.created_at.strftime('%Y-%m-%d') if w.created_at else '',
+                ])
+            response = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="vocabulary.csv"'
+            return response
+        elif fmt == 'anki':
+            # Tab-separated: front\tback (Anki import format)
+            lines = []
+            for w in words:
+                front = w.word
+                back_parts = []
+                if w.definition:
+                    back_parts.append(w.definition)
+                if w.context:
+                    back_parts.append(f'Context: "{w.context}"')
+                source = w.book_title or (w.book.title if w.book else '')
+                if source:
+                    back_parts.append(f'Source: {source}')
+                back = '<br>'.join(back_parts)
+                lines.append(f'{front}\t{back}')
+            content = '\n'.join(lines)
+            response = HttpResponse(content, content_type='text/tab-separated-values; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="vocabulary_anki.txt"'
+            return response
+        else:
+            serializer = VocabularyWordSerializer(words, many=True)
+            data = json.dumps(serializer.data, indent=2, default=str, ensure_ascii=False)
+            response = HttpResponse(data, content_type='application/json; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="vocabulary.json"'
+            return response
 

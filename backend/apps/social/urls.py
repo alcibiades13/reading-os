@@ -16,6 +16,7 @@ from apps.social.views import (
     BookClubReadingViewSet,
     ReviewCommentViewSet,
     ReviewLikeToggleView,
+    PollViewSet,
 )
 
 app_name = 'social'
@@ -36,6 +37,7 @@ router.register(r'topics', DiscussionTopicViewSet, basename='discussiontopic')
 router.register(r'topic-messages', TopicMessageViewSet, basename='topicmessage')
 router.register(r'club-readings', BookClubReadingViewSet, basename='bookclubreading')
 router.register(r'review-comments', ReviewCommentViewSet, basename='reviewcomment')
+router.register(r'polls', PollViewSet, basename='poll')
 
 urlpatterns = [
     path('', include(router.urls)),

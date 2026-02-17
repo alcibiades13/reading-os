@@ -17,10 +17,11 @@ class JournalEntrySerializer(serializers.ModelSerializer):
             'is_locked',
             'book',
             'word_count',
+            'deleted_at',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'user', 'word_count', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'word_count', 'deleted_at', 'created_at', 'updated_at']
 
 
 class ChapterSerializer(serializers.ModelSerializer):
@@ -59,10 +60,13 @@ class ManuscriptListSerializer(serializers.ModelSerializer):
             'current_word_count',
             'completion_percentage',
             'chapter_count',
+            'is_shared',
+            'share_token',
+            'deleted_at',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'current_word_count', 'completion_percentage', 'chapter_count', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'current_word_count', 'completion_percentage', 'chapter_count', 'is_shared', 'share_token', 'deleted_at', 'created_at', 'updated_at']
 
     def get_chapter_count(self, obj):
         return obj.chapters.count()
@@ -86,10 +90,12 @@ class ManuscriptDetailSerializer(serializers.ModelSerializer):
             'current_word_count',
             'completion_percentage',
             'chapters',
+            'is_shared',
+            'share_token',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'current_word_count', 'completion_percentage', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'current_word_count', 'completion_percentage', 'is_shared', 'share_token', 'created_at', 'updated_at']
 
 
 class ManuscriptCreateSerializer(serializers.ModelSerializer):
@@ -116,3 +122,24 @@ class ManuscriptCreateSerializer(serializers.ModelSerializer):
             order=1
         )
         return manuscript
+
+
+class ManuscriptPublicSerializer(serializers.ModelSerializer):
+    """Read-only serializer for publicly shared manuscripts (no user data)"""
+    chapters = ChapterSerializer(many=True, read_only=True)
+    current_word_count = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Manuscript
+        fields = [
+            'id',
+            'title',
+            'subtitle',
+            'genre',
+            'cover_color',
+            'current_word_count',
+            'chapters',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = fields

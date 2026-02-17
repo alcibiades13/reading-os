@@ -3,7 +3,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
-import { User, BookOpen, Quote, Target, Mail, MapPin, Globe, Edit2, Save, X, Calendar, Camera } from 'lucide-vue-next'
+import { User, BookOpen, Quote, Target, Mail, MapPin, Globe, Edit2, Save, X, Calendar, Camera, Download, Archive } from 'lucide-vue-next'
+import { usersAPI } from '@/services/api'
+import { downloadBlob } from '@/utils/downloadFile'
 
 const authStore = useAuthStore()
 const booksStore = useUserBooksStore()
@@ -95,6 +97,20 @@ const handleSaveProfile = async () => {
   }
 }
 
+const exportingData = ref(false)
+
+const handleExportAllData = async () => {
+  exportingData.value = true
+  try {
+    const response = await usersAPI.exportAllData()
+    downloadBlob(response, 'reading_os_export.zip')
+  } catch (error) {
+    console.error('Error exporting data:', error)
+  } finally {
+    exportingData.value = false
+  }
+}
+
 const cancelEdit = () => {
   isEditing.value = false
   avatarFile.value = null
@@ -116,30 +132,30 @@ const cancelEdit = () => {
 <template>
   <div class="animate-in fade-in duration-700 pb-20">
     <!-- Page Header -->
-    <div class="max-w-5xl mx-auto pt-12 pb-8 px-6">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+    <div class="max-w-5xl mx-auto pt-6 sm:pt-12 pb-4 sm:pb-8 px-4 sm:px-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-8 mb-6 sm:mb-12">
         <header>
-          <div class="flex items-center gap-2 sm:gap-3 mb-4">
+          <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
               <User class="text-indigo-400" :size="18" />
             </div>
             <span class="text-page-meta font-bold text-indigo-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Personal Profile</span>
           </div>
-          <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
+          <h1 class="text-page-heading font-black text-white tracking-tight mb-2 sm:mb-4">
             Your <span class="text-indigo-500">Reading</span> Journey
           </h1>
-          <p class="text-page-subtitle text-slate-400 max-w-2xl leading-relaxed">
+          <p class="text-page-subtitle text-slate-400 max-w-2xl leading-relaxed hidden sm:block">
             Track your progress, manage your profile, and see how far you've come on your literary adventure.
           </p>
         </header>
       </div>
 
       <!-- Profile Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
         <!-- Profile Info Card -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-4 sm:space-y-6">
           <!-- Avatar & Basic Info -->
-          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-6 sm:p-8">
+          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-4 sm:p-8">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-8">
               <!-- Avatar -->
               <div class="relative flex-shrink-0">
@@ -307,37 +323,64 @@ const cancelEdit = () => {
         </div>
 
         <!-- Stats Sidebar -->
-        <div class="space-y-4">
-          <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Reading Statistics</h3>
+        <div class="space-y-3">
+          <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 lg:mb-3">Reading Statistics</h3>
 
-          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-6 text-center hover:border-indigo-500/30 transition-all">
-            <BookOpen class="w-10 h-10 text-indigo-400 mx-auto mb-3" />
-            <p class="text-3xl font-black text-white mb-1">{{ stats.totalBooks }}</p>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Books</p>
+          <!-- Mobile: compact 2-col grid, Desktop: stacked column -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 sm:gap-3">
+            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-indigo-500/30 transition-all">
+              <BookOpen class="w-5 h-5 lg:w-6 lg:h-6 text-indigo-400 mx-auto mb-1.5" />
+              <p class="text-xl lg:text-2xl font-black text-white mb-0.5">{{ stats.totalBooks }}</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Books</p>
+            </div>
+
+            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-emerald-500/30 transition-all">
+              <BookOpen class="w-5 h-5 lg:w-6 lg:h-6 text-emerald-400 mx-auto mb-1.5" />
+              <p class="text-xl lg:text-2xl font-black text-emerald-400 mb-0.5">{{ stats.booksRead }}</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Books Read</p>
+            </div>
+
+            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-sky-500/30 transition-all">
+              <BookOpen class="w-5 h-5 lg:w-6 lg:h-6 text-sky-400 mx-auto mb-1.5" />
+              <p class="text-xl lg:text-2xl font-black text-sky-400 mb-0.5">{{ stats.currentlyReading }}</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reading</p>
+            </div>
+
+            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-amber-500/30 transition-all">
+              <Quote class="w-5 h-5 lg:w-6 lg:h-6 text-amber-400 mx-auto mb-1.5" />
+              <p class="text-xl lg:text-2xl font-black text-amber-400 mb-0.5">{{ stats.quotes }}</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quotes</p>
+            </div>
+
+            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-purple-500/30 transition-all">
+              <Target class="w-5 h-5 lg:w-6 lg:h-6 text-purple-400 mx-auto mb-1.5" />
+              <p class="text-xl lg:text-2xl font-black text-purple-400 mb-0.5">{{ stats.wantToRead }}</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Want to Read</p>
+            </div>
           </div>
+        </div>
 
-          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-6 text-center hover:border-emerald-500/30 transition-all">
-            <BookOpen class="w-10 h-10 text-emerald-400 mx-auto mb-3" />
-            <p class="text-3xl font-black text-emerald-400 mb-1">{{ stats.booksRead }}</p>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Books Read</p>
-          </div>
-
-          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-6 text-center hover:border-sky-500/30 transition-all">
-            <BookOpen class="w-10 h-10 text-sky-400 mx-auto mb-3" />
-            <p class="text-3xl font-black text-sky-400 mb-1">{{ stats.currentlyReading }}</p>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Currently Reading</p>
-          </div>
-
-          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-6 text-center hover:border-amber-500/30 transition-all">
-            <Quote class="w-10 h-10 text-amber-400 mx-auto mb-3" />
-            <p class="text-3xl font-black text-amber-400 mb-1">{{ stats.quotes }}</p>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Quotes Saved</p>
-          </div>
-
-          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-6 text-center hover:border-purple-500/30 transition-all">
-            <Target class="w-10 h-10 text-purple-400 mx-auto mb-3" />
-            <p class="text-3xl font-black text-purple-400 mb-1">{{ stats.wantToRead }}</p>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Want to Read</p>
+        <!-- Data Export Section -->
+        <div class="lg:col-span-3 glass bg-slate-900/40 rounded-xl sm:rounded-2xl border border-slate-800/50 p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <Archive :size="16" class="text-emerald-400 sm:hidden" />
+                <Archive :size="20" class="text-emerald-400 hidden sm:block" />
+              </div>
+              <div>
+                <h3 class="text-sm sm:text-lg font-black text-white">Data Export</h3>
+                <p class="text-[10px] sm:text-xs text-slate-500">Download all your data as a ZIP archive</p>
+              </div>
+            </div>
+            <button
+              @click="handleExportAllData"
+              :disabled="exportingData"
+              class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-emerald-500 text-white font-bold text-sm hover:bg-emerald-400 active:scale-95 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+            >
+              <Download :size="16" :class="exportingData ? 'animate-bounce' : ''" />
+              {{ exportingData ? 'Preparing...' : 'Export All Data' }}
+            </button>
           </div>
         </div>
       </div>

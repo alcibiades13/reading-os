@@ -1,5 +1,19 @@
+import uuid
 from django.db import models
 from django.conf import settings
+
+
+class SoftDeleteManager(models.Manager):
+    """Manager that filters out soft-deleted records by default."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+    def deleted_only(self):
+        return super().get_queryset().filter(deleted_at__isnull=False)
+
+    def with_deleted(self):
+        return super().get_queryset()
 
 
 class JournalEntry(models.Model):
@@ -38,8 +52,14 @@ class JournalEntry(models.Model):
         related_name='journal_entries'
     )
 
+    # Soft delete
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = SoftDeleteManager()
+    all_objects = models.Manager()
 
     class Meta:
         ordering = ['-created_at']
@@ -69,8 +89,18 @@ class Manuscript(models.Model):
     cover_color = models.CharField(max_length=20, default='#6366f1')
     target_word_count = models.IntegerField(default=50000)
 
+    # Sharing
+    is_shared = models.BooleanField(default=False)
+    share_token = models.UUIDField(null=True, blank=True, unique=True)
+
+    # Soft delete
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = SoftDeleteManager()
+    all_objects = models.Manager()
 
     class Meta:
         ordering = ['-updated_at']
