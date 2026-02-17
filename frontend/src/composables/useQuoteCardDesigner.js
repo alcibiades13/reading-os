@@ -121,19 +121,24 @@ export function useQuoteCardDesigner() {
   }
 
   const downloadImage = async (element, bookTitle) => {
+    if (isGenerating.value) return // prevent double-clicks
     isGenerating.value = true
+    let clone = null
     try {
       await document.fonts.ready
       const html2canvas = (await import('html2canvas')).default
 
       // Clone element outside any transform context to avoid
       // html2canvas rendering artifacts from parent scale()
-      const clone = element.cloneNode(true)
+      clone = element.cloneNode(true)
       clone.style.position = 'fixed'
       clone.style.left = '-9999px'
       clone.style.top = '0'
       clone.style.transform = 'none'
       document.body.appendChild(clone)
+
+      // Let the browser layout the clone before capturing
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
 
       const canvas = await html2canvas(clone, {
         scale: 2,
@@ -143,6 +148,7 @@ export function useQuoteCardDesigner() {
       })
 
       document.body.removeChild(clone)
+      clone = null
 
       const slug = (bookTitle || 'quote').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase().slice(0, 40)
       const fileName = `quote-${slug}.png`
@@ -167,24 +173,21 @@ export function useQuoteCardDesigner() {
         return
       }
 
-      // Web: convert canvas to blob
+      // Desktop: download directly via blob URL
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
-
-      // Try Web Share API (works on mobile browsers with file support)
-      if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] })) {
-        const file = new File([blob], fileName, { type: 'image/png' })
-        await navigator.share({ files: [file] })
-        return
-      }
-
-      // Fallback: download via blob URL (desktop browsers)
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.download = fileName
       link.href = url
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 5000)
+    } catch (err) {
+      console.error('Failed to generate quote image:', err)
     } finally {
+      // Always clean up clone if html2canvas errored before removal
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone)
+      }
       isGenerating.value = false
     }
   }

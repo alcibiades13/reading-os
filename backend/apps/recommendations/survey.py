@@ -186,6 +186,9 @@ THEME_CATEGORIES = [
             {"id": "gothic", "label": "Gothic", "icon": "castle"},
             {"id": "nature", "label": "Nature", "icon": "leaf"},
             {"id": "art", "label": "Art & Beauty", "icon": "palette"},
+            {"id": "intellectual", "label": "Intellectual", "icon": "lightbulb"},
+            {"id": "poetic", "label": "Poetic", "icon": "feather"},
+            {"id": "melancholic", "label": "Melancholic", "icon": "cloud-rain"},
         ]
     },
     {
@@ -270,6 +273,7 @@ GENRE_TAG_OPTIONS = [
     {"id": "classics", "label": "Classics", "icon": "book-marked"},
     {"id": "childrens", "label": "Children's", "icon": "baby"},
     {"id": "religion", "label": "Religion & Theology", "icon": "church"},
+    {"id": "tragedy", "label": "Tragedy", "icon": "heart-crack"},
 ]
 
 # Helper sets for validation

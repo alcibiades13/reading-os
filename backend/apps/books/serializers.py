@@ -221,6 +221,10 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
         return super().to_internal_value(data)
 
+    def validate_isbn(self, value):
+        """Convert empty ISBN to None to avoid unique constraint violation"""
+        return value or None
+
     def update(self, instance, validated_data):
         """Handle update with support for author names and publisher name"""
         # Handle author_ids (PrimaryKeyRelatedField)

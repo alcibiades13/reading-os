@@ -53,6 +53,9 @@ pnpm-debug.log*
 *_backup.dump
 data.json
 
+# Database backups
+db_backup_*.sql
+
 # HTML test files
 *.html
 !frontend/index.html

@@ -123,8 +123,8 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
               <!-- ═══ TEMPLATE: Classic ═══ -->
               <div
                 v-if="selectedTemplate === 'classic'"
-                class="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
-                :style="{ padding: (Math.min(cardDimensions.width, cardDimensions.height) * 0.08) + 'px ' + (cardDimensions.width * 0.1) + 'px' }"
+                class="absolute inset-0 flex flex-col items-center justify-center"
+                :style="{ padding: (Math.min(cardDimensions.width, cardDimensions.height) * 0.1) + 'px ' + (cardDimensions.width * 0.1) + 'px' }"
               >
                 <!-- Decorative quote mark -->
                 <div
@@ -150,7 +150,6 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
                     fontStyle: 'italic',
                     fontWeight: 400,
                     whiteSpace: 'pre-line',
-                    overflow: 'hidden',
                   }"
                 >{{ quote.text }}</div>
 
@@ -193,14 +192,13 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
               <!-- ═══ TEMPLATE: Editorial ═══ -->
               <div
                 v-else-if="selectedTemplate === 'editorial'"
-                class="absolute inset-0 flex items-center overflow-hidden"
-                :style="{ padding: (Math.min(cardDimensions.width, cardDimensions.height) * 0.08) + 'px ' + (cardDimensions.width * 0.08) + 'px' }"
+                class="absolute inset-0 flex items-center"
+                :style="{ padding: (Math.min(cardDimensions.width, cardDimensions.height) * 0.1) + 'px ' + (cardDimensions.width * 0.08) + 'px' }"
               >
                 <div
                   :style="{
                     borderLeft: '4px solid ' + textAccent,
                     paddingLeft: (Math.min(cardDimensions.width, cardDimensions.height) * 0.04) + 'px',
-                    overflow: 'hidden',
                   }"
                 >
                   <!-- Quote text -->
@@ -252,7 +250,7 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
               <!-- ═══ TEMPLATE: Minimal ═══ -->
               <div
                 v-else-if="selectedTemplate === 'minimal'"
-                class="absolute inset-0 flex flex-col justify-center overflow-hidden"
+                class="absolute inset-0 flex flex-col justify-center"
                 :style="{ padding: (Math.min(cardDimensions.width, cardDimensions.height) * 0.1) + 'px ' + (cardDimensions.width * 0.12) + 'px' }"
               >
                 <!-- Quote text -->
@@ -265,7 +263,6 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
                     fontWeight: 400,
                     whiteSpace: 'pre-line',
                     marginBottom: (Math.min(cardDimensions.width, cardDimensions.height) * 0.04) + 'px',
-                    overflow: 'hidden',
                   }"
                 >{{ quote.text }}</div>
 
@@ -296,12 +293,12 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
               <!-- ═══ TEMPLATE: Bold ═══ -->
               <div
                 v-else-if="selectedTemplate === 'bold'"
-                class="absolute inset-0 flex flex-col justify-between overflow-hidden"
-                :style="{ padding: (Math.min(cardDimensions.width, cardDimensions.height) * 0.07) + 'px ' + (cardDimensions.width * 0.07) + 'px' }"
+                class="absolute inset-0 flex flex-col justify-between"
+                :style="{ padding: (Math.min(cardDimensions.width, cardDimensions.height) * 0.1) + 'px ' + (cardDimensions.width * 0.07) + 'px' }"
               >
                 <!-- Quote text (uppercase, heavy) -->
                 <div
-                  class="flex-1 flex items-center overflow-hidden"
+                  class="flex-1 flex items-center"
                 >
                   <div
                     :style="{

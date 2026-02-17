@@ -10,6 +10,7 @@ import { useQuotesStore } from '@/stores/quotesStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { recommendationsService, CONTEXT_CONFIG } from '@/services/recommendationsService'
 import api from '@/services/api'
+import { getBookUrl } from '@/utils/bookUrl'
 
 const router = useRouter()
 const authStore = useAuthStore()
