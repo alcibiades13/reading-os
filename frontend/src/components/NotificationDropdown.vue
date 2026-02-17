@@ -75,6 +75,11 @@ const handleNotificationClick = async (notification) => {
     case 'new_message':
       router.push('/correspondence')
       break
+    case 'new_topic':
+    case 'topic_reply':
+    case 'new_club_book':
+      router.push('/circles')
+      break
     default:
       // For unknown types, just mark as read
       break

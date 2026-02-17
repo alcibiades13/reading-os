@@ -31,6 +31,21 @@ export const deleteJournalEntry = async (entryId) => {
   await api.delete(`/codex/journal/${entryId}/`)
 }
 
+export const getTrashEntries = async () => {
+  const response = await api.get('/codex/journal/trash/')
+  return (response.data.results || response.data).map(transformEntry)
+}
+
+export const restoreJournalEntry = async (entryId) => {
+  const response = await api.post(`/codex/journal/${entryId}/restore/`)
+  return transformEntry(response.data)
+}
+
+export const exportJournal = async () => {
+  const response = await api.get('/codex/journal/export/', { responseType: 'blob' })
+  return response
+}
+
 // ============ MANUSCRIPTS ============
 
 export const getManuscripts = async () => {
@@ -71,6 +86,34 @@ export const deleteManuscript = async (manuscriptId) => {
   await api.delete(`/codex/manuscripts/${manuscriptId}/`)
 }
 
+export const getTrashManuscripts = async () => {
+  const response = await api.get('/codex/manuscripts/trash/')
+  return (response.data.results || response.data).map(transformManuscriptList)
+}
+
+export const restoreManuscript = async (manuscriptId) => {
+  const response = await api.post(`/codex/manuscripts/${manuscriptId}/restore/`)
+  return transformManuscriptDetail(response.data)
+}
+
+export const exportManuscript = async (manuscriptId, format = 'txt') => {
+  const response = await api.get(`/codex/manuscripts/${manuscriptId}/export/`, {
+    params: { format },
+    responseType: 'blob',
+  })
+  return response
+}
+
+export const toggleManuscriptShare = async (manuscriptId) => {
+  const response = await api.post(`/codex/manuscripts/${manuscriptId}/toggle_share/`)
+  return transformManuscriptDetail(response.data)
+}
+
+export const getSharedManuscript = async (token) => {
+  const response = await api.get(`/codex/manuscripts/shared/${token}/`)
+  return transformManuscriptDetail(response.data)
+}
+
 // ============ CHAPTERS ============
 
 export const addChapter = async (manuscriptId, title) => {
@@ -107,6 +150,7 @@ function transformEntry(data) {
     isLocked: data.is_locked,
     bookReferenceId: data.book,
     wordCount: data.word_count,
+    deletedAt: data.deleted_at,
     updatedAt: data.updated_at,
   }
 }
@@ -122,6 +166,9 @@ function transformManuscriptList(data) {
     currentWordCount: data.current_word_count,
     completionPercentage: data.completion_percentage,
     chapterCount: data.chapter_count,
+    isShared: data.is_shared,
+    shareToken: data.share_token,
+    deletedAt: data.deleted_at,
     updatedAt: data.updated_at,
   }
 }
@@ -137,6 +184,8 @@ function transformManuscriptDetail(data) {
     currentWordCount: data.current_word_count,
     completionPercentage: data.completion_percentage,
     chapters: (data.chapters || []).map(transformChapter),
+    isShared: data.is_shared,
+    shareToken: data.share_token,
     updatedAt: data.updated_at,
   }
 }
@@ -156,11 +205,19 @@ export default {
   getJournalEntries,
   saveJournalEntry,
   deleteJournalEntry,
+  getTrashEntries,
+  restoreJournalEntry,
+  exportJournal,
   getManuscripts,
   getManuscript,
   createManuscript,
   saveManuscript,
   deleteManuscript,
+  getTrashManuscripts,
+  restoreManuscript,
+  exportManuscript,
+  toggleManuscriptShare,
+  getSharedManuscript,
   addChapter,
   saveChapter,
   deleteChapter,

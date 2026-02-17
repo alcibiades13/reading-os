@@ -324,9 +324,9 @@ const dailyQuote = computed(() => {
   return allQuotes[0]
 })
 
-// Check if quote is longer than 600 characters
+// Check if quote is longer than 350 characters
 const isQuoteLong = computed(() => {
-  return dailyQuote.value && dailyQuote.value.text && dailyQuote.value.text.length > 600
+  return dailyQuote.value && dailyQuote.value.text && dailyQuote.value.text.length > 350
 })
 
 // Filtered library with proper date sorting
@@ -662,7 +662,7 @@ const handleSaveChallenge = async (challengeData) => {
             </span>
             <div class="mb-5">
               <p class="text-quote font-serif italic text-slate-200 leading-relaxed">
-                "{{ isQuoteExpanded || !isQuoteLong ? dailyQuote.text : dailyQuote.text.substring(0, 600) + '...' }}"
+                "{{ isQuoteExpanded || !isQuoteLong ? dailyQuote.text : dailyQuote.text.substring(0, 350) + '...' }}"
               </p>
               <button
                 v-if="isQuoteLong"

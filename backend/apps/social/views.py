@@ -6,7 +6,9 @@ from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
     CirclePost, CircleComment, FeedItem, FeedItemLike, FeedItemComment,
     Notification, Conversation, Message, DiscussionTopic, TopicMessage,
-    TopicMessageLike, BookClubReading, ReviewLike, ReviewComment
+    TopicMessageLike, BookClubReading, ReviewLike, ReviewComment,
+    MessageReaction, TopicReadStatus, Poll, PollOption, PollVote,
+    CircleEvent,
 )
 from apps.social.serializers import (
     FriendshipSerializer, FriendshipCreateSerializer,
@@ -23,6 +25,7 @@ from apps.social.serializers import (
     TopicMessageCreateSerializer, BookClubReadingSerializer,
     BookClubReadingCreateSerializer,
     ReviewCommentSerializer, ReviewCommentCreateSerializer,
+    CircleEventSerializer, CircleDiscoverySerializer,
 )
 
 
@@ -224,6 +227,113 @@ class CircleViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
     
+    @action(detail=True, methods=['get'])
+    def member_progress(self, request, pk=None):
+        """Get all members' reading progress on the circle's current book"""
+        circle = self.get_object()
+        if not circle.current_book:
+            return Response([])
+
+        from apps.reading.models import UserBook
+        memberships = circle.memberships.select_related('user').all()
+        progress_data = []
+        for membership in memberships:
+            try:
+                ub = UserBook.objects.get(user=membership.user, book=circle.current_book)
+                progress_data.append({
+                    'user': UserSerializer(membership.user).data,
+                    'reading_progress': ub.reading_progress,
+                    'current_page': ub.current_page,
+                    'status': ub.status,
+                })
+            except UserBook.DoesNotExist:
+                progress_data.append({
+                    'user': UserSerializer(membership.user).data,
+                    'reading_progress': 0,
+                    'current_page': 0,
+                    'status': 'not_started',
+                })
+        progress_data.sort(key=lambda x: x['reading_progress'], reverse=True)
+        return Response(progress_data)
+
+    @action(detail=True, methods=['get'])
+    def unread_counts(self, request, pk=None):
+        """Get unread message counts per topic for this circle"""
+        circle = self.get_object()
+        topics = circle.topics.all()
+        counts = {}
+        for topic in topics:
+            read_status = TopicReadStatus.objects.filter(
+                user=request.user, topic=topic
+            ).first()
+            if read_status:
+                unread = topic.messages.filter(
+                    created_at__gt=read_status.last_read_at
+                ).exclude(author=request.user).count()
+            else:
+                unread = topic.messages.exclude(author=request.user).count()
+            if unread > 0:
+                counts[topic.id] = unread
+        return Response(counts)
+
+    @action(detail=False, methods=['get'])
+    def discover(self, request):
+        """List public circles the user hasn't joined"""
+        user_circle_ids = CircleMembership.objects.filter(
+            user=request.user
+        ).values_list('circle_id', flat=True)
+        public_circles = Circle.objects.filter(
+            is_public=True
+        ).exclude(id__in=user_circle_ids)
+        serializer = CircleDiscoverySerializer(public_circles, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def join(self, request, pk=None):
+        """Join a public circle"""
+        circle = self.get_object()
+        if not circle.is_public:
+            return Response(
+                {'error': 'This circle requires an invitation'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if circle.members.count() >= circle.max_members:
+            return Response(
+                {'error': 'This circle is full'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if CircleMembership.objects.filter(circle=circle, user=request.user).exists():
+            return Response(
+                {'error': 'You are already a member'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        CircleMembership.objects.create(
+            circle=circle, user=request.user, role='member'
+        )
+        return Response({'status': 'joined'})
+
+    @action(detail=True, methods=['get', 'post'])
+    def events(self, request, pk=None):
+        """List or create events for a circle"""
+        circle = self.get_object()
+        if request.method == 'GET':
+            events = CircleEvent.objects.filter(circle=circle)
+            serializer = CircleEventSerializer(events, many=True)
+            return Response(serializer.data)
+        else:
+            # Only admins can create events
+            if not CircleMembership.objects.filter(
+                circle=circle, user=request.user, role='admin'
+            ).exists():
+                return Response(
+                    {'error': 'Only admins can create events'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            serializer = CircleEventSerializer(data={**request.data, 'circle': circle.id})
+            serializer.is_valid(raise_exception=True)
+            serializer.save(created_by=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['post'])
     def promote_member(self, request, pk=None):
         """Promote member to admin"""
@@ -785,13 +895,60 @@ class DiscussionTopicViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        """Create topic"""
+        """Create topic and notify circle members"""
         topic = serializer.save(creator=self.request.user)
 
         # If this is for the current book, link it
         if not topic.book and topic.circle.current_book:
             topic.book = topic.circle.current_book
             topic.save()
+
+        # Notify circle members about new topic
+        member_ids = topic.circle.members.exclude(
+            id=self.request.user.id
+        ).values_list('id', flat=True)
+        notifications = [
+            Notification(
+                recipient_id=mid,
+                actor=self.request.user,
+                notification_type='new_topic',
+                message=f'{self.request.user.first_name} started "{topic.title}" in {topic.circle.name}',
+                object_id=topic.id
+            )
+            for mid in member_ids
+        ]
+        Notification.objects.bulk_create(notifications)
+
+    @action(detail=True, methods=['post'])
+    def toggle_pin(self, request, pk=None):
+        """Toggle pin on a topic (admin only)"""
+        topic = self.get_object()
+
+        # Check if user is admin
+        if not CircleMembership.objects.filter(
+            circle=topic.circle,
+            user=request.user,
+            role='admin'
+        ).exists():
+            return Response(
+                {'error': 'Only admins can pin topics'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        topic.is_pinned = not topic.is_pinned
+        topic.save(update_fields=['is_pinned'])
+        return Response({'is_pinned': topic.is_pinned})
+
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        """Mark topic as read for the current user"""
+        topic = self.get_object()
+        TopicReadStatus.objects.update_or_create(
+            user=request.user,
+            topic=topic,
+            defaults={'last_read_at': timezone.now()}
+        )
+        return Response({'status': 'ok'})
 
 
 class TopicMessageViewSet(viewsets.ModelViewSet):
@@ -820,11 +977,30 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
         if topic_id:
             queryset = queryset.filter(topic_id=topic_id)
 
+        # Filter by timestamp (for polling)
+        after = self.request.query_params.get('after', None)
+        if after:
+            from django.utils.dateparse import parse_datetime
+            after_dt = parse_datetime(after)
+            if after_dt:
+                queryset = queryset.filter(created_at__gt=after_dt)
+
         return queryset
 
     def perform_create(self, serializer):
-        """Create message"""
-        serializer.save(author=self.request.user)
+        """Create message and notify topic creator"""
+        message = serializer.save(author=self.request.user)
+
+        # Notify topic creator about the reply
+        topic = message.topic
+        if topic.creator_id != self.request.user.id:
+            Notification.objects.create(
+                recipient=topic.creator,
+                actor=self.request.user,
+                notification_type='topic_reply',
+                message=f'{self.request.user.first_name} replied in "{topic.title}"',
+                object_id=message.id
+            )
 
     @action(detail=True, methods=['post'])
     def toggle_like(self, request, pk=None):
@@ -847,6 +1023,61 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
             message.likes_count += 1
             message.save(update_fields=['likes_count'])
             return Response({'liked': True, 'likes_count': message.likes_count})
+
+    @action(detail=True, methods=['post'])
+    def toggle_reaction(self, request, pk=None):
+        """Toggle an emoji reaction on a message"""
+        message = self.get_object()
+        emoji = request.data.get('emoji')
+
+        valid_emojis = [c[0] for c in MessageReaction.REACTION_CHOICES]
+        if emoji not in valid_emojis:
+            return Response(
+                {'error': f'Invalid emoji. Choose from: {", ".join(valid_emojis)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reaction, created = MessageReaction.objects.get_or_create(
+            message=message, user=request.user, emoji=emoji
+        )
+        if not created:
+            reaction.delete()
+
+        # Build reaction summary
+        from django.db.models import Count
+        reactions = MessageReaction.objects.filter(
+            message=message
+        ).values('emoji').annotate(count=Count('id'))
+        summary = {r['emoji']: r['count'] for r in reactions}
+        user_reactions = list(
+            MessageReaction.objects.filter(
+                message=message, user=request.user
+            ).values_list('emoji', flat=True)
+        )
+        return Response({
+            'reactions': summary,
+            'user_reactions': user_reactions
+        })
+
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        """Search messages within a circle"""
+        query = request.query_params.get('q', '')
+        circle_id = request.query_params.get('circle', None)
+        if not query or not circle_id:
+            return Response([])
+
+        messages = TopicMessage.objects.filter(
+            topic__circle_id=circle_id,
+            topic__circle__members=request.user,
+            content__icontains=query
+        ).select_related('author', 'topic').order_by('-created_at')[:50]
+
+        from apps.social.serializers import TopicMessageSerializer
+        serializer = TopicMessageSerializer(
+            messages, many=True, context={'request': request}
+        )
+        return Response(serializer.data)
 
 
 class BookClubReadingViewSet(viewsets.ModelViewSet):
@@ -911,6 +1142,22 @@ class BookClubReadingViewSet(viewsets.ModelViewSet):
         # Update circle's current_book
         reading.circle.current_book = reading.book
         reading.circle.save(update_fields=['current_book'])
+
+        # Notify circle members about new book
+        member_ids = reading.circle.members.exclude(
+            id=request.user.id
+        ).values_list('id', flat=True)
+        notifications = [
+            Notification(
+                recipient_id=mid,
+                actor=request.user,
+                notification_type='new_club_book',
+                message=f'{request.user.first_name} set "{reading.book.title}" as the current book in {reading.circle.name}',
+                object_id=reading.id
+            )
+            for mid in member_ids
+        ]
+        Notification.objects.bulk_create(notifications)
 
         serializer = BookClubReadingSerializer(reading)
         return Response(serializer.data)
@@ -1028,4 +1275,85 @@ class ReviewLikeToggleView(APIView):
             'liked': liked,
             'like_count': like_count,
         })
+
+
+# ===== POLLS =====
+
+from apps.social.serializers import (
+    PollSerializer, PollCreateSerializer
+)
+
+
+class PollViewSet(viewsets.ModelViewSet):
+    """ViewSet for Poll model"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return PollCreateSerializer
+        return PollSerializer
+
+    def get_queryset(self):
+        user_circles = Circle.objects.filter(members=self.request.user)
+        return Poll.objects.filter(
+            topic__circle__in=user_circles
+        ).select_related('topic__circle').prefetch_related('options__votes')
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    @action(detail=True, methods=['post'])
+    def vote(self, request, pk=None):
+        """Toggle vote on a poll option"""
+        poll = self.get_object()
+        option_id = request.data.get('option_id')
+
+        if poll.is_closed:
+            return Response(
+                {'error': 'This poll is closed'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            option = poll.options.get(id=option_id)
+        except PollOption.DoesNotExist:
+            return Response(
+                {'error': 'Invalid option'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        vote, created = PollVote.objects.get_or_create(
+            option=option, user=request.user
+        )
+        if not created:
+            vote.delete()
+
+        # If single-choice, remove votes from other options
+        if not poll.allows_multiple and created:
+            PollVote.objects.filter(
+                option__poll=poll, user=request.user
+            ).exclude(option=option).delete()
+
+        serializer = PollSerializer(poll, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def close(self, request, pk=None):
+        """Close a poll (admin only)"""
+        poll = self.get_object()
+
+        if not CircleMembership.objects.filter(
+            circle=poll.topic.circle,
+            user=request.user,
+            role='admin'
+        ).exists():
+            return Response(
+                {'error': 'Only admins can close polls'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        poll.closes_at = timezone.now()
+        poll.save(update_fields=['closes_at'])
+        serializer = PollSerializer(poll, context={'request': request})
+        return Response(serializer.data)
 

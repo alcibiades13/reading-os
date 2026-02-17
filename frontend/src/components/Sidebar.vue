@@ -149,9 +149,14 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-const handleStudyModeClick = () => {
+const handleStudyModeClick = async () => {
   if (route.path.includes('/study')) {
     return
+  }
+
+  // Ensure books are loaded before deciding where to navigate
+  if (booksStore.books.length === 0 && !booksStore.loading) {
+    await booksStore.fetchBooks()
   }
 
   const currentlyReading = booksStore.books.filter(b => b.status === 'currently_reading')
@@ -183,22 +188,24 @@ const handleStudyModeClick = () => {
       // Desktop: static sidebar
       'max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:left-0 max-lg:z-[70] max-lg:w-60',
       'lg:flex lg:sticky lg:top-0 lg:h-screen lg:z-50 lg:transition-all',
-      isCollapsed ? 'lg:w-20' : 'lg:w-60',
+      isCollapsed ? 'lg:w-14' : 'lg:w-60',
       // Mobile: slide in/out via transform
       isMobileOpen
         ? 'max-lg:translate-x-0 max-lg:pointer-events-auto'
         : 'max-lg:-translate-x-full max-lg:pointer-events-none'
     ]"
   >
-    <!-- Header with Logo and Toggle (desktop only) -->
+    <!-- Header with Logo (desktop only) -->
     <div :class="['flex-shrink-0 hidden lg:block', isCollapsed ? 'p-2' : 'p-3']">
-      <div class="flex items-center justify-between mb-3">
+      <div :class="['flex items-center', isCollapsed ? 'justify-center' : 'justify-between', 'mb-3']">
+        <!-- Logo: navigates when expanded, toggles sidebar when collapsed -->
         <div
           class="flex items-center gap-2 cursor-pointer group"
-          @click="router.push('/library')"
+          @click="isCollapsed ? toggleSidebar() : router.push('/library')"
         >
-          <div class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/40 group-hover:scale-105 transition-transform flex-shrink-0">
-            <Library :size="18" class="text-white" />
+          <div :class="['w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/40 transition-transform flex-shrink-0', isCollapsed ? 'group-hover:ring-2 group-hover:ring-indigo-400/50' : 'group-hover:scale-105']">
+            <PanelLeft v-if="isCollapsed" :size="16" class="text-white" />
+            <Library v-else :size="18" class="text-white" />
           </div>
           <span
             v-show="!isCollapsed"
@@ -209,15 +216,14 @@ const handleStudyModeClick = () => {
           </span>
         </div>
 
-        <!-- Toggle Button -->
+        <!-- Collapse Button (only when expanded) -->
         <button
+          v-if="!isCollapsed"
           @click="toggleSidebar"
           class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-slate-800/50 transition-all duration-200 flex-shrink-0"
-          :class="isCollapsed ? 'ml-auto mr-auto mt-1' : ''"
-          :title="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          title="Collapse sidebar"
         >
-          <PanelLeft v-if="isCollapsed" :size="16" />
-          <PanelLeftClose v-else :size="16" />
+          <PanelLeftClose :size="16" />
         </button>
       </div>
     </div>
@@ -413,6 +419,7 @@ body.light .profile-btn:hover {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(99, 102, 241, 0.5);
 }
+
 
 .fade-enter-active,
 .fade-leave-active {

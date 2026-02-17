@@ -130,10 +130,12 @@ export const userBooksAPI = {
   create: (data) => api.post('/reading/user-books/', data),
   update: (id, data) => api.put(`/reading/user-books/${id}/`, data),
   delete: (id) => api.delete(`/reading/user-books/${id}/`),
-  updateProgress: (id, currentPage) => 
+  updateProgress: (id, currentPage) =>
     api.post(`/reading/user-books/${id}/update_progress/`, { current_page: currentPage }),
-  markFinished: (id, data) => 
+  markFinished: (id, data) =>
     api.post(`/reading/user-books/${id}/mark_finished/`, data),
+  bookKnowledge: (bookId) =>
+    api.get('/reading/user-books/book_knowledge/', { params: { book: bookId } }),
 }
 
 export const quotesAPI = {
@@ -145,6 +147,7 @@ export const quotesAPI = {
   delete: (id) => api.delete(`/reading/quotes/${id}/`),
   myFavorites: () => api.get('/reading/quotes/my_favorites/'),
   searchSemantic: (query) => api.get('/reading/quotes/search_semantic/', { params: { q: query } }),
+  export: (format = 'json') => api.get('/reading/quotes/export/', { params: { format }, responseType: 'blob' }),
 }
 
 export const quoteTagsAPI = {
@@ -163,6 +166,7 @@ export const studyNotesAPI = {
   references: (bookId) => api.get('/reading/study-notes/references/', { params: { book: bookId } }),
   promoteToQuote: (id) => api.post(`/reading/study-notes/${id}/promote_to_quote/`),
   booksWithNotes: () => api.get('/reading/study-notes/books_with_notes/'),
+  export: (params) => api.get('/reading/study-notes/export/', { params, responseType: 'blob' }),
 }
 
 export const listsAPI = {
@@ -233,6 +237,11 @@ export const vocabularyAPI = {
   delete: (id) => api.delete(`/reading/vocabulary/${id}/`),
   updateMastery: (id, mastery) => api.post(`/reading/vocabulary/${id}/update_mastery/`, { mastery }),
   toggleFavorite: (id) => api.post(`/reading/vocabulary/${id}/toggle_favorite/`),
+  export: (format = 'json') => api.get('/reading/vocabulary/export/', { params: { format }, responseType: 'blob' }),
+}
+
+export const usersAPI = {
+  exportAllData: () => api.get('/users/export_all_data/', { responseType: 'blob' }),
 }
 
 export const recommendationsAPI = {

@@ -158,6 +158,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Codex' },
   },
   {
+    path: '/manuscripts/shared/:token',
+    name: 'SharedManuscript',
+    component: () => import('@/views/codex/SharedManuscriptView.vue'),
+    meta: { requiresAuth: false, title: 'Shared Manuscript' },
+  },
+  {
     path: '/authors/:id',
     name: 'AuthorDetail',
     component: () => import('@/views/authors/AuthorDetailView.vue'),

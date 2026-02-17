@@ -75,6 +75,10 @@ class Circle(models.Model):
         default=True,
         help_text="Members can only join by invitation"
     )
+    is_public = models.BooleanField(
+        default=False,
+        help_text="Visible in circle discovery"
+    )
 
     # Avatar/image
     image = models.ImageField(
@@ -310,6 +314,8 @@ class DiscussionTopic(models.Model):
         ('characters', 'Characters'),
         ('themes', 'Themes'),
         ('quotes', 'Favorite Quotes'),
+        ('polls', 'Polls'),
+        ('announcements', 'Announcements'),
     ]
 
     circle = models.ForeignKey(
@@ -410,6 +416,16 @@ class TopicMessage(models.Model):
 
     content = models.TextField()
 
+    # Reply threading
+    reply_to = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='replies',
+        help_text="Parent message this is replying to"
+    )
+
     # Attachments
     attached_quote = models.ForeignKey(
         Quote,
@@ -426,6 +442,19 @@ class TopicMessage(models.Model):
         on_delete=models.SET_NULL,
         related_name='topic_message_attachments',
         help_text="Attached book reference"
+    )
+    attachment_image = models.ImageField(
+        upload_to='topic_messages/',
+        null=True,
+        blank=True,
+        help_text="Image attachment"
+    )
+
+    # Mentions
+    mentions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of mentioned user IDs"
     )
 
     # Reactions/likes count (denormalized)
@@ -523,6 +552,176 @@ class BookClubReading(models.Model):
 
     def __str__(self):
         return f"{self.circle.name} - {self.book.title} ({self.status})"
+
+
+class MessageReaction(models.Model):
+    """
+    Emoji reactions on topic messages.
+    Fixed set of book-club-appropriate emoji.
+    """
+    REACTION_CHOICES = [
+        ('heart', 'Heart'),
+        ('thumbsup', 'Thumbs Up'),
+        ('fire', 'Fire'),
+        ('thinking', 'Thinking'),
+        ('clap', 'Clap'),
+        ('lightbulb', 'Lightbulb'),
+        ('book', 'Book'),
+        ('sparkles', 'Sparkles'),
+    ]
+
+    message = models.ForeignKey(
+        TopicMessage,
+        on_delete=models.CASCADE,
+        related_name='reactions'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='message_reactions'
+    )
+    emoji = models.CharField(max_length=20, choices=REACTION_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['message', 'user', 'emoji']
+        verbose_name = 'Message Reaction'
+        verbose_name_plural = 'Message Reactions'
+
+    def __str__(self):
+        return f"{self.user.email} reacted {self.emoji} on message {self.message.id}"
+
+
+class TopicReadStatus(models.Model):
+    """
+    Tracks when a user last read a topic.
+    Used for unread indicators.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='topic_read_statuses'
+    )
+    topic = models.ForeignKey(
+        DiscussionTopic,
+        on_delete=models.CASCADE,
+        related_name='read_statuses'
+    )
+    last_read_at = models.DateTimeField()
+
+    class Meta:
+        unique_together = ['user', 'topic']
+        indexes = [
+            models.Index(fields=['user', 'topic']),
+        ]
+        verbose_name = 'Topic Read Status'
+        verbose_name_plural = 'Topic Read Statuses'
+
+    def __str__(self):
+        return f"{self.user.email} read {self.topic.title} at {self.last_read_at}"
+
+
+class Poll(models.Model):
+    """
+    A poll attached to a discussion topic.
+    Used for voting on next book, meeting times, etc.
+    """
+    POLL_TYPE_CHOICES = [
+        ('book_vote', 'Book Vote'),
+        ('schedule', 'Schedule Vote'),
+        ('general', 'General Poll'),
+    ]
+
+    topic = models.OneToOneField(
+        DiscussionTopic,
+        on_delete=models.CASCADE,
+        related_name='poll'
+    )
+    question = models.CharField(max_length=300)
+    poll_type = models.CharField(
+        max_length=20,
+        choices=POLL_TYPE_CHOICES,
+        default='general'
+    )
+    allows_multiple = models.BooleanField(default=False)
+    is_anonymous = models.BooleanField(default=False)
+    closes_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Poll'
+        verbose_name_plural = 'Polls'
+
+    def __str__(self):
+        return f"Poll: {self.question}"
+
+    @property
+    def is_closed(self):
+        if self.closes_at:
+            from django.utils import timezone
+            return timezone.now() > self.closes_at
+        return False
+
+    @property
+    def total_votes(self):
+        return PollVote.objects.filter(option__poll=self).count()
+
+
+class PollOption(models.Model):
+    """
+    An option in a poll. For book_vote type, links to a Book.
+    """
+    poll = models.ForeignKey(
+        Poll,
+        on_delete=models.CASCADE,
+        related_name='options'
+    )
+    text = models.CharField(max_length=200)
+    book = models.ForeignKey(
+        Book,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="For book vote polls"
+    )
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Poll Option'
+        verbose_name_plural = 'Poll Options'
+
+    def __str__(self):
+        return self.text
+
+    @property
+    def vote_count(self):
+        return self.votes.count()
+
+
+class PollVote(models.Model):
+    """
+    A user's vote on a poll option.
+    """
+    option = models.ForeignKey(
+        PollOption,
+        on_delete=models.CASCADE,
+        related_name='votes'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='poll_votes'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['option', 'user']
+        verbose_name = 'Poll Vote'
+        verbose_name_plural = 'Poll Votes'
+
+    def __str__(self):
+        return f"{self.user.email} voted for {self.option.text}"
 
 
 class Notification(models.Model):
@@ -865,3 +1064,51 @@ class ReviewComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author.email} on review {self.user_book.id}"
+
+
+class CircleEvent(models.Model):
+    """
+    Events/milestones for book clubs - e.g. reading deadlines, discussion dates.
+    """
+    EVENT_TYPE_CHOICES = [
+        ('milestone', 'Reading Milestone'),
+        ('discussion', 'Discussion Session'),
+        ('deadline', 'Reading Deadline'),
+    ]
+
+    circle = models.ForeignKey(
+        Circle,
+        on_delete=models.CASCADE,
+        related_name='events'
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    event_type = models.CharField(
+        max_length=20,
+        choices=EVENT_TYPE_CHOICES,
+        default='milestone'
+    )
+    event_date = models.DateTimeField()
+    target_progress = models.IntegerField(
+        default=0,
+        help_text="Target reading progress percentage (0-100)"
+    )
+    book = models.ForeignKey(
+        Book,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='circle_events'
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='created_circle_events'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['event_date']
+
+    def __str__(self):
+        return f"{self.title} ({self.circle.name})"

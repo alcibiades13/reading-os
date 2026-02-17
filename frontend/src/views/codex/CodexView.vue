@@ -1,17 +1,25 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import {
   getJournalEntries,
   saveJournalEntry,
   deleteJournalEntry,
+  getTrashEntries,
+  restoreJournalEntry,
+  exportJournal,
   getManuscripts,
   getManuscript,
   saveManuscript,
   createManuscript,
   deleteManuscript,
+  getTrashManuscripts,
+  restoreManuscript,
+  exportManuscript,
+  toggleManuscriptShare,
   addChapter,
   saveChapter
 } from '@/services/codexService'
+import { downloadBlob } from '@/utils/downloadFile'
 import {
   PenTool,
   Feather,
@@ -24,7 +32,13 @@ import {
   History,
   FileText,
   X,
-  ArrowLeft
+  ArrowLeft,
+  RotateCcw,
+  Download,
+  Share2,
+  Link,
+  Check,
+  Printer
 } from 'lucide-vue-next'
 
 // State
@@ -39,6 +53,19 @@ const selectedManuscript = ref(null)
 const activeChapterIndex = ref(0)
 
 const isFocusMode = ref(false)
+
+// Trash state
+const showTrash = ref(false)
+const trashEntries = ref([])
+const trashManuscripts = ref([])
+
+// Auto-save
+const saveStatus = ref('saved') // 'saved' | 'saving' | 'unsaved'
+let autoSaveTimer = null
+
+// Share
+const shareLink = ref('')
+const showShareCopied = ref(false)
 
 // Mobile state
 const mobileView = ref('list') // 'list' | 'editor'
@@ -250,6 +277,154 @@ const formatDate = (dateString) => {
     year: 'numeric'
   })
 }
+
+// ============ TRASH ============
+
+const loadTrash = async () => {
+  try {
+    trashEntries.value = await getTrashEntries()
+    trashManuscripts.value = await getTrashManuscripts()
+  } catch (error) {
+    console.error('Error loading trash:', error)
+  }
+}
+
+const handleRestoreEntry = async (entryId) => {
+  try {
+    await restoreJournalEntry(entryId)
+    entries.value = await getJournalEntries()
+    await loadTrash()
+  } catch (error) {
+    console.error('Error restoring entry:', error)
+  }
+}
+
+const handleRestoreManuscript = async (msId) => {
+  try {
+    await restoreManuscript(msId)
+    manuscripts.value = await getManuscripts()
+    await loadTrash()
+  } catch (error) {
+    console.error('Error restoring manuscript:', error)
+  }
+}
+
+const toggleTrash = async () => {
+  showTrash.value = !showTrash.value
+  if (showTrash.value) await loadTrash()
+}
+
+// ============ EXPORT ============
+
+const handleExportJournal = async () => {
+  try {
+    const response = await exportJournal()
+    downloadBlob(response, 'journal_entries.json')
+  } catch (error) {
+    console.error('Error exporting journal:', error)
+  }
+}
+
+const handleExportManuscript = (format = 'txt') => {
+  if (!selectedManuscript.value) return
+  const ms = selectedManuscript.value
+  // Open printable HTML in new window
+  const printWindow = window.open('', '_blank')
+  const chaptersHtml = (ms.chapters || []).map((ch, idx) => `
+    <div style="${idx > 0 ? 'page-break-before: always;' : ''}">
+      <h2 style="font-size: 18pt; margin-bottom: 24px;">${ch.title || `Chapter ${idx + 1}`}</h2>
+      <div style="white-space: pre-wrap; word-wrap: break-word;">${(ch.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+    </div>
+  `).join('')
+
+  printWindow.document.write(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${ms.title}</title>
+<style>
+@page { margin: 25mm; }
+body { font-family: 'Georgia', 'Times New Roman', serif; font-size: 12pt; line-height: 1.8; color: #1a1a1a; margin: 40px; }
+.title-page { text-align: center; padding-top: 30vh; page-break-after: always; }
+.title-page h1 { font-size: 28pt; margin-bottom: 8px; }
+.title-page .subtitle { font-size: 16pt; color: #666; font-style: italic; }
+.title-page .genre { font-size: 10pt; color: #999; margin-top: 24px; text-transform: uppercase; letter-spacing: 2px; }
+.title-page .word-count { font-size: 9pt; color: #aaa; margin-top: 8px; }
+</style></head><body>
+<div class="title-page">
+  <h1>${ms.title}</h1>
+  ${ms.subtitle ? `<div class="subtitle">${ms.subtitle}</div>` : ''}
+  <div class="genre">${ms.genre}</div>
+  <div class="word-count">${(ms.currentWordCount || 0).toLocaleString()} words</div>
+</div>
+${chaptersHtml}
+</body></html>`)
+  printWindow.document.close()
+  printWindow.print()
+}
+
+// ============ SHARE ============
+
+const handleToggleShare = async () => {
+  if (!selectedManuscript.value) return
+  try {
+    const updated = await toggleManuscriptShare(selectedManuscript.value.id)
+    selectedManuscript.value = updated
+    manuscripts.value = await getManuscripts()
+    if (updated.isShared && updated.shareToken) {
+      shareLink.value = `${window.location.origin}/manuscripts/shared/${updated.shareToken}`
+    } else {
+      shareLink.value = ''
+    }
+  } catch (error) {
+    console.error('Error toggling share:', error)
+  }
+}
+
+const copyShareLink = () => {
+  if (!shareLink.value) return
+  navigator.clipboard.writeText(shareLink.value)
+  showShareCopied.value = true
+  setTimeout(() => { showShareCopied.value = false }, 2000)
+}
+
+// ============ AUTO-SAVE ============
+
+const triggerAutoSave = () => {
+  saveStatus.value = 'unsaved'
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+  autoSaveTimer = setTimeout(async () => {
+    saveStatus.value = 'saving'
+    try {
+      if (selectedManuscript.value) {
+        await handleSaveManuscript()
+      }
+      saveStatus.value = 'saved'
+    } catch {
+      saveStatus.value = 'unsaved'
+    }
+  }, 3000)
+}
+
+// Watch chapter content changes for auto-save
+watch(
+  () => currentChapter.value?.content,
+  (newVal, oldVal) => {
+    if (oldVal !== undefined && newVal !== oldVal && selectedManuscript.value) {
+      triggerAutoSave()
+    }
+  }
+)
+
+watch(
+  () => currentChapter.value?.title,
+  (newVal, oldVal) => {
+    if (oldVal !== undefined && newVal !== oldVal && selectedManuscript.value) {
+      triggerAutoSave()
+    }
+  }
+)
+
+onUnmounted(() => {
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+})
 </script>
 
 <template>
@@ -298,12 +473,52 @@ const formatDate = (dateString) => {
         <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
           <!-- Journal Tab -->
           <template v-if="activeTab === 'journal'">
-            <button
-              @click="handleNewEntry"
-              class="w-full py-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2 mb-4"
-            >
-              <Plus :size="16" /> New Reflection
-            </button>
+            <div class="flex items-center gap-2 mb-4">
+              <button
+                @click="handleNewEntry"
+                class="flex-1 py-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <Plus :size="16" /> New Reflection
+              </button>
+              <button
+                @click="handleExportJournal"
+                class="p-3 rounded-2xl bg-white/5 border border-white/5 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/20 transition-all"
+                title="Export journal"
+              >
+                <Download :size="14" />
+              </button>
+              <button
+                @click="toggleTrash"
+                :class="['p-3 rounded-2xl border transition-all', showTrash ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-white/5 border-white/5 text-slate-500 hover:text-rose-400']"
+                title="Trash"
+              >
+                <Trash2 :size="14" />
+              </button>
+            </div>
+
+            <!-- Trash Section -->
+            <div v-if="showTrash" class="mb-4 p-3 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-2">
+              <p class="text-[10px] font-black text-rose-400 uppercase tracking-widest">Trash</p>
+              <div v-if="trashEntries.length === 0 && trashManuscripts.length === 0" class="text-[10px] text-slate-600 italic">Nothing in trash</div>
+              <div v-for="entry in trashEntries" :key="'t-' + entry.id" class="flex items-center justify-between p-2 rounded-xl bg-white/5">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-slate-400 truncate">{{ entry.title }}</p>
+                  <p class="text-[9px] text-slate-600">{{ formatDate(entry.deletedAt) }}</p>
+                </div>
+                <button @click="handleRestoreEntry(entry.id)" class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Restore">
+                  <RotateCcw :size="12" />
+                </button>
+              </div>
+              <div v-for="ms in trashManuscripts" :key="'tm-' + ms.id" class="flex items-center justify-between p-2 rounded-xl bg-white/5">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-slate-400 truncate">{{ ms.title }}</p>
+                  <p class="text-[9px] text-slate-600">Manuscript &middot; {{ formatDate(ms.deletedAt) }}</p>
+                </div>
+                <button @click="handleRestoreManuscript(ms.id)" class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Restore">
+                  <RotateCcw :size="12" />
+                </button>
+              </div>
+            </div>
 
             <button
               v-for="entry in entries"
@@ -470,7 +685,44 @@ const formatDate = (dateString) => {
             </div>
           </div>
 
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3">
+            <!-- Auto-save indicator (manuscripts) -->
+            <span v-if="selectedManuscript" :class="['text-[10px] font-bold uppercase tracking-widest transition-colors', saveStatus === 'saved' ? 'text-emerald-500' : saveStatus === 'saving' ? 'text-amber-400' : 'text-slate-500']">
+              {{ saveStatus === 'saved' ? 'Saved' : saveStatus === 'saving' ? 'Saving...' : 'Unsaved' }}
+            </span>
+
+            <!-- Export (manuscript) -->
+            <button
+              v-if="selectedManuscript"
+              @click="handleExportManuscript"
+              class="p-3 rounded-2xl bg-white/5 text-slate-400 hover:text-emerald-400 transition-all"
+              title="Print / Export"
+            >
+              <Printer :size="16" />
+            </button>
+
+            <!-- Share (manuscript) -->
+            <div v-if="selectedManuscript" class="relative">
+              <button
+                @click="handleToggleShare"
+                :class="['p-3 rounded-2xl transition-all', selectedManuscript.isShared ? 'bg-indigo-500/10 text-indigo-400' : 'bg-white/5 text-slate-400 hover:text-indigo-400']"
+                :title="selectedManuscript.isShared ? 'Disable sharing' : 'Share manuscript'"
+              >
+                <Share2 :size="16" />
+              </button>
+              <!-- Share link popover -->
+              <div v-if="selectedManuscript.isShared && shareLink" class="absolute top-full right-0 mt-2 p-3 rounded-xl bg-slate-800 border border-white/10 shadow-2xl z-50 min-w-[280px]">
+                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Share Link</p>
+                <div class="flex items-center gap-2">
+                  <input :value="shareLink" readonly class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none" />
+                  <button @click="copyShareLink" class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 transition-all">
+                    <Check v-if="showShareCopied" :size="14" />
+                    <Link v-else :size="14" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <button
               @click="isFocusMode = true"
               class="p-3 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
@@ -481,7 +733,7 @@ const formatDate = (dateString) => {
               @click="selectedEntry ? handleSaveEntry() : handleSaveManuscript()"
               class="px-6 py-3 rounded-2xl bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 transition-all flex items-center gap-2"
             >
-              <Save :size="16" /> Save Changes
+              <Save :size="16" /> Save
             </button>
           </div>
         </header>
@@ -579,7 +831,10 @@ const formatDate = (dateString) => {
             </div>
             <div class="flex items-center gap-2">
               <Clock :size="14" class="text-slate-500" />
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <span v-if="selectedManuscript" :class="['text-[10px] font-bold uppercase tracking-widest', saveStatus === 'saved' ? 'text-emerald-500/60' : saveStatus === 'saving' ? 'text-amber-400/60' : 'text-slate-500']">
+                {{ saveStatus === 'saved' ? 'All changes saved' : saveStatus === 'saving' ? 'Saving...' : 'Unsaved changes' }}
+              </span>
+              <span v-else class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                 Last edited just now
               </span>
             </div>
