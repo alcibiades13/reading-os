@@ -32,7 +32,7 @@ watch(() => circlesStore.activeCircleId, (newId) => {
 const averageProgress = computed(() => {
   if (!circlesStore.memberProgress.length) return 0
   const total = circlesStore.memberProgress.reduce((sum, m) => sum + m.reading_progress, 0)
-  return Math.round(total / circlesStore.memberProgress.length)
+  return (total / circlesStore.memberProgress.length).toFixed(1)
 })
 
 async function searchBooks() {
@@ -154,7 +154,7 @@ function getUserInitial(user) {
                   :style="{ width: `${member.reading_progress}%` }"
                 />
               </div>
-              <span class="text-[10px] font-black text-indigo-400 shrink-0">{{ member.reading_progress }}%</span>
+              <span class="text-[10px] font-black text-indigo-400 shrink-0">{{ Number(member.reading_progress).toFixed(1) }}%<span v-if="member.total_pages" class="text-slate-500 font-bold"> ({{ member.current_page }}/{{ member.total_pages }})</span></span>
             </div>
           </div>
         </div>

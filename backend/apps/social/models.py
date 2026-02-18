@@ -121,16 +121,22 @@ class Circle(models.Model):
 
     @property
     def average_progress(self):
-        """Average reading progress of members on current book"""
+        """Average reading progress of all members on current book"""
         if not self.current_book:
             return 0
         from apps.reading.models import UserBook
-        member_ids = self.members.values_list('id', flat=True)
-        progress_data = UserBook.objects.filter(
-            user_id__in=member_ids,
-            book=self.current_book
-        ).aggregate(avg=models.Avg('reading_progress'))
-        return int(progress_data['avg'] or 0)
+        member_ids = list(self.members.values_list('id', flat=True))
+        if not member_ids:
+            return 0
+        user_books = {
+            ub.user_id: ub
+            for ub in UserBook.objects.filter(
+                user_id__in=member_ids,
+                book=self.current_book
+            ).select_related('book')
+        }
+        total = sum(user_books[mid].reading_progress if mid in user_books else 0 for mid in member_ids)
+        return round(total / len(member_ids), 1)
 
 
 class CircleMembership(models.Model):

@@ -76,7 +76,7 @@ class CircleListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for circle lists"""
     creator = UserSerializer(read_only=True)
     members_count = serializers.IntegerField(read_only=True)
-    average_progress = serializers.IntegerField(read_only=True)
+    average_progress = serializers.FloatField(read_only=True)
     current_book_data = serializers.SerializerMethodField()
 
     class Meta:
@@ -110,7 +110,7 @@ class CircleDetailSerializer(serializers.ModelSerializer):
     creator = UserSerializer(read_only=True)
     memberships = CircleMembershipSerializer(many=True, read_only=True)
     members_count = serializers.IntegerField(read_only=True)
-    average_progress = serializers.IntegerField(read_only=True)
+    average_progress = serializers.FloatField(read_only=True)
     current_book_data = serializers.SerializerMethodField()
     topics = serializers.SerializerMethodField()
 

@@ -242,8 +242,9 @@ class CircleViewSet(viewsets.ModelViewSet):
                 ub = UserBook.objects.get(user=membership.user, book=circle.current_book)
                 progress_data.append({
                     'user': UserSerializer(membership.user).data,
-                    'reading_progress': ub.reading_progress,
+                    'reading_progress': round(ub.reading_progress, 1),
                     'current_page': ub.current_page,
+                    'total_pages': ub.book.pages or 0,
                     'status': ub.status,
                 })
             except UserBook.DoesNotExist:
@@ -251,6 +252,7 @@ class CircleViewSet(viewsets.ModelViewSet):
                     'user': UserSerializer(membership.user).data,
                     'reading_progress': 0,
                     'current_page': 0,
+                    'total_pages': circle.current_book.pages or 0,
                     'status': 'not_started',
                 })
         progress_data.sort(key=lambda x: x['reading_progress'], reverse=True)
