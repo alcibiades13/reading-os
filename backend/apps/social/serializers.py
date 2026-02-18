@@ -11,6 +11,7 @@ from apps.social.models import (
 from apps.users.serializers import UserSerializer
 from apps.books.serializers import BookListSerializer
 from apps.reading.serializers import QuoteListSerializer
+from apps.reading.serializers_study import StudyNoteListSerializer
 
 
 # ===== FRIENDSHIP =====
@@ -75,7 +76,7 @@ class CircleListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for circle lists"""
     creator = UserSerializer(read_only=True)
     members_count = serializers.IntegerField(read_only=True)
-    average_progress = serializers.IntegerField(read_only=True)
+    average_progress = serializers.FloatField(read_only=True)
     current_book_data = serializers.SerializerMethodField()
 
     class Meta:
@@ -109,7 +110,7 @@ class CircleDetailSerializer(serializers.ModelSerializer):
     creator = UserSerializer(read_only=True)
     memberships = CircleMembershipSerializer(many=True, read_only=True)
     members_count = serializers.IntegerField(read_only=True)
-    average_progress = serializers.IntegerField(read_only=True)
+    average_progress = serializers.FloatField(read_only=True)
     current_book_data = serializers.SerializerMethodField()
     topics = serializers.SerializerMethodField()
 
@@ -452,6 +453,7 @@ class FeedItemSerializer(serializers.ModelSerializer):
                 return {
                     'id': book.id,
                     'title': book.title,
+                    'slug': book.slug if hasattr(book, 'slug') else '',
                     'authors': [{'name': author.name} for author in authors],
                     'cover_image': book.cover_image if hasattr(book, 'cover_image') else None
                 }
@@ -467,6 +469,7 @@ class FeedItemSerializer(serializers.ModelSerializer):
                     return {
                         'id': book.id,
                         'title': book.title,
+                        'slug': book.slug if hasattr(book, 'slug') else '',
                         'authors': [{'name': author.name} for author in authors],
                         'cover_image': book.cover_image if hasattr(book, 'cover_image') else None
                     }
@@ -474,6 +477,7 @@ class FeedItemSerializer(serializers.ModelSerializer):
                 return {
                     'id': None,
                     'title': quote.book_title,
+                    'slug': '',
                     'authors': [{'name': quote.book_author}] if quote.book_author else [],
                     'cover_image': None
                 }
@@ -489,6 +493,7 @@ class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     attached_book = BookListSerializer(read_only=True)
     attached_quote = QuoteListSerializer(read_only=True)
+    attached_study_note = StudyNoteListSerializer(read_only=True)
     is_own_message = serializers.SerializerMethodField()
 
     class Meta:
@@ -501,6 +506,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'subject',
             'attached_book',
             'attached_quote',
+            'attached_study_note',
             'is_important',
             'read_at',
             'is_own_message',
@@ -521,6 +527,7 @@ class MessageCreateSerializer(serializers.ModelSerializer):
     recipient_id = serializers.IntegerField(write_only=True, required=False)
     attached_book_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     attached_quote_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    attached_study_note_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Message
@@ -531,6 +538,7 @@ class MessageCreateSerializer(serializers.ModelSerializer):
             'subject',
             'attached_book_id',
             'attached_quote_id',
+            'attached_study_note_id',
             'is_important',
         ]
 
@@ -578,6 +586,17 @@ class MessageCreateSerializer(serializers.ModelSerializer):
                 data['attached_quote'] = Quote.objects.get(id=data['attached_quote_id'])
             except Quote.DoesNotExist:
                 raise serializers.ValidationError("Attached quote not found")
+
+        # Handle study note attachment
+        if data.get('attached_study_note_id'):
+            from apps.reading.models_study import StudyNote
+            try:
+                data['attached_study_note'] = StudyNote.objects.get(
+                    id=data['attached_study_note_id'],
+                    user=request.user
+                )
+            except StudyNote.DoesNotExist:
+                raise serializers.ValidationError("Attached study note not found")
 
         return data
 

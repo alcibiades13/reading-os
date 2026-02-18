@@ -24,6 +24,7 @@ class QuoteListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for quote lists"""
     tags = QuoteTagSerializer(many=True, read_only=True)
     book_cover = serializers.SerializerMethodField()
+    book_slug = serializers.SerializerMethodField()
 
     class Meta:
         model = Quote
@@ -33,6 +34,7 @@ class QuoteListSerializer(serializers.ModelSerializer):
             'book_title',
             'book_author',
             'book_cover',
+            'book_slug',
             'text',
             'page_number',
             'chapter',
@@ -43,6 +45,12 @@ class QuoteListSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['id', 'user', 'user_book', 'created_at']
+
+    def get_book_slug(self, obj):
+        """Get book slug from related book"""
+        if obj.book:
+            return obj.book.slug
+        return ''
 
     def get_book_cover(self, obj):
         """Get book cover URL from related book"""

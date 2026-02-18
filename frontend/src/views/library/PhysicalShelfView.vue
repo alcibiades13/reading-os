@@ -9,6 +9,7 @@
     Library, ChevronRight, Settings, Layout, Trash2,
     X
   } from 'lucide-vue-next'
+  import { getBookUrl } from '@/utils/bookUrl'
   
   const router = useRouter()
   const booksStore = useUserBooksStore()
@@ -515,14 +516,14 @@
                     BACK TO SHELF
                   </button>
                   <button
-                    @click="router.push(`/books/${selectedBook.book?.id || selectedBook.id}`)"
+                    @click="router.push(getBookUrl(selectedBook.book || selectedBook))"
                     class="px-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/25"
                   >
                     OPEN DETAILS
                   </button>
                   <button
                     v-if="selectedBook.status !== 'read'"
-                    @click="router.push(`/books/${selectedBook.book?.id || selectedBook.id}/reading`)"
+                    @click="router.push(`${getBookUrl(selectedBook.book || selectedBook)}/reading`)"
                     class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/25"
                   >
                     CONTINUE READING

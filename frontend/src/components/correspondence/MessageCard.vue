@@ -1,5 +1,5 @@
 <script setup>
-import { Star, Book, Quote as QuoteIcon, ChevronRight } from 'lucide-vue-next'
+import { Star, Book, Quote as QuoteIcon, Brain, ChevronRight } from 'lucide-vue-next'
 
 const props = defineProps({
   message: {
@@ -97,6 +97,25 @@ const formatDateTime = (timestamp) => {
             <p class="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 mt-6 relative z-10">
               — {{ attachment.subtitle }}
             </p>
+          </div>
+
+          <!-- Study Note Attachment -->
+          <div
+            v-else-if="attachment.type === 'note'"
+            class="p-6 rounded-3xl bg-emerald-500/[0.03] border border-emerald-500/10 relative group overflow-hidden"
+          >
+            <div class="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:scale-110 transition-transform">
+              <Brain :size="64" />
+            </div>
+            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em] mb-3 flex items-center gap-2 relative z-10">
+              <Brain :size="12" /> Study Note
+            </p>
+            <p class="text-sm text-slate-300 leading-relaxed relative z-10">{{ attachment.content }}</p>
+            <div class="mt-4 flex items-center gap-2 relative z-10">
+              <span class="text-[10px] font-bold text-slate-500">{{ attachment.title }}</span>
+              <span v-if="attachment.subtitle" class="text-slate-700">|</span>
+              <span v-if="attachment.subtitle" class="text-[10px] text-slate-600">{{ attachment.subtitle }}</span>
+            </div>
           </div>
         </div>
       </div>

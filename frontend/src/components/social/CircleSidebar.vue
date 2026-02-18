@@ -66,7 +66,7 @@ defineEmits(['openCreateCircle'])
   </aside>
 
   <!-- Expanded mode -->
-  <aside v-else class="w-56 border-r border-white/5 flex flex-col backdrop-blur-3xl z-40 bg-slate-950/40 shrink-0">
+  <aside v-else class="circles-sidebar w-56 border-r border-white/5 flex flex-col backdrop-blur-3xl z-40 bg-slate-950/40 shrink-0">
     <div class="px-3 py-2.5 border-b border-white/5 flex items-center justify-between">
       <h2 class="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">Circles</h2>
       <button
@@ -91,8 +91,8 @@ defineEmits(['openCreateCircle'])
       >
         <div v-if="circlesStore.activeCircleId === circle.id" class="absolute left-0 w-0.5 h-6 bg-indigo-500 rounded-r-full" />
         <div
-          class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center text-white font-black text-[10px] relative"
-          :style="{ background: `linear-gradient(135deg, ${circle.accent_color || '#6366f1'}dd, #000000)` }"
+          class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center text-white font-black text-[10px] relative shadow-sm circle-icon"
+          :style="{ background: `linear-gradient(135deg, ${circle.accent_color || '#6366f1'}, ${circle.accent_color || '#6366f1'}99)` }"
         >
           {{ circle.name?.charAt(0) }}
           <div
@@ -103,10 +103,10 @@ defineEmits(['openCreateCircle'])
           </div>
         </div>
         <div class="text-left min-w-0">
-          <p :class="['text-xs font-bold truncate', circlesStore.activeCircleId === circle.id ? 'text-white' : 'text-slate-400']">
+          <p :class="['text-xs font-bold truncate circle-name', circlesStore.activeCircleId === circle.id ? 'text-white' : 'text-slate-400']">
             {{ circle.name }}
           </p>
-          <span class="text-[8px] text-slate-600 font-bold">{{ circle.members_count }} members</span>
+          <span class="text-[8px] text-slate-600 font-bold circle-members">{{ circle.members_count }} members</span>
         </div>
       </button>
     </div>

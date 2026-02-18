@@ -183,7 +183,7 @@ export const useCirclesStore = defineStore('circles', {
       try {
         const newCircle = await bookClubService.createCircle(formData)
         this.circles.unshift(newCircle)
-        this.activeCircleId = newCircle.id
+        this.setActiveCircle(newCircle.id)
         return { success: true, data: newCircle }
       } catch (error) {
         console.error('Error creating circle:', error)
@@ -453,6 +453,8 @@ export const useCirclesStore = defineStore('circles', {
       this.activeCircleId = circleId
       this.activeTopicId = null
       this.messages = []
+      this.clubReadings = []
+      this.memberProgress = []
       this.stopPolling()
     },
 

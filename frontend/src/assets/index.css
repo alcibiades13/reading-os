@@ -111,6 +111,14 @@
     background-color: rgba(255, 255, 255, 0.85) !important; /* Light overlay for hover */
   }
 
+  body.light .bg-slate-950\/40 {
+    background-color: rgba(248, 250, 252, 0.92) !important;
+  }
+
+  body.light .border-slate-950 {
+    border-color: #ffffff !important;
+  }
+
   /* Containers (Cards, Quotes, Library Items) */
   body.light .bg-slate-900\/40,
   body.light .bg-slate-900\/50,
@@ -248,7 +256,8 @@
   body.light .bg-emerald-500,
   body.light .bg-emerald-600,
   body.light button.bg-emerald-500,
-  body.light button.bg-emerald-600 {
+  body.light button.bg-emerald-600,
+  body.light .bg-gradient-to-br.from-emerald-500 {
     background-color: #10b981 !important; /* emerald-500 */
     color: #ffffff !important;
   }
@@ -407,6 +416,20 @@
     color: #f59e0b !important;
   }
 
+  /* Amber tinted sections (spoiler protection, pending invitations) */
+  body.light .bg-amber-500\/10 {
+    background-color: rgba(245, 158, 11, 0.12) !important;
+    border-color: rgba(217, 119, 6, 0.35) !important;
+  }
+
+  body.light .text-amber-400\/70 {
+    color: rgba(180, 83, 9, 0.85) !important;
+  }
+
+  body.light .text-amber-400 {
+    color: #b45309 !important;
+  }
+
   /* Red/Destructive colors - keep white text */
   body.light .bg-red-500,
   body.light .bg-red-500\/80,
@@ -491,6 +514,11 @@
   body.light input::placeholder,
   body.light textarea::placeholder {
     color: #94a3b8 !important;
+  }
+
+  /* Number input spinner arrows - force light color scheme */
+  body.light input[type="number"] {
+    color-scheme: light !important;
   }
 
   /* Modal overlays - БЕЛИ СВЕТЛИ OVERLAY за све модале */
@@ -587,6 +615,16 @@
 
   body.light .bg-white\/10 {
     background-color: #f1f5f9 !important;
+  }
+
+  /* CircleSidebar expanded - keep icon initials white on colored gradients */
+  body.light .circles-sidebar .circle-icon {
+    color: #ffffff !important;
+  }
+
+  /* CircleSidebar - thin divider between circle items */
+  body.light .border-white\/\[0\.03\] {
+    border-color: #f1f5f9 !important;
   }
 
   /* Header - border-bottom and element borders */

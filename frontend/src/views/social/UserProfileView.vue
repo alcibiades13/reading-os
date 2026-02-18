@@ -12,6 +12,7 @@ import {
   ArrowLeft, Sparkles, Bookmark, ExternalLink, Copy, Star,
   LayoutGrid, List, ArrowUpRight
 } from 'lucide-vue-next'
+import { getBookUrl } from '@/utils/bookUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -553,7 +554,7 @@ const getStatusBadge = (status) => {
                 <router-link
                   v-for="userBook in filteredBooks"
                   :key="userBook.id"
-                  :to="`/books/${userBook.book.id}`"
+                  :to="getBookUrl(userBook.book)"
                   class="group flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl glass border-slate-800 light:border-slate-200 hover:border-indigo-500/30 transition-all duration-300"
                 >
                   <!-- Cover -->
@@ -679,7 +680,7 @@ const getStatusBadge = (status) => {
                       <div class="flex-1 min-w-0 space-y-1">
                         <div class="flex flex-col lg:flex-row lg:items-center gap-0.5 lg:gap-2 min-w-0">
                           <h4
-                            @click="quote.book ? router.push(`/books/${quote.book}`) : null"
+                            @click="quote.book ? router.push(getBookUrl({ id: quote.book, slug: quote.book_slug })) : null"
                             :class="quote.book ? 'cursor-pointer hover:text-indigo-400 transition-colors' : ''"
                             class="text-white light:text-slate-900 font-bold text-xs lg:text-sm truncate"
                           >

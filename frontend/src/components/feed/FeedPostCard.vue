@@ -16,6 +16,7 @@ import {
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/authStore'
 import { getMediaUrl } from '@/utils/mediaUrl'
+import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -207,7 +208,7 @@ const config = computed(() => activityConfig[props.post.type])
 
 const handleBookClick = () => {
   if (props.post.bookId) {
-    router.push(`/books/${props.post.bookId}`)
+    router.push(getBookUrl({ id: props.post.bookId, slug: props.post.bookSlug }))
   }
 }
 
@@ -299,7 +300,7 @@ const formatCommentTime = (dateStr) => {
             </p>
             <button
               v-if="post.bookId"
-              @click="router.push(`/books/${post.bookId}/review-view`)"
+              @click="router.push(getBookUrlWithSuffix({ id: post.bookId, slug: post.bookSlug }, 'review-view'))"
               class="mt-1.5 lg:mt-3 text-[10px] lg:text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
             >
               Read Full Review

@@ -20,6 +20,7 @@ import {
   ChevronDown,
   X
 } from 'lucide-vue-next'
+import { getBookUrl } from '@/utils/bookUrl'
 
 const router = useRouter()
 
@@ -197,8 +198,12 @@ const handleLike = async (activity) => {
   }
 }
 
-const goToBook = (bookId) => {
-  router.push(`/books/${bookId}`)
+const goToBook = (book) => {
+  if (typeof book === 'object' && book) {
+    router.push(getBookUrl(book))
+  } else {
+    router.push(`/books/${book}`)
+  }
 }
 
 const goToProfile = (userId) => {
@@ -451,7 +456,7 @@ const selectFilter = (value) => {
             <div v-if="activity.type === 'book_finished'" class="space-y-3">
               <button
                 v-if="activity.book"
-                @click="goToBook(activity.book.id)"
+                @click="goToBook(activity.book)"
                 class="w-full flex gap-4 p-3 rounded-xl bg-white/5 border border-white/5 active:scale-[0.99] transition-all text-left"
               >
                 <div v-if="activity.preview_image" class="w-14 h-20 lg:w-16 lg:h-24 rounded-lg overflow-hidden shrink-0 shadow-lg">
@@ -487,7 +492,7 @@ const selectFilter = (value) => {
               </div>
               <button
                 v-if="activity.book"
-                @click="goToBook(activity.book.id)"
+                @click="goToBook(activity.book)"
                 class="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
               >
                 — {{ activity.book.title }}
@@ -519,7 +524,7 @@ const selectFilter = (value) => {
               </div>
               <button
                 v-if="activity.book"
-                @click="goToBook(activity.book.id)"
+                @click="goToBook(activity.book)"
                 class="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
               >
                 {{ activity.book.title }}
@@ -530,7 +535,7 @@ const selectFilter = (value) => {
             <div v-if="activity.type === 'book_started' || activity.type === 'want_to_read'">
               <button
                 v-if="activity.book"
-                @click="goToBook(activity.book.id)"
+                @click="goToBook(activity.book)"
                 class="w-full flex gap-4 p-3 rounded-xl bg-white/5 border border-white/5 active:scale-[0.99] transition-all text-left"
               >
                 <div v-if="activity.preview_image" class="w-14 h-20 lg:w-16 lg:h-24 rounded-lg overflow-hidden shrink-0 shadow-lg">

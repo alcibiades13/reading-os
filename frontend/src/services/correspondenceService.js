@@ -84,6 +84,8 @@ export const correspondenceService = {
             payload.attached_book_id = attachment.id
           } else if (attachment.type === 'quote') {
             payload.attached_quote_id = attachment.id
+          } else if (attachment.type === 'note') {
+            payload.attached_study_note_id = attachment.id
           }
         }
       }
@@ -197,6 +199,17 @@ export const correspondenceService = {
         content: message.attached_quote.text,
         title: message.attached_quote.book_title || 'Quote',
         subtitle: message.attached_quote.book_author || '',
+      })
+    }
+
+    if (message.attached_study_note) {
+      attachments.push({
+        type: 'note',
+        id: message.attached_study_note.id,
+        content: message.attached_study_note.content,
+        title: message.attached_study_note.book_title || 'Study Note',
+        subtitle: message.attached_study_note.reference || '',
+        noteType: message.attached_study_note.note_type,
       })
     }
 

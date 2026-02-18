@@ -184,7 +184,7 @@ function isRecentActivity(dateString) {
                       <div class="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
                         <div class="h-full bg-indigo-500 rounded-full" :style="{ width: `${circlesStore.activeCircle.average_progress || 0}%` }" />
                       </div>
-                      <span class="text-indigo-400 font-bold">{{ circlesStore.activeCircle.average_progress || 0 }}%</span>
+                      <span class="text-indigo-400 font-bold">{{ Number(circlesStore.activeCircle.average_progress || 0).toFixed(1) }}%</span>
                     </div>
                   </div>
                 </div>
@@ -388,7 +388,7 @@ function isRecentActivity(dateString) {
                         <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                           <div class="h-full bg-indigo-500 rounded-full transition-all" :style="{ width: `${circlesStore.activeCircle.average_progress || 0}%` }" />
                         </div>
-                        <span class="text-xs font-bold text-indigo-400">{{ circlesStore.activeCircle.average_progress || 0 }}%</span>
+                        <span class="text-xs font-bold text-indigo-400">{{ Number(circlesStore.activeCircle.average_progress || 0).toFixed(1) }}%</span>
                       </div>
                     </div>
                   </div>

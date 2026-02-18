@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBooksStore } from '@/stores/booksStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
+import { getBookUrl } from '@/utils/bookUrl'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -210,7 +211,7 @@ const saveQuote = async () => {
 
 const finishSession = () => {
   isSessionEndDialogOpen.value = false
-  router.push(`/books/${bookId}`)
+  router.push(book.value ? getBookUrl(book.value) : `/books/${bookId}`)
 }
 
 const getCoverImage = computed(() => {

@@ -3,16 +3,18 @@ import { ref, computed } from 'vue'
 import { Send, Book, Quote as QuoteIcon, Brain, Star, X, Maximize2, Minimize2, ChevronUp, ChevronDown, PenLine } from 'lucide-vue-next'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
+import { useStudyNotesStore } from '@/stores/studyNotesStore'
 
 const emit = defineEmits(['send'])
 
 const booksStore = useUserBooksStore()
 const quotesStore = useQuotesStore()
+const studyNotesStore = useStudyNotesStore()
 
 const messageText = ref('')
 const isImportant = ref(false)
 const attachments = ref([])
-const showPicker = ref('none') // 'none' | 'book' | 'quote'
+const showPicker = ref('none') // 'none' | 'book' | 'quote' | 'note'
 const isExpanded = ref(false)
 const isMinimized = ref(false)
 
@@ -56,6 +58,45 @@ const addQuoteAttachment = (quote) => {
   showPicker.value = 'none'
 }
 
+const addNoteAttachment = (note) => {
+  const attachment = {
+    type: 'note',
+    id: note.id,
+    title: note.book_title || 'Study Note',
+    content: note.content,
+    subtitle: note.reference || note.note_type
+  }
+  attachments.value.push(attachment)
+  showPicker.value = 'none'
+}
+
+const noteBookFilter = ref(null)
+
+const noteBooks = computed(() => {
+  const notes = studyNotesStore.notes || []
+  const bookMap = new Map()
+  notes.forEach(n => {
+    if (n.book && n.book_title) {
+      bookMap.set(n.book, n.book_title)
+    }
+  })
+  return Array.from(bookMap, ([id, title]) => ({ id, title }))
+})
+
+const filteredNotes = computed(() => {
+  const notes = studyNotesStore.notes || []
+  if (!noteBookFilter.value) return notes
+  return notes.filter(n => n.book === noteBookFilter.value)
+})
+
+const openNotePicker = async () => {
+  showPicker.value = 'note'
+  noteBookFilter.value = null
+  if (!studyNotesStore.notes?.length) {
+    await studyNotesStore.fetchNotes()
+  }
+}
+
 const removeAttachment = (index) => {
   attachments.value.splice(index, 1)
 }
@@ -91,6 +132,7 @@ const removeAttachment = (index) => {
           class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-bold text-indigo-400"
         >
           <Book v-if="attachment.type === 'book'" :size="10" />
+          <Brain v-else-if="attachment.type === 'note'" :size="10" />
           <QuoteIcon v-else :size="10" />
           <span class="truncate max-w-[100px]">{{ attachment.title }}</span>
           <button @click="removeAttachment(idx)" class="hover:text-indigo-300">
@@ -152,8 +194,9 @@ const removeAttachment = (index) => {
 
           <!-- Attach Note -->
           <button
+            @click="openNotePicker"
             class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
-            title="Attach note"
+            title="Attach study note"
           >
             <Brain :size="14" />
           </button>
@@ -193,7 +236,7 @@ const removeAttachment = (index) => {
       <div class="w-full max-w-2xl glass rounded-[2.5rem] border-white/10 flex flex-col max-h-[80vh]">
         <div class="p-8 border-b border-white/5 flex items-center justify-between">
           <h3 class="text-xl font-black text-white">
-            Select {{ showPicker === 'book' ? 'Volume' : 'Insight' }}
+            Select {{ showPicker === 'book' ? 'Volume' : showPicker === 'quote' ? 'Insight' : 'Study Note' }}
           </h3>
           <button
             @click="showPicker = 'none'"
@@ -236,6 +279,61 @@ const removeAttachment = (index) => {
               — {{ quote.book_title }}
             </p>
           </div>
+
+          <!-- Note Picker -->
+          <template v-else-if="showPicker === 'note'">
+            <!-- Book Filter -->
+            <div v-if="noteBooks.length > 1" class="col-span-2 mb-2">
+              <div class="flex flex-wrap gap-1.5">
+                <button
+                  @click="noteBookFilter = null"
+                  :class="[
+                    'px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all',
+                    !noteBookFilter
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-white/10'
+                  ]"
+                >
+                  All Books
+                </button>
+                <button
+                  v-for="book in noteBooks"
+                  :key="book.id"
+                  @click="noteBookFilter = book.id"
+                  :class="[
+                    'px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all truncate max-w-[180px]',
+                    noteBookFilter === book.id
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-white/10'
+                  ]"
+                >
+                  {{ book.title }}
+                </button>
+              </div>
+            </div>
+
+            <div v-if="studyNotesStore.loading" class="col-span-2 text-center py-8 text-slate-500 text-sm">
+              Loading notes...
+            </div>
+            <div v-else-if="!filteredNotes.length" class="col-span-2 text-center py-8 text-slate-500 text-sm">
+              {{ noteBookFilter ? 'No notes for this book' : 'No study notes yet' }}
+            </div>
+            <div
+              v-else
+              v-for="note in filteredNotes"
+              :key="note.id"
+              @click="addNoteAttachment(note)"
+              class="p-4 rounded-3xl bg-white/5 border border-white/10 hover:border-indigo-500 cursor-pointer transition-all"
+            >
+              <p class="text-sm text-slate-300 line-clamp-3 mb-3">{{ note.content }}</p>
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-400">{{ note.note_type }}</span>
+                <span v-if="note.book_title" class="text-[9px] text-slate-600">|</span>
+                <span v-if="note.book_title" class="text-[9px] font-bold text-slate-500 truncate">{{ note.book_title }}</span>
+              </div>
+              <p v-if="note.reference" class="text-[9px] text-slate-600 mt-1">{{ note.reference }}</p>
+            </div>
+          </template>
         </div>
       </div>
     </div>

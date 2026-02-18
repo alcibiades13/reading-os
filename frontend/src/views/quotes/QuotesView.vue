@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image, Download } from 'lucide-vue-next'
 import { quotesAPI } from '@/services/api'
 import { downloadBlob } from '@/utils/downloadFile'
+import { getBookUrl } from '@/utils/bookUrl'
 import QuoteCardDesigner from '@/components/quotes/QuoteCardDesigner.vue'
 
 const router = useRouter()
@@ -252,7 +253,7 @@ const toggleNotes = (quoteId) => {
 const handleBookClick = (quote) => {
   // If quote has book ID, navigate to book detail page
   if (quote.book) {
-    router.push(`/books/${quote.book}`)
+    router.push(getBookUrl({ id: quote.book, slug: quote.book_slug }))
   }
 }
 
@@ -941,7 +942,7 @@ const handleEditQuote = async () => {
                     <span class="truncate">{{ quote.book_title || 'Unknown Book' }}</span>
                     <ExternalLink v-if="quote.book" :size="12" class="opacity-0 group-hover/title:opacity-100 transition-opacity flex-shrink-0" />
                   </h4>
-                  <span class="text-slate-600 hidden sm:inline flex-shrink-0">·</span>
+                  <span class="text-slate-600 hidden sm:inline flex-shrink-0">|</span>
                   <p class="text-indigo-400 font-medium text-sm truncate">{{ quote.book_author || 'Unknown Author' }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 text-xs">

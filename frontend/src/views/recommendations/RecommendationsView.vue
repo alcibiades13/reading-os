@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { recommendationsService, CONTEXT_CONFIG } from '@/services/recommendationsService'
+import { getBookUrl } from '@/utils/bookUrl'
 import BookCard from '@/components/BookCard.vue'
 import TasteProfile from '@/components/recommendations/TasteProfile.vue'
 import {
@@ -65,8 +66,8 @@ onMounted(async () => {
   }
 })
 
-const goToBook = (bookId) => {
-  router.push(`/books/${bookId}`)
+const goToBook = (book) => {
+  router.push(getBookUrl(book))
 }
 
 const refreshRecommendations = async () => {
@@ -141,7 +142,7 @@ const refreshRecommendations = async () => {
           v-for="book in forYouBooks"
           :key="book.id"
           class="relative group cursor-pointer"
-          @click="goToBook(book.id)"
+          @click="goToBook(book)"
         >
           <BookCard :book="book" :showActions="false" />
           <!-- Match Score Badge -->
@@ -172,7 +173,7 @@ const refreshRecommendations = async () => {
           v-for="book in section.books"
           :key="book.id"
           class="cursor-pointer transform hover:scale-105 transition-transform"
-          @click="goToBook(book.id)"
+          @click="goToBook(book)"
         >
           <BookCard :book="book" :showActions="false" size="small" />
         </div>

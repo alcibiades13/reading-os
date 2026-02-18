@@ -5,22 +5,29 @@ from django.utils.text import slugify
 class Author(models.Model):
     """Book author"""
     name = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=250, blank=True, db_index=True)
     bio = models.TextField(blank=True)
     birth_date = models.DateField(null=True, blank=True)
     death_date = models.DateField(null=True, blank=True)
     photo = models.URLField(blank=True)
-    
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['name']
         verbose_name = 'Author'
         verbose_name_plural = 'Authors'
-    
+
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name) or f"author-{self.pk or 'new'}"
+        super().save(*args, **kwargs)
 
 
 class Publisher(models.Model):
