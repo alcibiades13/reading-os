@@ -242,6 +242,7 @@ export const vocabularyAPI = {
 
 export const usersAPI = {
   exportAllData: () => api.get('/users/export_all_data/', { responseType: 'blob' }),
+  getConsistency: () => api.get('/users/consistency/'),
 }
 
 export const recommendationsAPI = {

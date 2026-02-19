@@ -10,6 +10,7 @@ import YearlyChallengeWidget from '@/components/YearlyChallengeWidget.vue'
 import YearlyChallengeModal from '@/components/YearlyChallengeModal.vue'
 import ReadingCircleWidget from '@/components/social/ReadingCircleWidget.vue'
 import FriendsWidget from '@/components/social/FriendsWidget.vue'
+import ConsistencyWidget from '@/components/ConsistencyWidget.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   DropdownMenu,
@@ -1310,26 +1311,7 @@ const handleSaveChallenge = async (challengeData) => {
         </div>
 
         <!-- Consistency Heatmap -->
-        <div class="p-8 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
-          <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-6">Consistency</h3>
-          <div class="grid grid-cols-7 gap-1.5 mb-5">
-            <div
-              v-for="i in 28"
-              :key="i"
-              :class="i > 20 ? 'bg-indigo-500' : i > 10 ? 'bg-indigo-500/30' : 'bg-slate-800'"
-              class="aspect-square rounded-[2px]"
-            />
-          </div>
-          <div class="flex justify-between items-center">
-            <div>
-              <span class="text-xl font-black text-white block">12 Days</span>
-              <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Streak</span>
-            </div>
-            <div class="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-              <Zap :size="16" class="fill-current" />
-            </div>
-          </div>
-        </div>
+        <ConsistencyWidget />
       </div>
     </div>
 
@@ -1393,26 +1375,7 @@ const handleSaveChallenge = async (challengeData) => {
               </div>
 
               <!-- Consistency Heatmap -->
-              <div class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/40">
-                <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-4">Consistency</h3>
-                <div class="grid grid-cols-7 gap-1 mb-4">
-                  <div
-                    v-for="i in 28"
-                    :key="i"
-                    :class="i > 20 ? 'bg-indigo-500' : i > 10 ? 'bg-indigo-500/30' : 'bg-slate-800'"
-                    class="aspect-square rounded-[2px]"
-                  />
-                </div>
-                <div class="flex justify-between items-center">
-                  <div>
-                    <span class="text-lg font-black text-white block">12 Days</span>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Streak</span>
-                  </div>
-                  <div class="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                    <Zap :size="16" class="fill-current" />
-                  </div>
-                </div>
-              </div>
+              <ConsistencyWidget compact />
             </div>
           </div>
         </div>

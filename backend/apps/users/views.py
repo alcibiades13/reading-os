@@ -600,6 +600,87 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(following_data)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def consistency(self, request):
+        """
+        Get 28-day activity heatmap data with streak count.
+        GET /api/users/consistency/
+        """
+        from datetime import timedelta
+        from django.utils import timezone
+        from django.db.models import Count
+        from django.db.models.functions import TruncDate
+
+        from apps.reading.models import Quote, VocabularyWord
+        from apps.reading.models_study import StudyNote
+        from apps.codex.models import JournalEntry, Chapter
+        from apps.social.models import TopicMessage, FeedItem
+
+        user = request.user
+        today = timezone.now().date()
+        start_date = today - timedelta(days=27)
+
+        def count_by_day(qs, date_field='created_at'):
+            return dict(
+                qs.filter(**{f'{date_field}__date__gte': start_date})
+                .annotate(date=TruncDate(date_field))
+                .values('date')
+                .annotate(count=Count('id'))
+                .values_list('date', 'count')
+            )
+
+        def distinct_days(qs, date_field='created_at'):
+            return set(
+                qs.filter(**{f'{date_field}__date__gte': start_date})
+                .annotate(date=TruncDate(date_field))
+                .values_list('date', flat=True)
+                .distinct()
+            )
+
+        quotes_by_day = count_by_day(Quote.objects.filter(user=user))
+        study_notes_by_day = count_by_day(StudyNote.objects.filter(user=user))
+        vocabulary_by_day = count_by_day(VocabularyWord.objects.filter(user=user))
+        journal_by_day = count_by_day(JournalEntry.objects.filter(user=user))
+        discussions_by_day = count_by_day(TopicMessage.objects.filter(author=user))
+        reading_days = distinct_days(
+            FeedItem.objects.filter(actor=user, feed_type='progress_update')
+        )
+        writing_days = distinct_days(
+            Chapter.objects.filter(manuscript__user=user), date_field='updated_at'
+        )
+
+        days = []
+        for i in range(28):
+            day = start_date + timedelta(days=i)
+            q = quotes_by_day.get(day, 0)
+            sn = study_notes_by_day.get(day, 0)
+            v = vocabulary_by_day.get(day, 0)
+            r = day in reading_days
+            j = journal_by_day.get(day, 0)
+            w = day in writing_days
+            d = discussions_by_day.get(day, 0)
+            total = q + sn + v + (1 if r else 0) + j + (1 if w else 0) + d
+            days.append({
+                'date': day.isoformat(),
+                'total': total,
+                'quotes': q,
+                'study_notes': sn,
+                'vocabulary': v,
+                'reading': r,
+                'journal': j,
+                'writing': w,
+                'discussions': d,
+            })
+
+        streak = 0
+        for day_data in reversed(days):
+            if day_data['total'] > 0:
+                streak += 1
+            else:
+                break
+
+        return Response({'streak': streak, 'days': days})
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def export_all_data(self, request):
         """Export all user data as a ZIP file containing JSON files"""
         from apps.reading.models import UserBook, Quote, VocabularyWord
