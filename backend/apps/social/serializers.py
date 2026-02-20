@@ -771,6 +771,7 @@ class DiscussionTopicCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscussionTopic
         fields = [
+            'id',
             'circle',
             'title',
             'description',
@@ -779,6 +780,7 @@ class DiscussionTopicCreateSerializer(serializers.ModelSerializer):
             'required_progress',
             'book',
         ]
+        read_only_fields = ['id']
 
     def validate(self, data):
         circle = data.get('circle')
@@ -826,11 +828,13 @@ class TopicMessageSerializer(serializers.ModelSerializer):
             'mentions',
             'likes_count',
             'is_liked',
+            'is_pinned',
+            'is_edited',
             'reactions_summary',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'author', 'likes_count', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'author', 'likes_count', 'is_pinned', 'is_edited', 'created_at', 'updated_at']
 
     def get_attached_quote_data(self, obj):
         if obj.attached_quote:

@@ -467,6 +467,14 @@ class TopicMessage(models.Model):
     # Reactions/likes count (denormalized)
     likes_count = models.IntegerField(default=0)
 
+    # Pinned message
+    is_pinned = models.BooleanField(default=False)
+
+    # Edit / soft-delete
+    is_edited = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -476,6 +484,7 @@ class TopicMessage(models.Model):
         verbose_name_plural = 'Topic Messages'
         indexes = [
             models.Index(fields=['topic', 'created_at']),
+            models.Index(fields=['topic', 'updated_at']),
         ]
 
     def __str__(self):

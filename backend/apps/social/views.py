@@ -1,5 +1,6 @@
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from apps.social.models import (
@@ -896,6 +897,11 @@ class DiscussionTopicViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    def _is_circle_admin(self, circle, user):
+        return CircleMembership.objects.filter(
+            circle=circle, user=user, role='admin'
+        ).exists()
+
     def perform_create(self, serializer):
         """Create topic and notify circle members"""
         topic = serializer.save(creator=self.request.user)
@@ -920,6 +926,22 @@ class DiscussionTopicViewSet(viewsets.ModelViewSet):
             for mid in member_ids
         ]
         Notification.objects.bulk_create(notifications)
+
+    def perform_update(self, serializer):
+        """Only circle admin can edit topics"""
+        topic = self.get_object()
+        if not self._is_circle_admin(topic.circle, self.request.user):
+            raise PermissionDenied("Only circle admins can edit topics.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        """Only circle admin can delete topics"""
+        if not self._is_circle_admin(instance.circle, self.request.user):
+            raise PermissionDenied("Only circle admins can delete topics.")
+        # Also delete associated poll if exists
+        if hasattr(instance, 'poll'):
+            instance.poll.delete()
+        instance.delete()
 
     @action(detail=True, methods=['post'])
     def toggle_pin(self, request, pk=None):
@@ -971,7 +993,8 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
         user_circles = Circle.objects.filter(members=self.request.user)
 
         queryset = TopicMessage.objects.filter(
-            topic__circle__in=user_circles
+            topic__circle__in=user_circles,
+            is_deleted=False,
         ).select_related('topic', 'author', 'attached_quote', 'attached_book')
 
         # Filter by topic
@@ -1003,6 +1026,26 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
                 message=f'{self.request.user.first_name} replied in "{topic.title}"',
                 object_id=message.id
             )
+
+    def perform_update(self, serializer):
+        """Only the message author can edit. Set is_edited flag."""
+        message = self.get_object()
+        if message.author != self.request.user:
+            raise PermissionDenied("You can only edit your own messages.")
+        serializer.save(is_edited=True)
+
+    def destroy(self, request, *args, **kwargs):
+        """Soft-delete: only author can delete their own messages."""
+        message = self.get_object()
+        if message.author != request.user:
+            return Response(
+                {'error': 'You can only delete your own messages'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        message.is_deleted = True
+        message.deleted_at = timezone.now()
+        message.save(update_fields=['is_deleted', 'deleted_at', 'updated_at'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def toggle_like(self, request, pk=None):
@@ -1061,6 +1104,38 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
             'user_reactions': user_reactions
         })
 
+    @action(detail=True, methods=['post'])
+    def toggle_pin(self, request, pk=None):
+        """Toggle pin on a message (admin only). Only one pinned message per topic."""
+        message = self.get_object()
+        circle = message.topic.circle
+
+        membership = CircleMembership.objects.filter(
+            circle=circle, user=request.user
+        ).first()
+        is_admin = (
+            circle.creator_id == request.user.id or
+            (membership and membership.role == 'admin')
+        )
+        if not is_admin:
+            return Response(
+                {'error': 'Only admins can pin messages'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if message.is_pinned:
+            message.is_pinned = False
+            message.save(update_fields=['is_pinned'])
+        else:
+            # Unpin any other pinned message in the same topic
+            TopicMessage.objects.filter(
+                topic=message.topic, is_pinned=True
+            ).update(is_pinned=False)
+            message.is_pinned = True
+            message.save(update_fields=['is_pinned'])
+
+        return Response({'is_pinned': message.is_pinned})
+
     @action(detail=False, methods=['get'])
     def search(self, request):
         """Search messages within a circle"""
@@ -1072,7 +1147,8 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
         messages = TopicMessage.objects.filter(
             topic__circle_id=circle_id,
             topic__circle__members=request.user,
-            content__icontains=query
+            content__icontains=query,
+            is_deleted=False,
         ).select_related('author', 'topic').order_by('-created_at')[:50]
 
         from apps.social.serializers import TopicMessageSerializer
@@ -1080,6 +1156,75 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
             messages, many=True, context={'request': request}
         )
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def sync(self, request):
+        """
+        Lightweight sync endpoint for near-real-time messaging.
+        Returns new, edited, and deleted messages since a timestamp.
+        """
+        topic_id = request.query_params.get('topic')
+        since = request.query_params.get('since')
+        if not topic_id or not since:
+            return Response(
+                {'error': 'topic and since params required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from django.utils.dateparse import parse_datetime
+        since_dt = parse_datetime(since)
+        if not since_dt:
+            return Response(
+                {'error': 'Invalid timestamp format'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user_circles = Circle.objects.filter(members=request.user)
+        base_qs = TopicMessage.objects.filter(
+            topic_id=topic_id,
+            topic__circle__in=user_circles,
+        ).select_related('topic', 'author', 'attached_quote', 'attached_book')
+
+        # New messages
+        new_messages = list(base_qs.filter(
+            created_at__gt=since_dt,
+            is_deleted=False,
+        ))
+
+        # Edited messages (updated after since, but created before since)
+        edited_messages = list(base_qs.filter(
+            updated_at__gt=since_dt,
+            created_at__lte=since_dt,
+            is_edited=True,
+            is_deleted=False,
+        ))
+
+        # Deleted message IDs
+        deleted_ids = list(
+            TopicMessage.objects.filter(
+                topic_id=topic_id,
+                topic__circle__in=user_circles,
+                is_deleted=True,
+                deleted_at__gt=since_dt,
+            ).values_list('id', flat=True)
+        )
+
+        serializer = TopicMessageSerializer(
+            new_messages + edited_messages,
+            many=True,
+            context={'request': request}
+        )
+
+        new_ids = {m.id for m in new_messages}
+        new_data = [m for m in serializer.data if m['id'] in new_ids]
+        edited_data = [m for m in serializer.data if m['id'] not in new_ids]
+
+        return Response({
+            'new': new_data,
+            'edited': edited_data,
+            'deleted': deleted_ids,
+            'server_time': timezone.now().isoformat(),
+        })
 
 
 class BookClubReadingViewSet(viewsets.ModelViewSet):
@@ -1297,12 +1442,24 @@ class PollViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_circles = Circle.objects.filter(members=self.request.user)
-        return Poll.objects.filter(
+        queryset = Poll.objects.filter(
             topic__circle__in=user_circles
         ).select_related('topic__circle').prefetch_related('options__votes')
 
-    def perform_create(self, serializer):
+        topic_id = self.request.query_params.get('topic')
+        if topic_id:
+            queryset = queryset.filter(topic_id=topic_id)
+
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         serializer.save()
+        # Return properly serialized poll using PollSerializer
+        poll = serializer.instance
+        output = PollSerializer(poll, context={'request': request})
+        return Response(output.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def vote(self, request, pk=None):

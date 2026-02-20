@@ -184,6 +184,19 @@ export const bookClubService = {
     await api.delete(`/social/topic-messages/${id}/`)
   },
 
+  async editTopicMessage(id, content) {
+    const response = await api.patch(`/social/topic-messages/${id}/`, { content })
+    return response.data
+  },
+
+  async syncTopicMessages(topicId, since) {
+    const params = new URLSearchParams()
+    params.append('topic', topicId)
+    params.append('since', since)
+    const response = await api.get(`/social/topic-messages/sync/?${params.toString()}`)
+    return response.data
+  },
+
   // ===== BOOK CLUB READINGS =====
 
   /**
@@ -287,7 +300,21 @@ export const bookClubService = {
     return response.data
   },
 
+  /**
+   * Toggle pin on a message (admin only)
+   */
+  async togglePinMessage(messageId) {
+    const response = await api.post(`/social/topic-messages/${messageId}/toggle_pin/`)
+    return response.data
+  },
+
   // ===== POLLS =====
+
+  async getPollByTopic(topicId) {
+    const response = await api.get(`/social/polls/?topic=${topicId}`)
+    const results = response.data.results || response.data || []
+    return results[0] || null
+  },
 
   /**
    * Create a poll

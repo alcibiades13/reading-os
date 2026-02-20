@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useCirclesStore } from '@/stores/circlesStore'
 import {
   Users, Plus, BookOpen, Settings, UserPlus, Mail,
@@ -7,6 +8,9 @@ import {
   MoreVertical, Info, Share2, Trash2, ChevronRight, Lock, Search
 } from 'lucide-vue-next'
 import { bookClubService } from '@/services/bookClubService'
+
+const route = useRoute()
+const router = useRouter()
 
 // Sub-components
 import CircleSidebar from '@/components/social/CircleSidebar.vue'
@@ -37,26 +41,77 @@ const showInviteModal = ref(false)
 const showSettingsModal = ref(false)
 const showMembersModal = ref(false)
 const showSearch = ref(false)
+const showEditTopicModal = ref(false)
+const editingTopic = ref(null)
 
-// Load data on mount
+function handleEditTopic(topic) {
+  editingTopic.value = { ...topic }
+  showEditTopicModal.value = true
+}
+
+// Suppress route updates during initialization
+let suppressRouteSync = false
+
+// Load data on mount, restoring state from URL
 onMounted(async () => {
   await Promise.all([
     circlesStore.fetchCircles(),
     circlesStore.fetchPendingInvitations(),
   ])
+
+  // Restore circle/topic from URL params
+  const urlCircleId = route.params.circleId ? Number(route.params.circleId) : null
+  const urlTopicId = route.params.topicId ? Number(route.params.topicId) : null
+
+  if (urlCircleId && circlesStore.circles.some(c => c.id === urlCircleId)) {
+    suppressRouteSync = true
+    circlesStore.activeCircleId = urlCircleId
+    await circlesStore.fetchCircleDetail(urlCircleId)
+    circlesStore.fetchUnreadCounts(urlCircleId)
+
+    if (urlTopicId && circlesStore.activeCircle?.topics?.some(t => t.id === urlTopicId)) {
+      circlesStore.setActiveTopic(urlTopicId)
+    }
+    suppressRouteSync = false
+  }
 })
 
 onUnmounted(() => {
   circlesStore.stopPolling()
 })
 
-// When active circle changes, load its details and unread counts
+// When active circle changes, load its details and update URL
 watch(() => circlesStore.activeCircleId, async (newId) => {
   if (newId) {
     await circlesStore.fetchCircleDetail(newId)
     circlesStore.fetchUnreadCounts(newId)
   }
+  if (!suppressRouteSync) {
+    updateRoute()
+  }
 })
+
+// When active topic changes, update URL
+watch(() => circlesStore.activeTopicId, () => {
+  if (!suppressRouteSync) {
+    updateRoute()
+  }
+})
+
+function updateRoute() {
+  const circleId = circlesStore.activeCircleId
+  const topicId = circlesStore.activeTopicId
+  let path = '/circles'
+  if (circleId) {
+    path += `/${circleId}`
+    if (topicId) {
+      path += `/${topicId}`
+    }
+  }
+  if (route.path !== path) {
+    router.replace(path)
+  }
+}
 
 // Connect reply event from MessageThread to MessageComposer
 function handleReplyTo(message) {
@@ -228,7 +283,7 @@ function isRecentActivity(dateString) {
           <div class="flex-1 flex overflow-hidden">
             <!-- Topics Tab -->
             <template v-if="circlesStore.activeTab === 'topics'">
-              <TopicList @openCreateTopic="showCreateTopicModal = true" />
+              <TopicList @openCreateTopic="showCreateTopicModal = true" @editTopic="handleEditTopic" />
               <div class="flex-1 flex flex-col">
                 <MessageThread @replyTo="handleReplyTo" />
                 <MessageComposer ref="composerRef" />
@@ -492,6 +547,13 @@ function isRecentActivity(dateString) {
                   <div v-if="circlesStore.isCircleAdmin" class="h-px bg-white/5" />
                   <button
                     v-if="circlesStore.isCircleAdmin"
+                    @click="showMobileTopicMenu = false; handleEditTopic(circlesStore.activeTopic)"
+                    class="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 flex items-center gap-3"
+                  >
+                    <Settings :size="16" class="text-slate-500" /> Edit Topic
+                  </button>
+                  <button
+                    v-if="circlesStore.isCircleAdmin"
                     @click="showMobileTopicMenu = false; circlesStore.deleteTopic(circlesStore.activeTopicId); circlesStore.closeMobileChat()"
                     class="w-full px-4 py-3 text-left text-sm text-rose-400 hover:bg-rose-500/10 flex items-center gap-3"
                   >
@@ -517,11 +579,14 @@ function isRecentActivity(dateString) {
     <CircleModals
       :showCreateCircle="showCreateCircleModal"
       :showCreateTopic="showCreateTopicModal"
+      :showEditTopic="showEditTopicModal"
+      :editingTopic="editingTopic"
       :showInvite="showInviteModal"
       :showSettings="showSettingsModal"
       :showMembers="showMembersModal"
       @update:showCreateCircle="showCreateCircleModal = $event"
       @update:showCreateTopic="showCreateTopicModal = $event"
+      @update:showEditTopic="showEditTopicModal = $event"
       @update:showInvite="showInviteModal = $event"
       @update:showSettings="showSettingsModal = $event"
       @update:showMembers="showMembersModal = $event"

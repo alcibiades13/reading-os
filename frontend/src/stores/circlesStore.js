@@ -16,9 +16,13 @@ export const useCirclesStore = defineStore('circles', {
     circleEvents: [],
     loading: false,
     error: null,
-    // Polling
+    // Polling / sync
     pollTimer: null,
-    lastMessageTimestamp: null,
+    lastSyncTimestamp: null,
+    // Edit state
+    editingMessageId: null,
+    // Poll
+    activePoll: null,
     // UI state
     activeTab: 'topics', // 'topics' | 'bookshelf'
     mobileView: 'topics', // 'topics' | 'chat'
@@ -131,7 +135,10 @@ export const useCirclesStore = defineStore('circles', {
         const data = await bookClubService.getTopicMessages(topicId)
         this.messages = data.results || data || []
         if (this.messages.length > 0) {
-          this.lastMessageTimestamp = this.messages[this.messages.length - 1].created_at
+          const timestamps = this.messages.map(m => m.updated_at || m.created_at)
+          this.lastSyncTimestamp = timestamps.sort().pop()
+        } else {
+          this.lastSyncTimestamp = new Date().toISOString()
         }
         return { success: true }
       } catch (error) {
@@ -140,24 +147,41 @@ export const useCirclesStore = defineStore('circles', {
       }
     },
 
-    async fetchNewMessages(topicId) {
-      if (!this.lastMessageTimestamp) return
+    async syncMessages(topicId) {
+      if (!this.lastSyncTimestamp) return
       try {
-        const data = await bookClubService.getTopicMessages(topicId, {
-          after: this.lastMessageTimestamp
-        })
-        const newMessages = data.results || data || []
-        if (newMessages.length > 0) {
-          // Avoid duplicates
+        const data = await bookClubService.syncTopicMessages(topicId, this.lastSyncTimestamp)
+
+        // New messages
+        if (data.new?.length > 0) {
           const existingIds = new Set(this.messages.map(m => m.id))
-          const unique = newMessages.filter(m => !existingIds.has(m.id))
+          const unique = data.new.filter(m => !existingIds.has(m.id))
           if (unique.length > 0) {
             this.messages.push(...unique)
-            this.lastMessageTimestamp = unique[unique.length - 1].created_at
           }
         }
+
+        // Edited messages
+        if (data.edited?.length > 0) {
+          for (const edited of data.edited) {
+            const idx = this.messages.findIndex(m => m.id === edited.id)
+            if (idx !== -1) {
+              this.messages[idx] = { ...this.messages[idx], ...edited }
+            }
+          }
+        }
+
+        // Deleted messages
+        if (data.deleted?.length > 0) {
+          const deletedSet = new Set(data.deleted)
+          this.messages = this.messages.filter(m => !deletedSet.has(m.id))
+        }
+
+        if (data.server_time) {
+          this.lastSyncTimestamp = data.server_time
+        }
       } catch (error) {
-        console.error('Error polling messages:', error)
+        console.error('Error syncing messages:', error)
       }
     },
 
@@ -165,15 +189,34 @@ export const useCirclesStore = defineStore('circles', {
 
     startPolling(topicId) {
       this.stopPolling()
-      this.pollTimer = setInterval(() => {
-        this.fetchNewMessages(topicId)
-      }, 7000)
+      const sync = () => {
+        this.syncMessages(topicId)
+        if (this.activePoll) {
+          this.fetchTopicPoll(topicId)
+        }
+      }
+      this.pollTimer = setInterval(sync, 3000)
+
+      this._visibilityHandler = () => {
+        if (document.hidden) {
+          clearInterval(this.pollTimer)
+          this.pollTimer = null
+        } else {
+          sync()
+          this.pollTimer = setInterval(sync, 3000)
+        }
+      }
+      document.addEventListener('visibilitychange', this._visibilityHandler)
     },
 
     stopPolling() {
       if (this.pollTimer) {
         clearInterval(this.pollTimer)
         this.pollTimer = null
+      }
+      if (this._visibilityHandler) {
+        document.removeEventListener('visibilitychange', this._visibilityHandler)
+        this._visibilityHandler = null
       }
     },
 
@@ -283,12 +326,24 @@ export const useCirclesStore = defineStore('circles', {
       }
     },
 
+    async updateTopic(topicId, data) {
+      try {
+        const updated = await bookClubService.updateTopic(topicId, data)
+        await this.fetchCircleDetail(this.activeCircleId)
+        return { success: true, data: updated }
+      } catch (error) {
+        console.error('Error updating topic:', error)
+        return { success: false, error: error.response?.data }
+      }
+    },
+
     async deleteTopic(topicId) {
       try {
         await bookClubService.deleteTopic(topicId)
         if (this.activeTopicId === topicId) {
           this.activeTopicId = null
           this.messages = []
+          this.activePoll = null
         }
         await this.fetchCircleDetail(this.activeCircleId)
         return { success: true }
@@ -305,6 +360,24 @@ export const useCirclesStore = defineStore('circles', {
         return { success: true, data: result }
       } catch (error) {
         console.error('Error pinning topic:', error)
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    async togglePinMessage(messageId) {
+      try {
+        const result = await bookClubService.togglePinMessage(messageId)
+        const msg = this.messages.find(m => m.id === messageId)
+        if (msg) {
+          // Unpin all other messages first
+          if (result.is_pinned) {
+            this.messages.forEach(m => { if (m.id !== messageId) m.is_pinned = false })
+          }
+          msg.is_pinned = result.is_pinned
+        }
+        return { success: true, data: result }
+      } catch (error) {
+        console.error('Error pinning message:', error)
         return { success: false, error: error.response?.data }
       }
     },
@@ -326,7 +399,6 @@ export const useCirclesStore = defineStore('circles', {
           }
         }
         this.messages.push(newMessage)
-        this.lastMessageTimestamp = newMessage.created_at
         return { success: true, data: newMessage }
       } catch (error) {
         console.error('Error sending message:', error)
@@ -356,6 +428,87 @@ export const useCirclesStore = defineStore('circles', {
         return { success: true }
       } catch (error) {
         console.error('Error deleting message:', error)
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    async editMessage(messageId, newContent) {
+      const msg = this.messages.find(m => m.id === messageId)
+      const oldContent = msg?.content
+      // Optimistic update
+      if (msg) {
+        msg.content = newContent
+        msg.is_edited = true
+      }
+      this.editingMessageId = null
+
+      try {
+        const updated = await bookClubService.editTopicMessage(messageId, newContent)
+        if (msg) {
+          Object.assign(msg, updated)
+        }
+        return { success: true }
+      } catch (error) {
+        // Rollback
+        if (msg) {
+          msg.content = oldContent
+          msg.is_edited = false
+        }
+        console.error('Error editing message:', error)
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    startEditing(messageId) {
+      this.editingMessageId = messageId
+    },
+
+    cancelEditing() {
+      this.editingMessageId = null
+    },
+
+    // ===== POLLS =====
+
+    async fetchTopicPoll(topicId) {
+      try {
+        this.activePoll = await bookClubService.getPollByTopic(topicId)
+        return { success: true }
+      } catch (error) {
+        console.error('Error fetching poll:', error)
+        this.activePoll = null
+        return { success: false, error }
+      }
+    },
+
+    async createPoll(data) {
+      try {
+        const poll = await bookClubService.createPoll(data)
+        this.activePoll = poll
+        return { success: true, data: poll }
+      } catch (error) {
+        console.error('Error creating poll:', error)
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    async votePoll(pollId, optionId) {
+      try {
+        const updated = await bookClubService.votePoll(pollId, optionId)
+        this.activePoll = updated
+        return { success: true }
+      } catch (error) {
+        console.error('Error voting:', error)
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    async closePoll(pollId) {
+      try {
+        const updated = await bookClubService.closePoll(pollId)
+        this.activePoll = updated
+        return { success: true }
+      } catch (error) {
+        console.error('Error closing poll:', error)
         return { success: false, error: error.response?.data }
       }
     },
@@ -460,6 +613,7 @@ export const useCirclesStore = defineStore('circles', {
 
     setActiveTopic(topicId) {
       this.activeTopicId = topicId
+      this.activePoll = null
       this.stopPolling()
     },
 
@@ -538,6 +692,9 @@ export const useCirclesStore = defineStore('circles', {
       this.unreadCounts = {}
       this.discoverCircles = []
       this.circleEvents = []
+      this.lastSyncTimestamp = null
+      this.editingMessageId = null
+      this.activePoll = null
       this.error = null
       this.activeTab = 'topics'
       this.mobileView = 'topics'

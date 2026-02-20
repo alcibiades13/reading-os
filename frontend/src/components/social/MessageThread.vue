@@ -1,9 +1,10 @@
 <script setup>
-import { ref, watch, nextTick, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
 import { useCirclesStore } from '@/stores/circlesStore'
 import { bookClubService } from '@/services/bookClubService'
-import { Heart, Quote, Reply, Trash2 } from 'lucide-vue-next'
+import { Heart, Quote, Reply, Trash2, Pin, Pencil, Check, X, Lock as LockIcon } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/authStore'
+import PollCard from '@/components/social/PollCard.vue'
 
 const circlesStore = useCirclesStore()
 const authStore = useAuthStore()
@@ -50,6 +51,36 @@ async function handleDeleteMessage(messageId) {
   await circlesStore.deleteMessage(messageId)
 }
 
+// Inline edit
+const editContent = ref('')
+
+function startEdit(msg) {
+  editContent.value = msg.content
+  circlesStore.startEditing(msg.id)
+}
+
+function cancelEdit() {
+  editContent.value = ''
+  circlesStore.cancelEditing()
+}
+
+async function saveEdit(messageId) {
+  if (!editContent.value.trim()) return
+  await circlesStore.editMessage(messageId, editContent.value.trim())
+  editContent.value = ''
+}
+
+const pinnedMessage = computed(() => circlesStore.messages.find(m => m.is_pinned))
+
+async function handlePollVote(pollId, optionId) {
+  await circlesStore.votePoll(pollId, optionId)
+}
+
+async function handleClosePoll(pollId) {
+  if (!confirm('Close this poll? No more votes will be accepted.')) return
+  await circlesStore.closePoll(pollId)
+}
+
 function scrollToBottom() {
   nextTick(() => {
     if (messagesContainerRef.value) {
@@ -73,6 +104,12 @@ watch(() => circlesStore.activeTopicId, async (newId) => {
     scrollToBottom()
     circlesStore.startPolling(newId)
     circlesStore.markTopicRead(newId)
+    // Fetch poll if topic is a polls category
+    if (circlesStore.activeTopic?.category === 'polls') {
+      circlesStore.fetchTopicPoll(newId)
+    } else {
+      circlesStore.activePoll = null
+    }
   } else {
     circlesStore.stopPolling()
   }
@@ -92,11 +129,36 @@ defineExpose({ scrollToBottom })
 <template>
   <div class="flex-1 flex flex-col bg-slate-950/40 relative">
     <template v-if="circlesStore.activeTopic">
+      <!-- Pinned message banner -->
+      <div
+        v-if="pinnedMessage"
+        class="px-5 py-2.5 border-b border-amber-500/10 bg-amber-500/5 flex items-start gap-2.5 shrink-0"
+      >
+        <Pin :size="12" class="text-amber-400 shrink-0 mt-0.5" />
+        <div class="min-w-0 flex-1">
+          <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest">Pinned</span>
+          <p class="text-xs text-slate-300 line-clamp-1">{{ pinnedMessage.content }}</p>
+          <span class="text-[9px] text-slate-500">— {{ pinnedMessage.author?.first_name }}</span>
+        </div>
+      </div>
+
       <!-- Messages -->
       <div ref="messagesContainerRef" class="flex-1 overflow-y-auto px-5 py-4 custom-scrollbar space-y-4">
         <div class="text-center py-4 opacity-30">
           <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent mb-2" />
           <span class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500">Beginning of Discourse</span>
+        </div>
+
+        <!-- Poll (if this topic has one) -->
+        <div v-if="circlesStore.activePoll" class="mb-2">
+          <PollCard :poll="circlesStore.activePoll" @vote="handlePollVote" />
+          <button
+            v-if="circlesStore.isCircleAdmin && !circlesStore.activePoll.is_closed"
+            @click="handleClosePoll(circlesStore.activePoll.id)"
+            class="mt-2 text-[10px] font-bold text-slate-500 hover:text-rose-400 transition-colors"
+          >
+            Close Poll
+          </button>
         </div>
 
         <div v-if="circlesStore.messages.length === 0" class="text-center py-8 text-slate-500 text-sm">
@@ -117,9 +179,13 @@ defineExpose({ scrollToBottom })
                 <span class="text-[9px] text-slate-600">
                   {{ formatTimeAgo(msg.created_at) }}
                 </span>
+                <span v-if="msg.is_edited" class="text-[9px] text-slate-600 italic">(edited)</span>
               </div>
               <!-- Action buttons on hover -->
-              <div class="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+              <div
+                v-if="circlesStore.editingMessageId !== msg.id"
+                class="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
+              >
                 <button
                   @click="toggleReactionPicker(msg.id)"
                   class="p-1 rounded text-slate-600 hover:text-amber-400 hover:bg-white/5 transition-colors text-xs"
@@ -142,6 +208,22 @@ defineExpose({ scrollToBottom })
                   <Heart :size="13" :class="msg.is_liked ? 'fill-current' : ''" />
                 </button>
                 <button
+                  v-if="circlesStore.isCircleAdmin"
+                  @click="circlesStore.togglePinMessage(msg.id)"
+                  :class="['p-1 rounded transition-colors', msg.is_pinned ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400 hover:bg-white/5']"
+                  :title="msg.is_pinned ? 'Unpin message' : 'Pin message'"
+                >
+                  <Pin :size="13" />
+                </button>
+                <button
+                  v-if="msg.author?.id === authStore.user?.id"
+                  @click="startEdit(msg)"
+                  class="p-1 rounded text-slate-600 hover:text-indigo-400 hover:bg-white/5 transition-colors"
+                  title="Edit"
+                >
+                  <Pencil :size="13" />
+                </button>
+                <button
                   v-if="msg.author?.id === authStore.user?.id"
                   @click="handleDeleteMessage(msg.id)"
                   class="p-1 rounded text-slate-600 hover:text-rose-400 hover:bg-white/5 transition-colors"
@@ -162,7 +244,33 @@ defineExpose({ scrollToBottom })
             </div>
 
             <!-- Message content -->
-            <div class="text-sm text-slate-300 leading-relaxed">
+            <template v-if="circlesStore.editingMessageId === msg.id">
+              <div class="space-y-2">
+                <textarea
+                  v-model="editContent"
+                  @keydown.ctrl.enter="saveEdit(msg.id)"
+                  @keydown.escape="cancelEdit"
+                  class="w-full bg-white/5 border border-indigo-500/40 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 outline-none resize-none min-h-[60px]"
+                  rows="3"
+                />
+                <div class="flex items-center gap-2">
+                  <button
+                    @click="saveEdit(msg.id)"
+                    class="px-3 py-1 rounded-lg bg-indigo-500 text-white text-xs font-bold hover:bg-indigo-600 transition-colors flex items-center gap-1"
+                  >
+                    <Check :size="12" /> Save
+                  </button>
+                  <button
+                    @click="cancelEdit"
+                    class="px-3 py-1 rounded-lg bg-white/5 text-slate-400 text-xs font-bold hover:bg-white/10 transition-colors flex items-center gap-1"
+                  >
+                    <X :size="12" /> Cancel
+                  </button>
+                  <span class="text-[9px] text-slate-600">ctrl+enter to save, esc to cancel</span>
+                </div>
+              </div>
+            </template>
+            <div v-else class="text-sm text-slate-300 leading-relaxed">
               {{ msg.content }}
             </div>
 
