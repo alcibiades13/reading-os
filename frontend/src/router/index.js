@@ -134,7 +134,7 @@ const routes = [
     meta: { requiresAuth: true, title: 'Messages' },
   },
   {
-    path: '/circles',
+    path: '/circles/:circleId?/:topicId?',
     name: 'Circles',
     component: () => import('@/views/social/CirclesView.vue'),
     meta: { requiresAuth: true, title: 'Circles' },

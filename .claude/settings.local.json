@@ -65,7 +65,10 @@
       "Bash(npx vue-tsc:*)",
       "Bash(npm ls:*)",
       "Bash(npx cap sync:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(venv/bin/python:*)",
+      "Bash(venv/bin/python manage.py migrate:*)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings venv/bin/python:*)"
     ]
   }
 }

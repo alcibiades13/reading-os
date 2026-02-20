@@ -1,11 +1,11 @@
 <script setup>
 import { useCirclesStore } from '@/stores/circlesStore'
 import { bookClubService } from '@/services/bookClubService'
-import { MessageSquare, Plus, Lock, Pin } from 'lucide-vue-next'
+import { MessageSquare, Plus, Lock, Pin, Pencil, Trash2 } from 'lucide-vue-next'
 
 const circlesStore = useCirclesStore()
 
-defineEmits(['openCreateTopic'])
+const emit = defineEmits(['openCreateTopic', 'editTopic'])
 
 function getCategoryClass(category) {
   return bookClubService.getCategoryInfo(category)?.color || 'bg-slate-500/20 text-slate-400'
@@ -20,6 +20,22 @@ function isRecentActivity(dateString) {
   const date = new Date(dateString)
   const now = new Date()
   return (now - date) / (1000 * 60 * 60) < 24
+}
+
+async function togglePin(e, topicId) {
+  e.stopPropagation()
+  await circlesStore.togglePinTopic(topicId)
+}
+
+function handleEditTopic(e, topic) {
+  e.stopPropagation()
+  emit('editTopic', topic)
+}
+
+async function handleDeleteTopic(e, topicId) {
+  e.stopPropagation()
+  if (!confirm('Delete this topic and all its messages?')) return
+  await circlesStore.deleteTopic(topicId)
 }
 </script>
 
@@ -66,7 +82,20 @@ function isRecentActivity(dateString) {
               <div :class="['px-1.5 py-px rounded text-[7px] font-black uppercase tracking-wider', getCategoryClass(topic.category)]">
                 {{ topic.category }}
               </div>
-              <Pin v-if="topic.is_pinned" :size="10" class="text-amber-400" />
+              <Pin v-if="topic.is_pinned && !circlesStore.isCircleAdmin" :size="10" class="text-amber-400" />
+              <button
+                v-if="circlesStore.isCircleAdmin"
+                @click="togglePin($event, topic.id)"
+                :title="topic.is_pinned ? 'Unpin topic' : 'Pin topic'"
+                :class="[
+                  'p-0.5 rounded transition-all',
+                  topic.is_pinned
+                    ? 'text-amber-400 hover:text-amber-300'
+                    : 'text-slate-600 opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                ]"
+              >
+                <Pin :size="10" />
+              </button>
             </div>
             <div class="flex items-center gap-1.5">
               <div
@@ -81,9 +110,27 @@ function isRecentActivity(dateString) {
           </div>
           <h4 class="text-sm font-bold text-white mb-0.5 group-hover:text-indigo-400 transition-colors line-clamp-1">{{ topic.title }}</h4>
           <p v-if="topic.description" class="text-[11px] text-slate-500 line-clamp-1 mb-1">{{ topic.description }}</p>
-          <span class="text-[9px] text-slate-600 flex items-center gap-1">
-            <MessageSquare :size="9" /> {{ topic.message_count || 0 }} posts
-          </span>
+          <div class="flex items-center justify-between">
+            <span class="text-[9px] text-slate-600 flex items-center gap-1">
+              <MessageSquare :size="9" /> {{ topic.message_count || 0 }} posts
+            </span>
+            <div v-if="circlesStore.isCircleAdmin" class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                @click="handleEditTopic($event, topic)"
+                class="p-0.5 rounded text-slate-600 hover:text-indigo-400 transition-colors"
+                title="Edit topic"
+              >
+                <Pencil :size="10" />
+              </button>
+              <button
+                @click="handleDeleteTopic($event, topic.id)"
+                class="p-0.5 rounded text-slate-600 hover:text-rose-400 transition-colors"
+                title="Delete topic"
+              >
+                <Trash2 :size="10" />
+              </button>
+            </div>
+          </div>
         </div>
       </button>
     </div>
