@@ -6,6 +6,11 @@ from apps.books.models import Author, Publisher, Genre, Tag, Book
 class AuthorSerializer(serializers.ModelSerializer):
     """Serializer for Author model"""
     books_count = serializers.SerializerMethodField()
+    author_group_id = serializers.IntegerField(
+        source='author_group.id', read_only=True, allow_null=True
+    )
+    aliases = serializers.SerializerMethodField()
+    similar_authors = serializers.SerializerMethodField()
 
     class Meta:
         model = Author
@@ -18,13 +23,39 @@ class AuthorSerializer(serializers.ModelSerializer):
             'death_date',
             'photo',
             'books_count',
+            'author_group_id',
+            'is_primary_alias',
+            'aliases',
+            'similar_authors',
             'created_at',
         ]
         read_only_fields = ['id', 'slug', 'created_at']
-    
+
     def get_books_count(self, obj):
-        """Count books by this author"""
+        """Count books by this author (across all aliases if grouped)"""
+        if obj.author_group_id:
+            alias_ids = obj.author_group.members.values_list('id', flat=True)
+            return Book.objects.filter(authors__id__in=alias_ids).distinct().count()
         return obj.books.count()
+
+    def get_aliases(self, obj):
+        """Return other name spellings for this author."""
+        if not obj.author_group_id:
+            return []
+        return [{
+            'id': a.id, 'name': a.name, 'slug': a.slug,
+            'photo': a.photo, 'is_primary': a.is_primary_alias,
+        } for a in obj.author_group.members.exclude(id=obj.id)]
+
+    def get_similar_authors(self, obj):
+        """Compute similar authors based on shared DNA themes."""
+        # Only compute for detail views, not lists
+        request = self.context.get('request')
+        view = self.context.get('view')
+        if view and hasattr(view, 'action') and view.action != 'retrieve':
+            return []
+        from apps.books.utils import compute_similar_authors
+        return compute_similar_authors(obj)
 
 
 class PublisherSerializer(serializers.ModelSerializer):

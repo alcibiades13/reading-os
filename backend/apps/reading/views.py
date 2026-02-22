@@ -76,23 +76,24 @@ class UserBookViewSet(viewsets.ModelViewSet):
             # Default to current user's books
             queryset = queryset.filter(user=self.request.user)
 
-        # IMPORTANT: Only return ACTIVE UserBooks (not replaced by another edition)
-        queryset = queryset.filter(replaced_by__isnull=True)
+        # Filter by owned — when viewing physical shelf, include replaced editions
+        # (user still physically owns the old edition even if they switched to a new one for reading)
+        is_owned = self.request.query_params.get('owned', None)
+        if is_owned == 'true':
+            queryset = queryset.filter(is_owned=True)
+        else:
+            # Only return ACTIVE UserBooks (not replaced by another edition) for non-shelf views
+            queryset = queryset.filter(replaced_by__isnull=True)
 
         # Filter by status
         status_filter = self.request.query_params.get('status', None)
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-        
+
         # Filter by favorite
         is_favorite = self.request.query_params.get('favorite', None)
         if is_favorite == 'true':
             queryset = queryset.filter(is_favorite=True)
-
-        # Filter by owned
-        is_owned = self.request.query_params.get('owned', None)
-        if is_owned == 'true':
-            queryset = queryset.filter(is_owned=True)
 
         # Filter by rating
         rating = self.request.query_params.get('rating', None)
@@ -104,7 +105,7 @@ class UserBookViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """
         Override create to handle duplicates gracefully.
-        If user already has this book, return the existing UserBook.
+        If user already has this book, update ownership fields and return it.
         """
         book_id = request.data.get('book')
 
@@ -115,7 +116,16 @@ class UserBookViewSet(viewsets.ModelViewSet):
         ).first()
 
         if existing:
-            # Return existing UserBook instead of creating duplicate
+            # Update ownership/wishlist fields if provided in the request
+            updated = False
+            if 'is_owned' in request.data and request.data['is_owned'] != existing.is_owned:
+                existing.is_owned = request.data['is_owned']
+                updated = True
+            if 'is_wishlisted' in request.data and request.data['is_wishlisted'] != existing.is_wishlisted:
+                existing.is_wishlisted = request.data['is_wishlisted']
+                updated = True
+            if updated:
+                existing.save(update_fields=['is_owned', 'is_wishlisted'])
             serializer = self.get_serializer(existing)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -175,6 +185,31 @@ class UserBookViewSet(viewsets.ModelViewSet):
         user_book.is_owned = not user_book.is_owned
         user_book.save(update_fields=['is_owned'])
         serializer = UserBookListSerializer(user_book)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def toggle_wishlisted(self, request, pk=None):
+        """Toggle wishlist status of a book"""
+        user_book = self.get_object()
+        user_book.is_wishlisted = not user_book.is_wishlisted
+        # If wishlisting, remove owned flag (and vice versa)
+        if user_book.is_wishlisted and user_book.is_owned:
+            user_book.is_owned = False
+        user_book.save(update_fields=['is_wishlisted', 'is_owned'])
+        serializer = UserBookListSerializer(user_book)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def wishlist(self, request):
+        """Get a user's wishlist (wishlisted books). Accessible by other users."""
+        user_id = request.query_params.get('user', request.user.id)
+        wishlisted = UserBook.objects.filter(
+            user_id=user_id,
+            is_wishlisted=True,
+        ).select_related(
+            'book', 'book__publisher'
+        ).prefetch_related('book__authors', 'book__genres')
+        serializer = UserBookListSerializer(wishlisted, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'])

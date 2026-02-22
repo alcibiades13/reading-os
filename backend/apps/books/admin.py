@@ -1,15 +1,26 @@
 from django.contrib import admin
 from .models import (
-    Author, Publisher, Genre, Tag, Book, BookDNA, BookDNAVote,
+    Author, AuthorGroup, Publisher, Genre, Tag, Book, BookDNA, BookDNAVote,
     BookGroup, BookGroupDNA
 )
 
 
+@admin.register(AuthorGroup)
+class AuthorGroupAdmin(admin.ModelAdmin):
+    list_display = ['canonical_name', 'get_members_count', 'created_at']
+    search_fields = ['canonical_name', 'members__name']
+    readonly_fields = ['created_at', 'updated_at']
+
+    def get_members_count(self, obj):
+        return obj.members.count()
+    get_members_count.short_description = 'Members'
+
+
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ['name', 'birth_date', 'death_date', 'created_at']
+    list_display = ['name', 'author_group', 'is_primary_alias', 'birth_date', 'death_date', 'created_at']
     search_fields = ['name', 'bio']
-    list_filter = ['created_at']
+    list_filter = ['author_group', 'is_primary_alias', 'created_at']
     readonly_fields = ['created_at', 'updated_at']
 
 

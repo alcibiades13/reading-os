@@ -2,10 +2,11 @@
 Aggregation functions for Book DNA and User Taste Profile.
 These run synchronously when a user submits a survey.
 """
+import math
 from collections import Counter
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django.utils import timezone
-from apps.books.models import Book, BookDNA, BookDNAVote
+from apps.books.models import Book, BookDNA, BookDNAVote, BookGroupDNA, Author, Genre
 from apps.reading.models import UserBook
 from apps.users.models import User
 
@@ -223,4 +224,159 @@ def get_user_taste_profile(user: User) -> dict:
         'completion_rate': dna.get('completion_rate', 1.0),
         'vote_count': dna.get('vote_count', 0),
         'last_updated': dna.get('last_updated'),
+    }
+
+
+def compute_reading_taste(user_id: int, scope: str = 'all') -> dict:
+    """
+    Compute reading taste from user's actual books (not survey votes).
+    Derives top genres, authors, themes, and DNA vector from book metadata.
+
+    Args:
+        user_id: User ID
+        scope: 'all' (read + owned), 'owned' (only owned books)
+    """
+    user = User.objects.get(id=user_id)
+
+    # Build filter based on scope
+    base_q = Q(user=user)
+    if scope == 'owned':
+        base_q &= Q(is_owned=True)
+    else:
+        base_q &= (Q(status='read') | Q(is_owned=True))
+
+    user_books = list(
+        UserBook.objects.filter(base_q)
+        .select_related('book', 'book__publisher')
+        .prefetch_related('book__authors', 'book__genres')
+    )
+
+    if not user_books:
+        return {
+            'top_genres': [],
+            'top_authors': [],
+            'top_themes': [],
+            'top_genre_tags': [],
+            'dna_vector': {},
+            'books_count': 0,
+            'books_with_dna': 0,
+            'scope': scope,
+        }
+
+    # Prefetch DNA data in bulk (avoid N+1)
+    book_ids = [ub.book_id for ub in user_books]
+    book_dna_map = {
+        dna.book_id: dna
+        for dna in BookDNA.objects.filter(book_id__in=book_ids)
+    }
+    group_ids = [ub.book.book_group_id for ub in user_books if ub.book.book_group_id]
+    group_dna_map = {
+        dna.book_group_id: dna
+        for dna in BookGroupDNA.objects.filter(book_group_id__in=group_ids)
+    } if group_ids else {}
+
+    def get_dna(book):
+        if book.book_group_id and book.book_group_id in group_dna_map:
+            return group_dna_map[book.book_group_id]
+        return book_dna_map.get(book.id)
+
+    def get_weight(ub):
+        w = 1.0
+        if ub.is_favorite:
+            w *= 2.0
+        if ub.rating:
+            w *= (float(ub.rating) / 10.0) + 0.5
+        if ub.quotes_count > 0:
+            w *= 1.0 + (math.log1p(ub.quotes_count) * 0.3)
+        return w
+
+    # Aggregate
+    genre_counter = Counter()
+    author_counter = Counter()
+    author_books_count = Counter()
+    author_pages = Counter()
+    theme_counter = Counter()
+    genre_tag_counter = Counter()
+    dna_attributes = ['pace', 'complexity', 'emotional_intensity',
+                      'darkness', 'character_focus', 'introspection']
+    dna_weighted_sums = {attr: 0.0 for attr in dna_attributes}
+    dna_total_weight = 0.0
+    books_with_dna = 0
+
+    for ub in user_books:
+        w = get_weight(ub)
+
+        for genre in ub.book.genres.all():
+            genre_counter[genre.id] += w
+
+        for author in ub.book.authors.all():
+            # Resolve to canonical (primary) author if grouped
+            canonical_id = author.id
+            if author.author_group_id:
+                primary = author.author_group.get_primary_author()
+                if primary:
+                    canonical_id = primary.id
+            author_counter[canonical_id] += w
+            author_books_count[canonical_id] += 1
+            author_pages[canonical_id] += ub.book.pages or 0
+
+        dna = get_dna(ub.book)
+        if dna:
+            books_with_dna += 1
+            dna_total_weight += w
+
+            for attr in dna_attributes:
+                val = getattr(dna, attr, None)
+                if val is not None:
+                    dna_weighted_sums[attr] += float(val) * w
+
+            for theme in (dna.themes or []):
+                theme_counter[theme] += w
+            for pt in (dna.primary_themes or []):
+                theme_counter[pt] += w  # extra weight for primary
+
+            for gt in (dna.genre_tags or []):
+                genre_tag_counter[gt] += w
+            if dna.primary_genre_tag:
+                genre_tag_counter[dna.primary_genre_tag] += w
+
+    # Resolve top genres
+    top_genre_ids = [gid for gid, _ in genre_counter.most_common(8)]
+    genres = {g.id: g for g in Genre.objects.filter(id__in=top_genre_ids)}
+    top_genres = [
+        {'id': gid, 'name': genres[gid].name, 'slug': genres[gid].slug,
+         'score': round(genre_counter[gid], 2)}
+        for gid in top_genre_ids if gid in genres
+    ]
+
+    # Resolve top authors
+    top_author_ids = [aid for aid, _ in author_counter.most_common(10)]
+    authors = {a.id: a for a in Author.objects.filter(id__in=top_author_ids)}
+    top_authors = [
+        {'id': aid, 'name': authors[aid].name, 'slug': authors[aid].slug,
+         'score': round(author_counter[aid], 2),
+         'books_count': author_books_count[aid],
+         'total_pages': author_pages[aid]}
+        for aid in top_author_ids if aid in authors
+    ]
+
+    # Top themes and genre tags
+    top_themes = [t for t, _ in theme_counter.most_common(10)]
+    top_genre_tags = [t for t, _ in genre_tag_counter.most_common(8)]
+
+    # DNA vector
+    dna_vector = {}
+    if dna_total_weight > 0:
+        for attr in dna_attributes:
+            dna_vector[attr] = round(dna_weighted_sums[attr] / dna_total_weight, 3)
+
+    return {
+        'top_genres': top_genres,
+        'top_authors': top_authors,
+        'top_themes': top_themes,
+        'top_genre_tags': top_genre_tags,
+        'dna_vector': dna_vector,
+        'books_count': len(user_books),
+        'books_with_dna': books_with_dna,
+        'scope': scope,
     }

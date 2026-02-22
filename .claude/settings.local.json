@@ -68,7 +68,9 @@
       "Bash(npx vite build:*)",
       "Bash(venv/bin/python:*)",
       "Bash(venv/bin/python manage.py migrate:*)",
-      "Bash(DJANGO_SETTINGS_MODULE=config.settings venv/bin/python:*)"
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings venv/bin/python:*)",
+      "Bash(backend/venv/bin/python backend/manage.py migrate:*)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings python:*)"
     ]
   }
 }

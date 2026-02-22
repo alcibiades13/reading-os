@@ -78,6 +78,10 @@ class UserBook(models.Model):
         default=False,
         help_text="User physically owns this book"
     )
+    is_wishlisted = models.BooleanField(
+        default=False,
+        help_text="User wishes to own this book (visible to friends as gift ideas)"
+    )
 
     # Privacy
     is_public = models.BooleanField(
@@ -108,6 +112,7 @@ class UserBook(models.Model):
             models.Index(fields=['user', 'status']),
             models.Index(fields=['user', 'is_favorite']),
             models.Index(fields=['user', 'is_owned']),
+            models.Index(fields=['user', 'is_wishlisted']),
         ]
     
     def __str__(self):

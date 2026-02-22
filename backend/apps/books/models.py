@@ -2,6 +2,30 @@ from django.db import models
 from django.utils.text import slugify
 
 
+class AuthorGroup(models.Model):
+    """
+    Groups multiple Author records that refer to the same real person
+    but have different name spellings across languages.
+    Example: "Hermann Hesse" (en/de) and "Herman Hese" (sr).
+    """
+    canonical_name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['canonical_name']
+        verbose_name = 'Author Group'
+        verbose_name_plural = 'Author Groups'
+
+    def __str__(self):
+        return self.canonical_name
+
+    def get_primary_author(self):
+        """Get the primary author, or first if none marked."""
+        return self.members.filter(is_primary_alias=True).first() or \
+               self.members.order_by('created_at').first()
+
+
 class Author(models.Model):
     """Book author"""
     name = models.CharField(max_length=200, unique=True)
@@ -10,6 +34,16 @@ class Author(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     death_date = models.DateField(null=True, blank=True)
     photo = models.URLField(blank=True)
+
+    # Author grouping (like BookGroup for books)
+    author_group = models.ForeignKey(
+        AuthorGroup,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='members',
+    )
+    is_primary_alias = models.BooleanField(default=False)
 
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)

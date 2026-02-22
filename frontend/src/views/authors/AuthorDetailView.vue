@@ -1,16 +1,20 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authorsAPI } from '@/services/api'
+import { useToast } from '@/composables/useToast'
 import { getBookUrl } from '@/utils/bookUrl'
 import { getAuthorUrl } from '@/utils/authorUrl'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   ArrowLeft, BookOpen, Share2, User, Calendar,
-  Globe, ChevronRight, Quote, Heart, Users
+  Globe, ChevronRight, Quote, Heart, Users,
+  Plus, Search, Loader2, Link2
 } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
+const { addToast } = useToast()
 
 const authorId = computed(() => {
   const param = route.params.id
@@ -24,6 +28,14 @@ const author = ref(null)
 const authorBooks = ref([])
 const loading = ref(true)
 const isFollowing = ref(false)
+
+// Author linking state
+const potentialAliases = ref([])
+const loadingPotentialAliases = ref(false)
+const isLinkAuthorModalOpen = ref(false)
+const aliasSearchQuery = ref('')
+const aliasSearchResults = ref([])
+const isSearchingAliases = ref(false)
 
 const volumeCount = computed(() => author.value?.books_count || authorBooks.value.length)
 
@@ -55,6 +67,9 @@ const authorTags = computed(() => author.value?.tags || [])
 // Similar authors from backend, or empty array
 const similarAuthors = computed(() => author.value?.similar_authors || [])
 
+// Aliases from backend
+const aliases = computed(() => author.value?.aliases || [])
+
 // Notable quote — from author data or first quote from their books
 const notableQuote = computed(() => author.value?.notable_quote || null)
 
@@ -66,21 +81,96 @@ const handleBack = () => {
   }
 }
 
+const fetchPotentialAliases = async () => {
+  loadingPotentialAliases.value = true
+  try {
+    const response = await authorsAPI.potentialAliases(authorId.value)
+    potentialAliases.value = response.data || []
+  } catch (error) {
+    potentialAliases.value = []
+  } finally {
+    loadingPotentialAliases.value = false
+  }
+}
+
+const refreshAuthorData = async () => {
+  const [authorResponse, booksResponse] = await Promise.all([
+    authorsAPI.get(authorId.value),
+    authorsAPI.books(authorId.value),
+  ])
+  author.value = authorResponse.data
+  const booksData = booksResponse.data?.results || booksResponse.data
+  authorBooks.value = Array.isArray(booksData) ? booksData : []
+}
+
+const linkPotentialAlias = async (aliasId) => {
+  try {
+    const response = await authorsAPI.linkAuthor(authorId.value, aliasId)
+    if (response.data.success) {
+      addToast('Autor povezan!', 'success')
+      await refreshAuthorData()
+      potentialAliases.value = potentialAliases.value.filter(a => a.id !== aliasId)
+    }
+  } catch (error) {
+    console.error('Failed to link author:', error)
+    addToast(error.response?.data?.error || 'Greska pri povezivanju', 'error')
+  }
+}
+
+const linkManualAlias = async (aliasId) => {
+  try {
+    const response = await authorsAPI.linkAuthor(authorId.value, aliasId)
+    if (response.data.success) {
+      isLinkAuthorModalOpen.value = false
+      aliasSearchQuery.value = ''
+      aliasSearchResults.value = []
+      addToast('Autor povezan!', 'success')
+      await refreshAuthorData()
+      fetchPotentialAliases()
+    }
+  } catch (error) {
+    console.error('Failed to link author:', error)
+    addToast(error.response?.data?.error || 'Greska pri povezivanju', 'error')
+  }
+}
+
+// Manual alias search with debounce
+let aliasSearchTimeout = null
+watch(aliasSearchQuery, (newQuery) => {
+  clearTimeout(aliasSearchTimeout)
+  if (!newQuery || newQuery.trim().length < 2) {
+    aliasSearchResults.value = []
+    return
+  }
+  aliasSearchTimeout = setTimeout(async () => {
+    isSearchingAliases.value = true
+    try {
+      const response = await authorsAPI.list({ search: newQuery.trim() })
+      const results = response.data?.results || response.data || []
+      aliasSearchResults.value = results.filter(a => {
+        if (a.id === parseInt(authorId.value)) return false
+        if (author.value?.author_group_id && a.author_group_id === author.value.author_group_id) return false
+        return true
+      }).slice(0, 10)
+    } catch (error) {
+      aliasSearchResults.value = []
+    } finally {
+      isSearchingAliases.value = false
+    }
+  }, 300)
+})
+
 onMounted(async () => {
   loading.value = true
   try {
-    const [authorResponse, booksResponse] = await Promise.all([
-      authorsAPI.get(authorId.value),
-      authorsAPI.books(authorId.value),
-    ])
-
-    author.value = authorResponse.data
-    const booksData = booksResponse.data?.results || booksResponse.data
-    authorBooks.value = Array.isArray(booksData) ? booksData : []
+    await refreshAuthorData()
 
     if (author.value?.name) {
       document.title = `${author.value.name} — Reading OS`
     }
+
+    // Fetch potential aliases in background
+    fetchPotentialAliases()
   } catch (error) {
     console.error('Failed to load author:', error)
   } finally {
@@ -273,8 +363,97 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Right: Similar Minds Sidebar -->
-        <div class="lg:col-span-4 space-y-10">
+        <!-- Right: Sidebar -->
+        <div class="lg:col-span-4 space-y-6">
+
+          <!-- Aliases Section -->
+          <div v-if="aliases.length > 0" class="p-6 lg:p-8 rounded-[2rem] bg-slate-950/40 border border-white/5 glass">
+            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Link2 :size="10" />
+              Poznato i kao
+            </h3>
+            <div class="space-y-2">
+              <router-link
+                v-for="alias in aliases"
+                :key="alias.id"
+                :to="getAuthorUrl(alias)"
+                class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/[0.08] border border-transparent hover:border-indigo-500/20 transition-all group"
+              >
+                <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center font-black text-[10px] text-indigo-400 border border-white/5">
+                  {{ alias.name?.charAt(0) || '?' }}
+                </div>
+                <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors flex-1">{{ alias.name }}</span>
+                <span v-if="alias.is_primary" class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[8px] font-black uppercase">Primary</span>
+                <ChevronRight :size="14" class="text-slate-600 group-hover:text-indigo-400 transition-all" />
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Potential Aliases Widget -->
+          <div v-if="potentialAliases.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+            <div class="mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+              <p class="text-xs text-amber-200/70">
+                Pronasli smo autore sa slicnim imenom. Povezi ih ako se radi o istoj osobi.
+              </p>
+            </div>
+
+            <div class="space-y-3">
+              <div
+                v-for="alias in potentialAliases"
+                :key="alias.id"
+                class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-amber-500/30 transition-all space-y-3"
+              >
+                <div class="flex gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center font-black text-sm text-amber-400 border border-white/5">
+                    {{ alias.name?.charAt(0) || '?' }}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start gap-2 mb-1">
+                      <h4 class="flex-1 font-semibold text-slate-100 text-sm">{{ alias.name }}</h4>
+                      <span class="shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold">
+                        {{ Math.round(alias.similarity * 100) }}%
+                      </span>
+                    </div>
+                    <div class="text-[10px] text-slate-500">
+                      {{ alias.books_count }} {{ alias.books_count === 1 ? 'book' : 'books' }}
+                    </div>
+                    <div v-if="alias.bio" class="text-[10px] text-slate-600 line-clamp-2 mt-1">{{ alias.bio }}</div>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-800/50 flex gap-2">
+                  <button
+                    @click="linkPotentialAlias(alias.id)"
+                    class="flex-1 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all"
+                  >
+                    Povezi
+                  </button>
+                  <router-link
+                    :to="getAuthorUrl(alias)"
+                    class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all"
+                  >
+                    Pogledaj
+                  </router-link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Link Author Button -->
+          <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40 border-dashed">
+            <button
+              @click="isLinkAuthorModalOpen = true; aliasSearchQuery = ''; aliasSearchResults = []"
+              class="w-full px-4 py-3 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 text-indigo-400 text-sm font-bold transition-all flex items-center justify-center gap-2 group"
+            >
+              <Plus :size="16" class="group-hover:rotate-90 transition-transform" />
+              Povezi sa drugim pravopisom
+            </button>
+            <p class="text-[10px] text-slate-500 text-center mt-2">
+              Povezi autore sa istim imenom na razlicitim jezicima
+            </p>
+          </div>
+
+          <!-- Similar Minds -->
           <div class="p-6 lg:p-8 rounded-[2rem] bg-slate-950/40 border border-white/5 glass">
             <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-6">Similar Minds</h3>
             <div v-if="similarAuthors.length > 0" class="space-y-3">
@@ -348,5 +527,95 @@ onMounted(async () => {
       </section>
 
     </template>
+
+    <!-- ========== LINK AUTHOR MODAL ========== -->
+    <Dialog :open="isLinkAuthorModalOpen" @update:open="isLinkAuthorModalOpen = $event">
+      <DialogContent class="max-w-2xl glass border-slate-700 max-h-[80vh] flex flex-col">
+        <DialogHeader class="border-b border-slate-800 pb-4">
+          <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
+            <Link2 :size="20" class="text-indigo-400" />
+            Povezi sa drugim pravopisom
+          </DialogTitle>
+        </DialogHeader>
+
+        <div class="flex-1 overflow-hidden flex flex-col space-y-4 py-4">
+          <p class="text-sm text-slate-300">
+            Pronadji autora "{{ author?.name }}" na drugom jeziku ili sa drugim pravopisom imena.
+          </p>
+
+          <!-- Search Input -->
+          <div class="relative">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="18" />
+            <input
+              v-model="aliasSearchQuery"
+              type="text"
+              placeholder="Pretrazi po imenu autora..."
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-50 outline-none focus:border-indigo-500 transition-all placeholder-slate-600"
+              autofocus
+            />
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="isSearchingAliases" class="flex items-center justify-center py-8">
+            <Loader2 :size="24" class="text-indigo-400 animate-spin" />
+          </div>
+
+          <!-- Search Results -->
+          <div v-else-if="aliasSearchResults.length > 0" class="flex-1 overflow-y-auto space-y-3">
+            <div
+              v-for="result in aliasSearchResults"
+              :key="result.id"
+              class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/30 transition-all cursor-pointer"
+              @click="linkManualAlias(result.id)"
+            >
+              <div class="flex gap-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center font-black text-sm text-indigo-400 border border-white/5">
+                  {{ result.name?.charAt(0) || '?' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-semibold text-slate-100 text-sm mb-1">{{ result.name }}</h4>
+                  <div class="text-[11px] text-slate-500">
+                    {{ result.books_count || 0 }} {{ (result.books_count || 0) === 1 ? 'book' : 'books' }}
+                  </div>
+                </div>
+                <div class="shrink-0 flex items-center">
+                  <div class="px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-bold">
+                    Povezi
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else-if="aliasSearchQuery.trim().length >= 2" class="flex-1 flex flex-col items-center justify-center py-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mb-4">
+              <Search :size="24" class="text-slate-600" />
+            </div>
+            <p class="text-sm font-semibold text-slate-400 mb-1">Nema rezultata</p>
+            <p class="text-xs text-slate-500">Probaj drugi termin pretrage</p>
+          </div>
+
+          <!-- Initial State -->
+          <div v-else class="flex-1 flex flex-col items-center justify-center py-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+              <User :size="24" class="text-indigo-400" />
+            </div>
+            <p class="text-sm font-semibold text-slate-300 mb-1">Pretrazi autore</p>
+            <p class="text-xs text-slate-500">Pocni da kucas da pronadjes autora u bazi</p>
+          </div>
+
+          <!-- Footer -->
+          <div class="pt-4 border-t border-slate-800">
+            <button
+              @click="isLinkAuthorModalOpen = false"
+              class="w-full px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
+            >
+              Otkazi
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

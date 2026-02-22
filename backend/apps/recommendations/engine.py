@@ -350,3 +350,110 @@ class RecommendationEngine:
             deduped.append(rec)
 
         return deduped[:limit]
+
+
+def get_discover_sections(user: User) -> dict:
+    """
+    Build personalized discover sections:
+    - author_picks: books by user's favorite authors they haven't read
+    - genre_picks: books in user's top genres they haven't read
+    - because_you_read: similar books to a favorite/top-rated book
+    """
+    from .aggregation import compute_reading_taste
+    from apps.books.serializers import BookListSerializer
+    from apps.books.models import Author, Genre
+
+    taste = compute_reading_taste(user.id, scope='all')
+
+    # Books user already interacted with — exclude from recommendations
+    excluded_ids = set(
+        UserBook.objects.filter(user=user)
+        .values_list('book_id', flat=True)
+    )
+
+    # --- Author picks ---
+    author_picks = []
+    for author_info in taste.get('top_authors', [])[:3]:
+        try:
+            author = Author.objects.get(id=author_info['id'])
+        except Author.DoesNotExist:
+            continue
+
+        # Include books from all alias authors if grouped
+        if author.author_group_id:
+            author_ids = list(author.author_group.members.values_list('id', flat=True))
+        else:
+            author_ids = [author.id]
+
+        books = (
+            Book.objects.filter(authors__id__in=author_ids)
+            .exclude(id__in=excluded_ids)
+            .distinct()
+            .select_related('publisher')
+            .prefetch_related('authors', 'genres')
+            .order_by('-created_at')[:6]
+        )
+        if books:
+            author_picks.append({
+                'author': {
+                    'id': author.id,
+                    'name': author.name,
+                    'slug': author.slug,
+                },
+                'books': BookListSerializer(books, many=True).data,
+            })
+
+    # --- Genre picks ---
+    genre_picks = []
+    for genre_info in taste.get('top_genres', [])[:3]:
+        try:
+            genre = Genre.objects.get(id=genre_info['id'])
+        except Genre.DoesNotExist:
+            continue
+
+        books = (
+            Book.objects.filter(genres__id=genre.id)
+            .exclude(id__in=excluded_ids)
+            .select_related('publisher')
+            .prefetch_related('authors', 'genres')
+            .order_by('-created_at')[:8]
+        )
+        if books:
+            genre_picks.append({
+                'genre': {
+                    'id': genre.id,
+                    'name': genre.name,
+                    'slug': genre.slug,
+                },
+                'books': BookListSerializer(books, many=True).data,
+            })
+
+    # --- Because you read ---
+    because_you_read = []
+    candidate_ubs = (
+        UserBook.objects.filter(user=user, status='read')
+        .select_related('book')
+        .order_by('-is_favorite', '-rating', '-updated_at')[:10]
+    )
+
+    engine = RecommendationEngine(user)
+    for ub in candidate_ubs:
+        similar = engine.get_similar_books(ub.book, limit=20)
+        # Filter out books already in user's library
+        similar = [rec for rec in similar if rec['book'].id not in excluded_ids][:6]
+        if similar:
+            because_you_read.append({
+                'source_book': BookListSerializer(ub.book).data,
+                'similar': [
+                    {**BookListSerializer(rec['book']).data,
+                     'similarity_score': rec['similarity_score']}
+                    for rec in similar
+                ],
+            })
+            break  # Only one "because you read" section
+
+    return {
+        'author_picks': author_picks,
+        'genre_picks': genre_picks,
+        'because_you_read': because_you_read,
+    }

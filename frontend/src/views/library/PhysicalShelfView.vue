@@ -2,29 +2,39 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserBooksStore } from '@/stores/userBooksStore'
+import { recommendationsService } from '@/services/recommendationsService'
+import ReadingTaste from '@/components/recommendations/ReadingTaste.vue'
 import { getBookUrl } from '@/utils/bookUrl'
 import { getMediaUrl } from '@/utils/mediaUrl'
 import {
   BookOpen, Library, Search, Package, CheckSquare, Square,
-  X, BookMarked, Loader2, Home
+  X, BookMarked, Loader2, Home, Gift, Heart
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const store = useUserBooksStore()
 
+const activeTab = ref('owned') // 'owned' | 'wishlist'
 const searchQuery = ref('')
 const statusFilter = ref('all')
 const bulkMode = ref(false)
 const selectedIds = ref(new Set())
 const loading = ref(true)
+const readingTaste = ref(null)
 
 onMounted(async () => {
   await store.fetchBooks()
   loading.value = false
+  // Fetch collection taste (non-blocking)
+  recommendationsService.getReadingTaste('owned').then(taste => {
+    readingTaste.value = taste
+  })
 })
 
 const displayedBooks = computed(() => {
-  let books = store.books.filter(b => b.is_owned)
+  let books = activeTab.value === 'wishlist'
+    ? store.books.filter(b => b.is_wishlisted)
+    : store.books.filter(b => b.is_owned)
 
   if (statusFilter.value !== 'all') {
     books = books.filter(b => b.status === statusFilter.value)
@@ -44,11 +54,12 @@ const displayedBooks = computed(() => {
 
 const stats = computed(() => {
   const owned = store.books.filter(b => b.is_owned)
+  const wishlisted = store.books.filter(b => b.is_wishlisted)
   const totalPages = owned.reduce((sum, b) => sum + (b.book?.pages || 0), 0)
   const readCount = owned.filter(b => b.status === 'read').length
   const readingCount = owned.filter(b => b.status === 'currently_reading').length
   const unreadCount = owned.filter(b => b.status === 'want_to_read').length
-  return { total: owned.length, totalPages, readCount, readingCount, unreadCount }
+  return { total: owned.length, totalPages, readCount, readingCount, unreadCount, wishlistCount: wishlisted.length }
 })
 
 const statusFilters = [
@@ -61,8 +72,6 @@ const statusFilters = [
 const getCoverUrl = (book) => {
   const cover = book.book?.cover_image
   if (!cover) return null
-  // cover_image is a URLField — external URLs (Google Books etc.) should be used directly
-  // Only use getMediaUrl for local /media/ paths
   if (cover.startsWith('http') && !cover.includes('/media/')) return cover
   return getMediaUrl(cover)
 }
@@ -97,6 +106,17 @@ const exitBulkMode = () => {
   selectedIds.value = new Set()
 }
 
+const switchTab = (tab) => {
+  activeTab.value = tab
+  searchQuery.value = ''
+  statusFilter.value = 'all'
+  exitBulkMode()
+}
+
+const handleRemoveFromWishlist = async (bookId) => {
+  await store.toggleWishlisted(bookId)
+}
+
 const getStatusBadge = (status) => {
   const map = {
     currently_reading: { label: 'Reading', class: 'bg-emerald-500/80' },
@@ -120,11 +140,41 @@ const getStatusBadge = (status) => {
       <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">
         My Collection
       </h1>
-      <p class="text-sm text-slate-400 mt-1">Books you physically own</p>
+      <p class="text-sm text-slate-400 mt-1">Books you physically own and wish to own</p>
     </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" v-if="stats.total > 0">
+    <!-- Tab switcher: Owned / Wishlist -->
+    <div class="flex items-center gap-1 mb-6 bg-slate-800/40 rounded-xl p-1 w-fit">
+      <button
+        @click="switchTab('owned')"
+        :class="[
+          'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all',
+          activeTab === 'owned'
+            ? 'bg-amber-500/20 text-amber-400 shadow-sm'
+            : 'text-slate-400 hover:text-slate-200'
+        ]"
+      >
+        <Home :size="14" />
+        Owned
+        <span v-if="stats.total > 0" class="text-[10px] opacity-70">{{ stats.total }}</span>
+      </button>
+      <button
+        @click="switchTab('wishlist')"
+        :class="[
+          'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all',
+          activeTab === 'wishlist'
+            ? 'bg-rose-500/20 text-rose-400 shadow-sm'
+            : 'text-slate-400 hover:text-slate-200'
+        ]"
+      >
+        <Gift :size="14" />
+        Wishlist
+        <span v-if="stats.wishlistCount > 0" class="text-[10px] opacity-70">{{ stats.wishlistCount }}</span>
+      </button>
+    </div>
+
+    <!-- Stats (only for Owned tab) -->
+    <div v-if="activeTab === 'owned'" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" :class="{ 'hidden': stats.total === 0 }">
       <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
         <p class="text-2xl font-black text-amber-100">{{ stats.total }}</p>
         <p class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Books Owned</p>
@@ -143,6 +193,15 @@ const getStatusBadge = (status) => {
       </div>
     </div>
 
+    <!-- Collection Taste -->
+    <ReadingTaste
+      v-if="readingTaste && readingTaste.books_count >= 3 && activeTab === 'owned'"
+      :taste="readingTaste"
+      title="Collection Taste"
+      accent-color="amber"
+      class="mb-8"
+    />
+
     <!-- Toolbar -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
       <!-- Search -->
@@ -151,13 +210,13 @@ const getStatusBadge = (status) => {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search your collection..."
+          :placeholder="activeTab === 'wishlist' ? 'Search wishlist...' : 'Search your collection...'"
           class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50"
         />
       </div>
 
       <!-- Status filters -->
-      <div class="flex items-center gap-1 bg-slate-800/40 rounded-xl p-1">
+      <div v-if="activeTab === 'owned'" class="flex items-center gap-1 bg-slate-800/40 rounded-xl p-1">
         <button
           v-for="f in statusFilters"
           :key="f.key"
@@ -173,8 +232,9 @@ const getStatusBadge = (status) => {
         </button>
       </div>
 
-      <!-- Bulk mode toggle -->
+      <!-- Bulk mode toggle (owned tab only) -->
       <button
+        v-if="activeTab === 'owned'"
         @click="bulkMode ? exitBulkMode() : (bulkMode = true)"
         :class="[
           'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border',
@@ -193,8 +253,8 @@ const getStatusBadge = (status) => {
       <Loader2 class="animate-spin text-amber-500" :size="32" />
     </div>
 
-    <!-- Empty state: no owned books at all -->
-    <div v-else-if="stats.total === 0" class="text-center py-24">
+    <!-- OWNED TAB - Empty state: no owned books -->
+    <div v-else-if="activeTab === 'owned' && stats.total === 0" class="text-center py-24">
       <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-500/10 mb-6">
         <Home class="text-amber-400" :size="32" />
       </div>
@@ -208,6 +268,24 @@ const getStatusBadge = (status) => {
       >
         <Library :size="16" />
         Go to Library
+      </button>
+    </div>
+
+    <!-- WISHLIST TAB - Empty state -->
+    <div v-else-if="activeTab === 'wishlist' && stats.wishlistCount === 0" class="text-center py-24">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-rose-500/10 mb-6">
+        <Gift class="text-rose-400" :size="32" />
+      </div>
+      <h3 class="text-xl font-bold text-white mb-2">Your wishlist is empty</h3>
+      <p class="text-sm text-slate-400 mb-6 max-w-md mx-auto">
+        Browse books and add ones you'd love to own. Your friends can see your wishlist for gift ideas!
+      </p>
+      <button
+        @click="router.push('/library')"
+        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-all"
+      >
+        <Library :size="16" />
+        Browse Library
       </button>
     </div>
 
@@ -246,7 +324,12 @@ const getStatusBadge = (status) => {
           <!-- Fallback when no cover -->
           <div
             v-if="!getCoverUrl(book)"
-            class="w-full h-full bg-gradient-to-br from-amber-800 to-stone-900 flex items-center justify-center p-3"
+            :class="[
+              'w-full h-full flex items-center justify-center p-3',
+              activeTab === 'wishlist'
+                ? 'bg-gradient-to-br from-rose-800 to-stone-900'
+                : 'bg-gradient-to-br from-amber-800 to-stone-900'
+            ]"
           >
             <span class="text-[11px] font-bold text-white/80 text-center leading-tight line-clamp-4">
               {{ getTitle(book) }}
@@ -254,9 +337,17 @@ const getStatusBadge = (status) => {
           </div>
 
           <!-- Hover overlay -->
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5 pointer-events-none">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5">
             <p class="text-[11px] font-bold text-white leading-tight line-clamp-2">{{ getTitle(book) }}</p>
             <p class="text-[10px] text-white/70 line-clamp-1 mt-0.5">{{ getAuthor(book) }}</p>
+            <!-- Remove from wishlist button -->
+            <button
+              v-if="activeTab === 'wishlist'"
+              @click.stop="handleRemoveFromWishlist(book.id)"
+              class="mt-1.5 px-2 py-1 rounded-lg bg-rose-500/20 text-rose-300 text-[10px] font-bold hover:bg-rose-500/30 transition-colors pointer-events-auto"
+            >
+              Remove
+            </button>
           </div>
 
           <!-- Status badge -->
@@ -270,6 +361,8 @@ const getStatusBadge = (status) => {
               {{ getStatusBadge(book.status).label }}
             </span>
           </div>
+
+          <!-- Wishlist badge (on owned tab, if book is also wishlisted - shouldn't happen normally) -->
 
           <!-- Bulk select checkbox -->
           <div v-if="bulkMode" class="absolute top-1.5 right-1.5">
