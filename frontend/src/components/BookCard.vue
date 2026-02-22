@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { BookOpen, Star, MoreVertical, Edit, Trash2, Heart } from 'lucide-vue-next'
+import { BookOpen, Star, MoreVertical, Edit, Trash2, Heart, Home } from 'lucide-vue-next'
 import StarRating from '@/components/ui/StarRating.vue'
 
 const props = defineProps({
@@ -18,7 +18,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['edit', 'delete', 'view', 'toggle-favorite'])
+const emit = defineEmits(['edit', 'delete', 'view', 'toggle-favorite', 'toggle-owned'])
 
 // Support both UserBook structure (book.book) and direct Book structure
 const bookData = computed(() => props.book.book || props.book)
@@ -152,6 +152,10 @@ const progressPercent = computed(() => {
           <DropdownMenuItem @click="emit('toggle-favorite', book)">
             <Heart class="w-4 h-4 mr-2" />
             {{ book.is_favorite ? 'Remove from favorites' : 'Add to favorites' }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="emit('toggle-owned', book)">
+            <Home class="w-4 h-4 mr-2" />
+            {{ book.is_owned ? 'Remove from shelf' : 'I own this' }}
           </DropdownMenuItem>
           <DropdownMenuItem
             class="text-destructive focus:text-destructive"

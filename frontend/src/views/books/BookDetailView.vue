@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/select'
 import {
   ArrowLeft, ArrowRight, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2, X, MoreHorizontal, ChevronDown
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2, X, MoreHorizontal, ChevronDown, Home
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -142,6 +142,7 @@ const personalRating = computed({
   }
 })
 const isFavorite = computed(() => userBook.value?.is_favorite || false)
+const isOwned = computed(() => userBook.value?.is_owned || false)
 
 // Computed - Progress
 const totalPages = computed(() => {
@@ -237,6 +238,13 @@ onMounted(async () => {
 
   window.scrollTo(0, 0)
 })
+
+// Update page title when book loads
+watch(book, (b) => {
+  if (b?.title) {
+    document.title = `${b.title} — Reading OS`
+  }
+}, { immediate: true })
 
 // Check DNA vote status and fetch existing vote
 const checkDNAVoteStatus = async () => {
@@ -450,6 +458,26 @@ const handleToggleFavorite = async () => {
   })
 }
 
+const handleToggleOwned = async () => {
+  if (!userBook.value) {
+    // Book not in library yet — add it first, then mark as owned
+    const result = await userBooksStore.addBook({
+      book: bookId.value,
+      status: 'want_to_read'
+    })
+    if (result.success) {
+      await userBooksStore.fetchBooks()
+      // Now toggle owned on the newly added book
+      const newUserBook = userBooksStore.books.find(ub => ub.book?.id === parseInt(bookId.value))
+      if (newUserBook) {
+        await userBooksStore.toggleOwned(newUserBook.id)
+      }
+    }
+    return
+  }
+  await userBooksStore.toggleOwned(userBook.value.id)
+}
+
 const handleAddQuote = () => {
   isQuoteModalOpen.value = true
 }
@@ -600,10 +628,12 @@ const confirmSwitchEdition = async () => {
       router.push(edition ? getBookUrl(edition) : `/books/${newBookId}`)
 
       // Show success message
-      addToast(
-        `Switched to new edition! ${response.transferred_quotes} quote${response.transferred_quotes !== 1 ? 's' : ''} transferred.`,
-        'success'
-      )
+      const parts = []
+      if (response.transferred_quotes) parts.push(`${response.transferred_quotes} quote${response.transferred_quotes !== 1 ? 's' : ''}`)
+      if (response.transferred_notes) parts.push(`${response.transferred_notes} note${response.transferred_notes !== 1 ? 's' : ''}`)
+      if (response.transferred_words) parts.push(`${response.transferred_words} word${response.transferred_words !== 1 ? 's' : ''}`)
+      const detail = parts.length ? ` ${parts.join(', ')} transferred.` : ''
+      addToast(`Switched to new edition!${detail}`, 'success')
 
       // Refresh user books
       await userBooksStore.fetchBooks()
@@ -809,6 +839,15 @@ export const QuoteCard = defineComponent({
         </div>
         <div class="flex items-center gap-1">
           <button
+            @click="handleToggleOwned"
+            :class="[
+              'p-2 rounded-xl transition-colors',
+              isOwned ? 'text-amber-400' : 'text-slate-400'
+            ]"
+          >
+            <Home :size="20" />
+          </button>
+          <button
             @click="handleToggleFavorite"
             :class="[
               'p-2 rounded-xl transition-colors',
@@ -969,8 +1008,21 @@ export const QuoteCard = defineComponent({
                 ? 'text-rose-500 bg-rose-500/10 border-rose-500/30'
                 : 'text-white hover:text-rose-400'
             ]"
+            title="Favorite"
           >
             <Heart :size="20" class="sm:w-6 sm:h-6" :fill="isFavorite ? 'currentColor' : 'none'" />
+          </button>
+          <button
+            @click="handleToggleOwned"
+            :class="[
+              'absolute top-4 left-4 sm:top-6 sm:left-6 p-3 sm:p-4 rounded-full glass transition-all',
+              isOwned
+                ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                : 'text-white/50 hover:text-amber-400'
+            ]"
+            :title="isOwned ? 'In your home library' : 'Mark as owned'"
+          >
+            <Home :size="20" class="sm:w-6 sm:h-6" />
           </button>
         </div>
 
@@ -1171,6 +1223,7 @@ export const QuoteCard = defineComponent({
                     <Sparkles :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
                     <span class="transition-colors group-hover/btn:text-indigo-400">Update DNA</span>
                   </button>
+
                 </div>
               </div>
 
@@ -2093,6 +2146,21 @@ export const QuoteCard = defineComponent({
                 <code class="text-xs text-indigo-400">{{ book.isbn || 'N/A' }}</code>
               </div>
             </div>
+
+            <!-- I Own This Toggle -->
+            <button
+              v-if="isInLibrary"
+              @click="handleToggleOwned(); showMobileSidebar = false"
+              :class="[
+                'w-full p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border transition-all',
+                isOwned
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                  : 'bg-slate-800/50 border-slate-700/50 text-slate-400'
+              ]"
+            >
+              <Home :size="16" />
+              {{ isOwned ? 'Remove from Home Library' : 'I Own This' }}
+            </button>
 
             <!-- Edit Book Button -->
             <button

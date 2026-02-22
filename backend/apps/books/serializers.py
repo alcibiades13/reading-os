@@ -136,6 +136,9 @@ class BookDetailSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    # Accept flexible date formats (YYYY, YYYY-MM, YYYY-MM-DD)
+    published_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
     # Add support for updating authors/publisher by name (not just IDs)
     publisher_name = serializers.CharField(
         max_length=200,
@@ -225,6 +228,29 @@ class BookDetailSerializer(serializers.ModelSerializer):
     def validate_isbn(self, value):
         """Convert empty ISBN to None to avoid unique constraint violation"""
         return value or None
+
+    def validate_published_date(self, value):
+        """Accept year-only (YYYY) or year-month (YYYY-MM) formats"""
+        if value is None or value == '':
+            return None
+        import datetime
+        # If it's already a date object, return as-is
+        if isinstance(value, datetime.date):
+            return value
+        val = str(value).strip()
+        if not val:
+            return None
+        # Year only: "2006"
+        if len(val) == 4 and val.isdigit():
+            return datetime.date(int(val), 1, 1)
+        # Year-month: "2006-01"
+        if len(val) == 7 and val[4] == '-':
+            return datetime.date(int(val[:4]), int(val[5:7]), 1)
+        # Full date: "2006-01-15"
+        try:
+            return datetime.date.fromisoformat(val)
+        except ValueError:
+            raise serializers.ValidationError(f"Invalid date format: {val}. Use YYYY, YYYY-MM, or YYYY-MM-DD.")
 
     def update(self, instance, validated_data):
         """Handle update with support for author names and publisher name"""

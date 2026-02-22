@@ -18,7 +18,7 @@ import {
   Settings,
   LogOut,
   User,
-  Layers,
+  Layers, Home,
   Compass,
   Sparkles,
   Download,
@@ -270,8 +270,8 @@ const handleStudyModeClick = async () => {
           <SidebarItem
             :active="route.path === '/library/shelf'"
             @click="router.push('/library/shelf')"
-            label="Shelf"
-            :icon="Layers"
+            label="Home Library"
+            :icon="Home"
             :collapsed="isCollapsed && !isMobileOpen"
           />
         </NavGroup>

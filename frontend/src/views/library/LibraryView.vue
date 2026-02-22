@@ -26,7 +26,7 @@ import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
   CheckCircle, Bookmark, BrainCircuit, Lightbulb,
   Quote, ArrowUpRight, Upload, FileUp, LayoutGrid, List, Star,
-  MoreVertical, Trash2, X, ChevronRight
+  MoreVertical, Trash2, X, ChevronRight, Home
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -144,6 +144,10 @@ const handleToggleFavorite = async (book) => {
   await booksStore.updateBook(book.id, {
     is_favorite: !book.is_favorite,
   })
+}
+
+const handleToggleOwned = async (book) => {
+  await booksStore.toggleOwned(book.id)
 }
 
 // Goodreads Import functions
@@ -1122,6 +1126,13 @@ const handleSaveChallenge = async (challengeData) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="bg-slate-900 border-slate-800">
                   <DropdownMenuItem
+                    @click.stop="handleToggleOwned(userBook)"
+                    class="text-xs cursor-pointer hover:bg-slate-800 flex items-center gap-2"
+                  >
+                    <Home :size="14" />
+                    {{ userBook.is_owned ? 'Remove from shelf' : 'I own this' }}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
                     @click.stop="handleDeleteBook(userBook)"
                     class="text-xs cursor-pointer hover:bg-slate-800 text-red-400 hover:text-red-300 flex items-center gap-2"
                   >
@@ -1259,6 +1270,13 @@ const handleSaveChallenge = async (challengeData) => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="bg-slate-900 border-slate-800">
+                  <DropdownMenuItem
+                    @click.stop="handleToggleOwned(userBook)"
+                    class="text-xs cursor-pointer hover:bg-slate-800 flex items-center gap-2"
+                  >
+                    <Home :size="14" />
+                    {{ userBook.is_owned ? 'Remove from shelf' : 'I own this' }}
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     @click.stop="handleDeleteBook(userBook)"
                     class="text-xs cursor-pointer hover:bg-slate-800 text-red-400 hover:text-red-300 flex items-center gap-2"

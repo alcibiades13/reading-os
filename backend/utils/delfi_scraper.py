@@ -179,6 +179,15 @@ class DelfiScraper:
                     # Wait a bit for dynamic content to load
                     page.wait_for_timeout(2000)
 
+                # Dismiss cookie banner if present
+                try:
+                    cookie_btn = page.locator('button:has-text("Prihvati kolačiće")').first
+                    if cookie_btn.count() > 0 and cookie_btn.is_visible(timeout=1000):
+                        cookie_btn.click(timeout=2000)
+                        page.wait_for_timeout(500)
+                except:
+                    pass
+
                 # Get initial HTML (with "Opis" tab content - description)
                 html_with_description = page.content()
 
@@ -187,24 +196,41 @@ class DelfiScraper:
                 try:
                     # Try multiple selectors for the Deklaracija tab
                     tab_selectors = [
+                        'a.nav-link:has-text("Deklaracija")',
+                        'li.nav-item a:has-text("Deklaracija")',
+                        '.nav-link:has-text("Deklaracija")',
+                        'a:has-text("Deklaracija")',
                         'text=/deklaracija/i',
                         'button:has-text("Deklaracija")',
-                        'a:has-text("Deklaracija")',
                         '[role="tab"]:has-text("Deklaracija")',
                         'li:has-text("Deklaracija")',
-                        '.tab:has-text("Deklaracija")',
-                        '.nav-link:has-text("Deklaracija")',
                     ]
-                    for selector in tab_selectors:
-                        try:
-                            tab = page.locator(selector).first
-                            if tab.is_visible(timeout=1500):
-                                tab.click()
-                                page.wait_for_timeout(1500)
-                                html_with_details = page.content()
-                                break
-                        except:
-                            continue
+                    # First try JS click (most reliable — avoids overlay/actionability issues)
+                    js_clicked = page.evaluate('''() => {
+                        const links = document.querySelectorAll("a.nav-link, button, [role='tab']");
+                        for (const link of links) {
+                            if (link.textContent.trim().toLowerCase() === "deklaracija") {
+                                link.click();
+                                return true;
+                            }
+                        }
+                        return false;
+                    }''')
+                    if js_clicked:
+                        page.wait_for_timeout(2000)
+                        html_with_details = page.content()
+                    else:
+                        # Fallback to Playwright locator click
+                        for selector in tab_selectors:
+                            try:
+                                tab = page.locator(selector).first
+                                if tab.count() > 0:
+                                    tab.click(force=True, timeout=3000)
+                                    page.wait_for_timeout(2000)
+                                    html_with_details = page.content()
+                                    break
+                            except:
+                                continue
                 except:
                     pass  # Tab might not exist on all pages
 

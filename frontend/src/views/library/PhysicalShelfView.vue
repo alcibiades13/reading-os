@@ -1,594 +1,364 @@
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { useUserBooksStore } from '@/stores/userBooksStore'
-  import { useBooksStore } from '@/stores/booksStore'
-  import {
-    Trophy, BookOpen, BarChart3,
-    Layers, Plus, Star, Sparkles,
-    Library, ChevronRight, Settings, Layout, Trash2,
-    X
-  } from 'lucide-vue-next'
-  import { getBookUrl } from '@/utils/bookUrl'
-  
-  const router = useRouter()
-  const booksStore = useUserBooksStore()
-  const bookDetailsStore = useBooksStore() // Dodajemo booksStore za detalje
-  
-  const activeGoal = ref({ current: 24, total: 50 })
-  const customShelves = ref([])
-  const selectedBook = ref(null)
-  const isBookOpen = ref(false)
-  
-  // Konstante za kalkulaciju
-  const MAX_SHELF_WIDTH = 1200
-  const MIN_BOOK_WIDTH = 20
-  const MAX_BOOK_WIDTH = 95
-  const BOOK_SPACING = 4
-  
-  const initializeShelves = () => {
-    customShelves.value = [
-      {
-        id: 'all-books',
-        title: 'Complete Library',
-        type: 'mahogany',
-        bookIds: booksStore.books.map(b => b.id)
-      },
-      {
-        id: 'favorites',
-        title: 'Philosophy Gems',
-        type: 'glass',
-        bookIds: booksStore.books.filter(b => b.is_favorite).map(b => b.id)
-      },
-      {
-        id: 'currently-reading',
-        title: 'Active Expeditions',
-        type: 'oak',
-        bookIds: booksStore.books.filter(b => b.status === 'currently_reading').map(b => b.id)
-      }
-    ]
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserBooksStore } from '@/stores/userBooksStore'
+import { getBookUrl } from '@/utils/bookUrl'
+import { getMediaUrl } from '@/utils/mediaUrl'
+import {
+  BookOpen, Library, Search, Package, CheckSquare, Square,
+  X, BookMarked, Loader2, Home
+} from 'lucide-vue-next'
+
+const router = useRouter()
+const store = useUserBooksStore()
+
+const searchQuery = ref('')
+const statusFilter = ref('all')
+const bulkMode = ref(false)
+const selectedIds = ref(new Set())
+const loading = ref(true)
+
+onMounted(async () => {
+  await store.fetchBooks()
+  loading.value = false
+})
+
+const displayedBooks = computed(() => {
+  let books = store.books.filter(b => b.is_owned)
+
+  if (statusFilter.value !== 'all') {
+    books = books.filter(b => b.status === statusFilter.value)
   }
-  
-  onMounted(async () => {
-    await booksStore.fetchBooks()
-    initializeShelves()
-  })
-  
-  watch(() => booksStore.books, () => {
-    initializeShelves()
-  }, { deep: true })
-  
-  const stats = computed(() => {
-    const totalPages = booksStore.books.reduce((acc, b) => acc + (b.book?.pages || b.book?.pageCount || 0), 0)
-    const readBooks = booksStore.books.filter(b => b.status === 'read').length
-    return {
-      total: booksStore.books.length,
-      totalPages,
-      readBooks,
-      progress: Math.round((readBooks / (booksStore.books.length || 1)) * 100),
-      favoriteGenre: 'Science Fiction'
-    }
-  })
-  
-  const handleAddShelf = () => {
-    const newShelf = {
-      id: `shelf-${Date.now()}`,
-      title: 'New Collection',
-      type: 'minimal',
-      bookIds: []
-    }
-    customShelves.value.push(newShelf)
-  }
-  
-  const handleOpenBook = async (book) => {
-    selectedBook.value = book
-    
-    // Fetch book details if needed
-    if (book.book?.id) {
-      await bookDetailsStore.fetchBook(book.book.id)
-    }
-    
-    isBookOpen.value = true
-  }
-  
-  const handleCloseBook = () => {
-    isBookOpen.value = false
-    setTimeout(() => {
-      selectedBook.value = null
-    }, 300)
-  }
-  
-  const navigateToImporter = () => {
-    router.push('/library')
-  }
-  
-  const getShelfBooks = (shelf) => {
-    return booksStore.books.filter(b => shelf.bookIds.includes(b.id))
-  }
-  
-  // Funkcija za dobijanje URL-a korica - koristi ISTI format kao u drugoj komponenti
-  const getCoverUrl = (book) => {
-    if (!book) return ''
-    
-    // Prvo probaj iz userBook.book objekta
-    if (book.book?.cover_image) {
-      return book.book.cover_image
-    }
-    
-    // Ako je knjiga već učitana u bookDetailsStore
-    const bookDetails = bookDetailsStore.currentBook
-    if (bookDetails?.cover_image) {
-      return bookDetails.cover_image
-    }
-    
-    // Fallback na placeholder
-    const title = book.book?.title || book.title || 'Book'
-    return `https://via.placeholder.com/400x600/1E293B/64748B?text=${encodeURIComponent(title.substring(0, 30))}`
-  }
-  
-  // Funkcija za dobijanje naslova
-  const getBookTitle = (book) => {
-    return book.book?.title || book.title || 'Unknown Book'
-  }
-  
-  // Funkcija za dobijanje autora
-  const getBookAuthor = (book) => {
-    return book.book?.authors?.[0]?.name || book.book?.author || book.author || 'Unknown Author'
-  }
-  
-  // Funkcija za dobijanje broja strana
-  const getBookPages = (book) => {
-    return book.book?.pages || book.book?.pageCount || book.pageCount || 250
-  }
-  
-  // Funkcija za izračunavanje širine knjige
-  const calculateBookWidth = (book) => {
-    const pages = getBookPages(book)
-    return Math.max(20, Math.min(95, (pages / 250) * 45))
-  }
-  
-  // Funkcija za izračunavanje visine knjige
-  const calculateBookHeight = (book) => {
-    const pages = getBookPages(book)
-    return Math.max(210, Math.min(270, 230 + (pages / 60)))
-  }
-  
-  // Modifikovana funkcija za grupisanje knjiga po policama
-  const getShelfRows = (shelf) => {
-    const books = getShelfBooks(shelf)
-    const rows = []
-    let currentRow = []
-    let currentRowWidth = 0
-    
-    books.forEach((book) => {
-      const bookWidth = calculateBookWidth(book)
-      const totalWidthWithSpacing = currentRowWidth + bookWidth + 
-        (currentRow.length > 0 ? BOOK_SPACING : 0)
-      
-      if (totalWidthWithSpacing <= MAX_SHELF_WIDTH) {
-        currentRow.push(book)
-        currentRowWidth = totalWidthWithSpacing
-      } else {
-        if (currentRow.length > 0) {
-          rows.push(currentRow)
-        }
-        currentRow = [book]
-        currentRowWidth = bookWidth
-      }
+
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    books = books.filter(b => {
+      const title = b.book?.title?.toLowerCase() || ''
+      const authors = b.book?.authors?.map(a => a.name.toLowerCase()).join(' ') || ''
+      return title.includes(q) || authors.includes(q)
     })
-    
-    if (currentRow.length > 0) {
-      rows.push(currentRow)
-    }
-    
-    return rows.length > 0 ? rows : [[]]
   }
-  
-  // Generate random spine color for each book
-  const getSpineColor = (bookId) => {
-    const colors = [
-      'from-blue-700 via-blue-800 to-blue-950',
-      'from-emerald-700 via-emerald-800 to-emerald-950',
-      'from-amber-700 via-amber-800 to-amber-950',
-      'from-rose-700 via-rose-800 to-rose-950',
-      'from-purple-700 via-purple-800 to-purple-950',
-      'from-cyan-700 via-cyan-800 to-cyan-950',
-      'from-orange-700 via-orange-800 to-orange-950',
-      'from-teal-700 via-teal-800 to-teal-950',
-      'from-pink-700 via-pink-800 to-pink-950',
-      'from-indigo-700 via-indigo-800 to-indigo-950',
-      'from-red-700 via-red-800 to-red-950',
-      'from-lime-700 via-lime-800 to-lime-950',
-      'from-sky-700 via-sky-800 to-sky-950',
-      'from-violet-700 via-violet-800 to-violet-950',
-      'from-fuchsia-700 via-fuchsia-800 to-fuchsia-950',
-      'from-slate-700 via-slate-800 to-slate-950'
-    ]
-  
-    const idString = String(bookId)
-    const hash = idString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    return colors[hash % colors.length]
+
+  return books
+})
+
+const stats = computed(() => {
+  const owned = store.books.filter(b => b.is_owned)
+  const totalPages = owned.reduce((sum, b) => sum + (b.book?.pages || 0), 0)
+  const readCount = owned.filter(b => b.status === 'read').length
+  const readingCount = owned.filter(b => b.status === 'currently_reading').length
+  const unreadCount = owned.filter(b => b.status === 'want_to_read').length
+  return { total: owned.length, totalPages, readCount, readingCount, unreadCount }
+})
+
+const statusFilters = [
+  { key: 'all', label: 'All' },
+  { key: 'read', label: 'Read' },
+  { key: 'currently_reading', label: 'Reading' },
+  { key: 'want_to_read', label: 'Unread' },
+]
+
+const getCoverUrl = (book) => {
+  const cover = book.book?.cover_image
+  if (!cover) return null
+  // cover_image is a URLField — external URLs (Google Books etc.) should be used directly
+  // Only use getMediaUrl for local /media/ paths
+  if (cover.startsWith('http') && !cover.includes('/media/')) return cover
+  return getMediaUrl(cover)
+}
+
+const getTitle = (book) => book.book?.title || 'Unknown'
+const getAuthor = (book) => book.book?.authors?.[0]?.name || ''
+
+const toggleSelect = (id) => {
+  const s = new Set(selectedIds.value)
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+  selectedIds.value = s
+}
+
+const selectAll = () => {
+  if (selectedIds.value.size === displayedBooks.value.length) {
+    selectedIds.value = new Set()
+  } else {
+    selectedIds.value = new Set(displayedBooks.value.map(b => b.id))
   }
-  </script>
-  
-  <template>
-    <div class="max-w-7xl mx-auto px-6 py-10 animate-in fade-in duration-1000 relative">
-  
-      <!-- PREMIUM DASHBOARD -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
-        <!-- Reading Goal -->
-        <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
-          <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-              <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                <Trophy class="text-amber-400" :size="22" />
-              </div>
-              <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Reading Goal</span>
-            </div>
-            <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ activeGoal.current }}/{{ activeGoal.total }}</p>
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Books in 2025</p>
-  
-            <div class="mt-6 w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(99,102,241,0.5)]"
-                :style="{ width: `${(activeGoal.current / activeGoal.total) * 100}%` }"
-              />
-            </div>
-          </div>
-        </div>
-  
-        <!-- Library Progress -->
-        <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
-          <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-              <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                <BookOpen class="text-indigo-400" :size="22" />
-              </div>
-              <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Library Progress</span>
-            </div>
-            <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ stats.progress }}%</p>
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total catalog read</p>
-  
-            <div class="mt-6 w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(99,102,241,0.5)]"
-                :style="{ width: `${stats.progress}%` }"
-              />
-            </div>
-          </div>
-        </div>
-  
-        <!-- Total Pages -->
-        <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
-          <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-              <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                <BarChart3 class="text-emerald-400" :size="22" />
-              </div>
-              <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Total Pages</span>
-            </div>
-            <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ stats.totalPages.toLocaleString() }}</p>
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Physical pages owned</p>
-          </div>
-        </div>
-  
-        <!-- Top Genre -->
-        <div class="p-8 rounded-[2.5rem] glass border-white/5 bg-white/[0.03] relative overflow-hidden group hover:bg-white/[0.05] transition-all duration-500">
-          <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-              <div class="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                <Sparkles class="text-purple-400" :size="22" />
-              </div>
-              <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Top Genre</span>
-            </div>
-            <p class="text-4xl font-black text-white mb-2 tracking-tighter">{{ stats.favoriteGenre }}</p>
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Based on your shelf</p>
-          </div>
-        </div>
+}
+
+const handleBulkRemove = async () => {
+  if (selectedIds.value.size === 0) return
+  await store.bulkToggleOwned([...selectedIds.value], false)
+  selectedIds.value = new Set()
+  bulkMode.value = false
+}
+
+const exitBulkMode = () => {
+  bulkMode.value = false
+  selectedIds.value = new Set()
+}
+
+const getStatusBadge = (status) => {
+  const map = {
+    currently_reading: { label: 'Reading', class: 'bg-emerald-500/80' },
+    read: { label: 'Read', class: 'bg-sky-500/80' },
+    want_to_read: { label: 'Unread', class: 'bg-amber-500/80' },
+    abandoned: { label: 'Abandoned', class: 'bg-slate-500/80' },
+  }
+  return map[status] || { label: status, class: 'bg-slate-500/80' }
+}
+</script>
+
+<template>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="h-px w-8 bg-amber-500"></div>
+        <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-500">Home Library</span>
       </div>
-  
-      <!-- HEADER -->
-      <div class="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-        <div>
-          <div class="flex items-center gap-2 mb-2">
-            <div class="h-px w-8 bg-indigo-500"></div>
-            <span class="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400">Physical Archive</span>
-          </div>
-          <h2 class="text-5xl font-black text-white tracking-tighter">My <span class="text-indigo-500">Personal</span> Sanctum</h2>
-        </div>
-  
-        <div class="flex items-center gap-4">
-          <button
-            @click="handleAddShelf"
-            class="flex items-center gap-2 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all"
-          >
-            <Plus :size="16" /> New Collection
-          </button>
-          <button
-            @click="navigateToImporter"
-            class="flex items-center gap-2 px-8 py-4 rounded-2xl bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-indigo-500/20"
-          >
-            <Library :size="16" /> Add Volume
-          </button>
-        </div>
+      <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">
+        My Collection
+      </h1>
+      <p class="text-sm text-slate-400 mt-1">Books you physically own</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" v-if="stats.total > 0">
+      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+        <p class="text-2xl font-black text-amber-100">{{ stats.total }}</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Books Owned</p>
       </div>
-  
-      <!-- THE SHELVES -->
-      <div class="space-y-28 pb-16">
-        <div
-          v-for="shelf in customShelves"
-          :key="shelf.id"
-          class="relative"
-        >
-          <!-- Shelf Labels -->
-          <div class="flex items-center justify-between mb-6 px-4">
-            <div class="flex items-center gap-4">
-              <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
-              <h3 class="text-[12px] font-black text-white uppercase tracking-[0.4em]">{{ shelf.title }}</h3>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                {{ getShelfBooks(shelf).length }} VOLUMES • {{ getShelfRows(shelf).length }} SHELVES
-              </span>
-              <button class="p-2 text-slate-600 hover:text-white transition-colors">
-                <Settings :size="14" />
-              </button>
-            </div>
-          </div>
-  
-          <!-- Multiple shelf rows for this shelf -->
-          <div
-            v-for="(bookRow, rowIndex) in getShelfRows(shelf)"
-            :key="`${shelf.id}-row-${rowIndex}`"
-            class="relative mb-28 min-h-[280px] perspective-shelf"
-          >
-            <!-- BOOKS STANDING ON TOP OF THE SHELF -->
-            <div class="flex items-end gap-[4px] px-12 absolute bottom-[50px] left-0 right-0 z-20 overflow-visible">
-              <div
-                v-for="book in bookRow"
-                :key="book.id"
-                @click="handleOpenBook(book)"
-                class="relative group cursor-pointer book-hover-effect flex flex-col items-center transition-all duration-300"
-                :style="{ 
-                  width: `${calculateBookWidth(book)}px`,
-                  filter: selectedBook?.id === book.id && isBookOpen ? 'brightness(0.5)' : 'brightness(1)'
-                }"
-              >
-                <!-- Premium Tooltip -->
-                <div class="absolute -top-24 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 whitespace-nowrap bg-white text-slate-950 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20">
-                  {{ getBookTitle(book) }}
-                  <div class="flex flex-col items-center mt-1">
-                    <span class="text-[8px] text-slate-600 font-normal">
-                      {{ getBookPages(book) }} pages
-                    </span>
-                  </div>
-                  <div class="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45" />
-                </div>
-  
-                <!-- The 3D Spine Surface -->
-                <div
-                  :class="[
-                    'w-full relative rounded-t-md border-x border-t border-white/10 group-hover:border-white/30 shadow-[10px_0_30px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-500',
-                    'bg-gradient-to-b',
-                    getSpineColor(book.id)
-                  ]"
-                  :style="{ height: `${calculateBookHeight(book)}px` }"
-                >
-                  <div class="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 pointer-events-none" />
-  
-                  <div class="absolute inset-0 flex items-center justify-center p-3 [writing-mode:vertical-rl] rotate-180 pointer-events-none">
-                    <span class="text-[10px] font-black text-white/95 uppercase tracking-[0.2em] line-clamp-1 max-h-[80%] drop-shadow-md">
-                      {{ getBookTitle(book) }}
-                    </span>
-                  </div>
-  
-                  <div class="absolute top-0 left-0 right-0 h-[3px] bg-white/20 pointer-events-none" />
-                  <div class="absolute top-8 left-0 right-0 h-[1px] bg-black/30 pointer-events-none" />
-                  <div class="absolute bottom-8 left-0 right-0 h-[1px] bg-black/30 pointer-events-none" />
-  
-                  <div
-                    v-if="book.status === 'currently_reading'"
-                    class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
-                  >
-                    <div class="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_15px_#818cf8] animate-pulse" />
-                  </div>
-                </div>
-  
-                <!-- Contact Shadow on shelf surface -->
-                <div class="absolute bottom-0 w-full h-3 bg-black/60 blur-[4px] opacity-40 group-hover:opacity-0 transition-opacity duration-500 pointer-events-none" />
-              </div>
-            </div>
-  
-            <!-- 3D SHELF BASE -->
-            <div class="absolute bottom-0 left-0 right-0 z-10 h-[50px]">
-              <!-- Top Surface -->
-              <div
-                :class="[
-                  'h-[12px] w-full rounded-t-2xl bg-gradient-to-r border-t border-x border-white/10 relative z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.5)]',
-                  shelf.type === 'mahogany' ? 'from-amber-900 via-amber-950 to-stone-950 border-white/5 shadow-2xl' : '',
-                  shelf.type === 'glass' ? 'from-indigo-500/20 via-white/10 to-indigo-500/20 border-white/20 shadow-xl backdrop-blur-md' : '',
-                  shelf.type === 'oak' ? 'from-amber-700/40 via-amber-800/50 to-amber-950/40 border-amber-800/10 shadow-lg' : '',
-                  shelf.type === 'minimal' ? 'from-white/5 to-white/[0.02] border-white/10 shadow-md' : ''
-                ]"
-              >
-                <div class="absolute inset-0 bg-white/[0.02] rounded-t-2xl" />
-              </div>
-              <!-- Front Edge -->
-              <div class="h-[38px] w-full rounded-b-2xl bg-gradient-to-b from-black/20 to-black/60 border-x border-b border-white/5 relative z-10 flex items-center justify-center">
-                <div class="w-1/3 h-px bg-white/5"></div>
-              </div>
-            </div>
-  
-            <div
-              v-if="bookRow.length === 0"
-              class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20"
-            >
-              <p class="text-[9px] font-black uppercase tracking-[1em] text-slate-500">Vacant Workspace</p>
-            </div>
-          </div>
-        </div>
+      <div class="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/30">
+        <p class="text-2xl font-black text-slate-100">{{ stats.totalPages.toLocaleString() }}</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Pages</p>
       </div>
-  
-      <!-- SIMPLE BOOK MODAL -->
-      <div
-        v-if="selectedBook && isBookOpen"
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      >
-        <!-- Backdrop -->
-        <div
-          class="absolute inset-0 bg-black/90 backdrop-blur-md"
-          @click="handleCloseBook"
+      <div class="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20">
+        <p class="text-2xl font-black text-sky-100">{{ stats.readCount }}</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-sky-400">Read</p>
+      </div>
+      <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+        <p class="text-2xl font-black text-emerald-100">{{ stats.readingCount }}</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Reading Now</p>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+      <!-- Search -->
+      <div class="relative flex-1 max-w-sm">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search your collection..."
+          class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50"
         />
-  
-        <!-- Book Modal Content -->
-        <div class="relative z-10 w-full max-w-4xl bg-gradient-to-br from-slate-900 to-slate-950 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden animate-scale-in">
-          <!-- Close Button -->
-          <button
-            @click="handleCloseBook"
-            class="absolute top-6 right-6 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-sm border border-white/20"
+      </div>
+
+      <!-- Status filters -->
+      <div class="flex items-center gap-1 bg-slate-800/40 rounded-xl p-1">
+        <button
+          v-for="f in statusFilters"
+          :key="f.key"
+          @click="statusFilter = f.key"
+          :class="[
+            'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+            statusFilter === f.key
+              ? 'bg-white/10 text-white shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          ]"
+        >
+          {{ f.label }}
+        </button>
+      </div>
+
+      <!-- Bulk mode toggle -->
+      <button
+        @click="bulkMode ? exitBulkMode() : (bulkMode = true)"
+        :class="[
+          'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border',
+          bulkMode
+            ? 'bg-amber-500 text-white border-amber-500'
+            : 'bg-slate-800/40 text-slate-400 border-slate-700/50 hover:border-amber-500/50 hover:text-slate-200'
+        ]"
+      >
+        <CheckSquare :size="14" />
+        {{ bulkMode ? 'Cancel' : 'Select' }}
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex items-center justify-center py-24">
+      <Loader2 class="animate-spin text-amber-500" :size="32" />
+    </div>
+
+    <!-- Empty state: no owned books at all -->
+    <div v-else-if="stats.total === 0" class="text-center py-24">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-500/10 mb-6">
+        <Home class="text-amber-400" :size="32" />
+      </div>
+      <h3 class="text-xl font-bold text-white mb-2">Your home library is empty</h3>
+      <p class="text-sm text-slate-400 mb-6 max-w-md mx-auto">
+        Start by marking books you own from your library. Open any book and toggle "I Own This" to add it here.
+      </p>
+      <button
+        @click="router.push('/library')"
+        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm transition-all"
+      >
+        <Library :size="16" />
+        Go to Library
+      </button>
+    </div>
+
+    <!-- Empty state: filter returns nothing -->
+    <div v-else-if="displayedBooks.length === 0" class="text-center py-24">
+      <p class="text-slate-400">No books match your filters.</p>
+    </div>
+
+    <!-- Book grid -->
+    <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 sm:gap-4">
+      <div
+        v-for="book in displayedBooks"
+        :key="book.id"
+        @click="bulkMode ? toggleSelect(book.id) : router.push(getBookUrl(book.book || book))"
+        class="group relative cursor-pointer"
+      >
+        <!-- Cover -->
+        <div
+          :class="[
+            'aspect-[2/3] rounded-lg overflow-hidden border-2 transition-all duration-200',
+            bulkMode && selectedIds.has(book.id)
+              ? 'border-amber-500 ring-2 ring-amber-500/30 scale-[0.96]'
+              : 'border-transparent group-hover:border-amber-500/30 group-hover:-translate-y-1 group-hover:shadow-lg group-hover:shadow-black/40'
+          ]"
+        >
+          <!-- Cover image -->
+          <img
+            v-if="getCoverUrl(book)"
+            :src="getCoverUrl(book)"
+            :alt="getTitle(book)"
+            class="w-full h-full object-cover"
+            loading="lazy"
+            @error="(e) => e.target.style.display = 'none'"
+          />
+
+          <!-- Fallback when no cover -->
+          <div
+            v-if="!getCoverUrl(book)"
+            class="w-full h-full bg-gradient-to-br from-amber-800 to-stone-900 flex items-center justify-center p-3"
           >
-            <X :size="20" />
-          </button>
-  
-          <div class="flex flex-col md:flex-row">
-            <!-- Book Cover -->
-            <div class="md:w-2/5 p-8 md:p-12 flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-              <div class="w-full max-w-xs">
-                <div class="aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
-                  <img
-                    :src="getCoverUrl(selectedBook)"
-                    :alt="getBookTitle(selectedBook)"
-                    class="w-full h-full object-cover"
-                    @error="(e) => e.target.src = `https://via.placeholder.com/400x600/1E293B/64748B?text=${encodeURIComponent(getBookTitle(selectedBook).substring(0, 30))}`"
-                  />
-                </div>
-              </div>
-            </div>
-  
-            <!-- Book Info -->
-            <div class="md:w-3/5 p-8 md:p-12">
-              <div class="mb-6">
-                <div class="flex flex-wrap gap-2 mb-4">
-                  <span
-                    v-if="selectedBook.status === 'currently_reading'"
-                    class="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-bold"
-                  >
-                    Currently Reading
-                  </span>
-                  <span
-                    v-if="selectedBook.is_favorite"
-                    class="px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs font-bold"
-                  >
-                    ★ Favorite
-                  </span>
-                  <span class="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-bold">
-                    {{ getBookPages(selectedBook) }} pages
-                  </span>
-                </div>
-  
-                <h2 class="text-4xl font-black text-white mb-3">{{ getBookTitle(selectedBook) }}</h2>
-                <p class="text-xl text-slate-400 mb-6">{{ getBookAuthor(selectedBook) }}</p>
-              </div>
-  
-              <!-- Book Details -->
-              <div class="space-y-6">
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="bg-slate-800/50 rounded-xl p-4">
-                    <p class="text-sm text-slate-400 mb-1">Status</p>
-                    <p class="text-lg font-bold text-white capitalize">
-                      {{ selectedBook.status?.replace('_', ' ') || 'Not started' }}
-                    </p>
-                  </div>
-                  <div class="bg-slate-800/50 rounded-xl p-4">
-                    <p class="text-sm text-slate-400 mb-1">Added</p>
-                    <p class="text-lg font-bold text-white">
-                      {{ new Date(selectedBook.created_at).toLocaleDateString() }}
-                    </p>
-                  </div>
-                </div>
-  
-                <!-- Action Buttons -->
-                <div class="flex flex-wrap gap-4 pt-4">
-                  <button
-                    @click="handleCloseBook"
-                    class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm uppercase tracking-widest transition-all backdrop-blur-sm border border-white/20"
-                  >
-                    BACK TO SHELF
-                  </button>
-                  <button
-                    @click="router.push(getBookUrl(selectedBook.book || selectedBook))"
-                    class="px-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/25"
-                  >
-                    OPEN DETAILS
-                  </button>
-                  <button
-                    v-if="selectedBook.status !== 'read'"
-                    @click="router.push(`${getBookUrl(selectedBook.book || selectedBook)}/reading`)"
-                    class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/25"
-                  >
-                    CONTINUE READING
-                  </button>
-                </div>
-              </div>
+            <span class="text-[11px] font-bold text-white/80 text-center leading-tight line-clamp-4">
+              {{ getTitle(book) }}
+            </span>
+          </div>
+
+          <!-- Hover overlay -->
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5 pointer-events-none">
+            <p class="text-[11px] font-bold text-white leading-tight line-clamp-2">{{ getTitle(book) }}</p>
+            <p class="text-[10px] text-white/70 line-clamp-1 mt-0.5">{{ getAuthor(book) }}</p>
+          </div>
+
+          <!-- Status badge -->
+          <div class="absolute top-1.5 left-1.5 pointer-events-none">
+            <span
+              :class="[
+                'px-1.5 py-0.5 rounded text-[8px] font-bold text-white uppercase tracking-wider',
+                getStatusBadge(book.status).class
+              ]"
+            >
+              {{ getStatusBadge(book.status).label }}
+            </span>
+          </div>
+
+          <!-- Bulk select checkbox -->
+          <div v-if="bulkMode" class="absolute top-1.5 right-1.5">
+            <div
+              :class="[
+                'w-5 h-5 rounded flex items-center justify-center transition-all',
+                selectedIds.has(book.id)
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-black/40 backdrop-blur-sm border border-white/30'
+              ]"
+            >
+              <CheckSquare v-if="selectedIds.has(book.id)" :size="12" />
+              <Square v-else :size="12" class="text-white/70" />
             </div>
           </div>
+        </div>
+
+        <!-- Title below cover (mobile) -->
+        <div class="mt-1.5 sm:hidden">
+          <p class="text-[11px] font-semibold text-slate-200 line-clamp-2 leading-tight">{{ getTitle(book) }}</p>
         </div>
       </div>
     </div>
-  </template>
-  
-  <style scoped>
-  /* Light mode adjustments */
-  body.light .text-white {
-    color: #0f172a !important;
-  }
-  
-  body.light .text-slate-500 {
-    color: #64748b !important;
-  }
-  
-  body.light .text-slate-400 {
-    color: #94a3b8 !important;
-  }
-  
-  body.light .bg-white\/\[0\.03\],
-  body.light .bg-white\/5 {
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    border-color: rgba(0, 0, 0, 0.1) !important;
-  }
-  
-  body.light .border-white\/10,
-  body.light .border-white\/5 {
-    border-color: rgba(0, 0, 0, 0.1) !important;
-  }
-  
-  body.light .bg-slate-800 {
-    background: linear-gradient(to bottom, #e2e8f0, #cbd5e1) !important;
-  }
-  
-  body.light .shadow-\[10px_0_30px_rgba\(0\,0\,0\,0\.4\)\] {
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15) !important;
-  }
-  
-  /* Optimizacija za veće knjige */
-  .book-hover-effect:hover {
-    transform: translateY(-5px) scale(1.02);
-    transition: transform 0.3s ease;
-  }
-  
-  /* Animation */
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-  }
-  </style>
+
+    <!-- Bulk action bar -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="translate-y-full opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-full opacity-0"
+    >
+      <div
+        v-if="bulkMode && selectedIds.size > 0"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl"
+      >
+        <button
+          @click="selectAll"
+          class="text-xs font-bold text-slate-300 hover:text-white transition-colors"
+        >
+          {{ selectedIds.size === displayedBooks.length ? 'Deselect All' : 'Select All' }}
+        </button>
+        <div class="w-px h-5 bg-slate-600"></div>
+        <span class="text-xs font-bold text-white">{{ selectedIds.size }} selected</span>
+        <div class="w-px h-5 bg-slate-600"></div>
+        <button
+          @click="handleBulkRemove"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-bold transition-all"
+        >
+          <X :size="14" />
+          Remove from Shelf
+        </button>
+      </div>
+    </Transition>
+
+  </div>
+</template>
+
+<style scoped>
+/* Light mode overrides */
+body.light .text-white {
+  color: #0f172a !important;
+}
+body.light .text-slate-400,
+body.light .text-slate-500 {
+  color: #64748b !important;
+}
+body.light .text-slate-200 {
+  color: #334155 !important;
+}
+body.light .text-slate-300 {
+  color: #475569 !important;
+}
+body.light .text-amber-100,
+body.light .text-sky-100,
+body.light .text-emerald-100,
+body.light .text-slate-100 {
+  color: #1e293b !important;
+}
+body.light .bg-slate-800\/40 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+body.light .bg-slate-800\/50 {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+}
+body.light .border-slate-700\/50,
+body.light .border-slate-700\/30 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+</style>

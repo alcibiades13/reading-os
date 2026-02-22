@@ -88,7 +88,12 @@ class UserBookViewSet(viewsets.ModelViewSet):
         is_favorite = self.request.query_params.get('favorite', None)
         if is_favorite == 'true':
             queryset = queryset.filter(is_favorite=True)
-        
+
+        # Filter by owned
+        is_owned = self.request.query_params.get('owned', None)
+        if is_owned == 'true':
+            queryset = queryset.filter(is_owned=True)
+
         # Filter by rating
         rating = self.request.query_params.get('rating', None)
         if rating:
@@ -163,6 +168,25 @@ class UserBookViewSet(viewsets.ModelViewSet):
         serializer = UserBookDetailSerializer(user_book)
         return Response(serializer.data)
     
+    @action(detail=True, methods=['post'])
+    def toggle_owned(self, request, pk=None):
+        """Toggle ownership status of a book"""
+        user_book = self.get_object()
+        user_book.is_owned = not user_book.is_owned
+        user_book.save(update_fields=['is_owned'])
+        serializer = UserBookListSerializer(user_book)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def bulk_toggle_owned(self, request):
+        """Set is_owned for multiple books at once"""
+        book_ids = request.data.get('ids', [])
+        is_owned = request.data.get('is_owned', True)
+        updated = UserBook.objects.filter(
+            user=request.user, id__in=book_ids
+        ).update(is_owned=is_owned)
+        return Response({'updated': updated})
+
     @action(detail=False, methods=['get'])
     def book_knowledge(self, request):
         """Aggregated knowledge for a specific book: quotes, study notes, vocabulary, journal entries"""

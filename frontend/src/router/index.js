@@ -30,9 +30,9 @@ const routes = [
   },
   {
     path: '/library/shelf',
-    name: 'PhysicalShelf',
+    name: 'HomeLibrary',
     component: () => import('@/views/library/PhysicalShelfView.vue'),
-    meta: { requiresAuth: true, title: 'Physical Shelf' },
+    meta: { requiresAuth: true, title: 'Home Library' },
   },
   {
     path: '/books',

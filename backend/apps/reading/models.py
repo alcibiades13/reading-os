@@ -73,6 +73,12 @@ class UserBook(models.Model):
         help_text="Engagement score: quotes_count / pages * factors"
     )
     
+    # Ownership
+    is_owned = models.BooleanField(
+        default=False,
+        help_text="User physically owns this book"
+    )
+
     # Privacy
     is_public = models.BooleanField(
         default=True,
@@ -101,6 +107,7 @@ class UserBook(models.Model):
         indexes = [
             models.Index(fields=['user', 'status']),
             models.Index(fields=['user', 'is_favorite']),
+            models.Index(fields=['user', 'is_owned']),
         ]
     
     def __str__(self):

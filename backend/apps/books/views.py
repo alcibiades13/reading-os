@@ -648,7 +648,8 @@ class BookViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Books not in same group'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Get user's old UserBook
-        from apps.reading.models import UserBook, Quote
+        from apps.reading.models import UserBook, Quote, VocabularyWord
+        from apps.reading.models_study import StudyNote
 
         old_userbook = UserBook.objects.filter(
             user=request.user,
@@ -739,6 +740,16 @@ class BookViewSet(viewsets.ModelViewSet):
             )
             transferred_quotes += 1
 
+        # Transfer study notes
+        transferred_notes = StudyNote.objects.filter(
+            user=request.user, book=old_book
+        ).update(book=new_book, user_book=new_userbook)
+
+        # Transfer vocabulary words
+        transferred_words = VocabularyWord.objects.filter(
+            user=request.user, book=old_book
+        ).update(book=new_book)
+
         # Mark old UserBook as replaced (KEEP for history, don't delete)
         old_userbook.replaced_by = new_userbook
         old_userbook.save()
@@ -748,6 +759,8 @@ class BookViewSet(viewsets.ModelViewSet):
             'new_userbook_id': new_userbook.id,
             'new_book_id': new_book.id,
             'transferred_quotes': transferred_quotes,
+            'transferred_notes': transferred_notes,
+            'transferred_words': transferred_words,
             'old_userbook_preserved': True
         })
 

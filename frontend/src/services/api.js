@@ -136,6 +136,10 @@ export const userBooksAPI = {
     api.post(`/reading/user-books/${id}/mark_finished/`, data),
   bookKnowledge: (bookId) =>
     api.get('/reading/user-books/book_knowledge/', { params: { book: bookId } }),
+  toggleOwned: (id) =>
+    api.post(`/reading/user-books/${id}/toggle_owned/`),
+  bulkToggleOwned: (ids, isOwned) =>
+    api.post('/reading/user-books/bulk_toggle_owned/', { ids, is_owned: isOwned }),
 }
 
 export const quotesAPI = {

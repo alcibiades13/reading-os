@@ -304,11 +304,9 @@ class RecommendationEngine:
             group_edition_ids = list(book.book_group.editions.values_list('id', flat=True))
             excluded_ids.extend(group_edition_ids)
 
-        # Get all other books with DNA (don't exclude user's library for similar books)
+        # Get all other books with DNA (include both user-voted and AI-populated)
         other_books = BookDNA.objects.exclude(
             book_id__in=excluded_ids
-        ).filter(
-            vote_count__gte=1
         ).select_related('book')
 
         results = []

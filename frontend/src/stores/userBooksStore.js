@@ -89,6 +89,11 @@ export const useUserBooksStore = defineStore('userBooks', {
     favoriteBooks: (state) => {
       return state.books.filter((b) => b.is_favorite)
     },
+
+    // Owned books (home library)
+    ownedBooks: (state) => {
+      return state.books.filter((b) => b.is_owned)
+    },
   },
 
   actions: {
@@ -204,6 +209,37 @@ export const useUserBooksStore = defineStore('userBooks', {
           this.books[index] = response.data
         }
         this.calculateStats()
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    // Toggle ownership
+    async toggleOwned(id) {
+      try {
+        const response = await userBooksAPI.toggleOwned(id)
+        const index = this.books.findIndex((b) => b.id === id)
+        if (index !== -1) {
+          this.books[index] = response.data
+        }
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    // Bulk toggle ownership
+    async bulkToggleOwned(ids, isOwned = true) {
+      try {
+        const response = await userBooksAPI.bulkToggleOwned(ids, isOwned)
+        // Update local state
+        ids.forEach((id) => {
+          const index = this.books.findIndex((b) => b.id === id)
+          if (index !== -1) {
+            this.books[index].is_owned = isOwned
+          }
+        })
         return { success: true, data: response.data }
       } catch (error) {
         return { success: false, error: error.response?.data }
