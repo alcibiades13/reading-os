@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useQuotesStore } from '@/stores/quotesStore'
 import { userBooksAPI } from '@/services/api'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,6 +14,7 @@ import { getBookUrl } from '@/utils/bookUrl'
 import QuoteCardDesigner from '@/components/quotes/QuoteCardDesigner.vue'
 
 const router = useRouter()
+const route = useRoute()
 const quotesStore = useQuotesStore()
 
 const searchQuery = ref('')
@@ -76,11 +77,32 @@ const editQuote = ref({
 })
 
 onMounted(async () => {
+  // Reset book filter, then apply from query param if present
+  quotesStore.filters.book = null
+
   await quotesStore.fetchQuotes()
   await quotesStore.fetchTags()
+
+  const bookFilter = route.query.book
+  if (bookFilter) {
+    quotesStore.filters.book = Number(bookFilter)
+  }
 })
 
 const displayedQuotes = computed(() => quotesStore.filteredQuotes)
+
+const filterBookTitle = computed(() => {
+  if (!quotesStore.filters.book) return null
+  const match = quotesStore.quotes.find(q => {
+    const bookId = typeof q.book === 'object' ? q.book?.id : q.book
+    return bookId === quotesStore.filters.book
+  })
+  return match?.book_title || `Book #${quotesStore.filters.book}`
+})
+
+const clearBookFilter = () => {
+  quotesStore.filters.book = null
+}
 
 const stats = computed(() => ({
   total: quotesStore.filteredQuotes?.length || 0,
@@ -89,7 +111,7 @@ const stats = computed(() => ({
 }))
 
 const handleSearch = (e) => {
-  quotesStore.setFilter('search', e.target.value)
+  quotesStore.setFilter('search', e?.target?.value || '')
 }
 
 const filterByTag = (tagId) => {
@@ -106,6 +128,7 @@ const clearFilters = () => {
   searchQuery.value = ''
   selectedTag.value = null
   showFavorites.value = false
+  quotesStore.filters.book = null
   quotesStore.resetFilters()
 }
 
@@ -471,8 +494,17 @@ const handleEditQuote = async () => {
       </div>
 
       <!-- Active Filters -->
-      <div v-if="selectedTag || showFavorites || searchQuery" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+      <div v-if="selectedTag || showFavorites || searchQuery || quotesStore.filters.book" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0">Active:</span>
+        <button
+          v-if="quotesStore.filters.book"
+          @click="clearBookFilter"
+          class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 text-xs font-bold"
+        >
+          <BookOpen :size="12" />
+          {{ filterBookTitle }}
+          <X :size="12" />
+        </button>
         <button
           v-if="searchQuery"
           @click="searchQuery = ''; handleSearch()"
@@ -870,6 +902,24 @@ const handleEditQuote = async () => {
       </div>
     </div>
 
+    <!-- Book Filter Banner -->
+    <div v-if="quotesStore.filters.book" class="max-w-7xl mx-auto px-6 mb-6">
+      <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+        <div class="flex items-center gap-2 text-sm">
+          <BookOpen :size="16" class="text-sky-400" />
+          <span class="text-slate-400">Showing quotes from</span>
+          <span class="font-bold text-sky-400">{{ filterBookTitle }}</span>
+        </div>
+        <button
+          @click="clearBookFilter"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/50 text-slate-300 text-xs font-bold hover:bg-slate-700/50 transition-colors"
+        >
+          <X :size="14" />
+          Clear Filter
+        </button>
+      </div>
+    </div>
+
     <!-- Main Content Area -->
     <div class="max-w-7xl mx-auto px-6">
       <!-- Loading State -->
@@ -889,7 +939,7 @@ const handleEditQuote = async () => {
           Adjust your filters or capture your first quote to start building your collection.
         </p>
         <button
-          v-if="searchQuery || selectedTag || showFavorites"
+          v-if="searchQuery || selectedTag || showFavorites || quotesStore.filters.book"
           @click="clearFilters"
           class="mt-6 text-indigo-400 font-bold hover:text-indigo-300 transition-colors"
         >
