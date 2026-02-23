@@ -176,6 +176,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Profile' },
   },
   {
+    path: '/intelligence',
+    name: 'Intelligence',
+    component: () => import('@/views/intelligence/IntelligenceView.vue'),
+    meta: { requiresAuth: true, title: 'Intelligence' },
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFoundView.vue'),

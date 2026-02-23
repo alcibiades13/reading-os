@@ -27,7 +27,8 @@ import {
   Hexagon,
   X,
   CircleDot,
-  PenTool
+  PenTool,
+  Cpu
 } from 'lucide-vue-next'
 import SidebarItem from './sidebar/SidebarItem.vue'
 import NavGroup from './sidebar/NavGroup.vue'
@@ -140,6 +141,9 @@ const isActive = (path) => {
   }
   if (path === '/codex') {
     return route.path === '/codex'
+  }
+  if (path === '/intelligence') {
+    return route.path === '/intelligence'
   }
   return false
 }
@@ -310,6 +314,13 @@ const handleStudyModeClick = async () => {
             @click="router.push('/codex')"
             label="Codex"
             :icon="PenTool"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
+          <SidebarItem
+            :active="isActive('/intelligence')"
+            @click="router.push('/intelligence')"
+            label="Intelligence"
+            :icon="Cpu"
             :collapsed="isCollapsed && !isMobileOpen"
           />
         </NavGroup>

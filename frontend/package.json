@@ -18,6 +18,7 @@
     "@capacitor/core": "^8.0.2",
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/share": "^8.0.1",
+    "@google/genai": "^1.42.0",
     "@radix-icons/vue": "^1.0.0",
     "@vueuse/core": "^14.1.0",
     "axios": "^1.6.7",
