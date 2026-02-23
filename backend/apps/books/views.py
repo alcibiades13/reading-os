@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, Count, Avg
 
-from apps.books.models import Author, Publisher, Genre, Tag, Book
+from apps.books.models import Author, AuthorGroup, Publisher, Genre, Tag, Book
 from apps.books.serializers import (
     AuthorSerializer,
     PublisherSerializer,
@@ -26,14 +26,101 @@ class AuthorViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'bio']
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
-    
+
     @action(detail=True, methods=['get'])
     def books(self, request, pk=None):
-        """Get all books by this author"""
+        """Get all books by this author (including alias authors if grouped)."""
         author = self.get_object()
-        books = author.books.all()
+
+        if author.author_group_id:
+            alias_ids = author.author_group.members.values_list('id', flat=True)
+            books = (
+                Book.objects.filter(authors__id__in=alias_ids)
+                .distinct()
+                .select_related('publisher')
+                .prefetch_related('authors')
+            )
+        else:
+            books = author.books.all().select_related('publisher').prefetch_related('authors')
+
         serializer = BookListSerializer(books, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def link_author(self, request, pk=None):
+        """
+        Link this author to another as name aliases (same person, different spellings).
+        Creates AuthorGroup if needed.
+        """
+        author1 = self.get_object()
+        author2_id = request.data.get('author_id')
+
+        if not author2_id:
+            return Response({'error': 'author_id required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            author2 = Author.objects.get(id=author2_id)
+        except Author.DoesNotExist:
+            return Response({'error': 'Author not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if author1.id == author2.id:
+            return Response({'error': 'Cannot link author to itself'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If either has a group, use that; else create new
+        if author1.author_group:
+            group = author1.author_group
+        elif author2.author_group:
+            group = author2.author_group
+        else:
+            group = AuthorGroup.objects.create(canonical_name=author1.name)
+            author1.is_primary_alias = True
+            author1.save()
+
+        author1.author_group = group
+        author2.author_group = group
+        author1.save()
+        author2.save()
+
+        return Response({
+            'success': True,
+            'author_group_id': group.id,
+            'canonical_name': group.canonical_name,
+            'members_count': group.members.count(),
+        })
+
+    @action(detail=True, methods=['get'])
+    def potential_aliases(self, request, pk=None):
+        """
+        Find potential alias authors (same person, different name spelling).
+        Uses fuzzy matching on author names.
+        """
+        from difflib import SequenceMatcher
+
+        author = self.get_object()
+        author_name_lower = author.name.lower().strip()
+
+        candidates = Author.objects.exclude(id=author.id)
+        if author.author_group:
+            candidates = candidates.exclude(author_group=author.author_group)
+
+        matches = []
+        for candidate in candidates:
+            candidate_name_lower = candidate.name.lower().strip()
+            similarity = SequenceMatcher(None, author_name_lower, candidate_name_lower).ratio()
+
+            if similarity >= 0.70:
+                matches.append({
+                    'id': candidate.id,
+                    'name': candidate.name,
+                    'slug': candidate.slug,
+                    'photo': candidate.photo,
+                    'bio': (candidate.bio or '')[:200],
+                    'books_count': candidate.books.count(),
+                    'similarity': round(similarity, 3),
+                })
+
+        matches.sort(key=lambda x: x['similarity'], reverse=True)
+        return Response(matches[:10])
 
 
 class PublisherViewSet(viewsets.ModelViewSet):
@@ -813,6 +900,33 @@ class BookViewSet(viewsets.ModelViewSet):
 
         # Update stats
         group.update_stats()
+
+        # Auto-link authors with similar names across the two books
+        from difflib import SequenceMatcher as SM
+
+        for a1 in book1.authors.all():
+            for a2 in book2.authors.all():
+                if a1.id == a2.id:
+                    continue
+                if a1.author_group_id and a2.author_group_id and a1.author_group_id == a2.author_group_id:
+                    continue
+
+                sim = SM(None, a1.name.lower(), a2.name.lower()).ratio()
+                if sim >= 0.75:
+                    if a1.author_group:
+                        ag = a1.author_group
+                    elif a2.author_group:
+                        ag = a2.author_group
+                    else:
+                        primary_author = a1 if book1.is_primary_edition else a2
+                        ag = AuthorGroup.objects.create(canonical_name=primary_author.name)
+                        primary_author.is_primary_alias = True
+                        primary_author.save()
+
+                    a1.author_group = ag
+                    a2.author_group = ag
+                    a1.save()
+                    a2.save()
 
         return Response({
             'success': True,

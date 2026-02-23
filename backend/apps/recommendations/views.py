@@ -8,7 +8,7 @@ from apps.books.models import Book, BookDNA, BookDNAVote
 from apps.books.serializers import BookListSerializer
 from apps.reading.models import UserBook
 
-from .engine import RecommendationEngine
+from .engine import RecommendationEngine, get_discover_sections
 from .aggregation import aggregate_book_dna, update_user_taste_profile, get_user_taste_profile
 from .serializers import (
     SurveySubmitSerializer,
@@ -325,6 +325,37 @@ class TasteProfileView(APIView):
         profile = get_user_taste_profile(request.user)
         serializer = TasteProfileSerializer(profile)
         return Response(serializer.data)
+
+
+class ReadingTasteView(APIView):
+    """
+    GET /api/recommendations/reading-taste/?scope=all|owned
+    Compute reading taste from user's actual books (not survey votes).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        scope = request.query_params.get('scope', 'all')
+        if scope not in ('all', 'owned'):
+            return Response(
+                {'error': 'scope must be "all" or "owned"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        from .aggregation import compute_reading_taste
+        taste = compute_reading_taste(request.user.id, scope=scope)
+        return Response(taste)
+
+
+class DiscoverSectionsView(APIView):
+    """
+    GET /api/recommendations/discover-sections/
+    Returns personalized recommendation sections for the Discover page.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        sections = get_discover_sections(request.user)
+        return Response(sections)
 
 
 class BookDNAView(APIView):

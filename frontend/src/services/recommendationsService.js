@@ -186,6 +186,32 @@ export const recommendationsService = {
   },
 
   /**
+   * Get reading taste derived from user's books (not survey votes)
+   */
+  async getReadingTaste(scope = 'all') {
+    try {
+      const response = await recommendationsAPI.getReadingTaste(scope)
+      return response.data
+    } catch (error) {
+      console.error('Error getting reading taste:', error)
+      return null
+    }
+  },
+
+  /**
+   * Get personalized discover sections (author picks, genre picks, because you read)
+   */
+  async getDiscoverSections() {
+    try {
+      const response = await recommendationsAPI.getDiscoverSections()
+      return response.data
+    } catch (error) {
+      console.error('Error getting discover sections:', error)
+      return { author_picks: [], genre_picks: [], because_you_read: [] }
+    }
+  },
+
+  /**
    * Get book's DNA
    */
   async getBookDNA(bookId) {

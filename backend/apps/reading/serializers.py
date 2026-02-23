@@ -170,6 +170,7 @@ class UserBookListSerializer(serializers.ModelSerializer):
             'current_page',
             'reading_progress',
             'is_owned',
+            'is_wishlisted',
             'quotes_count',
             'depth_score',
             'updated_at',
@@ -209,6 +210,7 @@ class UserBookDetailSerializer(serializers.ModelSerializer):
             'depth_score',
             'reading_progress',
             'is_owned',
+            'is_wishlisted',
             'is_public',
             'quotes',
             'created_at',
@@ -281,6 +283,7 @@ class UserBookCreateSerializer(serializers.ModelSerializer):
             'review',
             'is_favorite',
             'is_owned',
+            'is_wishlisted',
             'is_public',
         ]
         read_only_fields = ['id']

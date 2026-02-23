@@ -118,6 +118,8 @@ export const authorsAPI = {
   list: (params) => api.get('/books/authors/', { params }),
   get: (id) => api.get(`/books/authors/${id}/`),
   books: (id) => api.get(`/books/authors/${id}/books/`),
+  linkAuthor: (id, authorId) => api.post(`/books/authors/${id}/link_author/`, { author_id: authorId }),
+  potentialAliases: (id) => api.get(`/books/authors/${id}/potential_aliases/`),
 }
 
 export const genresAPI = {
@@ -138,6 +140,10 @@ export const userBooksAPI = {
     api.get('/reading/user-books/book_knowledge/', { params: { book: bookId } }),
   toggleOwned: (id) =>
     api.post(`/reading/user-books/${id}/toggle_owned/`),
+  toggleWishlisted: (id) =>
+    api.post(`/reading/user-books/${id}/toggle_wishlisted/`),
+  wishlist: (userId) =>
+    api.get('/reading/user-books/wishlist/', { params: userId ? { user: userId } : {} }),
   bulkToggleOwned: (ids, isOwned) =>
     api.post('/reading/user-books/bulk_toggle_owned/', { ids, is_owned: isOwned }),
 }
@@ -264,6 +270,9 @@ export const recommendationsAPI = {
 
   // User profile
   getTasteProfile: () => api.get('/recommendations/taste-profile/'),
+  getReadingTaste: (scope = 'all') =>
+    api.get('/recommendations/reading-taste/', { params: { scope } }),
+  getDiscoverSections: () => api.get('/recommendations/discover-sections/'),
 
   // Book DNA
   getBookDNA: (bookId) => api.get(`/recommendations/book-dna/${bookId}/`),

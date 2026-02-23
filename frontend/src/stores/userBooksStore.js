@@ -94,6 +94,11 @@ export const useUserBooksStore = defineStore('userBooks', {
     ownedBooks: (state) => {
       return state.books.filter((b) => b.is_owned)
     },
+
+    // Wishlisted books
+    wishlistedBooks: (state) => {
+      return state.books.filter((b) => b.is_wishlisted)
+    },
   },
 
   actions: {
@@ -219,6 +224,20 @@ export const useUserBooksStore = defineStore('userBooks', {
     async toggleOwned(id) {
       try {
         const response = await userBooksAPI.toggleOwned(id)
+        const index = this.books.findIndex((b) => b.id === id)
+        if (index !== -1) {
+          this.books[index] = response.data
+        }
+        return { success: true, data: response.data }
+      } catch (error) {
+        return { success: false, error: error.response?.data }
+      }
+    },
+
+    // Toggle wishlist
+    async toggleWishlisted(id) {
+      try {
+        const response = await userBooksAPI.toggleWishlisted(id)
         const index = this.books.findIndex((b) => b.id === id)
         if (index !== -1) {
           this.books[index] = response.data

@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/select'
 import {
   ArrowLeft, ArrowRight, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2, X, MoreHorizontal, ChevronDown, Home
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2, X, MoreHorizontal, ChevronDown, Home, Gift
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -98,21 +98,28 @@ const getReviewPreview = (htmlContent, maxLength = 300) => {
 
 // Computed - Book data
 const book = computed(() => booksStore.currentBook)
-const userBook = computed(() => {
+
+// Exact match: UserBook for THIS specific edition only
+const exactUserBook = computed(() => {
   const numericBookId = parseInt(bookId.value)
+  return userBooksStore.books.find(ub => ub.book?.id === numericBookId) || null
+})
 
-  // First, try to find UserBook for this specific book
-  let foundUserBook = userBooksStore.books.find(ub => ub.book?.id === numericBookId)
+// Group match: UserBook for this edition OR another edition in same group
+// Used for reading status, progress, rating display
+const userBook = computed(() => {
+  if (exactUserBook.value) return exactUserBook.value
 
-  // If not found and this book is in a group, look for UserBook from other editions in the same group
-  if (!foundUserBook && book.value?.book_group_id) {
-    foundUserBook = userBooksStore.books.find(ub =>
+  const numericBookId = parseInt(bookId.value)
+  // Fallback: look for UserBook from other editions in the same group
+  if (book.value?.book_group_id) {
+    return userBooksStore.books.find(ub =>
       ub.book?.book_group_id === book.value.book_group_id &&
       ub.book?.id !== numericBookId
-    )
+    ) || null
   }
 
-  return foundUserBook
+  return null
 })
 const bookQuotes = computed(() => {
   if (!Array.isArray(quotesStore.quotes)) return []
@@ -142,7 +149,9 @@ const personalRating = computed({
   }
 })
 const isFavorite = computed(() => userBook.value?.is_favorite || false)
-const isOwned = computed(() => userBook.value?.is_owned || false)
+// Ownership and wishlist are edition-specific (not inherited from group)
+const isOwned = computed(() => exactUserBook.value?.is_owned || false)
+const isWishlisted = computed(() => exactUserBook.value?.is_wishlisted || false)
 
 // Computed - Progress
 const totalPages = computed(() => {
@@ -459,23 +468,35 @@ const handleToggleFavorite = async () => {
 }
 
 const handleToggleOwned = async () => {
-  if (!userBook.value) {
-    // Book not in library yet — add it first, then mark as owned
+  if (!exactUserBook.value) {
+    // No UserBook for this specific edition — create one and mark as owned
     const result = await userBooksStore.addBook({
       book: bookId.value,
-      status: 'want_to_read'
+      status: 'want_to_read',
+      is_owned: true,
     })
     if (result.success) {
       await userBooksStore.fetchBooks()
-      // Now toggle owned on the newly added book
-      const newUserBook = userBooksStore.books.find(ub => ub.book?.id === parseInt(bookId.value))
-      if (newUserBook) {
-        await userBooksStore.toggleOwned(newUserBook.id)
-      }
     }
     return
   }
-  await userBooksStore.toggleOwned(userBook.value.id)
+  await userBooksStore.toggleOwned(exactUserBook.value.id)
+}
+
+const handleToggleWishlisted = async () => {
+  if (!exactUserBook.value) {
+    // No UserBook for this specific edition — create one and mark as wishlisted
+    const result = await userBooksStore.addBook({
+      book: bookId.value,
+      status: 'want_to_read',
+      is_wishlisted: true,
+    })
+    if (result.success) {
+      await userBooksStore.fetchBooks()
+    }
+    return
+  }
+  await userBooksStore.toggleWishlisted(exactUserBook.value.id)
 }
 
 const handleAddQuote = () => {
@@ -848,6 +869,16 @@ export const QuoteCard = defineComponent({
             <Home :size="20" />
           </button>
           <button
+            @click="handleToggleWishlisted"
+            :class="[
+              'p-2 rounded-xl transition-colors',
+              isWishlisted ? 'text-rose-400' : 'text-slate-400'
+            ]"
+            title="Wishlist"
+          >
+            <Gift :size="20" />
+          </button>
+          <button
             @click="handleToggleFavorite"
             :class="[
               'p-2 rounded-xl transition-colors',
@@ -1003,27 +1034,41 @@ export const QuoteCard = defineComponent({
           <button
             @click="handleToggleFavorite"
             :class="[
-              'absolute top-4 right-4 sm:top-6 sm:right-6 p-3 sm:p-4 rounded-full glass transition-all',
+              'absolute top-3 right-3 sm:top-4 sm:right-4 p-2 sm:p-2.5 rounded-full glass transition-all duration-200 active:scale-75 hover:scale-110',
               isFavorite
                 ? 'text-rose-500 bg-rose-500/10 border-rose-500/30'
                 : 'text-white hover:text-rose-400'
             ]"
             title="Favorite"
           >
-            <Heart :size="20" class="sm:w-6 sm:h-6" :fill="isFavorite ? 'currentColor' : 'none'" />
+            <Heart :size="16" class="sm:w-5 sm:h-5" :fill="isFavorite ? 'currentColor' : 'none'" />
           </button>
-          <button
-            @click="handleToggleOwned"
-            :class="[
-              'absolute top-4 left-4 sm:top-6 sm:left-6 p-3 sm:p-4 rounded-full glass transition-all',
-              isOwned
-                ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                : 'text-white/50 hover:text-amber-400'
-            ]"
-            :title="isOwned ? 'In your home library' : 'Mark as owned'"
-          >
-            <Home :size="20" class="sm:w-6 sm:h-6" />
-          </button>
+          <div class="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-1.5">
+            <button
+              @click="handleToggleOwned"
+              :class="[
+                'p-2 sm:p-2.5 rounded-full glass transition-all duration-200 active:scale-75 hover:scale-110',
+                isOwned
+                  ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                  : 'text-white/50 hover:text-amber-400'
+              ]"
+              :title="isOwned ? 'In your home library' : 'Mark as owned'"
+            >
+              <Home :size="16" class="sm:w-5 sm:h-5" />
+            </button>
+            <button
+              @click="handleToggleWishlisted"
+              :class="[
+                'p-2 sm:p-2.5 rounded-full glass transition-all duration-200 active:scale-75 hover:scale-110',
+                isWishlisted
+                  ? 'text-rose-400 bg-rose-500/10 border-rose-500/30'
+                  : 'text-white/50 hover:text-rose-400'
+              ]"
+              :title="isWishlisted ? 'On your wishlist' : 'Add to wishlist'"
+            >
+              <Gift :size="16" class="sm:w-5 sm:h-5" />
+            </button>
+          </div>
         </div>
 
         <!-- Quick Meta Grid -->
@@ -2160,6 +2205,20 @@ export const QuoteCard = defineComponent({
             >
               <Home :size="16" />
               {{ isOwned ? 'Remove from Home Library' : 'I Own This' }}
+            </button>
+
+            <!-- Wishlist Toggle -->
+            <button
+              @click="handleToggleWishlisted(); showMobileSidebar = false"
+              :class="[
+                'w-full p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border transition-all',
+                isWishlisted
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
+                  : 'bg-slate-800/50 border-slate-700/50 text-slate-400'
+              ]"
+            >
+              <Gift :size="16" />
+              {{ isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist' }}
             </button>
 
             <!-- Edit Book Button -->

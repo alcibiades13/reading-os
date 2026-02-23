@@ -10,7 +10,7 @@ import api from '@/services/api'
 import {
   BookOpen, Quote, Users, TrendingUp, Heart,
   ArrowLeft, Sparkles, Bookmark, ExternalLink, Copy, Star,
-  LayoutGrid, List, ArrowUpRight
+  LayoutGrid, List, ArrowUpRight, Gift
 } from 'lucide-vue-next'
 import { getBookUrl } from '@/utils/bookUrl'
 
@@ -27,7 +27,8 @@ const sharedBooks = ref([])
 const matchScore = ref(0)
 const readingDna = ref(null)
 const loading = ref(true)
-const activeTab = ref('books') // 'books', 'quotes', 'followers', 'following'
+const activeTab = ref('books') // 'books', 'quotes', 'wishlist', 'followers', 'following'
+const userWishlist = ref([])
 const booksSubTab = ref('all') // 'all', 'reading', 'finished', 'want_to_read'
 const viewMode = ref('list') // 'grid' or 'list' - default to list for UserProfileView
 const userQuotes = ref([])
@@ -52,6 +53,7 @@ watch(() => route.params.id, async (newId, oldId) => {
     matchScore.value = 0
     readingDna.value = null
     userQuotes.value = []
+    userWishlist.value = []
     followers.value = []
     following.value = []
     activeTab.value = 'books'
@@ -178,12 +180,24 @@ const loadUserQuotes = async () => {
   }
 }
 
+const loadUserWishlist = async () => {
+  try {
+    const { userBooksAPI } = await import('@/services/api')
+    const response = await userBooksAPI.wishlist(userId.value)
+    userWishlist.value = response.data
+  } catch (error) {
+    console.error('Error loading user wishlist:', error)
+  }
+}
+
 const switchTab = async (tab) => {
   activeTab.value = tab
 
   // Load data on demand
   if (tab === 'quotes' && userQuotes.value.length === 0) {
     await loadUserQuotes()
+  } else if (tab === 'wishlist' && userWishlist.value.length === 0) {
+    await loadUserWishlist()
   } else if (tab === 'followers' && followers.value.length === 0) {
     await loadFollowers()
   } else if (tab === 'following' && following.value.length === 0) {
@@ -452,6 +466,18 @@ const getStatusBadge = (status) => {
                   <TrendingUp :size="14" class="lg:w-[18px] lg:h-[18px]" :class="activeTab === 'following' ? 'text-white' : 'text-amber-400'" />
                   <span class="text-sm lg:text-xl font-black text-white light:text-slate-900">{{ userProfile.following_count || 0 }}</span>
                   <span :class="['text-[9px] lg:text-xs font-bold uppercase tracking-wide lg:tracking-widest hidden sm:inline', activeTab === 'following' ? 'text-white/80' : 'text-slate-400 light:text-slate-500 group-hover:text-amber-400']">following</span>
+                </button>
+                <button
+                  @click="switchTab('wishlist')"
+                  :class="[
+                    'flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-1.5 lg:py-3 rounded-lg lg:rounded-2xl transition-all group flex-shrink-0',
+                    activeTab === 'wishlist'
+                      ? 'bg-rose-500 shadow-lg shadow-rose-500/20'
+                      : 'bg-white/5 light:bg-slate-100 hover:bg-white/10 light:hover:bg-slate-200'
+                  ]"
+                >
+                  <Gift :size="14" class="lg:w-[18px] lg:h-[18px]" :class="activeTab === 'wishlist' ? 'text-white' : 'text-rose-400'" />
+                  <span :class="['text-[9px] lg:text-xs font-bold uppercase tracking-wide lg:tracking-widest', activeTab === 'wishlist' ? 'text-white/80' : 'text-slate-400 light:text-slate-500 group-hover:text-rose-400']">wishlist</span>
                 </button>
               </div>
         </div>
@@ -802,6 +828,61 @@ const getStatusBadge = (status) => {
               <div v-else class="p-10 lg:p-16 rounded-2xl lg:rounded-3xl glass text-center opacity-40">
                 <TrendingUp :size="40" class="lg:w-12 lg:h-12 mx-auto mb-3 lg:mb-4 text-slate-600" />
                 <p class="text-slate-400 light:text-slate-500 font-medium text-sm lg:text-base">Not following anyone yet.</p>
+              </div>
+            </div>
+
+            <!-- WISHLIST TAB -->
+            <div v-if="activeTab === 'wishlist'">
+              <div class="flex items-center gap-2 mb-4 lg:mb-6">
+                <Gift :size="18" class="text-rose-400" />
+                <h2 class="text-sm lg:text-base font-black text-white light:text-slate-900 uppercase tracking-widest">
+                  {{ isOwnProfile ? 'My Wishlist' : 'Their Wishlist' }}
+                </h2>
+                <p class="text-[10px] text-slate-500 font-bold ml-auto">
+                  {{ userWishlist.length }} {{ userWishlist.length === 1 ? 'book' : 'books' }}
+                </p>
+              </div>
+              <p v-if="!isOwnProfile" class="text-xs text-slate-500 mb-4 lg:mb-6">
+                Books they'd love to own — perfect for gift ideas!
+              </p>
+              <div v-if="userWishlist.length > 0" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
+                <div
+                  v-for="item in userWishlist"
+                  :key="item.id"
+                  @click="router.push(getBookUrl(item.book))"
+                  class="group relative cursor-pointer"
+                >
+                  <div class="aspect-[2/3] rounded-lg overflow-hidden border-2 border-transparent group-hover:border-rose-500/30 group-hover:-translate-y-1 group-hover:shadow-lg group-hover:shadow-black/40 transition-all duration-200">
+                    <img
+                      v-if="item.book?.cover_image"
+                      :src="item.book.cover_image"
+                      :alt="item.book?.title"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div
+                      v-else
+                      class="w-full h-full bg-gradient-to-br from-rose-800 to-stone-900 flex items-center justify-center p-3"
+                    >
+                      <span class="text-[11px] font-bold text-white/80 text-center leading-tight line-clamp-4">
+                        {{ item.book?.title || 'Unknown' }}
+                      </span>
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5 pointer-events-none">
+                      <p class="text-[11px] font-bold text-white leading-tight line-clamp-2">{{ item.book?.title }}</p>
+                      <p class="text-[10px] text-white/70 line-clamp-1 mt-0.5">{{ item.book?.authors?.[0]?.name }}</p>
+                    </div>
+                  </div>
+                  <div class="mt-1.5 sm:hidden">
+                    <p class="text-[11px] font-semibold text-slate-200 line-clamp-2 leading-tight">{{ item.book?.title }}</p>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="p-10 lg:p-16 rounded-2xl lg:rounded-3xl glass text-center opacity-40">
+                <Gift :size="40" class="lg:w-12 lg:h-12 mx-auto mb-3 lg:mb-4 text-slate-600" />
+                <p class="text-slate-400 light:text-slate-500 font-medium text-sm lg:text-base">
+                  {{ isOwnProfile ? 'Your wishlist is empty. Browse books and add ones you\'d love to own!' : 'No items on their wishlist yet.' }}
+                </p>
               </div>
             </div>
           </div>

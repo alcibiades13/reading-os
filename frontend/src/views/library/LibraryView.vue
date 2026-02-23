@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { booksAPI } from '@/services/api'
 import { recommendationsService } from '@/services/recommendationsService'
-import TasteProfile from '@/components/recommendations/TasteProfile.vue'
+import ReadingTaste from '@/components/recommendations/ReadingTaste.vue'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
@@ -57,8 +57,8 @@ const fileInputRef = ref(null)
 const itemsPerPage = 24 // Show 24 books per load (4 rows of 6)
 const currentPage = ref(1)
 
-// Taste profile state
-const tasteProfile = ref(null)
+// Reading taste state
+const readingTaste = ref(null)
 
 // Fetch books on mount
 onMounted(async () => {
@@ -68,9 +68,9 @@ onMounted(async () => {
       booksStore.fetchBooks(),
       quotesStore.fetchQuotes()
     ])
-    // Fetch taste profile separately (non-blocking)
-    recommendationsService.getTasteProfile().then(profile => {
-      tasteProfile.value = profile
+    // Fetch reading taste separately (non-blocking)
+    recommendationsService.getReadingTaste('all').then(taste => {
+      readingTaste.value = taste
     })
   } catch (error) {
     console.error('Error loading library data:', error)
@@ -1317,14 +1317,14 @@ const handleSaveChallenge = async (challengeData) => {
           @create="handleCreateChallenge"
         />
 
-        <!-- Your Reading DNA -->
-        <TasteProfile v-if="tasteProfile" :profile="tasteProfile" compact />
+        <!-- Reading Taste -->
+        <ReadingTaste v-if="readingTaste && readingTaste.books_count > 0" :taste="readingTaste" compact title="Your Reading Taste" />
 
-        <!-- DNA Loading/Empty State -->
+        <!-- Taste Empty State -->
         <div v-else class="p-8 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
-          <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-6">Your Reading DNA</h3>
+          <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-6">Your Reading Taste</h3>
           <p class="text-sm text-slate-500">
-            Rate more books to build your reading DNA profile.
+            Add books to your library to discover your reading taste.
           </p>
         </div>
 
@@ -1381,16 +1381,8 @@ const handleSaveChallenge = async (challengeData) => {
                 @create="handleCreateChallenge"
               />
 
-              <!-- Taste Profile -->
-              <TasteProfile v-if="tasteProfile" :profile="tasteProfile" compact />
-
-              <!-- DNA Loading/Empty State -->
-              <div v-else class="p-6 rounded-2xl glass border-slate-800 bg-slate-900/40">
-                <h3 class="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] mb-4">Your Reading DNA</h3>
-                <p class="text-sm text-slate-500">
-                  Rate more books to build your profile.
-                </p>
-              </div>
+              <!-- Reading Taste -->
+              <ReadingTaste v-if="readingTaste && readingTaste.books_count > 0" :taste="readingTaste" compact title="Your Reading Taste" />
 
               <!-- Consistency Heatmap -->
               <ConsistencyWidget compact />

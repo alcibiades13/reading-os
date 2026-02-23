@@ -353,16 +353,27 @@ class UserViewSet(viewsets.ModelViewSet):
         shared_books_count = 0
         match_score = 0
         if request.user.is_authenticated and user != request.user:
-            current_user_book_ids = set(
-                UserBook.objects.filter(
-                    user=request.user,
-                    replaced_by__isnull=True
+            # Compare at book_group level: different editions of the same work count as a match
+            current_user_books = UserBook.objects.filter(
+                user=request.user,
+                replaced_by__isnull=True
+            ).select_related('book')
+            current_user_group_ids = set(
+                current_user_books.filter(
+                    book__book_group__isnull=False
+                ).values_list('book__book_group_id', flat=True)
+            )
+            current_user_solo_book_ids = set(
+                current_user_books.filter(
+                    book__book_group__isnull=True
                 ).values_list('book_id', flat=True)
             )
             shared_user_books = UserBook.objects.filter(
                 user=user,
                 replaced_by__isnull=True,
-                book_id__in=current_user_book_ids
+            ).filter(
+                Q(book__book_group_id__in=current_user_group_ids) |
+                Q(book_id__in=current_user_solo_book_ids, book__book_group__isnull=True)
             ).select_related('book').prefetch_related('book__authors')
 
             shared_books_count = shared_user_books.count()

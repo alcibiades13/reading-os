@@ -7,6 +7,8 @@ from .views import (
     CheckSurveyView,
     SurveyConfigView,
     TasteProfileView,
+    ReadingTasteView,
+    DiscoverSectionsView,
     BookDNAView,
 )
 
@@ -25,6 +27,8 @@ urlpatterns = [
 
     # User profile
     path('taste-profile/', TasteProfileView.as_view(), name='taste-profile'),
+    path('reading-taste/', ReadingTasteView.as_view(), name='reading-taste'),
+    path('discover-sections/', DiscoverSectionsView.as_view(), name='discover-sections'),
 
     # Book DNA
     path('book-dna/<int:book_id>/', BookDNAView.as_view(), name='book-dna'),
