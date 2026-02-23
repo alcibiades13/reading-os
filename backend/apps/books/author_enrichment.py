@@ -8,6 +8,7 @@ Can be called directly for a single author or in bulk via management command.
 import re
 import logging
 import datetime
+import unicodedata
 import requests
 from urllib.parse import quote
 
@@ -17,12 +18,46 @@ HEADERS = {'User-Agent': 'ReadingOS/1.0 (book-tracker)'}
 REQUEST_TIMEOUT = 15
 
 
+def _normalize(text):
+    """Strip accents and lowercase for comparison."""
+    nfkd = unicodedata.normalize('NFKD', text)
+    return ''.join(c for c in nfkd if not unicodedata.combining(c)).lower()
+
+
+def _validate_author_match(author_name, bio_text, page_title=''):
+    """
+    Check if the fetched bio/page actually refers to this author.
+    Returns True if the result looks like a match, False otherwise.
+
+    Heuristic: at least one significant name token (>= 3 chars) must appear
+    in either the bio text or the Wikipedia page title (normalized, accent-free).
+    """
+    if not bio_text and not page_title:
+        return False
+
+    name_tokens = [
+        _normalize(t) for t in author_name.split()
+        if len(t) >= 3
+    ]
+    if not name_tokens:
+        return True  # Very short name — can't validate, allow it
+
+    haystack = _normalize(bio_text or '') + ' ' + _normalize(page_title or '')
+
+    for token in name_tokens:
+        if token in haystack:
+            return True
+
+    return False
+
+
 def enrich_author(author, force=False):
     """
     Enrich a single Author instance with external data.
     Returns dict of fields that were updated, or empty dict if nothing changed.
 
     Pipeline:
+      0. If grouped, try to copy data from primary alias first
       1. Open Library author search → OLID + wikidata QID
       2. Wikipedia REST API → bio + photo
       3. Wikidata → birth_date, death_date
@@ -35,49 +70,94 @@ def enrich_author(author, force=False):
     if not needs_bio and not needs_photo and not needs_dates:
         return {}
 
+    # Step 0: If author is in a group, copy from a sibling that has data
+    group_data = _get_group_sibling_data(author)
+
     # Step 1: Open Library
-    wikidata_qid = None
+    wikidata_qid = group_data.get('wikidata_id') or None
     ol_bio = ''
     ol_photo = ''
 
-    ol_data = _search_open_library(author.name)
-    if ol_data:
-        olid = ol_data.get('olid')
-        if olid:
-            ol_detail = _get_ol_author_detail(olid)
-            if ol_detail:
-                wikidata_qid = (ol_detail.get('remote_ids') or {}).get('wikidata')
-                bio_raw = ol_detail.get('bio')
-                if isinstance(bio_raw, dict):
-                    ol_bio = bio_raw.get('value', '')
-                elif isinstance(bio_raw, str):
-                    ol_bio = bio_raw
-                photos = ol_detail.get('photos', [])
-                valid_photos = [p for p in photos if isinstance(p, int) and p > 0]
-                if valid_photos:
-                    ol_photo = f'https://covers.openlibrary.org/a/id/{valid_photos[0]}-M.jpg'
-                elif olid:
-                    ol_photo = f'https://covers.openlibrary.org/a/olid/{olid}-M.jpg'
+    # Use primary alias name for search if this author's name is a transliteration
+    search_names = [author.name]
+    if group_data.get('primary_name') and group_data['primary_name'] != author.name:
+        search_names.append(group_data['primary_name'])
+
+    for search_name in search_names:
+        ol_data = _search_open_library(search_name)
+        if ol_data:
+            olid = ol_data.get('olid')
+            if olid:
+                ol_detail = _get_ol_author_detail(olid)
+                if ol_detail:
+                    bio_raw = ol_detail.get('bio')
+                    candidate_bio = ''
+                    if isinstance(bio_raw, dict):
+                        candidate_bio = bio_raw.get('value', '')
+                    elif isinstance(bio_raw, str):
+                        candidate_bio = bio_raw
+
+                    ol_name = ol_detail.get('name', '')
+                    # Validate: OL result must match the author
+                    if not _validate_author_match(author.name, candidate_bio, ol_name):
+                        logger.debug(
+                            f'OL result for "{search_name}" rejected — '
+                            f'doesn\'t match author "{author.name}"'
+                        )
+                        continue
+
+                    if not wikidata_qid:
+                        wikidata_qid = (ol_detail.get('remote_ids') or {}).get('wikidata')
+                    ol_bio = candidate_bio
+                    photos = ol_detail.get('photos', [])
+                    valid_photos = [p for p in photos if isinstance(p, int) and p > 0]
+                    if valid_photos:
+                        ol_photo = f'https://covers.openlibrary.org/a/id/{valid_photos[0]}-M.jpg'
+                    elif olid:
+                        ol_photo = f'https://covers.openlibrary.org/a/olid/{olid}-M.jpg'
+                    if ol_bio:
+                        break  # Good result, no need to try alternate name
 
     # Step 2: Wikipedia
     wiki_bio = ''
     wiki_photo = ''
     wiki_page_title = None
+    wiki_from_qid = False  # Trust pages resolved via validated Wikidata QID
 
     if wikidata_qid:
         wiki_page_title = _get_wikipedia_title_from_wikidata(wikidata_qid)
+        if wiki_page_title:
+            wiki_from_qid = True
     if not wiki_page_title:
-        wiki_page_title = _search_wikipedia(author.name)
+        # Try each name variant
+        for search_name in search_names:
+            wiki_page_title = _search_wikipedia(search_name)
+            if wiki_page_title:
+                break
 
     if wiki_page_title:
         wiki_data = _get_wikipedia_summary(wiki_page_title)
         if wiki_data:
-            wiki_bio = wiki_data.get('extract', '')
-            thumb = wiki_data.get('thumbnail') or {}
-            orig = wiki_data.get('originalimage') or {}
-            wiki_photo = orig.get('source') or thumb.get('source') or ''
-            if not wikidata_qid:
-                wikidata_qid = wiki_data.get('wikibase_item')
+            candidate_bio = wiki_data.get('extract', '')
+            page_title_display = (wiki_page_title or '').replace('_', ' ')
+
+            # Validate search-based results; QID-resolved pages are trusted
+            if not wiki_from_qid and not _validate_author_match(
+                author.name, candidate_bio, page_title_display
+            ):
+                logger.debug(
+                    f'Wikipedia result "{wiki_page_title}" rejected — '
+                    f'doesn\'t match author "{author.name}"'
+                )
+                # Reset — don't use this data
+                wiki_page_title = None
+            else:
+                wiki_bio = candidate_bio
+                thumb = wiki_data.get('thumbnail') or {}
+                orig = wiki_data.get('originalimage') or {}
+                wiki_photo = orig.get('source') or thumb.get('source') or ''
+                if not wikidata_qid:
+                    wikidata_qid = wiki_data.get('wikibase_item')
 
     # Step 3: Wikidata dates
     wd_birth = None
@@ -85,9 +165,9 @@ def enrich_author(author, force=False):
     if wikidata_qid and needs_dates:
         wd_birth, wd_death = _get_wikidata_dates(wikidata_qid)
 
-    # Merge (Wikipedia preferred, OL as fallback)
-    new_bio = wiki_bio or ol_bio
-    new_photo = wiki_photo or ol_photo
+    # Merge (Wikipedia preferred, OL fallback, group sibling last resort)
+    new_bio = wiki_bio or ol_bio or group_data.get('bio', '')
+    new_photo = wiki_photo or ol_photo or group_data.get('photo', '')
 
     # Apply updates
     updated_fields = {}
@@ -100,13 +180,16 @@ def enrich_author(author, force=False):
         author.photo = new_photo
         updated_fields['photo'] = new_photo
 
-    if needs_dates and wd_birth:
-        author.birth_date = wd_birth
-        updated_fields['birth_date'] = wd_birth
+    new_birth = wd_birth or group_data.get('birth_date')
+    new_death = wd_death or group_data.get('death_date')
 
-    if needs_dates and wd_death:
-        author.death_date = wd_death
-        updated_fields['death_date'] = wd_death
+    if needs_dates and new_birth:
+        author.birth_date = new_birth
+        updated_fields['birth_date'] = new_birth
+
+    if needs_dates and new_death:
+        author.death_date = new_death
+        updated_fields['death_date'] = new_death
 
     # Save wikidata_id if found
     if wikidata_qid and not author.wikidata_id:
@@ -172,6 +255,40 @@ def _auto_link_by_wikidata(author, qid):
         f'Auto-linked authors by Wikidata {qid}: '
         f'"{author.name}" <-> "{existing.name}" (group={group.id})'
     )
+
+
+# ─── Group sibling data ──────────────────────────────────────
+
+def _get_group_sibling_data(author):
+    """
+    If author is in a group, return data from a sibling that has bio/photo/dates.
+    This handles transliterated names (e.g. "Viktor Igo" → copy from "Victor Hugo").
+    """
+    if not author.author_group_id:
+        return {}
+
+    siblings = (
+        author.author_group.members
+        .exclude(id=author.id)
+        .order_by('-is_primary_alias')
+    )
+
+    result = {}
+    for sib in siblings:
+        if sib.is_primary_alias or not result.get('primary_name'):
+            result['primary_name'] = sib.name
+        if sib.bio and not result.get('bio'):
+            result['bio'] = sib.bio
+        if sib.photo and not result.get('photo'):
+            result['photo'] = sib.photo
+        if sib.birth_date and not result.get('birth_date'):
+            result['birth_date'] = sib.birth_date
+        if sib.death_date and not result.get('death_date'):
+            result['death_date'] = sib.death_date
+        if sib.wikidata_id and not result.get('wikidata_id'):
+            result['wikidata_id'] = sib.wikidata_id
+
+    return result
 
 
 # ─── Open Library ────────────────────────────────────────────

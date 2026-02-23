@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   ArrowLeft, BookOpen, Share2, User, Calendar,
   Globe, ChevronRight, Quote, Heart, Users,
-  Plus, Search, Loader2, Link2
+  Plus, Search, Loader2, Link2, Pencil, Save, X
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -107,13 +107,13 @@ const linkPotentialAlias = async (aliasId) => {
   try {
     const response = await authorsAPI.linkAuthor(authorId.value, aliasId)
     if (response.data.success) {
-      addToast('Autor povezan!', 'success')
+      addToast('Author linked!', 'success')
       await refreshAuthorData()
       potentialAliases.value = potentialAliases.value.filter(a => a.id !== aliasId)
     }
   } catch (error) {
     console.error('Failed to link author:', error)
-    addToast(error.response?.data?.error || 'Greska pri povezivanju', 'error')
+    addToast(error.response?.data?.error || 'Error linking author', 'error')
   }
 }
 
@@ -124,13 +124,63 @@ const linkManualAlias = async (aliasId) => {
       isLinkAuthorModalOpen.value = false
       aliasSearchQuery.value = ''
       aliasSearchResults.value = []
-      addToast('Autor povezan!', 'success')
+      addToast('Author linked!', 'success')
       await refreshAuthorData()
       fetchPotentialAliases()
     }
   } catch (error) {
     console.error('Failed to link author:', error)
-    addToast(error.response?.data?.error || 'Greska pri povezivanju', 'error')
+    addToast(error.response?.data?.error || 'Error linking author', 'error')
+  }
+}
+
+// Edit mode state
+const isEditing = ref(false)
+const isSaving = ref(false)
+const editForm = ref({
+  bio: '',
+  photo: '',
+  birth_date: '',
+  death_date: '',
+})
+
+const startEditing = () => {
+  editForm.value = {
+    bio: author.value?.bio || '',
+    photo: author.value?.photo || '',
+    birth_date: author.value?.birth_date || '',
+    death_date: author.value?.death_date || '',
+  }
+  isEditing.value = true
+}
+
+const cancelEditing = () => {
+  isEditing.value = false
+}
+
+const saveAuthor = async () => {
+  isSaving.value = true
+  try {
+    const payload = {}
+    if (editForm.value.bio !== (author.value?.bio || '')) payload.bio = editForm.value.bio
+    if (editForm.value.photo !== (author.value?.photo || '')) payload.photo = editForm.value.photo
+    if (editForm.value.birth_date !== (author.value?.birth_date || '')) payload.birth_date = editForm.value.birth_date || null
+    if (editForm.value.death_date !== (author.value?.death_date || '')) payload.death_date = editForm.value.death_date || null
+
+    if (Object.keys(payload).length === 0) {
+      isEditing.value = false
+      return
+    }
+
+    await authorsAPI.update(authorId.value, payload)
+    await refreshAuthorData()
+    isEditing.value = false
+    addToast('Author updated!', 'success')
+  } catch (error) {
+    console.error('Failed to update author:', error)
+    addToast(error.response?.data?.detail || 'Error saving', 'error')
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -314,10 +364,90 @@ onMounted(async () => {
           <div class="flex items-center gap-4">
             <div class="w-8 h-px bg-indigo-500" />
             <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">The Profile</h2>
+            <button
+              v-if="!isEditing"
+              @click="startEditing"
+              class="ml-auto p-2 rounded-lg bg-white/5 border border-white/5 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
+              title="Edit author"
+            >
+              <Pencil :size="14" />
+            </button>
           </div>
 
-          <!-- Bio text -->
-          <div class="space-y-8">
+          <!-- Edit form -->
+          <div v-if="isEditing" class="space-y-6 p-6 rounded-2xl bg-slate-900/60 border border-slate-700/50">
+            <!-- Bio -->
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Biography</label>
+              <textarea
+                v-model="editForm.bio"
+                rows="5"
+                class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all placeholder-slate-600 resize-y"
+                placeholder="Short biography..."
+              />
+            </div>
+
+            <!-- Photo URL -->
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Photo URL</label>
+              <input
+                v-model="editForm.photo"
+                type="url"
+                class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all placeholder-slate-600"
+                placeholder="https://..."
+              />
+              <img
+                v-if="editForm.photo"
+                :src="editForm.photo"
+                class="mt-2 w-20 h-24 object-cover rounded-lg border border-slate-700"
+                @error="(e) => e.target.style.display = 'none'"
+              />
+            </div>
+
+            <!-- Dates row -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Date of Birth</label>
+                <input
+                  v-model="editForm.birth_date"
+                  type="date"
+                  class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Date of Death</label>
+                <input
+                  v-model="editForm.death_date"
+                  type="date"
+                  class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 pt-2">
+              <button
+                @click="saveAuthor"
+                :disabled="isSaving"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-bold transition-all disabled:opacity-50"
+              >
+                <Loader2 v-if="isSaving" :size="14" class="animate-spin" />
+                <Save v-else :size="14" />
+                Save
+              </button>
+              <button
+                @click="cancelEditing"
+                :disabled="isSaving"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-bold transition-all"
+              >
+                <X :size="14" />
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- Bio text (read mode) -->
+          <div v-else class="space-y-8">
             <p v-if="author.bio" class="text-xl sm:text-2xl lg:text-3xl font-serif italic text-slate-300 leading-relaxed max-w-4xl">
               {{ author.bio }}
             </p>
@@ -370,7 +500,7 @@ onMounted(async () => {
           <div v-if="aliases.length > 0" class="p-6 lg:p-8 rounded-[2rem] bg-slate-950/40 border border-white/5 glass">
             <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Link2 :size="10" />
-              Poznato i kao
+              Also Known As
             </h3>
             <div class="space-y-2">
               <router-link
@@ -393,7 +523,7 @@ onMounted(async () => {
           <div v-if="potentialAliases.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
             <div class="mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
               <p class="text-xs text-amber-200/70">
-                Pronasli smo autore sa slicnim imenom. Povezi ih ako se radi o istoj osobi.
+                We found authors with similar names. Link them if they're the same person.
               </p>
             </div>
 
@@ -426,13 +556,13 @@ onMounted(async () => {
                     @click="linkPotentialAlias(alias.id)"
                     class="flex-1 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all"
                   >
-                    Povezi
+                    Link
                   </button>
                   <router-link
                     :to="getAuthorUrl(alias)"
                     class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all"
                   >
-                    Pogledaj
+                    View
                   </router-link>
                 </div>
               </div>
@@ -446,10 +576,10 @@ onMounted(async () => {
               class="w-full px-4 py-3 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 text-indigo-400 text-sm font-bold transition-all flex items-center justify-center gap-2 group"
             >
               <Plus :size="16" class="group-hover:rotate-90 transition-transform" />
-              Povezi sa drugim pravopisom
+              Link Another Spelling
             </button>
             <p class="text-[10px] text-slate-500 text-center mt-2">
-              Povezi autore sa istim imenom na razlicitim jezicima
+              Link authors with the same name across languages
             </p>
           </div>
 
@@ -534,13 +664,13 @@ onMounted(async () => {
         <DialogHeader class="border-b border-slate-800 pb-4">
           <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
             <Link2 :size="20" class="text-indigo-400" />
-            Povezi sa drugim pravopisom
+            Link Another Spelling
           </DialogTitle>
         </DialogHeader>
 
         <div class="flex-1 overflow-hidden flex flex-col space-y-4 py-4">
           <p class="text-sm text-slate-300">
-            Pronadji autora "{{ author?.name }}" na drugom jeziku ili sa drugim pravopisom imena.
+            Find "{{ author?.name }}" in another language or with a different name spelling.
           </p>
 
           <!-- Search Input -->
@@ -549,7 +679,7 @@ onMounted(async () => {
             <input
               v-model="aliasSearchQuery"
               type="text"
-              placeholder="Pretrazi po imenu autora..."
+              placeholder="Search by author name..."
               class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-50 outline-none focus:border-indigo-500 transition-all placeholder-slate-600"
               autofocus
             />
@@ -580,7 +710,7 @@ onMounted(async () => {
                 </div>
                 <div class="shrink-0 flex items-center">
                   <div class="px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-bold">
-                    Povezi
+                    Link
                   </div>
                 </div>
               </div>
@@ -592,8 +722,8 @@ onMounted(async () => {
             <div class="w-16 h-16 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mb-4">
               <Search :size="24" class="text-slate-600" />
             </div>
-            <p class="text-sm font-semibold text-slate-400 mb-1">Nema rezultata</p>
-            <p class="text-xs text-slate-500">Probaj drugi termin pretrage</p>
+            <p class="text-sm font-semibold text-slate-400 mb-1">No results</p>
+            <p class="text-xs text-slate-500">Try a different search term</p>
           </div>
 
           <!-- Initial State -->
@@ -601,8 +731,8 @@ onMounted(async () => {
             <div class="w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
               <User :size="24" class="text-indigo-400" />
             </div>
-            <p class="text-sm font-semibold text-slate-300 mb-1">Pretrazi autore</p>
-            <p class="text-xs text-slate-500">Pocni da kucas da pronadjes autora u bazi</p>
+            <p class="text-sm font-semibold text-slate-300 mb-1">Search authors</p>
+            <p class="text-xs text-slate-500">Start typing to find an author</p>
           </div>
 
           <!-- Footer -->
@@ -611,7 +741,7 @@ onMounted(async () => {
               @click="isLinkAuthorModalOpen = false"
               class="w-full px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
             >
-              Otkazi
+              Cancel
             </button>
           </div>
         </div>
