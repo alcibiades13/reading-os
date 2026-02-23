@@ -33,7 +33,8 @@ class Author(models.Model):
     bio = models.TextField(blank=True)
     birth_date = models.DateField(null=True, blank=True)
     death_date = models.DateField(null=True, blank=True)
-    photo = models.URLField(blank=True)
+    photo = models.URLField(max_length=500, blank=True)
+    wikidata_id = models.CharField(max_length=20, blank=True, db_index=True)
 
     # Author grouping (like BookGroup for books)
     author_group = models.ForeignKey(

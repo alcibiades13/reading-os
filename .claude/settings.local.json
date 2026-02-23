@@ -70,7 +70,16 @@
       "Bash(venv/bin/python manage.py migrate:*)",
       "Bash(DJANGO_SETTINGS_MODULE=config.settings venv/bin/python:*)",
       "Bash(backend/venv/bin/python backend/manage.py migrate:*)",
-      "Bash(DJANGO_SETTINGS_MODULE=config.settings python:*)"
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings python:*)",
+      "WebFetch(domain:openlibrary.org)",
+      "WebFetch(domain:www.mediawiki.org)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:zuplo.com)",
+      "WebFetch(domain:codesnippet.io)",
+      "WebFetch(domain:www.kmjn.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:api.wikimedia.org)"
     ]
   }
 }
