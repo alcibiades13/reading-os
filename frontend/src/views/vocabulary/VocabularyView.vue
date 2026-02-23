@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useVocabularyStore } from '@/stores/vocabularyStore'
 import WordCard from '@/components/vocabulary/WordCard.vue'
 import FlashcardPlayer from '@/components/vocabulary/FlashcardPlayer.vue'
@@ -8,25 +9,47 @@ import { Brain, LayoutGrid, BarChart3, Plus, Search, Sparkles, BookOpen, CheckCi
 import { vocabularyAPI } from '@/services/api'
 import { downloadBlob } from '@/utils/downloadFile'
 
+const route = useRoute()
 const vocabularyStore = useVocabularyStore()
 
 const activeView = ref('library') // 'library' | 'practice' | 'stats'
 const searchQuery = ref('')
 const filterLevel = ref('all') // 'all' | 'new' | 'learning' | 'mastered'
+const filterBookId = ref(null)
 const isModalOpen = ref(false)
 const editingWord = ref(null)
 const showMobileFilters = ref(false)
 
 onMounted(() => {
   vocabularyStore.loadWords()
+
+  // Apply book filter from query param (e.g. navigating from Knowledge Hub)
+  const bookFilter = route.query.book
+  if (bookFilter) {
+    filterBookId.value = Number(bookFilter)
+  }
 })
 
 const filteredWords = computed(() => {
   let words = vocabularyStore.searchWords(searchQuery.value)
-  return vocabularyStore.wordsByMastery(filterLevel.value).filter(w =>
+  let result = vocabularyStore.wordsByMastery(filterLevel.value).filter(w =>
     words.includes(w)
   )
+  if (filterBookId.value) {
+    result = result.filter(w => w.book === filterBookId.value)
+  }
+  return result
 })
+
+const filterBookTitle = computed(() => {
+  if (!filterBookId.value) return null
+  const match = vocabularyStore.words.find(w => w.book === filterBookId.value)
+  return match?.bookTitle || `Book #${filterBookId.value}`
+})
+
+const clearBookFilter = () => {
+  filterBookId.value = null
+}
 
 const practiceWords = computed(() => vocabularyStore.practiceWords)
 const stats = computed(() => vocabularyStore.stats)
@@ -146,9 +169,19 @@ const handleExportVocabulary = async (format) => {
       </div>
 
       <!-- Active Filter Indicator -->
-      <div v-if="activeView === 'library' && filterLevel !== 'all'" class="flex items-center gap-2 mt-3">
+      <div v-if="activeView === 'library' && (filterLevel !== 'all' || filterBookId)" class="flex items-center gap-2 mt-3">
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Filter:</span>
         <button
+          v-if="filterBookId"
+          @click="clearBookFilter"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 text-xs font-bold"
+        >
+          <BookOpen :size="12" />
+          {{ filterBookTitle }}
+          <X :size="12" />
+        </button>
+        <button
+          v-if="filterLevel !== 'all'"
           @click="filterLevel = 'all'"
           class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold"
         >
@@ -393,6 +426,22 @@ const handleExportVocabulary = async (format) => {
               Mastered
             </button>
           </div>
+        </div>
+
+        <!-- Book Filter Banner -->
+        <div v-if="filterBookId" class="flex items-center justify-between px-4 py-3 rounded-xl bg-sky-500/10 border border-sky-500/20 mb-6">
+          <div class="flex items-center gap-2 text-sm">
+            <BookOpen :size="16" class="text-sky-400" />
+            <span class="text-slate-400">Showing words from</span>
+            <span class="font-bold text-sky-400">{{ filterBookTitle }}</span>
+          </div>
+          <button
+            @click="clearBookFilter"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/50 text-slate-300 text-xs font-bold hover:bg-slate-700/50 transition-colors"
+          >
+            <X :size="14" />
+            Clear Filter
+          </button>
         </div>
 
         <!-- Library Grid -->

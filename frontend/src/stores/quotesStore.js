@@ -21,7 +21,10 @@ export const useQuotesStore = defineStore('quotes', {
       let filtered = [...state.quotes]
 
       if (state.filters.book) {
-        filtered = filtered.filter(q => q.book?.id === state.filters.book)
+        filtered = filtered.filter(q => {
+          const bookId = typeof q.book === 'object' ? q.book?.id : q.book
+          return bookId === state.filters.book
+        })
       }
 
       if (state.filters.tag) {

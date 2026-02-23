@@ -153,6 +153,28 @@ const isFavorite = computed(() => userBook.value?.is_favorite || false)
 const isOwned = computed(() => exactUserBook.value?.is_owned || false)
 const isWishlisted = computed(() => exactUserBook.value?.is_wishlisted || false)
 
+// Genre tags from survey DNA (preferred over imported genres)
+const GENRE_TAG_LABELS = {
+  literary_fiction: 'Literary Fiction', science_fiction: 'Science Fiction', fantasy: 'Fantasy',
+  mystery: 'Mystery', thriller: 'Thriller', horror: 'Horror', romance: 'Romance',
+  historical_fiction: 'Historical Fiction', dystopian: 'Dystopian', magical_realism: 'Magical Realism',
+  biography_memoir: 'Biography / Memoir', philosophy_nf: 'Philosophy', psychology_nf: 'Psychology',
+  science_nf: 'Science', history_nf: 'History', poetry: 'Poetry', essays: 'Essays',
+  satire: 'Satire', drama: 'Drama', young_adult: 'Young Adult', graphic_novel: 'Graphic Novel',
+  self_help: 'Self-Help', true_crime: 'True Crime', classics: 'Classics', childrens: "Children's",
+  religion: 'Religion & Theology', tragedy: 'Tragedy',
+}
+const dnaGenreTags = computed(() => {
+  const tags = bookDNA.value?.genre_tags
+  if (!tags?.length) return null
+  const primary = bookDNA.value?.primary_genre_tag
+  return tags.map(slug => ({
+    slug,
+    label: GENRE_TAG_LABELS[slug] || slug.replace(/_/g, ' '),
+    isPrimary: slug === primary,
+  }))
+})
+
 // Computed - Progress
 const totalPages = computed(() => {
   const pages = book.value?.pages
@@ -926,7 +948,16 @@ export const QuoteCard = defineComponent({
 
           <!-- Quick Info -->
           <div class="flex-1 min-w-0 py-1">
-            <div v-if="book.genres?.length > 0" class="flex flex-wrap gap-1 mb-2">
+            <div v-if="dnaGenreTags?.length" class="flex flex-wrap gap-1 mb-2">
+              <span
+                v-for="tag in dnaGenreTags.slice(0, 3)"
+                :key="tag.slug"
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+              >
+                {{ tag.label }}
+              </span>
+            </div>
+            <div v-else-if="book.genres?.length > 0" class="flex flex-wrap gap-1 mb-2">
               <span
                 v-for="genre in book.genres.slice(0, 2)"
                 :key="genre.id"
@@ -1107,7 +1138,16 @@ export const QuoteCard = defineComponent({
 
         <!-- Header Info (Desktop only) -->
         <section class="hidden lg:block">
-          <div v-if="book.genres?.length > 0" class="flex flex-wrap gap-2 mb-6">
+          <div v-if="dnaGenreTags?.length" class="flex flex-wrap gap-2 mb-6">
+            <span
+              v-for="tag in dnaGenreTags.slice(0, 3)"
+              :key="tag.slug"
+              class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+            >
+              {{ tag.label }}
+            </span>
+          </div>
+          <div v-else-if="book.genres?.length > 0" class="flex flex-wrap gap-2 mb-6">
             <span
               v-for="genre in book.genres"
               :key="genre.id"
@@ -1269,6 +1309,21 @@ export const QuoteCard = defineComponent({
                     <span class="transition-colors group-hover/btn:text-indigo-400">Update DNA</span>
                   </button>
 
+                  <button
+                    @click="handleStudyMode"
+                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                  >
+                    <Brain :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
+                    <span class="transition-colors group-hover/btn:text-indigo-400">Study Mode</span>
+                  </button>
+
+                  <button
+                    @click="handleAddQuote"
+                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                  >
+                    <Plus :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
+                    <span class="transition-colors group-hover/btn:text-indigo-400">Add Quote</span>
+                  </button>
                 </div>
               </div>
 
@@ -1359,49 +1414,6 @@ export const QuoteCard = defineComponent({
           </div>
         </section>
 
-        <!-- Quotes Section -->
-        <section class="space-y-6">
-          <div class="flex items-center justify-between gap-2">
-            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em]">My Quotes</h2>
-            <div class="flex items-center gap-2 sm:gap-3">
-              <button
-                @click="handleStudyMode"
-                class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-xs sm:text-sm hover:bg-indigo-500/20 transition-all"
-              >
-                <Brain :size="14" /> <span class="hidden sm:inline">Study Mode</span><span class="sm:hidden">Study</span>
-              </button>
-              <button
-                @click="handleAddQuote"
-                class="flex items-center gap-1.5 sm:gap-2 text-indigo-400 font-bold text-xs sm:text-sm hover:text-indigo-300 transition-colors"
-              >
-                <Plus :size="14" class="sm:hidden" /><Plus :size="16" class="hidden sm:block" /> <span class="hidden sm:inline">Add Quote</span><span class="sm:hidden">Add</span>
-              </button>
-            </div>
-          </div>
-
-          <div v-if="bookQuotes.length > 0" class="grid grid-cols-1 gap-6">
-            <QuoteCard
-              v-for="quote in bookQuotes.slice(0, 3)"
-              :key="quote.id"
-              :quote="quote"
-              :book-title="book.title"
-              :book-authors="authorsString"
-            />
-            <button
-              v-if="bookQuotes.length > 3"
-              class="w-full py-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 font-bold hover:text-white hover:bg-slate-800 transition-all"
-            >
-              View all {{ bookQuotes.length }} quotes from this book
-            </button>
-          </div>
-
-          <div v-else class="p-12 rounded-3xl border-2 border-dashed border-slate-800 flex flex-col items-center text-center">
-            <div class="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center mb-4 text-slate-600">
-              <Bookmark :size="24" />
-            </div>
-            <p class="text-slate-500 text-sm italic">You haven't saved any quotes from this book yet.</p>
-          </div>
-        </section>
 
         <!-- Book Knowledge Hub -->
         <BookKnowledgeHub
