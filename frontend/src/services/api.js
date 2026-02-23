@@ -117,6 +117,7 @@ export const booksAPI = {
 export const authorsAPI = {
   list: (params) => api.get('/books/authors/', { params }),
   get: (id) => api.get(`/books/authors/${id}/`),
+  update: (id, data) => api.patch(`/books/authors/${id}/`, data),
   books: (id) => api.get(`/books/authors/${id}/books/`),
   linkAuthor: (id, authorId) => api.post(`/books/authors/${id}/link_author/`, { author_id: authorId }),
   potentialAliases: (id) => api.get(`/books/authors/${id}/potential_aliases/`),

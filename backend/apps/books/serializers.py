@@ -57,6 +57,40 @@ class AuthorSerializer(serializers.ModelSerializer):
         from apps.books.utils import compute_similar_authors
         return compute_similar_authors(obj)
 
+    def to_representation(self, instance):
+        """
+        For grouped authors, use the canonical (primary) author's bio/photo/dates
+        so every alias page shows the same correct data.
+        """
+        data = super().to_representation(instance)
+
+        if not instance.author_group_id:
+            return data
+
+        # Find the best source within the group (primary first, then any sibling)
+        primary = (
+            instance.author_group.members
+            .filter(is_primary_alias=True)
+            .first()
+        )
+        # Ordered preference: primary, then siblings with data, then self
+        sources = []
+        if primary and primary.id != instance.id:
+            sources.append(primary)
+        for sib in instance.author_group.members.exclude(id=instance.id).order_by('-is_primary_alias'):
+            if sib.id != (primary.id if primary else None):
+                sources.append(sib)
+
+        for field in ('bio', 'photo', 'birth_date', 'death_date'):
+            if not data.get(field):
+                for src in sources:
+                    val = getattr(src, field, None)
+                    if val:
+                        data[field] = str(val) if field in ('birth_date', 'death_date') else val
+                        break
+
+        return data
+
 
 class PublisherSerializer(serializers.ModelSerializer):
     """Serializer for Publisher model"""
