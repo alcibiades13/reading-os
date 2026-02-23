@@ -642,8 +642,17 @@ class UserViewSet(viewsets.ModelViewSet):
         journal_by_day = count_by_day(JournalEntry.objects.filter(user=user))
         discussions_by_day = count_by_day(TopicMessage.objects.filter(author=user))
         reading_days = distinct_days(
-            FeedItem.objects.filter(actor=user, feed_type='progress_update')
+            FeedItem.objects.filter(actor=user, feed_type__in=['progress_update', 'book_finished'])
         )
+        # Also count finished_at dates from UserBook (in case no FeedItem was created)
+        # finished_at is a DateField, so no need for __date lookup or TruncDate
+        from apps.reading.models import UserBook
+        finished_dates = set(
+            UserBook.objects.filter(user=user, finished_at__gte=start_date)
+            .values_list('finished_at', flat=True)
+            .distinct()
+        )
+        reading_days |= finished_dates
         writing_days = distinct_days(
             Chapter.objects.filter(manuscript__user=user), date_field='updated_at'
         )
@@ -672,7 +681,12 @@ class UserViewSet(viewsets.ModelViewSet):
             })
 
         streak = 0
-        for day_data in reversed(days):
+        reversed_days = list(reversed(days))
+        # If today has activity, count it; otherwise skip today and start from yesterday
+        start_idx = 0
+        if reversed_days and reversed_days[0]['total'] == 0:
+            start_idx = 1
+        for day_data in reversed_days[start_idx:]:
             if day_data['total'] > 0:
                 streak += 1
             else:

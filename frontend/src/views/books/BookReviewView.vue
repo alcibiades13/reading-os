@@ -29,6 +29,7 @@ const userBook = computed(() => {
 const content = ref('')
 const isPublic = ref(true)
 const isDraft = ref(true)
+const saveQuotesToCollection = ref(true)
 const isSaving = ref(false)
 const wordCount = ref(0)
 const editorRef = ref(null)
@@ -112,8 +113,9 @@ onMounted(async () => {
       console.log('Loaded review into editor:', userBook.value.review)
     }
 
-    // Clean up and add metadata button to existing blockquotes
+    // Clean up empty blockquotes and add metadata button to existing ones
     await nextTick()
+    cleanEmptyBlockquotes()
     if (editorRef.value) {
       const blockquotes = editorRef.value.querySelectorAll('blockquote')
       blockquotes.forEach(bq => {
@@ -163,6 +165,26 @@ watch(content, (newContent) => {
 
   return () => clearTimeout(timeout)
 })
+
+const cleanEmptyBlockquotes = () => {
+  if (!editorRef.value) return
+  const blockquotes = editorRef.value.querySelectorAll('blockquote')
+  blockquotes.forEach(bq => {
+    // Get text content excluding the metadata button
+    const clone = bq.cloneNode(true)
+    const btn = clone.querySelector('.quote-metadata-btn')
+    if (btn) btn.remove()
+    const text = (clone.textContent || '').trim()
+    if (!text) {
+      bq.remove()
+    }
+  })
+}
+
+const handleEditorInput = (e) => {
+  cleanEmptyBlockquotes()
+  content.value = editorRef.value.innerHTML
+}
 
 const handleCommand = (command, value) => {
   if (!editorRef.value) return
@@ -308,8 +330,8 @@ const handlePublish = async () => {
     // Save review and dates
     await userBooksStore.updateBook(userBook.value.id, updateData)
 
-    // Extract and save quotes from blockquotes
-    const quotes = extractQuotesFromReview(content.value)
+    // Extract and save quotes from blockquotes (if enabled)
+    const quotes = saveQuotesToCollection.value ? extractQuotesFromReview(content.value) : []
 
     if (quotes.length > 0) {
       for (const quote of quotes) {
@@ -364,6 +386,89 @@ const handlePublish = async () => {
 
 const handleBack = () => {
   router.push(book.value ? getBookUrl(book.value) : `/books/${bookId.value}`)
+}
+
+const handleEditorKeydown = (e) => {
+  if (e.key !== 'Enter' || e.shiftKey) return
+
+  const selection = window.getSelection()
+  if (!selection || selection.rangeCount === 0) return
+
+  const node = selection.anchorNode
+  // Walk up to find if we're inside a blockquote
+  let blockquote = null
+  let current = node
+  while (current && current !== editorRef.value) {
+    if (current.nodeName === 'BLOCKQUOTE') {
+      blockquote = current
+      break
+    }
+    current = current.parentNode
+  }
+
+  if (!blockquote) return
+
+  // Find the actual line element the cursor is in
+  // In contenteditable, lines can be: direct text nodes, <br>-separated text, <div>, <p>
+  const anchorNode = selection.anchorNode
+  const range = selection.getRangeAt(0)
+
+  // Determine if we're on an empty line by checking what's at the cursor
+  let isEmptyLine = false
+
+  if (anchorNode === blockquote) {
+    // Cursor is directly in the blockquote element (between child nodes)
+    const childAtOffset = blockquote.childNodes[range.startOffset]
+    const childBefore = range.startOffset > 0 ? blockquote.childNodes[range.startOffset - 1] : null
+    // Empty if we're at a BR or between two BRs
+    if (childBefore && childBefore.nodeName === 'BR') {
+      isEmptyLine = true
+    }
+  } else if (anchorNode.nodeType === Node.TEXT_NODE) {
+    // Only empty if the entire text node is empty/whitespace AND it's the only content on this "line"
+    const txt = anchorNode.textContent
+    if (txt.trim() === '') {
+      isEmptyLine = true
+    }
+  } else if (anchorNode.nodeName === 'DIV' || anchorNode.nodeName === 'P') {
+    // Empty block element
+    const inner = anchorNode.textContent || ''
+    if (inner.trim() === '') {
+      isEmptyLine = true
+    }
+  }
+
+  if (!isEmptyLine) return // Let browser handle normal Enter (new line inside blockquote)
+
+  e.preventDefault()
+
+  // Remove the empty line/node from blockquote
+  if (anchorNode.nodeType === Node.TEXT_NODE && anchorNode.textContent.trim() === '') {
+    const prev = anchorNode.previousSibling
+    anchorNode.remove()
+    if (prev && prev.nodeName === 'BR') prev.remove()
+  } else if (anchorNode === blockquote) {
+    // Remove the BR before cursor position
+    const childBefore = range.startOffset > 0 ? blockquote.childNodes[range.startOffset - 1] : null
+    if (childBefore && childBefore.nodeName === 'BR') childBefore.remove()
+  } else if (anchorNode.nodeName === 'DIV' || anchorNode.nodeName === 'P') {
+    anchorNode.remove()
+  }
+
+  // Create a new paragraph after the blockquote
+  const p = document.createElement('p')
+  p.innerHTML = '<br>'
+  blockquote.parentNode.insertBefore(p, blockquote.nextSibling)
+
+  // Move cursor into the new paragraph
+  const newRange = document.createRange()
+  newRange.setStart(p, 0)
+  newRange.collapse(true)
+  selection.removeAllRanges()
+  selection.addRange(newRange)
+
+  // Update content
+  content.value = editorRef.value.innerHTML
 }
 
 const saveQuoteMetadata = () => {
@@ -484,7 +589,8 @@ const saveQuoteMetadata = () => {
             <div
               ref="editorRef"
               contenteditable="true"
-              @input="(e) => content = e.target.innerHTML"
+              @input="handleEditorInput"
+              @keydown="handleEditorKeydown"
               class="editor-surface text-sm text-slate-200 leading-relaxed min-h-[50vh] focus:outline-none"
             />
             <div
@@ -514,6 +620,27 @@ const saveQuoteMetadata = () => {
               :class="['relative w-12 h-6 rounded-full transition-colors', isPublic ? 'bg-indigo-500' : 'bg-slate-800']"
             >
               <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-all', isPublic ? 'left-7' : 'left-1']" />
+            </button>
+          </div>
+
+          <!-- Save Quotes Toggle -->
+          <div class="flex items-center justify-between p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
+            <div class="flex items-center gap-4">
+              <div :class="['p-3 rounded-xl', saveQuotesToCollection ? 'bg-indigo-500/10 text-indigo-400' : 'bg-slate-800 text-slate-500']">
+                <BookmarkPlus :size="20" />
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Save Quotes to Collection</h4>
+                <p class="text-xs text-slate-500">
+                  {{ saveQuotesToCollection ? 'Blockquotes will be saved as separate quotes' : 'Quotes stay only in the review text' }}
+                </p>
+              </div>
+            </div>
+            <button
+              @click="saveQuotesToCollection = !saveQuotesToCollection"
+              :class="['relative w-12 h-6 rounded-full transition-colors', saveQuotesToCollection ? 'bg-indigo-500' : 'bg-slate-800']"
+            >
+              <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-all', saveQuotesToCollection ? 'left-7' : 'left-1']" />
             </button>
           </div>
 

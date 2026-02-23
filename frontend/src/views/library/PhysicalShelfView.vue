@@ -218,10 +218,12 @@ const getStatusBadge = (status) => {
 
     <!-- Book grid -->
     <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 sm:gap-4">
-      <div
+      <component
+        :is="bulkMode ? 'div' : 'router-link'"
         v-for="book in displayedBooks"
         :key="book.id"
-        @click="bulkMode ? toggleSelect(book.id) : router.push(getBookUrl(book.book || book))"
+        :to="bulkMode ? undefined : getBookUrl(book.book || book)"
+        @click="bulkMode ? toggleSelect(book.id) : null"
         class="group relative cursor-pointer"
       >
         <!-- Cover -->
@@ -291,7 +293,7 @@ const getStatusBadge = (status) => {
         <div class="mt-1.5 sm:hidden">
           <p class="text-[11px] font-semibold text-slate-200 line-clamp-2 leading-tight">{{ getTitle(book) }}</p>
         </div>
-      </div>
+      </component>
     </div>
 
     <!-- Bulk action bar -->
