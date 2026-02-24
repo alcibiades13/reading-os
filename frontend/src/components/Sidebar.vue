@@ -28,7 +28,9 @@ import {
   X,
   CircleDot,
   PenTool,
-  Cpu
+  Cpu,
+  Database,
+  Shield
 } from 'lucide-vue-next'
 import SidebarItem from './sidebar/SidebarItem.vue'
 import NavGroup from './sidebar/NavGroup.vue'
@@ -108,6 +110,33 @@ const userName = computed(() => {
   return user?.email?.split('@')[0] || 'User'
 })
 
+const tierTextColor = computed(() => {
+  const tier = authStore.user?.tier
+  if (tier === 'moderator') return 'text-rose-400'
+  if (tier === 'curator') return 'text-purple-400'
+  if (tier === 'contributor') return 'text-indigo-400'
+  return 'text-slate-400'
+})
+const tierFillClass = computed(() => {
+  const tier = authStore.user?.tier
+  if (tier === 'moderator') return 'fill-rose-400'
+  if (tier === 'curator') return 'fill-purple-400'
+  if (tier === 'contributor') return 'fill-indigo-400'
+  return 'fill-slate-400'
+})
+const tierLabel = computed(() => {
+  const tier = authStore.user?.tier
+  if (tier === 'moderator') return 'Moderator'
+  if (tier === 'curator') return 'Curator'
+  if (tier === 'contributor') return 'Contributor'
+  return 'Reader'
+})
+const tierIcon = computed(() => {
+  const tier = authStore.user?.tier
+  if (tier === 'moderator' || tier === 'curator') return Shield
+  return Hexagon
+})
+
 const isActive = (path) => {
   if (path === '/feed') {
     return route.path === '/feed'
@@ -144,6 +173,9 @@ const isActive = (path) => {
   }
   if (path === '/intelligence') {
     return route.path === '/intelligence'
+  }
+  if (path === '/admin') {
+    return route.path === '/admin'
   }
   return false
 }
@@ -342,6 +374,16 @@ const handleStudyModeClick = async () => {
             :collapsed="isCollapsed && !isMobileOpen"
           />
         </NavGroup>
+
+        <NavGroup v-if="authStore.isAdmin" label="Systems" :collapsed="isCollapsed && !isMobileOpen">
+          <SidebarItem
+            :active="isActive('/admin')"
+            @click="router.push('/admin')"
+            label="Architect"
+            :icon="Database"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
+        </NavGroup>
       </nav>
     </div>
 
@@ -364,9 +406,9 @@ const handleStudyModeClick = async () => {
               </div>
               <div v-show="!isCollapsed || isMobileOpen" class="flex-1 text-left min-w-0">
                 <p class="text-xs font-semibold text-white truncate">{{ userName }}</p>
-                <p class="text-[9px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1">
-                  <Hexagon :size="8" class="fill-indigo-400" />
-                  Premium Member
+                <p :class="['text-[9px] font-bold uppercase tracking-wider flex items-center gap-1', tierTextColor]">
+                  <component :is="tierIcon" :size="8" :class="tierFillClass" />
+                  {{ tierLabel }}
                 </p>
               </div>
             </button>

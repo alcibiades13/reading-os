@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/social/', include('apps.social.urls')),
     path('api/recommendations/', include('apps.recommendations.urls')),
     path('api/codex/', include('apps.codex.urls')),
+    path('api/admin-console/', include('apps.admin_api.urls')),
+    path('api/contributions/', include('apps.contributions.urls')),
 ]
 
 # Serve media files in development

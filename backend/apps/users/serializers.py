@@ -25,6 +25,8 @@ class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
     full_name = serializers.CharField(read_only=True)
     books_count = serializers.SerializerMethodField()
+    tier = serializers.SerializerMethodField()
+    reputation_points = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -43,12 +45,27 @@ class UserSerializer(serializers.ModelSerializer):
             'reading_dna',
             'profile',
             'books_count',
+            'is_staff',
+            'tier',
+            'reputation_points',
             'created_at',
         ]
-        read_only_fields = ['id', 'created_at', 'reading_dna', 'username']
+        read_only_fields = ['id', 'created_at', 'reading_dna', 'username', 'is_staff']
 
     def get_books_count(self, obj):
         return obj.user_books.filter(status='read').count()
+
+    def get_tier(self, obj):
+        try:
+            return obj.reputation.tier
+        except Exception:
+            return 'reader'
+
+    def get_reputation_points(self, obj):
+        try:
+            return obj.reputation.total_points
+        except Exception:
+            return 0
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -84,13 +101,15 @@ class UserDetailSerializer(serializers.ModelSerializer):
     """Detailed User serializer with stats"""
     profile = UserProfileSerializer(read_only=True)
     full_name = serializers.CharField(read_only=True)
-    
+
     # Stats (calculated)
     books_count = serializers.SerializerMethodField()
     quotes_count = serializers.SerializerMethodField()
     reading_lists_count = serializers.SerializerMethodField()
     friends_count = serializers.SerializerMethodField()
-    
+    tier = serializers.SerializerMethodField()
+    reputation_points = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -106,6 +125,9 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'birth_date',
             'reading_dna',
             'profile',
+            'is_staff',
+            'tier',
+            'reputation_points',
             'created_at',
             # Stats
             'books_count',
@@ -113,7 +135,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'reading_lists_count',
             'friends_count',
         ]
-        read_only_fields = ['id', 'created_at', 'reading_dna']
+        read_only_fields = ['id', 'created_at', 'reading_dna', 'is_staff']
     
     def get_books_count(self, obj):
         """Count user's books"""
@@ -134,6 +156,18 @@ class UserDetailSerializer(serializers.ModelSerializer):
             from_user=obj,
             status='accepted'
         ).count()
+
+    def get_tier(self, obj):
+        try:
+            return obj.reputation.tier
+        except Exception:
+            return 'reader'
+
+    def get_reputation_points(self, obj):
+        try:
+            return obj.reputation.total_points
+        except Exception:
+            return 0
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

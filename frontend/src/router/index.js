@@ -182,6 +182,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Intelligence' },
   },
   {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/views/admin/AdminView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin' },
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFoundView.vue'),
@@ -213,9 +219,14 @@ router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const hideForAuth = to.matched.some((record) => record.meta.hideForAuth)
 
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
+
   if (requiresAuth && !authStore.isAuthenticated) {
     // Redirect to login if trying to access protected route
     next({ name: 'Login', query: { redirect: to.fullPath } })
+  } else if (requiresAdmin && !authStore.isAdmin) {
+    // Redirect non-admin users away from admin routes
+    next({ name: 'Library' })
   } else if (hideForAuth && authStore.isAuthenticated) {
     // Redirect authenticated users away from login/register
     next({ name: 'Library' })
