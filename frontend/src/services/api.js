@@ -291,3 +291,32 @@ export const conversationsAPI = {
   sendMessage: (data) => api.post('/social/messages/', data),
   getMessage: (id) => api.get(`/social/messages/${id}/`),
 }
+
+export const adminAPI = {
+  stats: () => api.get('/admin-console/stats/'),
+  dataIssues: (params) => api.get('/admin-console/data-issues/', { params }),
+  authorMergeCandidates: (params) => api.get('/admin-console/author-merge-candidates/', { params }),
+  books: (params) => api.get('/admin-console/books/', { params }),
+  dismissAuthorPair: (author1Id, author2Id) => api.post('/admin-console/dismiss-author-pair/', { author1_id: author1Id, author2_id: author2Id }),
+  unlinkAuthor: (authorId) => api.post(`/admin-console/unlink-author/${authorId}/`),
+  bookMergeCandidates: (params) => api.get('/admin-console/book-merge-candidates/', { params }),
+  dismissBookPair: (book1Id, book2Id) => api.post('/admin-console/dismiss-book-pair/', { book1_id: book1Id, book2_id: book2Id }),
+  unlinkBook: (bookId) => api.post(`/admin-console/unlink-book/${bookId}/`),
+  deleteBook: (bookId, transferTo) => api.delete(`/admin-console/delete-book/${bookId}/`, { params: transferTo ? { transfer_to: transferTo } : {} }),
+}
+
+export const contributionsAPI = {
+  myReputation: () => api.get('/contributions/my-reputation/'),
+  myBadges: () => api.get('/contributions/my-badges/'),
+  myContributions: (params) => api.get('/contributions/my-contributions/', { params }),
+  userReputation: (userId) => api.get(`/contributions/user/${userId}/reputation/`),
+  leaderboard: (params) => api.get('/contributions/leaderboard/', { params }),
+  allBadges: () => api.get('/contributions/badges/'),
+  // Admin / Moderator
+  dashboard: () => api.get('/contributions/dashboard/'),
+  reviewQueue: (params) => api.get('/contributions/review-queue/', { params }),
+  revert: (id) => api.post(`/contributions/${id}/revert/`),
+  approve: (id) => api.post(`/contributions/${id}/approve/`),
+  reject: (id) => api.post(`/contributions/${id}/reject/`),
+  awardBadge: (data) => api.post('/contributions/award-badge/', data),
+}

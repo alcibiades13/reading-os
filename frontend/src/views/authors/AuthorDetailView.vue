@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { authorsAPI } from '@/services/api'
+import { authorsAPI, adminAPI } from '@/services/api'
 import { useToast } from '@/composables/useToast'
 import { getBookUrl } from '@/utils/bookUrl'
 import { getAuthorUrl } from '@/utils/authorUrl'
@@ -114,6 +114,16 @@ const linkPotentialAlias = async (aliasId) => {
   } catch (error) {
     console.error('Failed to link author:', error)
     addToast(error.response?.data?.error || 'Error linking author', 'error')
+  }
+}
+
+const dismissPotentialAlias = async (aliasId) => {
+  try {
+    await adminAPI.dismissAuthorPair(authorId.value, aliasId)
+    potentialAliases.value = potentialAliases.value.filter(a => a.id !== aliasId)
+    addToast('Dismissed', 'success')
+  } catch (error) {
+    console.error('Failed to dismiss author pair:', error)
   }
 }
 
@@ -298,7 +308,7 @@ onMounted(async () => {
             </div>
 
             <!-- Author name -->
-            <h1 class="text-4xl sm:text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[0.95]">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tighter leading-tight">
               {{ author.name }}
             </h1>
 
@@ -448,10 +458,10 @@ onMounted(async () => {
 
           <!-- Bio text (read mode) -->
           <div v-else class="space-y-8">
-            <p v-if="author.bio" class="text-xl sm:text-2xl lg:text-3xl font-serif italic text-slate-300 leading-relaxed max-w-4xl">
+            <p v-if="author.bio" class="text-sm sm:text-base lg:text-lg font-serif italic text-slate-300 leading-relaxed max-w-4xl">
               {{ author.bio }}
             </p>
-            <p v-else class="text-xl sm:text-2xl lg:text-3xl font-serif italic text-slate-500 leading-relaxed max-w-4xl">
+            <p v-else class="text-sm sm:text-base lg:text-lg font-serif italic text-slate-500 leading-relaxed max-w-4xl">
               No biography available yet. This author's story remains to be written.
             </p>
 
@@ -552,6 +562,12 @@ onMounted(async () => {
                 </div>
 
                 <div class="pt-3 border-t border-slate-800/50 flex gap-2">
+                  <button
+                    @click="dismissPotentialAlias(alias.id)"
+                    class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 text-xs font-bold transition-all"
+                  >
+                    Not Same
+                  </button>
                   <button
                     @click="linkPotentialAlias(alias.id)"
                     class="flex-1 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all"

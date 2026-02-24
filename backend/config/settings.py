@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'apps.social',
     'apps.recommendations',
     'apps.codex',
+    'apps.admin_api',
+    'apps.contributions',
 ]
 
 MIDDLEWARE = [

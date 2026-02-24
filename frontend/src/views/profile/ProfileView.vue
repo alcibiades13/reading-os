@@ -3,7 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
-import { User, BookOpen, Quote, Target, Mail, MapPin, Globe, Edit2, Save, X, Calendar, Camera, Download, Archive } from 'lucide-vue-next'
+import { User, BookOpen, Quote, Target, Mail, MapPin, Globe, Edit2, Save, X, Calendar, Camera, Download, Archive, Shield, Award } from 'lucide-vue-next'
+import { contributionsAPI } from '@/services/api'
 import { usersAPI } from '@/services/api'
 import { downloadBlob } from '@/utils/downloadFile'
 
@@ -14,6 +15,8 @@ const quotesStore = useQuotesStore()
 const isEditing = ref(false)
 const avatarFile = ref(null)
 const avatarPreview = ref(null)
+const reputation = ref(null)
+const badges = ref([])
 const profileForm = ref({
   first_name: '',
   last_name: '',
@@ -41,9 +44,19 @@ onMounted(async () => {
   // Fetch real stats
   await Promise.all([
     booksStore.fetchBooks(),
-    quotesStore.fetchQuotes()
+    quotesStore.fetchQuotes(),
+    contributionsAPI.myReputation().then(r => reputation.value = r.data).catch(() => {}),
+    contributionsAPI.myBadges().then(r => badges.value = r.data).catch(() => {}),
   ])
 })
+
+const tierConfig = {
+  reader: { label: 'Reader', bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' },
+  contributor: { label: 'Contributor', bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
+  curator: { label: 'Curator', bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
+  moderator: { label: 'Moderator', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' },
+}
+const currentTier = computed(() => tierConfig[authStore.user?.tier] || tierConfig.reader)
 
 const handleAvatarChange = (event) => {
   const file = event.target.files[0]
@@ -194,6 +207,15 @@ const cancelEdit = () => {
                   <Mail :size="14" />
                   {{ authStore.user?.email }}
                 </p>
+                <div class="flex items-center gap-2 mt-2">
+                  <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border', currentTier.bg, currentTier.text, currentTier.border]">
+                    <Shield :size="12" />
+                    {{ currentTier.label }}
+                  </span>
+                  <span v-if="reputation" class="text-xs text-slate-500 font-medium">
+                    {{ reputation.total_points }} pts
+                  </span>
+                </div>
               </div>
 
               <button
@@ -358,6 +380,64 @@ const cancelEdit = () => {
               <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Want to Read</p>
             </div>
           </div>
+        </div>
+
+        <!-- Reputation & Badges -->
+        <div v-if="reputation" class="lg:col-span-3 glass bg-slate-900/40 rounded-xl sm:rounded-2xl border border-slate-800/50 p-4 sm:p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <Award :size="20" class="text-indigo-400" />
+            <h3 class="text-sm sm:text-lg font-black text-white">Reputation</h3>
+            <span :class="['ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border', currentTier.bg, currentTier.text, currentTier.border]">
+              <Shield :size="12" />
+              {{ currentTier.label }}
+            </span>
+          </div>
+
+          <!-- Points Breakdown -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+              <p class="text-lg font-black text-indigo-400">{{ reputation.content_points }}</p>
+              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Content</p>
+            </div>
+            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+              <p class="text-lg font-black text-emerald-400">{{ reputation.community_points }}</p>
+              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Community</p>
+            </div>
+            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+              <p class="text-lg font-black text-purple-400">{{ reputation.curation_points }}</p>
+              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Curation</p>
+            </div>
+            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+              <p class="text-lg font-black text-amber-400">{{ reputation.reading_points }}</p>
+              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Reading</p>
+            </div>
+          </div>
+
+          <!-- Next Tier Progress -->
+          <div v-if="reputation.next_tier" class="mb-4">
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="text-slate-400 font-medium">Progress to {{ reputation.next_tier }}</span>
+              <span class="text-slate-500 font-bold">{{ reputation.total_points }} / {{ reputation.total_points + (reputation.next_tier_points_needed || 0) }} pts</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all"
+                :style="{ width: reputation.next_tier_points_needed ? Math.min(100, (reputation.total_points / (reputation.total_points + reputation.next_tier_points_needed)) * 100) + '%' : '100%' }" />
+            </div>
+          </div>
+
+          <!-- Badges -->
+          <div v-if="badges.length > 0">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Earned Badges</p>
+            <div class="flex flex-wrap gap-2">
+              <div v-for="ub in badges" :key="ub.id"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-slate-700/50 bg-slate-800/50"
+                :title="ub.badge.description">
+                <span :style="{ color: ub.badge.color }">{{ ub.badge.icon }}</span>
+                <span class="text-slate-300">{{ ub.badge.name }}</span>
+              </div>
+            </div>
+          </div>
+          <p v-else class="text-xs text-slate-600 text-center py-2">No badges earned yet. Keep contributing!</p>
         </div>
 
         <!-- Data Export Section -->

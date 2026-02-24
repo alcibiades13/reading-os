@@ -79,7 +79,8 @@
       "WebFetch(domain:www.kmjn.org)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:pypi.org)",
-      "WebFetch(domain:api.wikimedia.org)"
+      "WebFetch(domain:api.wikimedia.org)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings ./venv/bin/python:*)"
     ]
   }
 }

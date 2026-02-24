@@ -46,6 +46,12 @@ class Author(models.Model):
     )
     is_primary_alias = models.BooleanField(default=False)
 
+    # Contribution tracking
+    last_modified_by = models.ForeignKey(
+        'users.User', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='modified_authors'
+    )
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -406,10 +412,16 @@ class Book(models.Model):
         help_text="Order for featured books (lower = higher priority)"
     )
 
+    # Contribution tracking
+    last_modified_by = models.ForeignKey(
+        'users.User', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='modified_books'
+    )
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Book'

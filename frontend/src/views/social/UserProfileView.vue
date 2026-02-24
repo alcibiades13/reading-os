@@ -6,11 +6,11 @@ import { useAuthStore } from '@/stores/authStore'
 import FollowButton from '@/components/social/FollowButton.vue'
 import BookCard from '@/components/BookCard.vue'
 import TasteProfile from '@/components/recommendations/TasteProfile.vue'
-import api from '@/services/api'
+import api, { contributionsAPI } from '@/services/api'
 import {
   BookOpen, Quote, Users, TrendingUp, Heart,
   ArrowLeft, Sparkles, Bookmark, ExternalLink, Copy, Star,
-  LayoutGrid, List, ArrowUpRight, Gift
+  LayoutGrid, List, ArrowUpRight, Gift, Shield
 } from 'lucide-vue-next'
 import { getBookUrl } from '@/utils/bookUrl'
 
@@ -35,6 +35,7 @@ const userQuotes = ref([])
 const followers = ref([])
 const following = ref([])
 const quotesLoading = ref(false)
+const userReputation = ref(null)
 const booksPage = ref(1)
 const hasMoreBooks = ref(false)
 const loadingMoreBooks = ref(false)
@@ -60,11 +61,14 @@ watch(() => route.params.id, async (newId, oldId) => {
     booksPage.value = 1
     hasMoreBooks.value = false
 
+    userReputation.value = null
+
     // Load new user's data
     await Promise.all([
       loadUserProfile(),
       loadUserBooks(),
       loadUserStats(),
+      contributionsAPI.userReputation(newId).then(r => userReputation.value = r.data).catch(() => {}),
     ])
 
     // Use data from backend profile response
@@ -84,6 +88,7 @@ onMounted(async () => {
     loadUserProfile(),
     loadUserBooks(),
     loadUserStats(),
+    contributionsAPI.userReputation(userId.value).then(r => userReputation.value = r.data).catch(() => {}),
   ])
 
   // Use data from backend profile response
@@ -95,6 +100,14 @@ onMounted(async () => {
 
   loading.value = false
 })
+
+const tierConfig = {
+  reader: { label: 'Reader', bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' },
+  contributor: { label: 'Contributor', bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
+  curator: { label: 'Curator', bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
+  moderator: { label: 'Moderator', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' },
+}
+const userTier = computed(() => tierConfig[userReputation.value?.tier] || tierConfig.reader)
 
 const loadUserProfile = async () => {
   try {
@@ -395,7 +408,14 @@ const getStatusBadge = (status) => {
                   <h1 class="text-base lg:text-3xl font-black text-white light:text-slate-900 mb-0.5 lg:mb-2 truncate">
                     {{ userProfile.first_name }} {{ userProfile.last_name }}
                   </h1>
-                  <p class="text-[10px] lg:text-sm text-slate-400 light:text-slate-500 font-medium mb-0.5 lg:mb-1">@{{ userProfile.username }}</p>
+                  <div class="flex items-center gap-2 mb-0.5 lg:mb-1">
+                    <p class="text-[10px] lg:text-sm text-slate-400 light:text-slate-500 font-medium">@{{ userProfile.username }}</p>
+                    <span v-if="userReputation" :class="['inline-flex items-center gap-1 px-1.5 lg:px-2 py-0.5 rounded-full text-[9px] lg:text-xs font-bold border', userTier.bg, userTier.text, userTier.border]">
+                      <Shield :size="10" />
+                      {{ userTier.label }}
+                    </span>
+                    <span v-if="userReputation" class="text-[9px] lg:text-xs text-slate-500 font-medium">{{ userReputation.total_points }} pts</span>
+                  </div>
                   <p class="text-[10px] lg:text-sm text-slate-300 light:text-slate-600 max-w-2xl line-clamp-2 lg:line-clamp-none">{{ userProfile.bio || 'No bio yet.' }}</p>
                 </div>
 
@@ -479,6 +499,16 @@ const getStatusBadge = (status) => {
                   <Gift :size="14" class="lg:w-[18px] lg:h-[18px]" :class="activeTab === 'wishlist' ? 'text-white' : 'text-rose-400'" />
                   <span :class="['text-[9px] lg:text-xs font-bold uppercase tracking-wide lg:tracking-widest', activeTab === 'wishlist' ? 'text-white/80' : 'text-slate-400 light:text-slate-500 group-hover:text-rose-400']">wishlist</span>
                 </button>
+              </div>
+
+              <!-- Badges Row -->
+              <div v-if="userReputation?.badges?.length" class="flex flex-wrap gap-1.5 lg:gap-2 mt-3">
+                <div v-for="ub in userReputation.badges.slice(0, 5)" :key="ub.id"
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] lg:text-xs font-bold border border-slate-700/50 bg-slate-800/50 light:bg-slate-100 light:border-slate-200"
+                  :title="ub.badge.description">
+                  <span :style="{ color: ub.badge.color }" class="text-[10px] lg:text-xs">{{ ub.badge.icon }}</span>
+                  <span class="text-slate-300 light:text-slate-600">{{ ub.badge.name }}</span>
+                </div>
               </div>
         </div>
 

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.db.models import Q, Count, Avg
 
 from apps.books.models import Author, AuthorGroup, Publisher, Genre, Tag, Book
+from apps.contributions.signals import create_contribution
 from apps.books.serializers import (
     AuthorSerializer,
     PublisherSerializer,
@@ -76,10 +77,23 @@ class AuthorViewSet(viewsets.ModelViewSet):
             author1.is_primary_alias = True
             author1.save()
 
+        # Capture previous state for revert
+        previous_state = {
+            'author_group_id': author2.author_group_id,
+            'is_primary_alias': author2.is_primary_alias,
+        }
+
         author1.author_group = group
         author2.author_group = group
         author1.save()
         author2.save()
+
+        # Log contribution
+        create_contribution(
+            request.user, 'author_linked', 'Author', author2.id,
+            previous_state=previous_state,
+            metadata={'primary_id': author1.id, 'group_id': group.id}
+        )
 
         return Response({
             'success': True,
@@ -648,6 +662,13 @@ class BookViewSet(viewsets.ModelViewSet):
                     book = existing_book
                 else:
                     book = serializer.save()
+                    # Log contribution for new book import
+                    source = book.source or 'manual'
+                    action = 'book_imported' if source in ('google_books', 'open_library') else 'book_added_manual'
+                    create_contribution(
+                        request.user, action, 'Book', book.id,
+                        metadata={'source': source, 'title': book.title}
+                    )
 
                 # Add to user's library if requested
                 if add_to_library and library_data:
@@ -927,6 +948,13 @@ class BookViewSet(viewsets.ModelViewSet):
                     a2.author_group = ag
                     a1.save()
                     a2.save()
+
+        # Log contribution
+        create_contribution(
+            request.user, 'books_linked', 'Book', book2.id,
+            previous_state={'book_group_id': book2.book_group_id},
+            metadata={'primary_id': book1.id, 'group_id': group.id}
+        )
 
         return Response({
             'success': True,
