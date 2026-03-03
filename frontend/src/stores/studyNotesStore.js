@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { studyNotesAPI } from '@/services/api'
+import { withLoading, tryCatch } from '@/utils/storeHelpers'
 
 export const useStudyNotesStore = defineStore('studyNotes', {
   state: () => ({
@@ -91,108 +92,60 @@ export const useStudyNotesStore = defineStore('studyNotes', {
 
   actions: {
     async fetchNotes(params = {}) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await studyNotesAPI.list(params)
-        // Backend returns paginated response: {count, next, previous, results}
         this.notes = Array.isArray(response.data?.results)
           ? response.data.results
           : (Array.isArray(response.data) ? response.data : [])
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch study notes'
-        this.notes = []
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to fetch study notes')
     },
 
     async createNote(noteData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await studyNotesAPI.create(noteData)
-        // Ensure notes is an array before unshift
         if (!Array.isArray(this.notes)) {
           this.notes = []
         }
         this.notes.unshift(response.data)
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to create note'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to create note')
     },
 
     async updateNote(id, noteData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await studyNotesAPI.update(id, noteData)
         const index = this.notes.findIndex(n => n.id === id)
         if (index !== -1) {
           Object.assign(this.notes[index], response.data)
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to update note'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to update note')
     },
 
     async deleteNote(id) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         await studyNotesAPI.delete(id)
         this.notes = this.notes.filter(n => n.id !== id)
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to delete note'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to delete note')
     },
 
     async promoteToQuote(noteId) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await studyNotesAPI.promoteToQuote(noteId)
-        // Update the note to mark it as promoted
         const index = this.notes.findIndex(n => n.id === noteId)
         if (index !== -1) {
           this.notes[index].is_promoted_to_quote = true
           this.notes[index].promoted_quote = response.data.quote_id
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to promote note'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to promote note')
     },
 
     async fetchReferences(bookId) {
-      try {
+      return tryCatch(async () => {
         const response = await studyNotesAPI.references(bookId)
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+        return response.data
+      })
     },
 
     setFilter(key, value) {

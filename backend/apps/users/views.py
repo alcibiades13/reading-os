@@ -1,13 +1,16 @@
 import io
 import json
 import zipfile
+from datetime import timedelta
 from django.http import HttpResponse
+from django.utils import timezone
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum, F
+from django.db.models.functions import TruncMonth, TruncDate
 
 from apps.users.models import User, UserProfile
 from apps.users.serializers import (
@@ -400,7 +403,7 @@ class UserViewSet(viewsets.ModelViewSet):
             shared_genres_count = len(current_user_genres & other_user_genres)
 
             # Total books for both users
-            current_total = len(current_user_book_ids)
+            current_total = current_user_books.count()
             other_total = UserBook.objects.filter(
                 user=user, replaced_by__isnull=True
             ).count()
@@ -690,6 +693,312 @@ class UserViewSet(viewsets.ModelViewSet):
                 break
 
         return Response({'streak': streak, 'days': days})
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated],
+            url_path='reading-stats')
+    def reading_stats(self, request):
+        """
+        Comprehensive reading statistics dashboard data.
+        GET /api/users/reading-stats/?year=2025
+        """
+        from apps.reading.models import UserBook, Quote, VocabularyWord
+        from apps.books.models import Genre, Author
+
+        user = request.user
+        now = timezone.now()
+        year = int(request.query_params.get('year', now.year))
+        year_start = timezone.datetime(year, 1, 1).date()
+        year_end = timezone.datetime(year, 12, 31).date()
+
+        # Base querysets
+        all_user_books = UserBook.objects.filter(user=user, replaced_by__isnull=True)
+        read_books = all_user_books.filter(status='read')
+        year_books = read_books.filter(finished_at__gte=year_start, finished_at__lte=year_end)
+        all_quotes = Quote.objects.filter(user=user)
+        year_quotes = all_quotes.filter(created_at__year=year)
+        all_vocab = VocabularyWord.objects.filter(user=user)
+        year_vocab = all_vocab.filter(created_at__year=year)
+
+        # ===== OVERVIEW =====
+        rated_books = list(read_books.filter(rating__isnull=False).values_list('rating', flat=True))
+        avg_rating = round(float(sum(rated_books)) / len(rated_books), 1) if rated_books else None
+
+        pages_read = read_books.filter(
+            book__pages__isnull=False, finished_at__gte=year_start, finished_at__lte=year_end
+        ).aggregate(total=Sum('book__pages'))['total'] or 0
+
+        # Streak (reuse consistency logic concept)
+        today = now.date()
+        streak = 0
+        for i in range(365):
+            day = today - timedelta(days=i)
+            has_activity = (
+                all_quotes.filter(created_at__date=day).exists() or
+                all_vocab.filter(created_at__date=day).exists() or
+                read_books.filter(finished_at=day).exists()
+            )
+            if has_activity:
+                streak += 1
+            else:
+                break
+
+        overview = {
+            'books_read': year_books.count(),
+            'total_books_read': read_books.count(),
+            'pages_read': pages_read,
+            'total_quotes': year_quotes.count(),
+            'words_learned': year_vocab.count(),
+            'avg_rating': avg_rating,
+            'current_streak': streak,
+        }
+
+        # ===== MONTHLY BREAKDOWN =====
+        monthly_raw = (
+            year_books
+            .filter(finished_at__isnull=False)
+            .annotate(month=TruncMonth('finished_at'))
+            .values('month')
+            .annotate(books=Count('id'))
+            .order_by('month')
+        )
+        monthly_pages_raw = (
+            year_books
+            .filter(finished_at__isnull=False, book__pages__isnull=False)
+            .annotate(month=TruncMonth('finished_at'))
+            .values('month')
+            .annotate(pages=Sum('book__pages'))
+            .order_by('month')
+        )
+        monthly_map = {m['month'].month: m['books'] for m in monthly_raw}
+        pages_map = {m['month'].month: m['pages'] for m in monthly_pages_raw}
+        monthly = []
+        for m in range(1, 13):
+            monthly.append({
+                'month': m,
+                'books': monthly_map.get(m, 0),
+                'pages': pages_map.get(m, 0),
+            })
+
+        # ===== GENRES =====
+        genre_counts = (
+            Genre.objects.filter(
+                books__user_books__user=user,
+                books__user_books__status='read',
+                books__user_books__replaced_by__isnull=True,
+                books__user_books__finished_at__gte=year_start,
+                books__user_books__finished_at__lte=year_end,
+            )
+            .annotate(count=Count('books', distinct=True))
+            .order_by('-count')[:10]
+        )
+        total_genre_books = sum(g.count for g in genre_counts)
+        genres = [
+            {
+                'name': g.name,
+                'count': g.count,
+                'percentage': round((g.count / total_genre_books) * 100) if total_genre_books else 0,
+            }
+            for g in genre_counts
+        ]
+
+        # ===== RATING DISTRIBUTION =====
+        all_ratings = list(
+            read_books.filter(rating__isnull=False).values_list('rating', flat=True)
+        )
+        rating_buckets = {i: 0 for i in range(1, 11)}
+        for r in all_ratings:
+            bucket = min(int(float(r)), 10)
+            if bucket < 1:
+                bucket = 1
+            rating_buckets[bucket] += 1
+        ratings = [{'rating': k, 'count': v} for k, v in rating_buckets.items()]
+
+        # ===== READING PACE =====
+        paced_books = (
+            year_books
+            .filter(started_at__isnull=False, finished_at__isnull=False)
+            .select_related('book')
+            .prefetch_related('book__authors')
+        )
+        pace_data = []
+        for ub in paced_books:
+            days = (ub.finished_at - ub.started_at).days
+            if days >= 0:
+                pace_data.append({
+                    'days': days,
+                    'title': ub.book.title,
+                    'authors': [a.name for a in ub.book.authors.all()],
+                    'cover': ub.book.cover_image_url if hasattr(ub.book, 'cover_image_url') else '',
+                    'pages': ub.book.pages,
+                })
+
+        avg_days = round(sum(p['days'] for p in pace_data) / len(pace_data)) if pace_data else None
+        fastest = min(pace_data, key=lambda x: x['days']) if pace_data else None
+        slowest = max(pace_data, key=lambda x: x['days']) if pace_data else None
+
+        pace = {
+            'avg_days_per_book': avg_days,
+            'total_tracked': len(pace_data),
+            'fastest': fastest,
+            'slowest': slowest,
+        }
+
+        # ===== ENGAGEMENT DEPTH =====
+        top_engaged = (
+            read_books
+            .filter(quotes_count__gt=0)
+            .select_related('book')
+            .prefetch_related('book__authors')
+            .order_by('-depth_score')[:5]
+        )
+        engagement = [
+            {
+                'title': ub.book.title,
+                'authors': [a.name for a in ub.book.authors.all()],
+                'cover': ub.book.cover_image_url if hasattr(ub.book, 'cover_image_url') else '',
+                'quotes_count': ub.quotes_count,
+                'depth_score': round(ub.depth_score, 2) if ub.depth_score else 0,
+                'pages': ub.book.pages,
+            }
+            for ub in top_engaged
+        ]
+
+        # ===== AUTHORS =====
+        author_stats = (
+            Author.objects.filter(
+                books__user_books__user=user,
+                books__user_books__status='read',
+                books__user_books__replaced_by__isnull=True,
+            )
+            .annotate(count=Count('books', distinct=True))
+            .order_by('-count')
+        )
+        top_authors = [
+            {'name': a.name, 'count': a.count}
+            for a in author_stats[:5]
+        ]
+        authors = {
+            'unique_count': author_stats.count(),
+            'top': top_authors,
+        }
+
+        # ===== QUOTES INSIGHTS =====
+        quotes_monthly_raw = (
+            year_quotes
+            .annotate(month=TruncMonth('created_at'))
+            .values('month')
+            .annotate(count=Count('id'))
+            .order_by('month')
+        )
+        quotes_monthly_map = {m['month'].month: m['count'] for m in quotes_monthly_raw}
+        quotes_monthly = [{'month': m, 'count': quotes_monthly_map.get(m, 0)} for m in range(1, 13)]
+
+        most_quoted = (
+            all_quotes
+            .values('book__title', 'book__id')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+            .first()
+        )
+
+        quotes_insights = {
+            'total': year_quotes.count(),
+            'monthly': quotes_monthly,
+            'most_quoted_book': {
+                'title': most_quoted['book__title'],
+                'count': most_quoted['count'],
+            } if most_quoted else None,
+        }
+
+        # ===== YEAR COMPARISON =====
+        prev_year_count = read_books.filter(
+            finished_at__year=year - 1
+        ).count()
+        year_comparison = {
+            'current_year': year,
+            'current_count': year_books.count(),
+            'previous_year': year - 1,
+            'previous_count': prev_year_count,
+            'delta': year_books.count() - prev_year_count,
+        }
+
+        # ===== ACTIVITY HEATMAP (365 days) =====
+        heatmap_start = year_start
+
+        book_days = dict(
+            read_books
+            .filter(finished_at__gte=heatmap_start, finished_at__lte=year_end)
+            .values('finished_at')
+            .annotate(count=Count('id'))
+            .values_list('finished_at', 'count')
+        )
+        quote_days = dict(
+            year_quotes
+            .annotate(date=TruncDate('created_at'))
+            .values('date')
+            .annotate(count=Count('id'))
+            .values_list('date', 'count')
+        )
+        vocab_days = dict(
+            year_vocab
+            .annotate(date=TruncDate('created_at'))
+            .values('date')
+            .annotate(count=Count('id'))
+            .values_list('date', 'count')
+        )
+
+        heatmap = []
+        for i in range(366 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 365):
+            day = heatmap_start + timedelta(days=i)
+            if day > year_end:
+                break
+            b = book_days.get(day, 0)
+            q = quote_days.get(day, 0)
+            v = vocab_days.get(day, 0)
+            heatmap.append({
+                'date': day.isoformat(),
+                'total': b + q + v,
+                'books': b,
+                'quotes': q,
+                'vocabulary': v,
+            })
+
+        # ===== VOCABULARY GROWTH =====
+        mastery_counts = dict(
+            all_vocab.values('mastery').annotate(count=Count('id')).values_list('mastery', 'count')
+        )
+        vocab_monthly_raw = (
+            year_vocab
+            .annotate(month=TruncMonth('created_at'))
+            .values('month')
+            .annotate(count=Count('id'))
+            .order_by('month')
+        )
+        vocab_monthly_map = {m['month'].month: m['count'] for m in vocab_monthly_raw}
+        vocab_monthly = [{'month': m, 'count': vocab_monthly_map.get(m, 0)} for m in range(1, 13)]
+
+        vocabulary = {
+            'new': mastery_counts.get('new', 0),
+            'learning': mastery_counts.get('learning', 0),
+            'mastered': mastery_counts.get('mastered', 0),
+            'total': all_vocab.count(),
+            'monthly': vocab_monthly,
+        }
+
+        return Response({
+            'year': year,
+            'overview': overview,
+            'monthly': monthly,
+            'genres': genres,
+            'ratings': ratings,
+            'pace': pace,
+            'engagement': engagement,
+            'authors': authors,
+            'quotes': quotes_insights,
+            'year_comparison': year_comparison,
+            'heatmap': heatmap,
+            'vocabulary': vocabulary,
+        })
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def export_all_data(self, request):

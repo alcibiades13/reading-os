@@ -13,10 +13,10 @@ const route = useRoute()
 const { toasts } = useToast()
 
 // Pages that should NOT show navigation
-const noNavRoutes = ['/login', '/register', '/404']
+const noNavRoutes = ['/', '/login', '/register', '/404']
 
 const showNavigation = computed(() => {
-  return authStore.isAuthenticated && !noNavRoutes.includes(route.path)
+  return authStore.isAuthenticated && !noNavRoutes.includes(route.path) && !route.meta.hideNav
 })
 
 // Initialize auth state on app mount

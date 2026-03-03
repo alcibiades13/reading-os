@@ -98,6 +98,12 @@ const publishedYear = props.book.published_date?.split('-')[0] || null
         >
           Open Library
         </span>
+        <span
+          v-if="book.source === 'hardcover'"
+          class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[10px] font-bold uppercase tracking-wider"
+        >
+          Hardcover
+        </span>
       </div>
     </div>
   </div>

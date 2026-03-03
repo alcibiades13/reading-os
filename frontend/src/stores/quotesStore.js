@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { quotesAPI, quoteTagsAPI, booksAPI, userBooksAPI } from '@/services/api'
+import { withLoading, tryCatch } from '@/utils/storeHelpers'
 
 export const useQuotesStore = defineStore('quotes', {
   state: () => ({
@@ -67,129 +68,77 @@ export const useQuotesStore = defineStore('quotes', {
 
   actions: {
     async fetchQuotes(params = {}) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await quotesAPI.list(params)
-        // Backend returns paginated response: {count, next, previous, results}
         this.quotes = Array.isArray(response.data?.results)
           ? response.data.results
           : (Array.isArray(response.data) ? response.data : [])
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch quotes'
-        this.quotes = []
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to fetch quotes')
     },
 
     async fetchTags() {
-      try {
+      return tryCatch(async () => {
         const response = await quoteTagsAPI.list()
         this.tags = Array.isArray(response.data) ? response.data : []
-        return { success: true }
-      } catch (error) {
-        console.error('Failed to fetch tags:', error)
-        this.tags = []
-        return { success: false }
-      }
+      })
     },
 
     async createQuote(quoteData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await quotesAPI.create(quoteData)
-        // Ensure quotes is an array before unshift
         if (!Array.isArray(this.quotes)) {
           this.quotes = []
         }
         this.quotes.unshift(response.data)
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to create quote'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to create quote')
     },
 
     async updateQuote(id, quoteData) {
-      this.loading = true
-      this.error = null
-
-      try {
-        // Use PATCH for partial updates (when only updating one field like is_favorite)
+      return withLoading(this, async () => {
         const response = await quotesAPI.patch(id, quoteData)
         const index = this.quotes.findIndex(q => q.id === id)
         if (index !== -1) {
           this.quotes[index] = response.data
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to update quote'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to update quote')
     },
 
     async deleteQuote(id) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         await quotesAPI.delete(id)
         this.quotes = this.quotes.filter(q => q.id !== id)
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to delete quote'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to delete quote')
     },
 
     async createTag(tagData) {
-      try {
+      return tryCatch(async () => {
         const response = await quoteTagsAPI.create(tagData)
         this.tags.push(response.data)
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+        return response.data
+      })
     },
 
     async deleteTag(id) {
-      try {
+      return tryCatch(async () => {
         await quoteTagsAPI.delete(id)
         this.tags = this.tags.filter(t => t.id !== id)
-        return { success: true }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async importBook(bookData) {
-      try {
+      return tryCatch(async () => {
         const response = await booksAPI.importBook(bookData)
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data || 'Failed to import book' }
-      }
+        return response.data
+      })
     },
 
     async createUserBook(userBookData) {
-      try {
+      return tryCatch(async () => {
         const response = await userBooksAPI.create(userBookData)
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data || 'Failed to create user book' }
-      }
+        return response.data
+      })
     },
 
     setFilter(key, value) {

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { userBooksAPI } from '@/services/api'
+import { withLoading, tryCatch } from '@/utils/storeHelpers'
 
 export const useUserBooksStore = defineStore('userBooks', {
   state: () => ({
@@ -23,24 +24,19 @@ export const useUserBooksStore = defineStore('userBooks', {
   }),
 
   getters: {
-    // All user books
     userBooks: (state) => state.books,
 
-    // Filter and sort books based on current filters
     filteredBooks: (state) => {
       let filtered = [...state.books]
 
-      // Filter by status
       if (state.filters.status) {
         filtered = filtered.filter((book) => book.status === state.filters.status)
       }
 
-      // Filter by favorite
       if (state.filters.favorite !== null) {
         filtered = filtered.filter((book) => book.is_favorite === state.filters.favorite)
       }
 
-      // Search in book title and authors
       if (state.filters.search) {
         const search = state.filters.search.toLowerCase()
         filtered = filtered.filter((book) => {
@@ -50,7 +46,6 @@ export const useUserBooksStore = defineStore('userBooks', {
         })
       }
 
-      // Sort
       filtered.sort((a, b) => {
         const sortBy = state.filters.sortBy
         const order = state.filters.sortOrder === 'asc' ? 1 : -1
@@ -70,7 +65,6 @@ export const useUserBooksStore = defineStore('userBooks', {
       return filtered
     },
 
-    // Books grouped by status
     booksByStatus: (state) => {
       return {
         want_to_read: state.books.filter((b) => b.status === 'want_to_read'),
@@ -80,192 +74,119 @@ export const useUserBooksStore = defineStore('userBooks', {
       }
     },
 
-    // Currently reading books
     currentlyReading: (state) => {
       return state.books.filter((b) => b.status === 'currently_reading')
     },
 
-    // Favorite books
     favoriteBooks: (state) => {
       return state.books.filter((b) => b.is_favorite)
     },
 
-    // Owned books (home library)
     ownedBooks: (state) => {
       return state.books.filter((b) => b.is_owned)
     },
 
-    // Wishlisted books
     wishlistedBooks: (state) => {
       return state.books.filter((b) => b.is_wishlisted)
     },
   },
 
   actions: {
-    // Fetch user's books
     async fetchBooks(params = {}) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await userBooksAPI.list(params)
-        // Handle both paginated and non-paginated responses
         this.books = Array.isArray(response.data) ? response.data : (response.data.results || [])
-
-        // Calculate stats
         this.calculateStats()
-
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch books'
-        console.error('Failed to fetch books:', error)
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to fetch books')
     },
 
-    // Add book to library
     async addBook(bookData) {
-      this.loading = true
-      this.error = null
-
-      try {
-        console.log('userBooksStore.addBook called with:', bookData)
+      return withLoading(this, async () => {
         const response = await userBooksAPI.create(bookData)
-        console.log('userBooksAPI.create response:', response)
         this.books.unshift(response.data)
         this.calculateStats()
-        return { success: true, data: response.data }
-      } catch (error) {
-        console.error('userBooksStore.addBook error:', error)
-        console.error('Error response:', error.response)
-        const errorMessage = error.response?.data?.detail
-          || error.response?.data?.error
-          || JSON.stringify(error.response?.data)
-          || error.message
-          || 'Failed to add book'
-        this.error = errorMessage
-        return { success: false, error: errorMessage }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to add book')
     },
 
-    // Update book
     async updateBook(id, bookData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await userBooksAPI.update(id, bookData)
         const index = this.books.findIndex((b) => b.id === id)
         if (index !== -1) {
           this.books[index] = response.data
         }
         this.calculateStats()
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to update book'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to update book')
     },
 
-    // Remove book from library
     async removeBook(id) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         await userBooksAPI.delete(id)
         this.books = this.books.filter((b) => b.id !== id)
         this.calculateStats()
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to remove book'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to remove book')
     },
 
-    // Update reading progress
     async updateProgress(id, currentPage) {
-      try {
+      return tryCatch(async () => {
         const response = await userBooksAPI.updateProgress(id, currentPage)
         const index = this.books.findIndex((b) => b.id === id)
         if (index !== -1) {
           this.books[index] = response.data
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+        return response.data
+      })
     },
 
-    // Mark book as finished
     async markFinished(id, finishedAt = null) {
-      try {
+      return tryCatch(async () => {
         const response = await userBooksAPI.markFinished(id, { finished_at: finishedAt })
         const index = this.books.findIndex((b) => b.id === id)
         if (index !== -1) {
           this.books[index] = response.data
         }
         this.calculateStats()
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+        return response.data
+      })
     },
 
-    // Toggle ownership
     async toggleOwned(id) {
-      try {
+      return tryCatch(async () => {
         const response = await userBooksAPI.toggleOwned(id)
         const index = this.books.findIndex((b) => b.id === id)
         if (index !== -1) {
           this.books[index] = response.data
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+        return response.data
+      })
     },
 
-    // Toggle wishlist
     async toggleWishlisted(id) {
-      try {
+      return tryCatch(async () => {
         const response = await userBooksAPI.toggleWishlisted(id)
         const index = this.books.findIndex((b) => b.id === id)
         if (index !== -1) {
           this.books[index] = response.data
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+        return response.data
+      })
     },
 
-    // Bulk toggle ownership
     async bulkToggleOwned(ids, isOwned = true) {
-      try {
+      return tryCatch(async () => {
         const response = await userBooksAPI.bulkToggleOwned(ids, isOwned)
-        // Update local state
         ids.forEach((id) => {
           const index = this.books.findIndex((b) => b.id === id)
           if (index !== -1) {
             this.books[index].is_owned = isOwned
           }
         })
-        return { success: true, data: response.data }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+        return response.data
+      })
     },
 
-    // Calculate statistics
     calculateStats() {
       this.stats.total = this.books.length
       this.stats.want_to_read = this.books.filter((b) => b.status === 'want_to_read').length
@@ -274,12 +195,10 @@ export const useUserBooksStore = defineStore('userBooks', {
       this.stats.abandoned = this.books.filter((b) => b.status === 'abandoned').length
     },
 
-    // Update filters
     setFilter(key, value) {
       this.filters[key] = value
     },
 
-    // Reset filters
     resetFilters() {
       this.filters = {
         status: null,
@@ -290,7 +209,6 @@ export const useUserBooksStore = defineStore('userBooks', {
       }
     },
 
-    // Clear store
     clear() {
       this.books = []
       this.error = null

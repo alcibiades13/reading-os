@@ -24,14 +24,14 @@ import {
   Download,
   PanelLeftClose,
   PanelLeft,
-  Hexagon,
   X,
   CircleDot,
   PenTool,
   Cpu,
   Database,
-  Shield
+  BarChart3
 } from 'lucide-vue-next'
+import { getTier } from '@/config/tiers'
 import SidebarItem from './sidebar/SidebarItem.vue'
 import NavGroup from './sidebar/NavGroup.vue'
 import {
@@ -110,74 +110,17 @@ const userName = computed(() => {
   return user?.email?.split('@')[0] || 'User'
 })
 
-const tierTextColor = computed(() => {
-  const tier = authStore.user?.tier
-  if (tier === 'moderator') return 'text-rose-400'
-  if (tier === 'curator') return 'text-purple-400'
-  if (tier === 'contributor') return 'text-indigo-400'
-  return 'text-slate-400'
-})
-const tierFillClass = computed(() => {
-  const tier = authStore.user?.tier
-  if (tier === 'moderator') return 'fill-rose-400'
-  if (tier === 'curator') return 'fill-purple-400'
-  if (tier === 'contributor') return 'fill-indigo-400'
-  return 'fill-slate-400'
-})
-const tierLabel = computed(() => {
-  const tier = authStore.user?.tier
-  if (tier === 'moderator') return 'Moderator'
-  if (tier === 'curator') return 'Curator'
-  if (tier === 'contributor') return 'Contributor'
-  return 'Reader'
-})
-const tierIcon = computed(() => {
-  const tier = authStore.user?.tier
-  if (tier === 'moderator' || tier === 'curator') return Shield
-  return Hexagon
-})
+const userTier = computed(() => getTier(authStore.user?.tier))
+const tierTextColor = computed(() => userTier.value.text)
+const tierFillClass = computed(() => userTier.value.fill)
+const tierLabel = computed(() => userTier.value.label)
+const tierIcon = computed(() => userTier.value.icon)
 
 const isActive = (path) => {
-  if (path === '/feed') {
-    return route.path === '/feed'
-  }
-  if (path === '/import') {
-    return route.path === '/import'
-  }
-  if (path === '/discover') {
-    return route.path === '/discover'
-  }
-  if (path === '/books') {
-    return route.path === '/books'
-  }
   if (path === '/library') {
     return route.path === '/library' && route.path !== '/library/shelf'
   }
-  if (path === '/quotes') {
-    return route.path === '/quotes'
-  }
-  if (path === '/vocabulary') {
-    return route.path === '/vocabulary'
-  }
-  if (path === '/correspondence') {
-    return route.path === '/correspondence'
-  }
-  if (path === '/circles') {
-    return route.path === '/circles'
-  }
-  if (path === '/challenges') {
-    return route.path === '/challenges'
-  }
-  if (path === '/codex') {
-    return route.path === '/codex'
-  }
-  if (path === '/intelligence') {
-    return route.path === '/intelligence'
-  }
-  if (path === '/admin') {
-    return route.path === '/admin'
-  }
-  return false
+  return route.path === path
 }
 
 const handleLogout = () => {
@@ -339,6 +282,13 @@ const handleStudyModeClick = async () => {
             @click="router.push('/challenges')"
             label="Challenges"
             :icon="Trophy"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
+          <SidebarItem
+            :active="isActive('/stats')"
+            @click="router.push('/stats')"
+            label="Reading Life"
+            :icon="BarChart3"
             :collapsed="isCollapsed && !isMobileOpen"
           />
           <SidebarItem

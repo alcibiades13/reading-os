@@ -254,6 +254,7 @@ export const vocabularyAPI = {
 export const usersAPI = {
   exportAllData: () => api.get('/users/export_all_data/', { responseType: 'blob' }),
   getConsistency: () => api.get('/users/consistency/'),
+  getReadingStats: (year) => api.get('/users/reading-stats/', { params: year ? { year } : {} }),
 }
 
 export const recommendationsAPI = {

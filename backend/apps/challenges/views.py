@@ -24,6 +24,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 class ReadingChallengeViewSet(viewsets.ModelViewSet):
     """ViewSet for ReadingChallenge model"""
+    pagination_class = None  # User-scoped: small dataset
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description']

@@ -1,15 +1,12 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useBookImportStore } from '@/stores/bookImportStore'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Search, BookPlus, Command, Hash, Filter, Library, BookOpen, X } from 'lucide-vue-next'
+import { Search, BookPlus, Command, Hash, Filter, Library, BookOpen, PenLine, X } from 'lucide-vue-next'
 
 const showMobileFilters = ref(false)
 import ImportBookCard from '@/components/import/ImportBookCard.vue'
 import SkeletonCard from '@/components/import/SkeletonCard.vue'
+import ManualEntryForm from '@/components/import/ManualEntryForm.vue'
 import BookPreviewModal from '@/components/BookPreviewModal.vue'
 import AccentText from '@/components/ui/AccentText.vue'
 import { useToast } from '@/composables/useToast'
@@ -20,7 +17,7 @@ const { addToast } = useToast()
 const searchInput = ref('')
 const isbnInput = ref('')
 const delfiUrlInput = ref('')
-const tab = ref('general') // 'general', 'isbn', 'delfi', 'advanced'
+const tab = ref('general') // 'general', 'isbn', 'delfi', 'manual'
 const showPreviewModal = ref(false)
 const isFocused = ref(false)
 const searchInputRef = ref(null)
@@ -30,7 +27,7 @@ let debounceTimeout = null
 watch([searchInput, tab], () => {
   clearTimeout(debounceTimeout)
 
-  if (tab.value === 'advanced') return
+  if (tab.value === 'manual') return
 
   debounceTimeout = setTimeout(() => {
     const query = tab.value === 'isbn' ? isbnInput.value : searchInput.value
@@ -114,6 +111,12 @@ const handleDelfiUrlSubmit = async () => {
 
   await importStore.scrapeDelfiBook(delfiUrlInput.value.trim())
 }
+
+// Handle manual entry form submit
+const handleManualSubmit = (bookData) => {
+  importStore.selectBook(bookData)
+  showPreviewModal.value = true
+}
 </script>
 
 <template>
@@ -167,51 +170,67 @@ const handleDelfiUrlSubmit = async () => {
           <BookOpen :size="14" />
           Delfi URL
         </button>
-      </div>
-
-      <!-- Mobile Search Input -->
-      <div class="relative">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
-        <input
-          v-if="tab === 'general'"
-          v-model="searchInput"
-          type="text"
-          placeholder="Search books..."
-          class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
-        />
-        <input
-          v-else-if="tab === 'isbn'"
-          v-model="isbnInput"
-          type="text"
-          placeholder="Enter ISBN..."
-          class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
-        />
-        <input
-          v-else-if="tab === 'delfi'"
-          v-model="delfiUrlInput"
-          type="text"
-          @keyup.enter="handleDelfiUrlSubmit"
-          placeholder="Paste Delfi.rs URL..."
-          class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-12 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
-        />
         <button
-          v-if="tab === 'delfi' && delfiUrlInput"
-          @click="handleDelfiUrlSubmit"
-          class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-bold"
+          @click="tab = 'manual'"
+          :class="tab === 'manual' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+          class="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all"
         >
-          Find
+          <PenLine :size="14" />
+          Manual
         </button>
       </div>
 
-      <!-- Active Source Indicator -->
-      <div class="flex items-center gap-2">
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Source:</span>
-        <span class="text-xs font-bold text-indigo-400">
-          {{ importStore.importSource === 'google_books' ? 'Google Books' :
-             importStore.importSource === 'open_library' ? 'Open Library' :
-             importStore.importSource === 'both' ? 'All Sources' : 'Delfi.rs' }}
-        </span>
+      <!-- Mobile: Manual Entry Form -->
+      <div v-if="tab === 'manual'">
+        <ManualEntryForm @submit="handleManualSubmit" />
       </div>
+
+      <!-- Mobile Search Input -->
+      <template v-else>
+        <div class="relative">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+          <input
+            v-if="tab === 'general'"
+            v-model="searchInput"
+            type="text"
+            placeholder="Search books..."
+            class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+          />
+          <input
+            v-else-if="tab === 'isbn'"
+            v-model="isbnInput"
+            type="text"
+            placeholder="Enter ISBN..."
+            class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+          />
+          <input
+            v-else-if="tab === 'delfi'"
+            v-model="delfiUrlInput"
+            type="text"
+            @keyup.enter="handleDelfiUrlSubmit"
+            placeholder="Paste Delfi.rs URL..."
+            class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-12 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+          />
+          <button
+            v-if="tab === 'delfi' && delfiUrlInput"
+            @click="handleDelfiUrlSubmit"
+            class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-bold"
+          >
+            Find
+          </button>
+        </div>
+
+        <!-- Active Source Indicator -->
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Source:</span>
+          <span class="text-xs font-bold text-indigo-400">
+            {{ importStore.importSource === 'google_books' ? 'Google Books' :
+               importStore.importSource === 'open_library' ? 'Open Library' :
+               importStore.importSource === 'hardcover' ? 'Hardcover' :
+               importStore.importSource === 'both' ? 'All Sources' : 'Delfi.rs' }}
+          </span>
+        </div>
+      </template>
     </div>
 
     <!-- Mobile Filter Panel -->
@@ -272,6 +291,14 @@ const handleDelfiUrlSubmit = async () => {
                     <span class="font-bold">Both Sources</span>
                   </button>
                   <button
+                    @click="importStore.setImportSource('hardcover'); showMobileFilters = false"
+                    :class="importStore.importSource === 'hardcover' ? 'border-purple-500 bg-purple-500/10 text-purple-400' : 'border-slate-700 text-slate-400'"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
+                  >
+                    <BookOpen :size="18" />
+                    <span class="font-bold">Hardcover</span>
+                  </button>
+                  <button
                     @click="importStore.setImportSource('delfi_rs'); showMobileFilters = false"
                     :class="importStore.importSource === 'delfi_rs' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 text-slate-400'"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
@@ -299,7 +326,7 @@ const handleDelfiUrlSubmit = async () => {
       </header>
 
       <!-- Source Selector -->
-      <div class="mb-6">
+      <div v-if="tab !== 'manual'" class="mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
           <span class="text-sm font-medium text-slate-400 shrink-0">Search Source:</span>
           <div class="flex flex-wrap gap-2">
@@ -326,6 +353,14 @@ const handleDelfiUrlSubmit = async () => {
             >
               <Library :size="14" />
               Both
+            </button>
+            <button
+              @click="importStore.setImportSource('hardcover')"
+              :class="importStore.importSource === 'hardcover' ? 'bg-purple-500 text-white border-purple-500' : 'bg-transparent border-slate-700 text-slate-400 hover:border-purple-500/50 hover:text-purple-400'"
+              class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold border-2 transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              <BookOpen :size="14" />
+              Hardcover
             </button>
             <button
               @click="importStore.setImportSource('delfi_rs')"
@@ -366,20 +401,17 @@ const handleDelfiUrlSubmit = async () => {
           Delfi.rs URL
         </button>
         <button
-          @click="tab = 'advanced'"
-          :class="tab === 'advanced' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
-          class="relative flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
+          @click="tab = 'manual'"
+          :class="tab === 'manual' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
         >
-          <Filter :size="16" />
-          Advanced
-          <span class="text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded uppercase tracking-tighter ml-1">
-            Coming Soon
-          </span>
+          <PenLine :size="16" />
+          Manual Entry
         </button>
       </div>
 
       <!-- Search Input -->
-      <div :class="isFocused ? 'scale-[1.01]' : ''" class="relative group transition-all duration-300">
+      <div v-if="tab !== 'manual'" :class="isFocused ? 'scale-[1.01]' : ''" class="relative group transition-all duration-300">
         <div :class="isFocused ? 'opacity-100' : 'opacity-0'" class="absolute inset-0 bg-indigo-500/10 blur-xl transition-opacity duration-300" />
         <div :class="isFocused ? 'border-indigo-500 shadow-2xl' : 'border-slate-800'" class="relative flex items-center glass rounded-2xl overflow-hidden px-6 py-5 border-2 transition-all duration-300">
           <Search :class="isFocused ? 'text-indigo-500' : 'text-slate-500'" class="mr-4 transition-colors duration-300" :size="24" />
@@ -425,10 +457,13 @@ const handleDelfiUrlSubmit = async () => {
           </div>
         </div>
       </div>
+
+      <!-- Manual Entry Form (Desktop) -->
+      <ManualEntryForm v-if="tab === 'manual'" @submit="handleManualSubmit" />
     </div>
 
     <!-- Results Section -->
-    <div class="max-w-7xl mx-auto px-6">
+    <div v-if="tab !== 'manual'" class="max-w-7xl mx-auto px-6">
       <!-- Error Message -->
       <div
         v-if="importStore.error"

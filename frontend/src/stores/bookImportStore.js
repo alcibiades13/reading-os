@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import googleBooksAPI from '@/services/googleBooksAPI'
 import openLibraryAPI from '@/services/openLibraryAPI'
 import * as delfiAPI from '@/services/delfiAPI'
+import * as hardcoverAPI from '@/services/hardcoverAPI'
 import { booksAPI } from '@/services/api'
 
 export const useBookImportStore = defineStore('bookImport', () => {
@@ -12,7 +13,7 @@ export const useBookImportStore = defineStore('bookImport', () => {
   const error = ref(null)
   const searchQuery = ref('')
   const selectedBook = ref(null)
-  const importSource = ref('both') // 'google_books', 'open_library', 'delfi_rs', 'both'
+  const importSource = ref('both') // 'google_books', 'open_library', 'hardcover', 'delfi_rs', 'both'
   const delfiUrl = ref('') // For direct Delfi.rs URL input
 
   // Computed
@@ -41,6 +42,8 @@ export const useBookImportStore = defineStore('bookImport', () => {
         results = await googleBooksAPI.searchBooks(query, 40)
       } else if (importSource.value === 'open_library') {
         results = await openLibraryAPI.searchBooks(query, 40)
+      } else if (importSource.value === 'hardcover') {
+        results = await hardcoverAPI.searchBooks(query, 40)
       } else if (importSource.value === 'both') {
         // Search both sources in parallel
         const [googleResults, openLibraryResults] = await Promise.all([
@@ -87,6 +90,9 @@ export const useBookImportStore = defineStore('bookImport', () => {
         if (result) results = [result]
       } else if (importSource.value === 'open_library') {
         const result = await openLibraryAPI.searchByISBN(isbn)
+        if (result) results = [result]
+      } else if (importSource.value === 'hardcover') {
+        const result = await hardcoverAPI.searchByISBN(isbn)
         if (result) results = [result]
       } else if (importSource.value === 'both') {
         // Search both sources in parallel
@@ -264,11 +270,32 @@ export const useBookImportStore = defineStore('bookImport', () => {
   }
 
   /**
-   * Select a book for preview/import
+   * Select a book for preview/import.
+   * For Hardcover books, fetches full details (publisher, ISBNs) in the background.
    * @param {Object} book - Book object from search results
    */
-  function selectBook(book) {
+  async function selectBook(book) {
     selectedBook.value = book
+
+    // Enrich Hardcover books with full details (publisher, better ISBNs)
+    if (book.source === 'hardcover' && book.hardcover_id) {
+      try {
+        const details = await hardcoverAPI.getBookDetails(book.hardcover_id)
+        if (details && selectedBook.value?.hardcover_id === book.hardcover_id) {
+          // Merge: keep search data, overlay details where they have more info
+          selectedBook.value = {
+            ...book,
+            publisher: details.publisher || book.publisher,
+            isbn_13: details.isbn_13 || book.isbn_13,
+            isbn_10: details.isbn_10 || book.isbn_10,
+            description: details.description || book.description,
+            categories: details.categories?.length ? details.categories : book.categories,
+          }
+        }
+      } catch {
+        // Silently fail — search data is still usable
+      }
+    }
   }
 
   /**
@@ -341,6 +368,7 @@ export const useBookImportStore = defineStore('bookImport', () => {
       google_books_id: bookData.google_books_id || null,
       open_library_id: bookData.open_library_id || null,
       delfi_id: bookData.delfi_id || null,
+      hardcover_id: bookData.hardcover_id || null,
 
       // Source tracking
       source: bookData.source || 'google_books',

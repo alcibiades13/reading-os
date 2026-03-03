@@ -11,21 +11,21 @@ import YearlyChallengeModal from '@/components/YearlyChallengeModal.vue'
 import ReadingCircleWidget from '@/components/social/ReadingCircleWidget.vue'
 import FriendsWidget from '@/components/social/FriendsWidget.vue'
 import ConsistencyWidget from '@/components/ConsistencyWidget.vue'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import DailyQuote from '@/components/DailyQuote.vue'
+import GoodreadsImportDialog from '@/components/GoodreadsImportDialog.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { booksAPI } from '@/services/api'
 import { recommendationsService } from '@/services/recommendationsService'
 import ReadingTaste from '@/components/recommendations/ReadingTaste.vue'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import {
   BookOpen, Heart, Plus, Search, TrendingUp, Zap,
-  CheckCircle, Bookmark, BrainCircuit, Lightbulb,
-  Quote, ArrowUpRight, Upload, FileUp, LayoutGrid, List, Star,
+  CheckCircle, Bookmark, BrainCircuit,
+  ArrowUpRight, Upload, LayoutGrid, List, Star,
   MoreVertical, Trash2, X, ChevronRight, Home
 } from 'lucide-vue-next'
 
@@ -39,19 +39,13 @@ const { addToast } = useToast()
 const searchQuery = ref('')
 const selectedTab = ref('all')
 const loading = ref(true)
-const isQuoteExpanded = ref(false)
 const showChallengeModal = ref(false)
 const editingChallenge = ref(null)
 const viewMode = ref('grid') // 'grid' or 'list'
 const showMobileWidgets = ref(false)
-const mobileQuoteExpanded = ref(false)
 
-// Import state
+// Import dialog
 const showImportDialog = ref(false)
-const importing = ref(false)
-const importProgress = ref(null)
-const selectedFile = ref(null)
-const fileInputRef = ref(null)
 
 // Pagination state
 const itemsPerPage = 24 // Show 24 books per load (4 rows of 6)
@@ -150,81 +144,6 @@ const handleToggleOwned = async (book) => {
   await booksStore.toggleOwned(book.id)
 }
 
-// Goodreads Import functions
-const handleFileSelect = (event) => {
-  const file = event.target.files[0]
-  if (file && file.name.endsWith('.csv')) {
-    selectedFile.value = file
-  } else {
-    addToast({
-      title: 'Invalid File',
-      description: 'Please select a CSV file',
-      variant: 'destructive'
-    })
-  }
-}
-
-const handleImport = async () => {
-  if (!selectedFile.value) {
-    addToast({
-      title: 'No File Selected',
-      description: 'Please select a Goodreads CSV file',
-      variant: 'destructive'
-    })
-    return
-  }
-
-  importing.value = true
-  importProgress.value = { current: 0, total: 0, status: 'Uploading...' }
-
-  try {
-    const response = await booksAPI.importGoodreadsCSV(selectedFile.value)
-
-    importProgress.value = {
-      current: response.data.imported,
-      total: response.data.imported + response.data.skipped,
-      status: 'Completed'
-    }
-
-    addToast({
-      title: 'Import Successful!',
-      description: `Imported ${response.data.imported} books, ${response.data.created_books} new books created`,
-      variant: 'default'
-    })
-
-    // Refresh library
-    await booksStore.fetchBooks()
-
-    // Close dialog after a delay
-    setTimeout(() => {
-      showImportDialog.value = false
-      selectedFile.value = null
-      importProgress.value = null
-    }, 2000)
-
-  } catch (error) {
-    console.error('Import error:', error)
-    addToast({
-      title: 'Import Failed',
-      description: error.response?.data?.error || 'Failed to import CSV file',
-      variant: 'destructive'
-    })
-    importProgress.value = null
-  } finally {
-    importing.value = false
-  }
-}
-
-const openImportDialog = () => {
-  showImportDialog.value = true
-  selectedFile.value = null
-  importProgress.value = null
-}
-
-const triggerFileInput = () => {
-  fileInputRef.value?.click()
-}
-
 // Stats
 const stats = computed(() => booksStore.stats)
 
@@ -277,10 +196,7 @@ const dailyQuote = computed(() => {
   const allQuotes = quotesStore.quotes
   if (allQuotes.length === 0) return null
 
-  // Get today's date string (YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0]
-
-  // Get shown quotes history from localStorage
   const shownQuotesKey = 'dailyQuotesHistory'
   const lastDateKey = 'lastQuoteDate'
   const storedDate = localStorage.getItem(lastDateKey)
@@ -293,45 +209,28 @@ const dailyQuote = computed(() => {
     shownQuoteIds = []
   }
 
-  // If it's a new day, potentially reset history if we've shown all quotes
   if (storedDate !== today) {
-    // Get available quotes that haven't been shown
     const availableQuotes = allQuotes.filter(q => !shownQuoteIds.includes(q.id))
-
-    // If we've shown all quotes, reset the history
     if (availableQuotes.length === 0) {
       shownQuoteIds = []
       localStorage.setItem(shownQuotesKey, JSON.stringify([]))
     }
-
-    // Pick a new quote for today
     const quotesToChooseFrom = availableQuotes.length > 0 ? availableQuotes : allQuotes
     const randomIndex = Math.floor(Math.random() * quotesToChooseFrom.length)
     const selectedQuote = quotesToChooseFrom[randomIndex]
-
-    // Save the selected quote ID and today's date
     shownQuoteIds.push(selectedQuote.id)
     localStorage.setItem(shownQuotesKey, JSON.stringify(shownQuoteIds))
     localStorage.setItem(lastDateKey, today)
     localStorage.setItem('todayQuoteId', selectedQuote.id.toString())
-
     return selectedQuote
   }
 
-  // Same day - return the quote selected for today
   const todayQuoteId = localStorage.getItem('todayQuoteId')
   if (todayQuoteId) {
     const quote = allQuotes.find(q => q.id.toString() === todayQuoteId)
     if (quote) return quote
   }
-
-  // Fallback
   return allQuotes[0]
-})
-
-// Check if quote is longer than 350 characters
-const isQuoteLong = computed(() => {
-  return dailyQuote.value && dailyQuote.value.text && dailyQuote.value.text.length > 350
 })
 
 // Filtered library with proper date sorting
@@ -569,7 +468,7 @@ const handleSaveChallenge = async (challengeData) => {
               <TrendingUp :size="18" />
             </button>
             <button
-              @click="openImportDialog"
+              @click="showImportDialog = true"
               class="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors"
             >
               <Upload :size="18" />
@@ -656,62 +555,11 @@ const handleSaveChallenge = async (challengeData) => {
       </div>
 
       <!-- Wisdom Spotlight -->
-      <div class="lg:col-span-5">
-        <div v-if="dailyQuote" class="relative p-5 sm:p-7 rounded-[2rem] glass border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/5 group overflow-hidden shadow-2xl">
-          <div class="absolute top-0 right-0 p-6 opacity-[0.03] text-indigo-400 group-hover:scale-110 transition-transform duration-1000">
-            <Quote :size="80" />
-          </div>
-          <div class="relative z-10">
-            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-black uppercase text-indigo-400 mb-5 tracking-widest">
-              <Lightbulb :size="12" /> Musing of the Day
-            </span>
-            <div class="mb-5">
-              <p class="text-quote font-serif italic text-slate-200 leading-relaxed">
-                "{{ isQuoteExpanded || !isQuoteLong ? dailyQuote.text : dailyQuote.text.substring(0, 350) + '...' }}"
-              </p>
-              <button
-                v-if="isQuoteLong"
-                @click="isQuoteExpanded = !isQuoteExpanded"
-                class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors mt-2 font-medium"
-              >
-                {{ isQuoteExpanded ? 'show less' : 'more...' }}
-              </button>
-            </div>
-            <div>
-              <p class="text-indigo-400 font-bold text-xs">— {{ dailyQuote.book_author }}</p>
-              <p class="text-slate-500 text-[10px] font-medium uppercase tracking-wider">{{ dailyQuote.book_title }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <DailyQuote :quote="dailyQuote" />
     </div>
 
     <!-- MOBILE WISDOM SPOTLIGHT -->
-    <div v-if="dailyQuote" class="lg:hidden px-4 py-4">
-      <div class="relative p-4 rounded-2xl glass border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/5 overflow-hidden">
-        <div class="absolute top-0 right-0 p-3 opacity-[0.03] text-indigo-400">
-          <Quote :size="48" />
-        </div>
-        <div class="relative z-10">
-          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[8px] font-black uppercase text-indigo-400 mb-3 tracking-widest">
-            <Lightbulb :size="10" /> Daily Musing
-          </span>
-          <p class="text-sm font-serif italic text-slate-200 leading-relaxed mb-2" :class="{ 'line-clamp-3': !mobileQuoteExpanded }">
-            "{{ mobileQuoteExpanded ? dailyQuote.text : (dailyQuote.text.length > 150 ? dailyQuote.text.substring(0, 150) + '...' : dailyQuote.text) }}"
-          </p>
-          <div class="flex items-center justify-between">
-            <p class="text-indigo-400 font-bold text-[10px]">— {{ dailyQuote.book_author }}</p>
-            <button
-              v-if="dailyQuote.text.length > 150"
-              @click="mobileQuoteExpanded = !mobileQuoteExpanded"
-              class="text-[10px] font-bold text-indigo-400/70 hover:text-indigo-400"
-            >
-              {{ mobileQuoteExpanded ? 'less' : 'more...' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <DailyQuote :quote="dailyQuote" compact />
 
     <!-- ACTIVE EXPEDITIONS - Mobile -->
     <div v-if="activeExpeditions.length > 0" class="lg:hidden px-4 py-4">
@@ -918,7 +766,7 @@ const handleSaveChallenge = async (challengeData) => {
 
           <!-- Import from Goodreads Button -->
           <button
-            @click="openImportDialog"
+            @click="showImportDialog = true"
             class="px-6 py-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 flex items-center gap-2 shrink-0"
           >
             <Upload :size="18" />
@@ -1393,98 +1241,7 @@ const handleSaveChallenge = async (challengeData) => {
     </Teleport>
 
     <!-- Import Dialog -->
-    <Dialog v-model:open="showImportDialog">
-      <DialogContent class="glass border-slate-700 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle class="text-lg sm:text-xl lg:text-2xl font-bold flex items-center gap-2 lg:gap-3">
-            <FileUp :size="20" class="text-emerald-400 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
-            Import from Goodreads
-          </DialogTitle>
-        </DialogHeader>
-
-        <div class="space-y-4 lg:space-y-6 py-3 lg:py-4">
-          <!-- Instructions -->
-          <div class="space-y-3">
-            <p class="text-sm text-slate-300 leading-relaxed">
-              Import your reading history from Goodreads by uploading your library export CSV file.
-            </p>
-            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-3">
-              <p class="text-xs text-indigo-300 font-medium">
-                📚 How to export from Goodreads:
-              </p>
-              <ol class="text-xs text-slate-400 mt-2 space-y-1 list-decimal list-inside">
-                <li>Go to Goodreads → My Books</li>
-                <li>Click "Import and export"</li>
-                <li>Download your library CSV</li>
-              </ol>
-            </div>
-          </div>
-
-          <!-- File Input -->
-          <div class="space-y-3">
-            <input
-              ref="fileInputRef"
-              type="file"
-              accept=".csv"
-              @change="handleFileSelect"
-              class="hidden"
-            />
-
-            <button
-              @click="triggerFileInput"
-              :disabled="importing"
-              class="w-full px-6 py-4 rounded-xl border-2 border-dashed border-slate-700 hover:border-indigo-500/50 bg-slate-900/50 hover:bg-slate-900 transition-all duration-300 text-slate-400 hover:text-white flex flex-col items-center justify-center gap-2"
-            >
-              <Upload :size="32" />
-              <span class="text-sm font-medium">
-                {{ selectedFile ? selectedFile.name : 'Click to select CSV file' }}
-              </span>
-            </button>
-          </div>
-
-          <!-- Progress -->
-          <div v-if="importProgress" class="space-y-2">
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-400">{{ importProgress.status }}</span>
-              <span v-if="importProgress.total > 0" class="text-indigo-400 font-medium">
-                {{ importProgress.current }} / {{ importProgress.total }}
-              </span>
-            </div>
-            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-              <div
-                v-if="importProgress.total > 0"
-                class="bg-gradient-to-r from-emerald-500 to-teal-500 h-full transition-all duration-500 ease-out"
-                :style="{ width: `${(importProgress.current / importProgress.total) * 100}%` }"
-              />
-              <div
-                v-else
-                class="bg-gradient-to-r from-emerald-500 to-teal-500 h-full animate-pulse"
-                style="width: 100%"
-              />
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex justify-end gap-3 pt-4">
-            <button
-              @click="showImportDialog = false"
-              :disabled="importing"
-              class="px-5 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              @click="handleImport"
-              :disabled="!selectedFile || importing"
-              class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold hover:from-emerald-400 hover:to-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Upload :size="16" />
-              {{ importing ? 'Importing...' : 'Import Books' }}
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <GoodreadsImportDialog v-model:open="showImportDialog" />
   </div>
 </template>
 

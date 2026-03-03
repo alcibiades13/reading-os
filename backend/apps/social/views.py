@@ -636,95 +636,107 @@ class SuggestedUsersView(APIView):
         from apps.reading.models import UserBook
         from apps.books.models import Genre
 
-        # Get current user's read books and genres
-        current_user_books = list(UserBook.objects.filter(
-            user=current_user,
-            status='read'
+        # Get current user's read books and genres (2 queries, done once)
+        current_user_book_ids = set(UserBook.objects.filter(
+            user=current_user, status='read'
         ).values_list('book_id', flat=True))
 
-        current_user_genres = list(Genre.objects.filter(
+        current_user_genre_ids = set(Genre.objects.filter(
             books__user_books__user=current_user,
             books__user_books__status='read'
         ).distinct().values_list('id', flat=True))
 
-        # Get ALL users except current user and already followed
-        existing_friendships = list(Friendship.objects.filter(
+        # Exclude current user and existing friendships
+        excluded_user_ids = list(Friendship.objects.filter(
             from_user=current_user,
             status__in=['accepted', 'pending']
         ).values_list('to_user_id', flat=True))
 
-        # Get ALL users except current user and already followed
-        suggested_users = User.objects.exclude(
-            id=current_user.id
-        ).exclude(
-            id__in=existing_friendships
+        # Annotate counts in a single query instead of N+1 per user
+        suggested_users = (
+            User.objects.exclude(id=current_user.id)
+            .exclude(id__in=excluded_user_ids)
+            .annotate(
+                books_read_count=Count(
+                    'user_books', filter=Q(user_books__status='read'), distinct=True
+                ),
+                quotes_count=Count('quotes', distinct=True),
+                followers_count=Count(
+                    'received_friend_requests',
+                    filter=Q(received_friend_requests__status='accepted'),
+                    distinct=True,
+                ),
+                following_count=Count(
+                    'sent_friend_requests',
+                    filter=Q(sent_friend_requests__status='accepted'),
+                    distinct=True,
+                ),
+                shared_books_count=Count(
+                    'user_books',
+                    filter=Q(user_books__status='read', user_books__book_id__in=current_user_book_ids),
+                    distinct=True,
+                ),
+            )
+            .select_related('profile')
+            .order_by('-shared_books_count')[:limit * 2]
         )
 
-        # Calculate match score for each user
+        # Batch-fetch read book IDs and genre IDs per user (2 queries for all users)
+        user_ids = [u.id for u in suggested_users]
+
+        user_genre_map = {}
+        genre_rows = (
+            Genre.objects
+            .filter(books__user_books__user_id__in=user_ids, books__user_books__status='read')
+            .values('books__user_books__user_id', 'id', 'name')
+            .distinct()
+        )
+        for row in genre_rows:
+            uid = row['books__user_books__user_id']
+            user_genre_map.setdefault(uid, []).append({'id': row['id'], 'name': row['name']})
+
+        # Batch-fetch follower relationships (2 queries instead of 2N)
+        following_set = set(
+            Friendship.objects.filter(
+                from_user=current_user, to_user_id__in=user_ids, status='accepted'
+            ).values_list('to_user_id', flat=True)
+        )
+        follower_set = set(
+            Friendship.objects.filter(
+                from_user_id__in=user_ids, to_user=current_user, status='accepted'
+            ).values_list('from_user_id', flat=True)
+        )
+
+        # Build results using annotated data (no queries in this loop)
         users_with_scores = []
-        for user in suggested_users[:limit * 2]:  # Get more to filter after scoring
-            # Count shared books
-            user_books = UserBook.objects.filter(
-                user=user,
-                status='read'
-            ).values_list('book_id', flat=True)
+        for user in suggested_users:
+            user_genres = user_genre_map.get(user.id, [])
+            user_genre_ids = {g['id'] for g in user_genres}
+            shared_genres_count = len(current_user_genre_ids & user_genre_ids)
 
-            shared_books = set(current_user_books) & set(user_books)
-            shared_books_count = len(shared_books)
+            match_score = (
+                min(user.shared_books_count * 4, 40)
+                + min(shared_genres_count * 10, 30)
+            )
 
-            # Count shared genres
-            user_genres = Genre.objects.filter(
-                books__user_books__user=user,
-                books__user_books__status='read'
-            ).distinct().values_list('id', flat=True)
+            # Sort genres by frequency for top 3 (already distinct)
+            top_genres = [g['name'] for g in user_genres[:3]]
 
-            shared_genres = set(current_user_genres) & set(user_genres)
-            shared_genres_count = len(shared_genres)
-
-            # Calculate match score (max 100)
-            match_score = min(shared_books_count * 4, 40) + min(shared_genres_count * 10, 30)
-
-            # Get friendship status
-            is_following = Friendship.objects.filter(
-                from_user=current_user,
-                to_user=user,
-                status='accepted'
-            ).exists()
-
-            is_follower = Friendship.objects.filter(
-                from_user=user,
-                to_user=current_user,
-                status='accepted'
-            ).exists()
-
-            # Get top genres for this user
-            top_genres = Genre.objects.filter(
-                books__user_books__user=user,
-                books__user_books__status='read'
-            ).annotate(
-                count=Count('books')
-            ).order_by('-count').values_list('name', flat=True)[:3]
-
-            # Serialize user
             user_data = UserSerializer(user, context={'request': request}).data
             user_data.update({
                 'match_score': match_score,
-                'shared_books_count': shared_books_count,
-                'is_following': is_following,
-                'is_follower': is_follower,
-                'top_genres': list(top_genres),
-                'books_read_count': UserBook.objects.filter(user=user, status='read').count(),
-                'quotes_count': user.quotes.count(),
-                'followers_count': Friendship.objects.filter(to_user=user, status='accepted').count(),
-                'following_count': Friendship.objects.filter(from_user=user, status='accepted').count(),
+                'shared_books_count': user.shared_books_count,
+                'is_following': user.id in following_set,
+                'is_follower': user.id in follower_set,
+                'top_genres': top_genres,
+                'books_read_count': user.books_read_count,
+                'quotes_count': user.quotes_count,
+                'followers_count': user.followers_count,
+                'following_count': user.following_count,
             })
-
             users_with_scores.append(user_data)
 
-        # Sort by match score
         users_with_scores.sort(key=lambda x: x['match_score'], reverse=True)
-
-        # Return top N users
         return Response(users_with_scores[:limit])
 
 

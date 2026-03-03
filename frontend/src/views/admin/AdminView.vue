@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { adminAPI, authorsAPI, booksAPI, contributionsAPI } from '@/services/api'
 import { getBookUrl } from '@/utils/bookUrl'
+import { tierClasses } from '@/config/tiers'
+import { sourceLabel, sourceColor } from '@/config/sources'
 import {
   Database, ShieldAlert, Link2, GitMerge, Plus,
   BarChart3, Settings, Search, Check, X, AlertTriangle,
@@ -191,15 +193,7 @@ const handleDeleteBook = async (bookId, transferToId = null) => {
   }
 }
 
-const tierColor = (tier) => {
-  const colors = {
-    reader: 'bg-slate-500/10 border-slate-500/30 text-slate-400',
-    contributor: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400',
-    curator: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
-    moderator: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
-  }
-  return colors[tier] || colors.reader
-}
+const tierColor = (tier) => tierClasses(tier)
 
 const handleIssueFilter = (type) => {
   issueFilter.value = type
@@ -300,25 +294,6 @@ const issueTypeLabel = (type) => {
   return map[type] || type
 }
 
-const sourceLabel = (source) => {
-  const map = {
-    google_books: 'Google Books',
-    delfi_scrape: 'Delfi',
-    vulkan_scrape: 'Vulkan',
-    laguna_scrape: 'Laguna',
-    open_library: 'OpenLibrary',
-    manual: 'Manual',
-  }
-  return map[source] || source || 'Unknown'
-}
-
-const sourceColor = (source) => {
-  if (source === 'google_books') return 'bg-sky-500/10 text-sky-400'
-  if (source?.includes('scrape')) return 'bg-amber-500/10 text-amber-400'
-  if (source === 'manual') return 'bg-emerald-500/10 text-emerald-400'
-  return 'bg-slate-500/10 text-slate-400'
-}
-
 const formatDate = (date) => {
   if (!date) return ''
   const d = new Date(date)
@@ -336,74 +311,79 @@ const formatDate = (date) => {
   <div class="h-full flex flex-col bg-[#02040a] overflow-hidden">
 
     <!-- Top Architect Bar -->
-    <header class="h-20 lg:h-24 border-b border-white/5 bg-slate-950/40 backdrop-blur-3xl flex items-center justify-between px-4 lg:px-10 shrink-0">
-      <div class="flex items-center gap-4 lg:gap-6">
-        <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-2xl shadow-indigo-500/20 ring-1 ring-white/20">
-          <Database :size="20" class="lg:hidden text-white" />
-          <Database :size="24" class="hidden lg:block text-white" />
-        </div>
-        <div>
-          <h1 class="text-lg lg:text-2xl font-black text-white tracking-tighter uppercase">Architect <span class="text-indigo-500">Command</span></h1>
-          <div class="flex items-center gap-3">
-            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest hidden sm:inline">System Core v8.4.1</span>
-            <div class="flex items-center gap-1">
-              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span class="text-[9px] font-black text-emerald-500/80 uppercase">Node Active</span>
+    <header class="border-b border-white/5 bg-slate-950/40 backdrop-blur-3xl shrink-0">
+      <!-- Title Row -->
+      <div class="h-14 lg:h-24 flex items-center justify-between px-4 lg:px-10">
+        <div class="flex items-center gap-3 lg:gap-6">
+          <div class="w-8 h-8 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-indigo-500 flex items-center justify-center shadow-2xl shadow-indigo-500/20 ring-1 ring-white/20">
+            <Database :size="16" class="lg:hidden text-white" />
+            <Database :size="24" class="hidden lg:block text-white" />
+          </div>
+          <div>
+            <h1 class="text-sm lg:text-2xl font-black text-white tracking-tighter uppercase">Architect <span class="text-indigo-500">Command</span></h1>
+            <div class="flex items-center gap-2 lg:gap-3">
+              <span class="text-[8px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest hidden sm:inline">System Core v8.4.1</span>
+              <div class="flex items-center gap-1">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span class="text-[8px] lg:text-[9px] font-black text-emerald-500/80 uppercase">Active</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <div class="hidden lg:flex items-center gap-4">
+          <button class="p-3 rounded-2xl bg-white/5 text-slate-500 hover:text-white transition-all">
+            <Settings :size="18" />
+          </button>
+          <button class="p-3 rounded-2xl bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 transition-all" title="Export Schema">
+            <Download :size="18" />
+          </button>
+        </div>
       </div>
 
-      <!-- Tab Nav -->
-      <nav class="flex items-center gap-1 lg:gap-2 p-1 lg:p-1.5 bg-white/5 rounded-xl lg:rounded-2xl border border-white/5">
-        <button
-          v-for="tab in [
-            { id: 'overview', label: 'Insight', icon: BarChart3 },
-            { id: 'conflicts', label: 'Conflicts', icon: ShieldAlert, badge: issuesBadge },
-            { id: 'authors', label: 'Authors', icon: Users },
-            { id: 'bookSync', label: 'Books', icon: BookCopy },
-            { id: 'curation', label: 'Archive', icon: Layers },
-            { id: 'reputation', label: 'Reputation', icon: Award },
-          ]"
-          :key="tab.id"
-          @click="activeTab = tab.id"
-          :class="[
-            'px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 lg:gap-2',
-            activeTab === tab.id
-              ? 'bg-indigo-500 text-white shadow-lg'
-              : 'text-slate-500 hover:text-slate-300'
-          ]"
-        >
-          <component :is="tab.icon" :size="14" />
-          <span class="hidden sm:inline">{{ tab.label }}</span>
-          <span
-            v-if="tab.badge"
-            :class="[
-              'px-1.5 py-0.5 rounded-md text-[8px]',
-              activeTab === tab.id
-                ? 'bg-white text-indigo-500'
-                : 'bg-rose-500 text-white shadow-[0_0_10px_#f43f5e]'
+      <!-- Tab Nav — scrollable on mobile -->
+      <nav class="flex items-center gap-1 lg:gap-2 px-3 lg:px-10 pb-3 lg:pb-4 overflow-x-auto scrollbar-hide -mx-0">
+        <div class="flex items-center gap-1 lg:gap-2 p-1 lg:p-1.5 bg-white/5 rounded-xl lg:rounded-2xl border border-white/5">
+          <button
+            v-for="tab in [
+              { id: 'overview', label: 'Insight', icon: BarChart3 },
+              { id: 'conflicts', label: 'Conflicts', icon: ShieldAlert, badge: issuesBadge },
+              { id: 'authors', label: 'Authors', icon: Users },
+              { id: 'bookSync', label: 'Books', icon: BookCopy },
+              { id: 'curation', label: 'Archive', icon: Layers },
+              { id: 'reputation', label: 'Rep', icon: Award },
             ]"
-          >{{ tab.badge }}</span>
-        </button>
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            :class="[
+              'px-2.5 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 lg:gap-2 whitespace-nowrap flex-shrink-0',
+              activeTab === tab.id
+                ? 'bg-indigo-500 text-white shadow-lg'
+                : 'text-slate-500 hover:text-slate-300'
+            ]"
+          >
+            <component :is="tab.icon" :size="13" class="lg:w-[14px] lg:h-[14px]" />
+            <span>{{ tab.label }}</span>
+            <span
+              v-if="tab.badge"
+              :class="[
+                'px-1.5 py-0.5 rounded-md text-[8px]',
+                activeTab === tab.id
+                  ? 'bg-white text-indigo-500'
+                  : 'bg-rose-500 text-white shadow-[0_0_10px_#f43f5e]'
+              ]"
+            >{{ tab.badge }}</span>
+          </button>
+        </div>
       </nav>
-
-      <div class="hidden lg:flex items-center gap-4">
-        <button class="p-3 rounded-2xl bg-white/5 text-slate-500 hover:text-white transition-all">
-          <Settings :size="18" />
-        </button>
-        <button class="p-3 rounded-2xl bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 transition-all" title="Export Schema">
-          <Download :size="18" />
-        </button>
-      </div>
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10">
-      <div class="max-w-[1600px] mx-auto space-y-10 lg:space-y-12">
+    <main class="flex-1 overflow-y-auto custom-scrollbar p-3 lg:p-10">
+      <div class="max-w-[1600px] mx-auto space-y-6 lg:space-y-12">
 
         <!-- ==================== INSIGHT TAB ==================== -->
-        <div v-if="activeTab === 'overview'" class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div v-if="activeTab === 'overview'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
           <!-- Loading -->
           <div v-if="loading.stats" class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -412,63 +392,63 @@ const formatDate = (date) => {
 
           <template v-else-if="stats">
             <!-- Stat Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-6">
               <!-- Total Books -->
-              <div class="p-5 lg:p-8 rounded-2xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-indigo-500/20 transition-all group">
-                <div class="flex items-center justify-between mb-4 lg:mb-6">
-                  <div class="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-white/5 border border-white/10 text-indigo-400 group-hover:scale-110 transition-all">
-                    <Globe :size="20" />
+              <div class="p-3 lg:p-8 rounded-xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-indigo-500/20 transition-all group">
+                <div class="flex items-center justify-between mb-2 lg:mb-6">
+                  <div class="p-1.5 lg:p-3 rounded-lg lg:rounded-2xl bg-white/5 border border-white/10 text-indigo-400 group-hover:scale-110 transition-all">
+                    <Globe :size="16" class="lg:w-5 lg:h-5" />
                   </div>
-                  <span class="text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest bg-emerald-500/10 text-emerald-500">
+                  <span class="text-[7px] lg:text-[8px] font-black px-1.5 lg:px-2 py-0.5 rounded uppercase tracking-widest bg-emerald-500/10 text-emerald-500 hidden sm:inline">
                     +{{ stats.activity.books_added_this_week }} this week
                   </span>
                 </div>
-                <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Canonical Library</p>
-                <p class="text-2xl lg:text-3xl font-black text-white tracking-tighter">{{ stats.counts.total_books.toLocaleString() }}</p>
+                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Library</p>
+                <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">{{ stats.counts.total_books.toLocaleString() }}</p>
               </div>
 
               <!-- Data Issues -->
-              <div class="p-5 lg:p-8 rounded-2xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-rose-500/20 transition-all group">
-                <div class="flex items-center justify-between mb-4 lg:mb-6">
-                  <div class="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-white/5 border border-white/10 text-rose-500 group-hover:scale-110 transition-all">
-                    <ShieldAlert :size="20" />
+              <div class="p-3 lg:p-8 rounded-xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-rose-500/20 transition-all group">
+                <div class="flex items-center justify-between mb-2 lg:mb-6">
+                  <div class="p-1.5 lg:p-3 rounded-lg lg:rounded-2xl bg-white/5 border border-white/10 text-rose-500 group-hover:scale-110 transition-all">
+                    <ShieldAlert :size="16" class="lg:w-5 lg:h-5" />
                   </div>
-                  <span class="text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest bg-rose-500/10 text-rose-500">
-                    Requires Action
+                  <span class="text-[7px] lg:text-[8px] font-black px-1.5 lg:px-2 py-0.5 rounded uppercase tracking-widest bg-rose-500/10 text-rose-500 hidden sm:inline">
+                    Action
                   </span>
                 </div>
-                <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Data Issues</p>
-                <p class="text-2xl lg:text-3xl font-black text-white tracking-tighter">
+                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Issues</p>
+                <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">
                   {{ (stats.data_quality.books_without_cover + stats.data_quality.books_without_isbn + stats.data_quality.books_without_authors) }}
                 </p>
               </div>
 
               <!-- Author Consistency -->
-              <div class="p-5 lg:p-8 rounded-2xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-indigo-500/20 transition-all group">
-                <div class="flex items-center justify-between mb-4 lg:mb-6">
-                  <div class="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-white/5 border border-white/10 text-indigo-400 group-hover:scale-110 transition-all">
-                    <Link2 :size="20" />
+              <div class="p-3 lg:p-8 rounded-xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-indigo-500/20 transition-all group">
+                <div class="flex items-center justify-between mb-2 lg:mb-6">
+                  <div class="p-1.5 lg:p-3 rounded-lg lg:rounded-2xl bg-white/5 border border-white/10 text-indigo-400 group-hover:scale-110 transition-all">
+                    <Link2 :size="16" class="lg:w-5 lg:h-5" />
                   </div>
-                  <span class="text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest bg-emerald-500/10 text-emerald-500">
-                    Author Consistency
+                  <span class="text-[7px] lg:text-[8px] font-black px-1.5 lg:px-2 py-0.5 rounded uppercase tracking-widest bg-emerald-500/10 text-emerald-500 hidden sm:inline">
+                    Consistency
                   </span>
                 </div>
-                <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Relational Mapping</p>
-                <p class="text-2xl lg:text-3xl font-black text-white tracking-tighter">{{ stats.data_quality.author_consistency }}%</p>
+                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Authors</p>
+                <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">{{ stats.data_quality.author_consistency }}%</p>
               </div>
 
               <!-- User Activity -->
-              <div class="p-5 lg:p-8 rounded-2xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-indigo-500/20 transition-all group">
-                <div class="flex items-center justify-between mb-4 lg:mb-6">
-                  <div class="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-white/5 border border-white/10 text-indigo-400 group-hover:scale-110 transition-all">
-                    <Users :size="20" />
+              <div class="p-3 lg:p-8 rounded-xl lg:rounded-[2.5rem] glass border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:border-indigo-500/20 transition-all group">
+                <div class="flex items-center justify-between mb-2 lg:mb-6">
+                  <div class="p-1.5 lg:p-3 rounded-lg lg:rounded-2xl bg-white/5 border border-white/10 text-indigo-400 group-hover:scale-110 transition-all">
+                    <Users :size="16" class="lg:w-5 lg:h-5" />
                   </div>
-                  <span class="text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest bg-emerald-500/10 text-emerald-500">
+                  <span class="text-[7px] lg:text-[8px] font-black px-1.5 lg:px-2 py-0.5 rounded uppercase tracking-widest bg-emerald-500/10 text-emerald-500 hidden sm:inline">
                     {{ stats.counts.total_users }} users
                   </span>
                 </div>
-                <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Knowledge Nodes</p>
-                <p class="text-2xl lg:text-3xl font-black text-white tracking-tighter">{{ (stats.counts.total_quotes + stats.counts.total_vocabulary).toLocaleString() }}</p>
+                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Knowledge</p>
+                <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">{{ (stats.counts.total_quotes + stats.counts.total_vocabulary).toLocaleString() }}</p>
               </div>
             </div>
 
@@ -544,11 +524,11 @@ const formatDate = (date) => {
         </div>
 
         <!-- ==================== CONFLICTS TAB ==================== -->
-        <div v-if="activeTab === 'conflicts'" class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div v-if="activeTab === 'conflicts'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h2 class="text-2xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-2">Data <span class="text-rose-500">Issues</span></h2>
-              <p class="text-slate-500 font-medium">Books with missing or inconsistent data requiring attention.</p>
+              <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Data <span class="text-rose-500">Issues</span></h2>
+              <p class="text-slate-500 font-medium text-xs lg:text-sm">Books with missing or inconsistent data requiring attention.</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button
@@ -562,7 +542,7 @@ const formatDate = (date) => {
                 :key="f.id"
                 @click="handleIssueFilter(f.id)"
                 :class="[
-                  'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
+                  'px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all',
                   issueFilter === f.id
                     ? 'bg-indigo-500 text-white shadow-lg'
                     : 'bg-white/5 border border-white/5 text-slate-400 hover:text-white'
@@ -578,22 +558,22 @@ const formatDate = (date) => {
 
           <!-- Summary badges -->
           <div v-else-if="dataIssues" class="space-y-6">
-            <div class="flex flex-wrap gap-3">
-              <div class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <span class="text-amber-400 text-xs font-black">{{ dataIssues.summary.missing_cover }}</span>
-                <span class="text-slate-500 text-[10px] ml-1.5">missing covers</span>
+            <div class="flex flex-wrap gap-2">
+              <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <span class="text-amber-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.missing_cover }}</span>
+                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">covers</span>
               </div>
-              <div class="px-4 py-2 rounded-xl bg-sky-500/10 border border-sky-500/20">
-                <span class="text-sky-400 text-xs font-black">{{ dataIssues.summary.missing_isbn }}</span>
-                <span class="text-slate-500 text-[10px] ml-1.5">missing ISBNs</span>
+              <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-sky-500/10 border border-sky-500/20">
+                <span class="text-sky-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.missing_isbn }}</span>
+                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">ISBNs</span>
               </div>
-              <div class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                <span class="text-rose-400 text-xs font-black">{{ dataIssues.summary.missing_authors }}</span>
-                <span class="text-slate-500 text-[10px] ml-1.5">no authors</span>
+              <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-rose-500/10 border border-rose-500/20">
+                <span class="text-rose-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.missing_authors }}</span>
+                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">authors</span>
               </div>
-              <div class="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                <span class="text-purple-400 text-xs font-black">{{ dataIssues.summary.duplicates }}</span>
-                <span class="text-slate-500 text-[10px] ml-1.5">duplicates</span>
+              <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <span class="text-purple-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.duplicates }}</span>
+                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">dupes</span>
               </div>
             </div>
 
@@ -653,10 +633,10 @@ const formatDate = (date) => {
         </div>
 
         <!-- ==================== AUTHOR SYNC TAB ==================== -->
-        <div v-if="activeTab === 'authors'" class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div v-if="activeTab === 'authors'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header>
-            <h2 class="text-2xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-2">Author <span class="text-indigo-500">Synchronizer</span></h2>
-            <p class="text-slate-500 font-medium">Merge name variations and link creators to their canonical records.</p>
+            <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Author <span class="text-indigo-500">Synchronizer</span></h2>
+            <p class="text-slate-500 font-medium text-xs lg:text-sm">Merge name variations and link creators to their canonical records.</p>
           </header>
 
           <!-- Loading -->
@@ -685,19 +665,19 @@ const formatDate = (date) => {
               <div
                 v-for="auth in authorCandidates.results"
                 :key="auth.primary.id"
-                class="glass rounded-2xl lg:rounded-[2.5rem] border-white/5 p-6 lg:p-10 space-y-6 lg:space-y-8 group hover:border-indigo-500/20 transition-all"
+                class="glass rounded-2xl lg:rounded-[2.5rem] border-white/5 p-4 lg:p-10 space-y-4 lg:space-y-8 group hover:border-indigo-500/20 transition-all"
               >
                 <!-- Author Header -->
                 <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-4 lg:gap-6">
-                    <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5">
-                      <div class="w-full h-full rounded-2xl bg-slate-900 flex items-center justify-center font-black text-lg lg:text-xl text-white overflow-hidden">
+                  <div class="flex items-center gap-3 lg:gap-6">
+                    <div class="w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5 flex-shrink-0">
+                      <div class="w-full h-full rounded-xl lg:rounded-2xl bg-slate-900 flex items-center justify-center font-black text-base lg:text-xl text-white overflow-hidden">
                         <img v-if="auth.primary.photo" :src="auth.primary.photo" class="w-full h-full object-cover" />
                         <span v-else>{{ auth.primary.name.charAt(0) }}</span>
                       </div>
                     </div>
                     <div>
-                      <h3 class="text-lg lg:text-xl font-black text-white">{{ auth.primary.name }}</h3>
+                      <h3 class="text-base lg:text-xl font-black text-white">{{ auth.primary.name }}</h3>
                       <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{{ auth.primary.book_count }} works</p>
                     </div>
                   </div>
@@ -708,23 +688,23 @@ const formatDate = (date) => {
                 </div>
 
                 <!-- Variants -->
-                <div class="p-4 lg:p-6 rounded-2xl bg-black/40 border border-white/5 space-y-3 lg:space-y-4">
-                  <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Duplicate Variations Detected:</p>
+                <div class="p-3 lg:p-6 rounded-2xl bg-black/40 border border-white/5 space-y-2 lg:space-y-4">
+                  <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 lg:mb-2">Duplicate Variations Detected:</p>
                   <div
                     v-for="variant in auth.variants"
                     :key="variant.id"
-                    class="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5"
+                    class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-2.5 lg:p-3 rounded-xl bg-white/[0.02] border border-white/5 gap-2"
                   >
-                    <div class="flex items-center gap-3 min-w-0">
+                    <div class="flex items-center gap-2 lg:gap-3 min-w-0">
                       <AlertTriangle :size="12" class="text-amber-500 flex-shrink-0" />
-                      <span class="text-sm font-medium text-slate-300 truncate">{{ variant.name }}</span>
-                      <span class="text-[9px] font-bold text-slate-600">({{ variant.book_count }} books, {{ Math.round(variant.similarity * 100) }}%)</span>
+                      <span class="text-sm font-medium text-slate-300">{{ variant.name }}</span>
+                      <span class="text-[9px] font-bold text-slate-600 flex-shrink-0">({{ variant.book_count }} books, {{ Math.round(variant.similarity * 100) }}%)</span>
                     </div>
-                    <div class="flex items-center gap-3 flex-shrink-0">
+                    <div class="flex items-center gap-3 flex-shrink-0 pl-5 sm:pl-0">
                       <button
                         @click="handleDismissAuthor(auth.primary.id, variant.id)"
                         :disabled="dismissingAuthor === variant.id"
-                        class="text-[9px] font-black text-slate-500 uppercase hover:text-rose-400 hover:underline disabled:opacity-50 transition-colors"
+                        class="text-[10px] sm:text-[9px] font-black text-slate-500 uppercase hover:text-rose-400 hover:underline disabled:opacity-50 transition-colors"
                         title="Not the same author"
                       >
                         {{ dismissingAuthor === variant.id ? '...' : 'Not Same' }}
@@ -732,7 +712,7 @@ const formatDate = (date) => {
                       <button
                         @click="handleLinkAuthor(auth.primary.id, variant.id)"
                         :disabled="linkingAuthor === variant.id"
-                        class="text-[9px] font-black text-indigo-500 uppercase hover:underline disabled:opacity-50"
+                        class="text-[10px] sm:text-[9px] font-black text-indigo-500 uppercase hover:underline disabled:opacity-50"
                       >
                         {{ linkingAuthor === variant.id ? 'Linking...' : 'Link' }}
                       </button>
@@ -772,17 +752,17 @@ const formatDate = (date) => {
             </div>
 
             <!-- Linked Author Groups -->
-            <div v-if="authorCandidates.linked_groups?.length > 0" class="mt-12">
-              <h3 class="text-lg font-black text-white tracking-tight mb-1">Linked <span class="text-indigo-500">Groups</span></h3>
-              <p class="text-slate-500 text-xs font-medium mb-6">Authors already linked as the same person. Unlink if linked by mistake.</p>
+            <div v-if="authorCandidates.linked_groups?.length > 0" class="mt-8 lg:mt-12">
+              <h3 class="text-base lg:text-lg font-black text-white tracking-tight mb-1">Linked <span class="text-indigo-500">Groups</span></h3>
+              <p class="text-slate-500 text-xs font-medium mb-4 lg:mb-6">Authors already linked as the same person. Unlink if linked by mistake.</p>
 
               <div class="space-y-3">
                 <div
                   v-for="group in authorCandidates.linked_groups"
                   :key="group.group_id"
-                  class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5"
+                  class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 lg:p-4 rounded-2xl bg-white/[0.02] border border-white/5"
                 >
-                  <div class="flex items-center gap-3 min-w-0">
+                  <div class="flex items-center gap-3 min-w-0 flex-wrap">
                     <Link2 :size="14" class="text-indigo-500 flex-shrink-0" />
                     <span class="text-sm font-bold text-white truncate">{{ group.canonical_name }}</span>
                     <div class="flex items-center gap-1.5 flex-wrap">
@@ -815,10 +795,10 @@ const formatDate = (date) => {
         </div>
 
         <!-- ==================== BOOK SYNC TAB ==================== -->
-        <div v-if="activeTab === 'bookSync'" class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div v-if="activeTab === 'bookSync'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header>
-            <h2 class="text-2xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-2">Book <span class="text-indigo-500">Deduplication</span></h2>
-            <p class="text-slate-500 font-medium">Detect and merge duplicate book entries across different sources.</p>
+            <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Book <span class="text-indigo-500">Deduplication</span></h2>
+            <p class="text-slate-500 font-medium text-xs lg:text-sm">Detect and merge duplicate book entries across different sources.</p>
           </header>
 
           <!-- Loading -->
@@ -941,17 +921,17 @@ const formatDate = (date) => {
             </div>
 
             <!-- Linked Book Groups -->
-            <div v-if="bookCandidates.linked_groups?.length > 0" class="mt-12">
-              <h3 class="text-lg font-black text-white tracking-tight mb-1">Linked <span class="text-indigo-500">Editions</span></h3>
-              <p class="text-slate-500 text-xs font-medium mb-6">Books already linked as editions of the same work. Unlink if linked by mistake.</p>
+            <div v-if="bookCandidates.linked_groups?.length > 0" class="mt-8 lg:mt-12">
+              <h3 class="text-base lg:text-lg font-black text-white tracking-tight mb-1">Linked <span class="text-indigo-500">Editions</span></h3>
+              <p class="text-slate-500 text-xs font-medium mb-4 lg:mb-6">Books already linked as editions of the same work. Unlink if linked by mistake.</p>
 
               <div class="space-y-3">
                 <div
                   v-for="group in bookCandidates.linked_groups"
                   :key="group.id"
-                  class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5"
+                  class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 lg:p-4 rounded-2xl bg-white/[0.02] border border-white/5"
                 >
-                  <div class="flex items-center gap-3 min-w-0">
+                  <div class="flex items-center gap-3 min-w-0 flex-wrap">
                     <BookCopy :size="14" class="text-indigo-500 flex-shrink-0" />
                     <span class="text-sm font-bold text-white truncate">{{ group.canonical_title }}</span>
                     <div class="flex items-center gap-1.5 flex-wrap">
@@ -983,11 +963,11 @@ const formatDate = (date) => {
         </div>
 
         <!-- ==================== ARCHIVE TAB ==================== -->
-        <div v-if="activeTab === 'curation'" class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div v-if="activeTab === 'curation'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div>
-              <h2 class="text-2xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-2">Digital <span class="text-indigo-500">Archive</span></h2>
-              <p class="text-slate-500 font-medium">Browse, search, and manage all books in the system.</p>
+              <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Digital <span class="text-indigo-500">Archive</span></h2>
+              <p class="text-slate-500 font-medium text-xs lg:text-sm">Browse, search, and manage all books in the system.</p>
             </div>
           </div>
 
@@ -1105,10 +1085,10 @@ const formatDate = (date) => {
         </div>
 
         <!-- ==================== REPUTATION TAB ==================== -->
-        <div v-if="activeTab === 'reputation'" class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div v-if="activeTab === 'reputation'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header>
-            <h2 class="text-2xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-2">Community <span class="text-amber-500">Reputation</span></h2>
-            <p class="text-slate-500 font-medium">Contribution tracking, user tiers, and quality metrics.</p>
+            <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Community <span class="text-amber-500">Reputation</span></h2>
+            <p class="text-slate-500 font-medium text-xs lg:text-sm">Contribution tracking, user tiers, and quality metrics.</p>
           </header>
 
           <!-- Loading -->
@@ -1118,45 +1098,45 @@ const formatDate = (date) => {
 
           <template v-else-if="reputationData">
             <!-- Stat Cards -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div class="glass rounded-2xl p-5 border-white/5">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                    <Users :size="14" class="text-amber-400" />
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
+              <div class="glass rounded-xl lg:rounded-2xl p-3 lg:p-5 border-white/5">
+                <div class="flex items-center gap-2 mb-1.5 lg:mb-3">
+                  <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <Users :size="12" class="lg:w-3.5 lg:h-3.5 text-amber-400" />
                   </div>
                 </div>
-                <p class="text-2xl font-black text-white">{{ reputationData.active_contributors_this_week }}</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Active This Week</p>
+                <p class="text-lg lg:text-2xl font-black text-white">{{ reputationData.active_contributors_this_week }}</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Active This Week</p>
               </div>
 
-              <div class="glass rounded-2xl p-5 border-white/5">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                    <TrendingUp :size="14" class="text-indigo-400" />
+              <div class="glass rounded-xl lg:rounded-2xl p-3 lg:p-5 border-white/5">
+                <div class="flex items-center gap-2 mb-1.5 lg:mb-3">
+                  <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                    <TrendingUp :size="12" class="lg:w-3.5 lg:h-3.5 text-indigo-400" />
                   </div>
                 </div>
-                <p class="text-2xl font-black text-white">{{ reputationData.total_contributions_all_time }}</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Total Contributions</p>
+                <p class="text-lg lg:text-2xl font-black text-white">{{ reputationData.total_contributions_all_time }}</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Contributions</p>
               </div>
 
-              <div class="glass rounded-2xl p-5 border-white/5">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
-                    <ShieldAlert :size="14" class="text-rose-400" />
+              <div class="glass rounded-xl lg:rounded-2xl p-3 lg:p-5 border-white/5">
+                <div class="flex items-center gap-2 mb-1.5 lg:mb-3">
+                  <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                    <ShieldAlert :size="12" class="lg:w-3.5 lg:h-3.5 text-rose-400" />
                   </div>
                 </div>
-                <p class="text-2xl font-black text-white">{{ reputationData.flagged_pending }}</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Flagged Pending</p>
+                <p class="text-lg lg:text-2xl font-black text-white">{{ reputationData.flagged_pending }}</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Flagged</p>
               </div>
 
-              <div class="glass rounded-2xl p-5 border-white/5">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <Check :size="14" class="text-emerald-400" />
+              <div class="glass rounded-xl lg:rounded-2xl p-3 lg:p-5 border-white/5">
+                <div class="flex items-center gap-2 mb-1.5 lg:mb-3">
+                  <div class="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <Check :size="12" class="lg:w-3.5 lg:h-3.5 text-emerald-400" />
                   </div>
                 </div>
-                <p class="text-2xl font-black text-white">{{ Math.round(reputationData.average_quality * 100) }}%</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Avg Quality</p>
+                <p class="text-lg lg:text-2xl font-black text-white">{{ Math.round(reputationData.average_quality * 100) }}%</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Avg Quality</p>
               </div>
             </div>
 
@@ -1270,23 +1250,23 @@ const formatDate = (date) => {
                 <div
                   v-for="entry in reputationData.recent_contributions"
                   :key="entry.id"
-                  class="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5"
+                  class="flex items-center justify-between p-2.5 lg:p-3 rounded-xl bg-white/[0.02] border border-white/5"
                 >
-                  <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  <div class="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <div class="w-6 h-6 lg:w-7 lg:h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                       :class="entry.category === 'curation' ? 'bg-amber-500/10' : entry.category === 'content' ? 'bg-indigo-500/10' : entry.category === 'community' ? 'bg-sky-500/10' : 'bg-emerald-500/10'"
                     >
-                      <Star :size="12" :class="entry.category === 'curation' ? 'text-amber-400' : entry.category === 'content' ? 'text-indigo-400' : entry.category === 'community' ? 'text-sky-400' : 'text-emerald-400'" />
+                      <Star :size="11" :class="entry.category === 'curation' ? 'text-amber-400' : entry.category === 'content' ? 'text-indigo-400' : entry.category === 'community' ? 'text-sky-400' : 'text-emerald-400'" />
                     </div>
-                    <div class="min-w-0">
-                      <span class="text-xs font-medium text-slate-300 truncate">{{ entry.user_name }}</span>
-                      <span class="text-slate-600 mx-1.5">·</span>
-                      <span class="text-xs text-slate-500">{{ entry.action_display }}</span>
+                    <div class="min-w-0 truncate">
+                      <span class="text-[11px] lg:text-xs font-medium text-slate-300">{{ entry.user_name }}</span>
+                      <span class="text-slate-600 mx-1">·</span>
+                      <span class="text-[11px] lg:text-xs text-slate-500">{{ entry.action_display }}</span>
                     </div>
                   </div>
-                  <div class="flex items-center gap-3 flex-shrink-0">
-                    <span class="text-xs font-black text-amber-400">+{{ entry.awarded_points }}</span>
-                    <span class="text-[9px] text-slate-600">{{ new Date(entry.created_at).toLocaleDateString() }}</span>
+                  <div class="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+                    <span class="text-[11px] lg:text-xs font-black text-amber-400">+{{ entry.awarded_points }}</span>
+                    <span class="text-[8px] lg:text-[9px] text-slate-600 hidden sm:inline">{{ new Date(entry.created_at).toLocaleDateString() }}</span>
                   </div>
                 </div>
               </div>

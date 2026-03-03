@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { challengesAPI } from '@/services/api'
+import { withLoading, tryCatch } from '@/utils/storeHelpers'
 
 export const useChallengesStore = defineStore('challenges', {
   state: () => ({
@@ -24,7 +25,6 @@ export const useChallengesStore = defineStore('challenges', {
       return state.challenges.filter(c => c.is_completed)
     },
 
-    // Get the yearly challenge for the current year
     currentYearChallenge: (state) => {
       if (!Array.isArray(state.challenges)) return null
       const currentYear = new Date().getFullYear()
@@ -70,104 +70,55 @@ export const useChallengesStore = defineStore('challenges', {
 
   actions: {
     async fetchChallenges(params = {}) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await challengesAPI.list(params)
-        // Handle paginated response (has 'results' key) or direct array
         const data = response.data.results || response.data
         this.challenges = Array.isArray(data) ? data : []
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch challenges'
-        this.challenges = []
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to fetch challenges')
     },
 
     async fetchCurrentChallenges() {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await challengesAPI.current()
-        // current() endpoint returns array directly, not paginated
         this.challenges = Array.isArray(response.data) ? response.data : []
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch current challenges'
-        this.challenges = []
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to fetch current challenges')
     },
 
     async createChallenge(challengeData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await challengesAPI.create(challengeData)
         this.challenges.unshift(response.data)
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to create challenge'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to create challenge')
     },
 
     async updateChallenge(id, challengeData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await challengesAPI.update(id, challengeData)
         const index = this.challenges.findIndex(c => c.id === id)
         if (index !== -1) {
           this.challenges[index] = response.data
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to update challenge'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to update challenge')
     },
 
     async deleteChallenge(id) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         await challengesAPI.delete(id)
         this.challenges = this.challenges.filter(c => c.id !== id)
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to delete challenge'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to delete challenge')
     },
 
     async updateProgress(id) {
-      try {
+      return tryCatch(async () => {
         const response = await challengesAPI.updateProgress(id)
         const index = this.challenges.findIndex(c => c.id === id)
         if (index !== -1) {
           this.challenges[index] = response.data
         }
-        return { success: true }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     setFilter(key, value) {

@@ -422,6 +422,7 @@ class BookImportSerializer(serializers.Serializer):
     google_books_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     open_library_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     delfi_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    hardcover_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     source = serializers.CharField(default='google_books')
 
     # Related data as strings/lists (will be created if they don't exist)
@@ -455,6 +456,8 @@ class BookImportSerializer(serializers.Serializer):
             external_ids['open_library_id'] = validated_data.pop('open_library_id')
         if validated_data.get('delfi_id'):
             external_ids['delfi_id'] = validated_data.pop('delfi_id')
+        if validated_data.get('hardcover_id'):
+            external_ids['hardcover_id'] = validated_data.pop('hardcover_id')
 
         # Parse published_date - handle year-only format (e.g., "1951")
         published_date = validated_data.get('published_date')

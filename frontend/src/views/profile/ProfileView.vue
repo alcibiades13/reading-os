@@ -7,6 +7,7 @@ import { User, BookOpen, Quote, Target, Mail, MapPin, Globe, Edit2, Save, X, Cal
 import { contributionsAPI } from '@/services/api'
 import { usersAPI } from '@/services/api'
 import { downloadBlob } from '@/utils/downloadFile'
+import { getTier } from '@/config/tiers'
 
 const authStore = useAuthStore()
 const booksStore = useUserBooksStore()
@@ -50,13 +51,7 @@ onMounted(async () => {
   ])
 })
 
-const tierConfig = {
-  reader: { label: 'Reader', bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' },
-  contributor: { label: 'Contributor', bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
-  curator: { label: 'Curator', bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
-  moderator: { label: 'Moderator', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' },
-}
-const currentTier = computed(() => tierConfig[authStore.user?.tier] || tierConfig.reader)
+const currentTier = computed(() => getTier(authStore.user?.tier))
 
 const handleAvatarChange = (event) => {
   const file = event.target.files[0]

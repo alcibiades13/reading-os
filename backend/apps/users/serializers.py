@@ -14,6 +14,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'reading_goal_year',
             'favorite_genres',
             'reading_preferences',
+            'onboarding_completed',
             'email_on_friend_request',
             'email_on_circle_invite',
             'email_on_quote_comment',

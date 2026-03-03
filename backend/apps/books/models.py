@@ -373,6 +373,7 @@ class Book(models.Model):
         ('manual', 'Manual Entry'),
         ('google_books', 'Google Books API'),
         ('open_library', 'Open Library API'),
+        ('hardcover', 'Hardcover.app'),
         ('delfi_scrape', 'Delfi Scrape'),
         ('vulkan_scrape', 'Vulkan Scrape'),
         ('laguna_scrape', 'Laguna Scrape'),

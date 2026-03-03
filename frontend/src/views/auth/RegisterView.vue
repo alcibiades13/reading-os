@@ -63,8 +63,8 @@ const handleRegister = async () => {
   loading.value = false
 
   if (result.success) {
-    // Redirect to home
-    router.push('/home')
+    // Redirect to onboarding
+    router.push('/onboarding')
   } else {
     // Display errors from backend
     if (typeof result.error === 'object') {
