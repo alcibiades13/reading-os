@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { listsAPI } from '@/services/api'
+import { withLoading, tryCatch } from '@/utils/storeHelpers'
 
 export const useListsStore = defineStore('lists', {
   state: () => ({
@@ -34,7 +35,7 @@ export const useListsStore = defineStore('lists', {
         )
       }
 
-      return filtered.sort((a, b) => 
+      return filtered.sort((a, b) =>
         new Date(b.updated_at) - new Date(a.updated_at)
       )
     },
@@ -50,58 +51,30 @@ export const useListsStore = defineStore('lists', {
 
   actions: {
     async fetchLists(params = {}) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await listsAPI.list(params)
         this.lists = response.data
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch lists'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to fetch lists')
     },
 
     async fetchList(id) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await listsAPI.get(id)
         this.currentList = response.data
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch list'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to fetch list')
     },
 
     async createList(listData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await listsAPI.create(listData)
         this.lists.unshift(response.data)
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to create list'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to create list')
     },
 
     async updateList(id, listData) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         const response = await listsAPI.update(id, listData)
         const index = this.lists.findIndex(l => l.id === id)
         if (index !== -1) {
@@ -110,54 +83,32 @@ export const useListsStore = defineStore('lists', {
         if (this.currentList?.id === id) {
           this.currentList = response.data
         }
-        return { success: true, data: response.data }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to update list'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+        return response.data
+      }, 'Failed to update list')
     },
 
     async deleteList(id) {
-      this.loading = true
-      this.error = null
-
-      try {
+      return withLoading(this, async () => {
         await listsAPI.delete(id)
         this.lists = this.lists.filter(l => l.id !== id)
         if (this.currentList?.id === id) {
           this.currentList = null
         }
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to delete list'
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to delete list')
     },
 
     async addBookToList(listId, bookId, note = '') {
-      try {
+      return tryCatch(async () => {
         await listsAPI.addBook(listId, bookId, note)
-        // Refresh list to get updated items
         await this.fetchList(listId)
-        return { success: true }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async removeBookFromList(listId, bookId) {
-      try {
+      return tryCatch(async () => {
         await listsAPI.removeBook(listId, bookId)
-        // Refresh list
         await this.fetchList(listId)
-        return { success: true }
-      } catch (error) {
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     setFilter(key, value) {

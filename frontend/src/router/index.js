@@ -4,7 +4,9 @@ import { useAuthStore } from '@/stores/authStore'
 const routes = [
   {
     path: '/',
-    redirect: '/library',
+    name: 'Landing',
+    component: () => import('@/views/LandingView.vue'),
+    meta: { requiresAuth: false, hideForAuth: true, title: 'Marginalia — A place where your reading lives' },
   },
   {
     path: '/home',
@@ -14,13 +16,13 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/auth/LoginView.vue'),
-    meta: { requiresAuth: false, hideForAuth: true, title: 'Login' },
+    meta: { requiresAuth: false, hideForAuth: true, title: 'Sign In' },
   },
   {
     path: '/register',
     name: 'Register',
     component: () => import('@/views/auth/RegisterView.vue'),
-    meta: { requiresAuth: false, hideForAuth: true, title: 'Register' },
+    meta: { requiresAuth: false, hideForAuth: true, title: 'Get Started' },
   },
   {
     path: '/library',
@@ -110,6 +112,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Challenges' },
   },
   {
+    path: '/stats',
+    name: 'ReadingStats',
+    component: () => import('@/views/stats/ReadingStatsView.vue'),
+    meta: { requiresAuth: true, title: 'Reading Life' },
+  },
+  {
     path: '/reading-session/:id',
     name: 'ReadingSession',
     component: () => import('@/views/reading/ReadingSessionView.vue'),
@@ -182,6 +190,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Intelligence' },
   },
   {
+    path: '/onboarding',
+    name: 'Onboarding',
+    component: () => import('@/views/onboarding/OnboardingView.vue'),
+    meta: { requiresAuth: true, hideNav: true, title: 'Welcome' },
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('@/views/admin/AdminView.vue'),
@@ -230,6 +244,14 @@ router.beforeEach((to, from, next) => {
   } else if (hideForAuth && authStore.isAuthenticated) {
     // Redirect authenticated users away from login/register
     next({ name: 'Library' })
+  } else if (
+    authStore.isAuthenticated &&
+    authStore.user?.profile?.onboarding_completed === false &&
+    to.name !== 'Onboarding' &&
+    requiresAuth
+  ) {
+    // Redirect to onboarding if not completed
+    next({ name: 'Onboarding' })
   } else {
     next()
   }
@@ -238,7 +260,11 @@ router.beforeEach((to, from, next) => {
 // Update document title on navigation
 router.afterEach((to) => {
   const title = to.meta.title
-  document.title = title ? `${title} — Reading OS` : 'Reading OS'
+  if (to.name === 'Landing') {
+    document.title = title || 'Marginalia'
+  } else {
+    document.title = title ? `${title} — Marginalia` : 'Marginalia'
+  }
 })
 
 export default router

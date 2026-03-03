@@ -13,6 +13,7 @@ import {
   LayoutGrid, List, ArrowUpRight, Gift, Shield
 } from 'lucide-vue-next'
 import { getBookUrl } from '@/utils/bookUrl'
+import { getTier } from '@/config/tiers'
 
 const route = useRoute()
 const router = useRouter()
@@ -101,13 +102,7 @@ onMounted(async () => {
   loading.value = false
 })
 
-const tierConfig = {
-  reader: { label: 'Reader', bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' },
-  contributor: { label: 'Contributor', bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
-  curator: { label: 'Curator', bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
-  moderator: { label: 'Moderator', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' },
-}
-const userTier = computed(() => tierConfig[userReputation.value?.tier] || tierConfig.reader)
+const userTier = computed(() => getTier(userReputation.value?.tier))
 
 const loadUserProfile = async () => {
   try {

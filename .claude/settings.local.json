@@ -80,7 +80,16 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:pypi.org)",
       "WebFetch(domain:api.wikimedia.org)",
-      "Bash(DJANGO_SETTINGS_MODULE=config.settings ./venv/bin/python:*)"
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings ./venv/bin/python:*)",
+      "Bash(awk:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:docs.hardcover.app)",
+      "WebFetch(domain:www.emgoto.com)",
+      "WebFetch(domain:bookclub.wiselapwing.co.uk)",
+      "WebFetch(domain:www.raymondcamden.com)",
+      "Bash(wc:*)",
+      "Bash(source:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }

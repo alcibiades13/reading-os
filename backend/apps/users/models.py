@@ -118,6 +118,9 @@ class UserProfile(models.Model):
         help_text="Preferences: tone, depth, style, etc."
     )
     
+    # Onboarding
+    onboarding_completed = models.BooleanField(default=False)
+
     # Notification settings
     email_on_friend_request = models.BooleanField(default=True)
     email_on_circle_invite = models.BooleanField(default=True)

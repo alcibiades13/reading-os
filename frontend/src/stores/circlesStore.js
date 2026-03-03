@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { bookClubService } from '@/services/bookClubService'
 import { useAuthStore } from '@/stores/authStore'
+import { withLoading, tryCatch } from '@/utils/storeHelpers'
 
 export const useCirclesStore = defineStore('circles', {
   state: () => ({
@@ -24,8 +25,8 @@ export const useCirclesStore = defineStore('circles', {
     // Poll
     activePoll: null,
     // UI state
-    activeTab: 'topics', // 'topics' | 'bookshelf'
-    mobileView: 'topics', // 'topics' | 'chat'
+    activeTab: 'topics',
+    mobileView: 'topics',
   }),
 
   getters: {
@@ -66,7 +67,6 @@ export const useCirclesStore = defineStore('circles', {
     },
 
     circleUnreadCounts(state) {
-      // Group unread counts by circle
       const counts = {}
       if (!state.circles.length) return counts
       for (const circle of state.circles) {
@@ -85,53 +85,37 @@ export const useCirclesStore = defineStore('circles', {
     // ===== LOADING =====
 
     async fetchCircles() {
-      this.loading = true
-      this.error = null
-      try {
+      return withLoading(this, async () => {
         const data = await bookClubService.getCircles()
         this.circles = data.results || data || []
         if (this.circles.length > 0 && !this.activeCircleId) {
           this.activeCircleId = this.circles[0].id
         }
-        return { success: true }
-      } catch (error) {
-        this.error = error.response?.data || 'Failed to fetch circles'
-        console.error('Error loading circles:', error)
-        return { success: false, error: this.error }
-      } finally {
-        this.loading = false
-      }
+      }, 'Failed to fetch circles')
     },
 
     async fetchCircleDetail(circleId) {
-      try {
+      return tryCatch(async () => {
         const detail = await bookClubService.getCircle(circleId)
         const idx = this.circles.findIndex(c => c.id === circleId)
         if (idx !== -1) {
           this.circles[idx] = { ...this.circles[idx], ...detail }
         }
-        return { success: true, data: detail }
-      } catch (error) {
-        console.error('Error loading circle detail:', error)
-        return { success: false, error }
-      }
+        return detail
+      })
     },
 
     async fetchPendingInvitations() {
-      try {
+      return tryCatch(async () => {
         const data = await bookClubService.getInvitations()
         this.pendingInvitations = (data.results || data || []).filter(
           inv => inv.status === 'pending'
         )
-        return { success: true }
-      } catch (error) {
-        console.error('Error loading invitations:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     async fetchTopicMessages(topicId) {
-      try {
+      return tryCatch(async () => {
         const data = await bookClubService.getTopicMessages(topicId)
         this.messages = data.results || data || []
         if (this.messages.length > 0) {
@@ -140,11 +124,7 @@ export const useCirclesStore = defineStore('circles', {
         } else {
           this.lastSyncTimestamp = new Date().toISOString()
         }
-        return { success: true }
-      } catch (error) {
-        console.error('Error loading messages:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     async syncMessages(topicId) {
@@ -152,7 +132,6 @@ export const useCirclesStore = defineStore('circles', {
       try {
         const data = await bookClubService.syncTopicMessages(topicId, this.lastSyncTimestamp)
 
-        // New messages
         if (data.new?.length > 0) {
           const existingIds = new Set(this.messages.map(m => m.id))
           const unique = data.new.filter(m => !existingIds.has(m.id))
@@ -161,7 +140,6 @@ export const useCirclesStore = defineStore('circles', {
           }
         }
 
-        // Edited messages
         if (data.edited?.length > 0) {
           for (const edited of data.edited) {
             const idx = this.messages.findIndex(m => m.id === edited.id)
@@ -171,7 +149,6 @@ export const useCirclesStore = defineStore('circles', {
           }
         }
 
-        // Deleted messages
         if (data.deleted?.length > 0) {
           const deletedSet = new Set(data.deleted)
           this.messages = this.messages.filter(m => !deletedSet.has(m.id))
@@ -197,7 +174,7 @@ export const useCirclesStore = defineStore('circles', {
       }
       this.pollTimer = setInterval(sync, 3000)
 
-      this._visibilityHandler = () => {
+      const handler = () => {
         if (document.hidden) {
           clearInterval(this.pollTimer)
           this.pollTimer = null
@@ -206,7 +183,8 @@ export const useCirclesStore = defineStore('circles', {
           this.pollTimer = setInterval(sync, 3000)
         }
       }
-      document.addEventListener('visibilitychange', this._visibilityHandler)
+      this._visibilityHandler = handler
+      document.addEventListener('visibilitychange', handler)
     },
 
     stopPolling() {
@@ -223,122 +201,90 @@ export const useCirclesStore = defineStore('circles', {
     // ===== CIRCLE ACTIONS =====
 
     async createCircle(formData) {
-      try {
+      return tryCatch(async () => {
         const newCircle = await bookClubService.createCircle(formData)
         this.circles.unshift(newCircle)
         this.setActiveCircle(newCircle.id)
-        return { success: true, data: newCircle }
-      } catch (error) {
-        console.error('Error creating circle:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return newCircle
+      })
     },
 
     async updateCircle(circleId, data) {
-      try {
+      return tryCatch(async () => {
         const updated = await bookClubService.updateCircle(circleId, data)
         const idx = this.circles.findIndex(c => c.id === updated.id)
         if (idx !== -1) {
           this.circles[idx] = { ...this.circles[idx], ...updated }
         }
-        return { success: true, data: updated }
-      } catch (error) {
-        console.error('Error updating circle:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return updated
+      })
     },
 
     async deleteCircle(circleId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.deleteCircle(circleId)
         this.circles = this.circles.filter(c => c.id !== circleId)
         this.activeCircleId = this.circles[0]?.id || null
-        return { success: true }
-      } catch (error) {
-        console.error('Error deleting circle:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async leaveCircle(circleId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.leaveCircle(circleId)
         this.circles = this.circles.filter(c => c.id !== circleId)
         this.activeCircleId = this.circles[0]?.id || null
-        return { success: true }
-      } catch (error) {
-        console.error('Error leaving circle:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async promoteMember(circleId, userId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.promoteMember(circleId, userId)
         await this.fetchCircleDetail(circleId)
-        return { success: true }
-      } catch (error) {
-        console.error('Error promoting member:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     // ===== INVITATIONS =====
 
     async acceptInvitation(invitationId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.acceptInvitation(invitationId)
         this.pendingInvitations = this.pendingInvitations.filter(
           inv => inv.id !== invitationId
         )
         await this.fetchCircles()
-        return { success: true }
-      } catch (error) {
-        console.error('Error accepting invitation:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async declineInvitation(invitationId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.declineInvitation(invitationId)
         this.pendingInvitations = this.pendingInvitations.filter(
           inv => inv.id !== invitationId
         )
-        return { success: true }
-      } catch (error) {
-        console.error('Error declining invitation:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     // ===== TOPICS =====
 
     async createTopic(data) {
-      try {
+      return tryCatch(async () => {
         const newTopic = await bookClubService.createTopic(data)
         await this.fetchCircleDetail(this.activeCircleId)
         this.activeTopicId = newTopic.id
-        return { success: true, data: newTopic }
-      } catch (error) {
-        console.error('Error creating topic:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return newTopic
+      })
     },
 
     async updateTopic(topicId, data) {
-      try {
+      return tryCatch(async () => {
         const updated = await bookClubService.updateTopic(topicId, data)
         await this.fetchCircleDetail(this.activeCircleId)
-        return { success: true, data: updated }
-      } catch (error) {
-        console.error('Error updating topic:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return updated
+      })
     },
 
     async deleteTopic(topicId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.deleteTopic(topicId)
         if (this.activeTopicId === topicId) {
           this.activeTopicId = null
@@ -346,49 +292,37 @@ export const useCirclesStore = defineStore('circles', {
           this.activePoll = null
         }
         await this.fetchCircleDetail(this.activeCircleId)
-        return { success: true }
-      } catch (error) {
-        console.error('Error deleting topic:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async togglePinTopic(topicId) {
-      try {
+      return tryCatch(async () => {
         const result = await bookClubService.togglePinTopic(topicId)
         await this.fetchCircleDetail(this.activeCircleId)
-        return { success: true, data: result }
-      } catch (error) {
-        console.error('Error pinning topic:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return result
+      })
     },
 
     async togglePinMessage(messageId) {
-      try {
+      return tryCatch(async () => {
         const result = await bookClubService.togglePinMessage(messageId)
         const msg = this.messages.find(m => m.id === messageId)
         if (msg) {
-          // Unpin all other messages first
           if (result.is_pinned) {
             this.messages.forEach(m => { if (m.id !== messageId) m.is_pinned = false })
           }
           msg.is_pinned = result.is_pinned
         }
-        return { success: true, data: result }
-      } catch (error) {
-        console.error('Error pinning message:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return result
+      })
     },
 
     // ===== MESSAGES =====
 
     async sendMessage(data) {
       const authStore = useAuthStore()
-      try {
+      return tryCatch(async () => {
         const newMessage = await bookClubService.sendTopicMessage(data)
-        // Ensure author data is present
         if (!newMessage.author || !newMessage.author.first_name) {
           newMessage.author = {
             id: authStore.user?.id,
@@ -399,37 +333,27 @@ export const useCirclesStore = defineStore('circles', {
           }
         }
         this.messages.push(newMessage)
-        return { success: true, data: newMessage }
-      } catch (error) {
-        console.error('Error sending message:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return newMessage
+      })
     },
 
     async toggleMessageLike(messageId) {
-      try {
+      return tryCatch(async () => {
         const result = await bookClubService.toggleMessageLike(messageId)
         const msg = this.messages.find(m => m.id === messageId)
         if (msg) {
           msg.is_liked = result.liked
           msg.likes_count = result.likes_count
         }
-        return { success: true, data: result }
-      } catch (error) {
-        console.error('Error toggling like:', error)
-        return { success: false, error }
-      }
+        return result
+      })
     },
 
     async deleteMessage(messageId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.deleteTopicMessage(messageId)
         this.messages = this.messages.filter(m => m.id !== messageId)
-        return { success: true }
-      } catch (error) {
-        console.error('Error deleting message:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async editMessage(messageId, newContent) {
@@ -449,12 +373,11 @@ export const useCirclesStore = defineStore('circles', {
         }
         return { success: true }
       } catch (error) {
-        // Rollback
+        // Rollback on failure
         if (msg) {
           msg.content = oldContent
           msg.is_edited = false
         }
-        console.error('Error editing message:', error)
         return { success: false, error: error.response?.data }
       }
     },
@@ -470,134 +393,91 @@ export const useCirclesStore = defineStore('circles', {
     // ===== POLLS =====
 
     async fetchTopicPoll(topicId) {
-      try {
+      return tryCatch(async () => {
         this.activePoll = await bookClubService.getPollByTopic(topicId)
-        return { success: true }
-      } catch (error) {
-        console.error('Error fetching poll:', error)
-        this.activePoll = null
-        return { success: false, error }
-      }
+      })
     },
 
     async createPoll(data) {
-      try {
+      return tryCatch(async () => {
         const poll = await bookClubService.createPoll(data)
         this.activePoll = poll
-        return { success: true, data: poll }
-      } catch (error) {
-        console.error('Error creating poll:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return poll
+      })
     },
 
     async votePoll(pollId, optionId) {
-      try {
+      return tryCatch(async () => {
         const updated = await bookClubService.votePoll(pollId, optionId)
         this.activePoll = updated
-        return { success: true }
-      } catch (error) {
-        console.error('Error voting:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     async closePoll(pollId) {
-      try {
+      return tryCatch(async () => {
         const updated = await bookClubService.closePoll(pollId)
         this.activePoll = updated
-        return { success: true }
-      } catch (error) {
-        console.error('Error closing poll:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     // ===== BOOK CLUB READINGS =====
 
     async fetchClubReadings(circleId) {
-      try {
+      return tryCatch(async () => {
         const data = await bookClubService.getClubReadings(circleId)
         this.clubReadings = data.results || data || []
-        return { success: true }
-      } catch (error) {
-        console.error('Error loading club readings:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     async addClubReading(data) {
-      try {
+      return tryCatch(async () => {
         const reading = await bookClubService.addClubReading(data)
         this.clubReadings.unshift(reading)
-        return { success: true, data: reading }
-      } catch (error) {
-        console.error('Error adding club reading:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return reading
+      })
     },
 
     async setCurrentReading(readingId) {
-      try {
+      return tryCatch(async () => {
         const result = await bookClubService.setCurrentReading(readingId)
-        // Refresh readings and circle detail
         await Promise.all([
           this.fetchClubReadings(this.activeCircleId),
           this.fetchCircleDetail(this.activeCircleId),
         ])
-        return { success: true, data: result }
-      } catch (error) {
-        console.error('Error setting current reading:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return result
+      })
     },
 
     async deleteClubReading(readingId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.deleteClubReading(readingId)
         this.clubReadings = this.clubReadings.filter(r => r.id !== readingId)
-        return { success: true }
-      } catch (error) {
-        console.error('Error deleting club reading:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     // ===== MEMBER PROGRESS =====
 
     async fetchMemberProgress(circleId) {
-      try {
+      return tryCatch(async () => {
         const data = await bookClubService.getMemberProgress(circleId)
         this.memberProgress = data || []
-        return { success: true }
-      } catch (error) {
-        console.error('Error loading member progress:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     // ===== UNREAD TRACKING =====
 
     async fetchUnreadCounts(circleId) {
-      try {
+      return tryCatch(async () => {
         const data = await bookClubService.getUnreadCounts(circleId)
         this.unreadCounts = { ...this.unreadCounts, ...data }
-        return { success: true }
-      } catch (error) {
-        console.error('Error loading unread counts:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     async markTopicRead(topicId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.markTopicRead(topicId)
         delete this.unreadCounts[topicId]
-        return { success: true }
-      } catch (error) {
-        console.error('Error marking topic read:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     // ===== NAVIGATION =====
@@ -631,51 +511,36 @@ export const useCirclesStore = defineStore('circles', {
     // ===== DISCOVERY =====
 
     async fetchDiscoverCircles() {
-      try {
+      return tryCatch(async () => {
         const data = await bookClubService.discoverCircles()
         this.discoverCircles = data || []
-        return { success: true }
-      } catch (error) {
-        console.error('Error loading discover circles:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     async joinPublicCircle(circleId) {
-      try {
+      return tryCatch(async () => {
         await bookClubService.joinCircle(circleId)
         this.discoverCircles = this.discoverCircles.filter(c => c.id !== circleId)
         await this.fetchCircles()
         this.activeCircleId = circleId
-        return { success: true }
-      } catch (error) {
-        console.error('Error joining circle:', error)
-        return { success: false, error: error.response?.data }
-      }
+      })
     },
 
     // ===== EVENTS =====
 
     async fetchCircleEvents(circleId) {
-      try {
+      return tryCatch(async () => {
         const data = await bookClubService.getCircleEvents(circleId)
         this.circleEvents = data || []
-        return { success: true }
-      } catch (error) {
-        console.error('Error loading events:', error)
-        return { success: false, error }
-      }
+      })
     },
 
     async createCircleEvent(circleId, data) {
-      try {
+      return tryCatch(async () => {
         const event = await bookClubService.createCircleEvent(circleId, data)
         this.circleEvents.push(event)
-        return { success: true, data: event }
-      } catch (error) {
-        console.error('Error creating event:', error)
-        return { success: false, error: error.response?.data }
-      }
+        return event
+      })
     },
 
     // ===== CLEANUP =====

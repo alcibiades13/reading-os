@@ -11,6 +11,9 @@ import BookEditModal from '@/components/BookEditModal.vue'
 import BookDNASurvey from '@/components/recommendations/BookDNASurvey.vue'
 import CommunityActivity from '@/components/books/CommunityActivity.vue'
 import BookKnowledgeHub from '@/components/books/BookKnowledgeHub.vue'
+import SimilarBooksList from '@/components/books/SimilarBooksList.vue'
+import BookDNACard from '@/components/books/BookDNACard.vue'
+import BookEditionsList from '@/components/books/BookEditionsList.vue'
 import { recommendationsService } from '@/services/recommendationsService'
 import { booksAPI } from '@/services/api'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
@@ -1479,172 +1482,12 @@ export const QuoteCard = defineComponent({
 
         <!-- Similar Books -->
         <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
-          <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                <Sparkles :size="16" class="text-indigo-400" />
-              </div>
-              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Similar Books</h3>
-            </div>
-          </div>
-
-          <!-- Loading State -->
-          <div v-if="loadingSimilar" class="space-y-4">
-            <div v-for="n in 3" :key="n" class="flex items-center gap-3 animate-pulse">
-              <div class="w-12 h-16 rounded-lg bg-slate-800" />
-              <div class="flex-1 space-y-2">
-                <div class="h-3 bg-slate-800 rounded w-3/4" />
-                <div class="h-2 bg-slate-800 rounded w-1/2" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Similar Books List -->
-          <div v-else-if="similarBooks.length > 0" class="space-y-1">
-            <router-link
-              v-for="simBook in similarBooks"
-              :key="simBook.id"
-              :to="getBookUrl(simBook)"
-              class="group flex items-center gap-3 p-2 -mx-1 rounded-xl hover:bg-white/5 transition-all"
-            >
-              <div class="shrink-0 w-14 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
-                <img
-                  v-if="simBook.cover_image"
-                  :src="simBook.cover_image"
-                  :alt="simBook.title"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  @error="(e) => e.target.style.display = 'none'"
-                />
-                <BookOpen v-else :size="18" class="text-slate-600" />
-              </div>
-              <div class="flex-1 min-w-0 py-0.5">
-                <h4 class="font-bold text-white text-sm leading-snug line-clamp-2 group-hover:text-indigo-400 transition-colors">
-                  {{ simBook.title }}
-                </h4>
-                <p class="text-slate-400 text-xs truncate mt-0.5">
-                  {{ simBook.authors?.map(a => a.name).join(', ') || 'Unknown' }}
-                </p>
-                <div class="flex items-center gap-1.5 mt-1.5">
-                  <span v-if="simBook.similarity_score" class="text-xs font-bold text-indigo-400">
-                    {{ Math.round(simBook.similarity_score) }}% similar
-                  </span>
-                </div>
-              </div>
-            </router-link>
-          </div>
-
-          <!-- Empty State -->
-          <div v-else class="text-center py-6">
-            <div class="w-12 h-12 mx-auto rounded-full bg-slate-800/50 flex items-center justify-center mb-3">
-              <BookOpen :size="20" class="text-slate-600" />
-            </div>
-            <p class="text-slate-500 text-xs">
-              Rate this book to discover similar reads
-            </p>
-          </div>
+          <SimilarBooksList :books="similarBooks" :loading="loadingSimilar" />
         </div>
 
         <!-- Book DNA -->
         <div v-if="bookDNA" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Dna :size="16" class="text-indigo-400" />
-            </div>
-            <div>
-              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Book DNA</h3>
-              <p class="text-slate-600 text-[9px]">{{ bookDNA.vote_count || 0 }} reader{{ bookDNA.vote_count !== 1 ? 's' : '' }} rated</p>
-            </div>
-          </div>
-
-          <!-- DNA Attributes -->
-          <div class="space-y-3">
-            <div v-if="bookDNA.pace !== undefined">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[9px] font-bold text-slate-500 uppercase">Pace</span>
-                <span class="text-[9px] text-slate-600">{{ bookDNA.pace > 0.5 ? 'Fast' : 'Slow' }}</span>
-              </div>
-              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-indigo-500 rounded-full transition-all"
-                  :style="{ width: `${bookDNA.pace * 100}%` }"
-                />
-              </div>
-            </div>
-            <div v-if="bookDNA.complexity !== undefined">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[9px] font-bold text-slate-500 uppercase">Complexity</span>
-                <span class="text-[9px] text-slate-600">{{ bookDNA.complexity > 0.5 ? 'Dense' : 'Light' }}</span>
-              </div>
-              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-purple-500 rounded-full transition-all"
-                  :style="{ width: `${bookDNA.complexity * 100}%` }"
-                />
-              </div>
-            </div>
-            <div v-if="bookDNA.emotional_intensity !== undefined">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[9px] font-bold text-slate-500 uppercase">Emotion</span>
-                <span class="text-[9px] text-slate-600">{{ bookDNA.emotional_intensity > 0.5 ? 'Intense' : 'Calm' }}</span>
-              </div>
-              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-rose-500 rounded-full transition-all"
-                  :style="{ width: `${bookDNA.emotional_intensity * 100}%` }"
-                />
-              </div>
-            </div>
-            <div v-if="bookDNA.darkness !== undefined">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[9px] font-bold text-slate-500 uppercase">Tone</span>
-                <span class="text-[9px] text-slate-600">{{ bookDNA.darkness > 0.5 ? 'Dark' : 'Light' }}</span>
-              </div>
-              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-slate-500 rounded-full transition-all"
-                  :style="{ width: `${bookDNA.darkness * 100}%` }"
-                />
-              </div>
-            </div>
-            <div v-if="bookDNA.character_focus !== undefined">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[9px] font-bold text-slate-500 uppercase">Focus</span>
-                <span class="text-[9px] text-slate-600">{{ bookDNA.character_focus > 0.5 ? 'Characters' : 'Plot' }}</span>
-              </div>
-              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-amber-500 rounded-full transition-all"
-                  :style="{ width: `${bookDNA.character_focus * 100}%` }"
-                />
-              </div>
-            </div>
-            <div v-if="bookDNA.introspection !== undefined">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[9px] font-bold text-slate-500 uppercase">Style</span>
-                <span class="text-[9px] text-slate-600">{{ bookDNA.introspection > 0.5 ? 'Reflective' : 'Action' }}</span>
-              </div>
-              <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-cyan-500 rounded-full transition-all"
-                  :style="{ width: `${bookDNA.introspection * 100}%` }"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Themes -->
-          <div v-if="bookDNA.themes?.length > 0" class="mt-5 pt-4 border-t border-slate-800">
-            <span class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Themes</span>
-            <div class="flex flex-wrap gap-1.5">
-              <span
-                v-for="theme in bookDNA.themes.slice(0, 4)"
-                :key="theme"
-                class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400"
-              >
-                {{ theme }}
-              </span>
-            </div>
-          </div>
+          <BookDNACard :dna="bookDNA" />
         </div>
 
         <!-- Potential Editions Section (only show if no existing editions) -->
@@ -1733,95 +1576,12 @@ export const QuoteCard = defineComponent({
 
         <!-- Editions Section -->
         <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <BookOpen :size="16" class="text-indigo-400" />
-            </div>
-            <div>
-              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
-              <p class="text-slate-600 text-[9px]">{{ book.other_editions.length }} edition{{ book.other_editions.length !== 1 ? 's' : '' }}</p>
-            </div>
-          </div>
-
-          <!-- Editions List -->
-          <div class="space-y-4">
-            <div
-              v-for="edition in book.other_editions"
-              :key="edition.id"
-              class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-indigo-500/30 transition-all space-y-3"
-            >
-              <!-- Edition info - Clickable to navigate -->
-              <router-link :to="getBookUrl(edition)" class="flex gap-3 cursor-pointer group/card">
-                <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
-                  <img
-                    v-if="edition.cover_image"
-                    :src="edition.cover_image"
-                    :alt="edition.title"
-                    class="w-full h-full object-cover"
-                    @error="(e) => e.target.style.display = 'none'"
-                  />
-                  <BookOpen v-else :size="16" class="text-slate-600" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-1">
-                    <h4 class="font-semibold text-slate-100 text-sm line-clamp-2 group-hover/card:text-indigo-400 transition-colors">{{ edition.title }}</h4>
-                    <span
-                      v-if="userBook?.book?.id === edition.id"
-                      class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-wider"
-                    >
-                      Your Edition
-                    </span>
-                  </div>
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2 text-[10px]">
-                      <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">
-                        {{ edition.language?.toUpperCase() || 'N/A' }}
-                      </span>
-                      <span class="text-slate-500">•</span>
-                      <span class="text-slate-500">{{ edition.pages }} pages</span>
-                    </div>
-                    <div v-if="edition.publisher" class="text-[10px] text-slate-500 truncate">
-                      {{ edition.publisher }}
-                    </div>
-                    <div v-if="edition.published_date" class="text-[10px] text-slate-600">
-                      {{ edition.published_date.split('-')[0] }}
-                    </div>
-                  </div>
-                </div>
-              </router-link>
-
-              <!-- Actions -->
-              <div class="pt-3 border-t border-slate-800/50">
-                <!-- Current edition indicator -->
-                <router-link
-                  v-if="userBook?.book?.id === edition.id"
-                  :to="getBookUrl(edition)"
-                  class="block w-full px-3 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-bold transition-all text-center"
-                >
-                  View Your Edition
-                </router-link>
-
-                <!-- Switch button (if user has a different edition in library) -->
-                <button
-                  v-else-if="isInLibrary"
-                  @click="switchToEdition(edition.id)"
-                  class="w-full px-3 py-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs font-bold transition-all flex items-center justify-center gap-2 group"
-                >
-                  <ArrowRight :size="14" class="group-hover:translate-x-0.5 transition-transform" />
-                  Switch to this edition
-                </button>
-
-                <!-- View button (if user doesn't have any edition) -->
-                <router-link
-                  v-else
-                  :to="getBookUrl(edition)"
-                  class="block w-full px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all text-center"
-                >
-                  View edition
-                </router-link>
-              </div>
-            </div>
-          </div>
+          <BookEditionsList
+            :editions="book.other_editions"
+            :user-book-id="userBook?.book?.id"
+            :is-in-library="isInLibrary"
+            @switch-edition="switchToEdition"
+          />
         </div>
 
         <!-- Manual Link Edition Button -->
@@ -2074,121 +1834,24 @@ export const QuoteCard = defineComponent({
           <div class="p-4 space-y-4">
             <!-- Similar Books -->
             <div v-if="similarBooks.length > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
-              <div class="flex items-center gap-2 mb-4">
-                <Sparkles :size="16" class="text-indigo-400" />
-                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Similar Books</h3>
-              </div>
-              <div class="space-y-3">
-                <router-link
-                  v-for="simBook in similarBooks"
-                  :key="simBook.id"
-                  :to="getBookUrl(simBook)"
-                  @click="showMobileSidebar = false"
-                  class="flex items-center gap-3 p-2 -mx-2 rounded-xl active:bg-white/5 transition-all"
-                >
-                  <div class="shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
-                    <img
-                      v-if="simBook.cover_image"
-                      :src="simBook.cover_image"
-                      :alt="simBook.title"
-                      class="w-full h-full object-cover"
-                    />
-                    <BookOpen v-else :size="14" class="text-slate-600" />
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h4 class="font-bold text-white text-sm leading-snug line-clamp-1">{{ simBook.title }}</h4>
-                    <p class="text-slate-400 text-[10px] truncate">{{ simBook.authors?.map(a => a.name).join(', ') }}</p>
-                    <span v-if="simBook.similarity_score" class="text-[10px] font-bold text-indigo-400">
-                      {{ Math.round(simBook.similarity_score) }}% match
-                    </span>
-                  </div>
-                </router-link>
-              </div>
+              <SimilarBooksList :books="similarBooks" compact @click-book="showMobileSidebar = false" />
             </div>
 
             <!-- Book DNA -->
             <div v-if="bookDNA" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
-              <div class="flex items-center gap-2 mb-4">
-                <Dna :size="16" class="text-indigo-400" />
-                <div>
-                  <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Book DNA</h3>
-                  <p class="text-slate-600 text-[9px]">{{ bookDNA.vote_count || 0 }} reader{{ bookDNA.vote_count !== 1 ? 's' : '' }} rated</p>
-                </div>
-              </div>
-
-              <!-- DNA Attributes (compact) -->
-              <div class="space-y-2">
-                <div v-if="bookDNA.pace !== undefined" class="flex items-center gap-2">
-                  <span class="text-[9px] font-bold text-slate-500 uppercase w-16">Pace</span>
-                  <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-500 rounded-full" :style="{ width: `${bookDNA.pace * 100}%` }" />
-                  </div>
-                  <span class="text-[9px] text-slate-600 w-12 text-right">{{ bookDNA.pace > 0.5 ? 'Fast' : 'Slow' }}</span>
-                </div>
-                <div v-if="bookDNA.complexity !== undefined" class="flex items-center gap-2">
-                  <span class="text-[9px] font-bold text-slate-500 uppercase w-16">Complexity</span>
-                  <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-purple-500 rounded-full" :style="{ width: `${bookDNA.complexity * 100}%` }" />
-                  </div>
-                  <span class="text-[9px] text-slate-600 w-12 text-right">{{ bookDNA.complexity > 0.5 ? 'Dense' : 'Light' }}</span>
-                </div>
-                <div v-if="bookDNA.emotional_intensity !== undefined" class="flex items-center gap-2">
-                  <span class="text-[9px] font-bold text-slate-500 uppercase w-16">Emotion</span>
-                  <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-rose-500 rounded-full" :style="{ width: `${bookDNA.emotional_intensity * 100}%` }" />
-                  </div>
-                  <span class="text-[9px] text-slate-600 w-12 text-right">{{ bookDNA.emotional_intensity > 0.5 ? 'Intense' : 'Calm' }}</span>
-                </div>
-              </div>
-
-              <!-- Themes -->
-              <div v-if="bookDNA.themes?.length > 0" class="mt-3 pt-3 border-t border-slate-800">
-                <div class="flex flex-wrap gap-1">
-                  <span
-                    v-for="theme in bookDNA.themes.slice(0, 4)"
-                    :key="theme"
-                    class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400"
-                  >
-                    {{ theme }}
-                  </span>
-                </div>
-              </div>
+              <BookDNACard :dna="bookDNA" compact />
             </div>
 
             <!-- Other Editions -->
             <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
-              <div class="flex items-center gap-2 mb-4">
-                <BookOpen :size="16" class="text-indigo-400" />
-                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
-              </div>
-              <div class="space-y-3">
-                <div
-                  v-for="edition in book.other_editions"
-                  :key="edition.id"
-                  class="p-3 rounded-xl bg-slate-950/50 border border-slate-800"
-                >
-                  <router-link :to="getBookUrl(edition)" @click="showMobileSidebar = false" class="flex gap-3">
-                    <div class="shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
-                      <img v-if="edition.cover_image" :src="edition.cover_image" :alt="edition.title" class="w-full h-full object-cover" />
-                      <BookOpen v-else :size="14" class="text-slate-600" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <h4 class="font-semibold text-slate-100 text-sm line-clamp-1">{{ edition.title }}</h4>
-                      <div class="flex items-center gap-2 text-[10px] mt-1">
-                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">{{ edition.language?.toUpperCase() || 'N/A' }}</span>
-                        <span class="text-slate-500">{{ edition.pages }} pages</span>
-                      </div>
-                    </div>
-                  </router-link>
-                  <button
-                    v-if="isInLibrary && userBook?.book?.id !== edition.id"
-                    @click="switchToEdition(edition.id); showMobileSidebar = false"
-                    class="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-bold"
-                  >
-                    Switch to this edition
-                  </button>
-                </div>
-              </div>
+              <BookEditionsList
+                :editions="book.other_editions"
+                :user-book-id="userBook?.book?.id"
+                :is-in-library="isInLibrary"
+                compact
+                @switch-edition="(id) => { switchToEdition(id); showMobileSidebar = false }"
+                @click-edition="showMobileSidebar = false"
+              />
             </div>
 
             <!-- Publisher Info -->

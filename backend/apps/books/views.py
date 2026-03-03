@@ -150,6 +150,7 @@ class PublisherViewSet(viewsets.ModelViewSet):
 
 class GenreViewSet(viewsets.ModelViewSet):
     """ViewSet for Genre model"""
+    pagination_class = None  # Small reference dataset, loaded for dropdowns
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -175,6 +176,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class TagViewSet(viewsets.ModelViewSet):
     """ViewSet for Tag model"""
+    pagination_class = None  # Small reference dataset, loaded for dropdowns
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -636,6 +638,60 @@ class BookViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(
                 {'error': f'Error scraping Delfi.rs: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'])
+    def search_hardcover(self, request):
+        """Search books on Hardcover.app"""
+        from utils.hardcover_api import search_books
+
+        query = request.query_params.get('q')
+        if not query:
+            return Response(
+                {'error': 'Query parameter "q" is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        per_page = int(request.query_params.get('per_page', 20))
+
+        try:
+            results = search_books(query, per_page=per_page)
+            return Response(results, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Hardcover search failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'], url_path='hardcover_details')
+    def hardcover_details(self, request):
+        """Get full book details from Hardcover.app (includes publisher, ISBNs, editions)."""
+        from utils.hardcover_api import get_book_details
+
+        book_id = request.query_params.get('id')
+        if not book_id:
+            return Response(
+                {'error': 'Query parameter "id" is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            result = get_book_details(int(book_id))
+            if not result:
+                return Response(
+                    {'error': 'Book not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'error': f'Hardcover details failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

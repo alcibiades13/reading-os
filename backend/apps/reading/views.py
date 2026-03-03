@@ -42,6 +42,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 class UserBookViewSet(viewsets.ModelViewSet):
     """ViewSet for UserBook model"""
+    pagination_class = None  # User-scoped: loaded entirely for client-side filtering
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['book__title', 'book__authors__name', 'review']
@@ -272,6 +273,7 @@ class UserBookViewSet(viewsets.ModelViewSet):
 
 class QuoteTagViewSet(viewsets.ModelViewSet):
     """ViewSet for QuoteTag model"""
+    pagination_class = None  # Small user-scoped dataset
     serializer_class = QuoteTagSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -308,6 +310,7 @@ class QuoteTagViewSet(viewsets.ModelViewSet):
 
 class QuoteViewSet(viewsets.ModelViewSet):
     """ViewSet for Quote model"""
+    pagination_class = None  # User-scoped: loaded entirely for client-side filtering
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['text', 'note', 'book__title']
@@ -453,6 +456,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
 class StudyNoteViewSet(viewsets.ModelViewSet):
     """ViewSet for StudyNote model - deep study and scholarship"""
+    pagination_class = None  # User-scoped: loaded entirely for client-side filtering
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['content', 'reference', 'chapter']
@@ -599,6 +603,7 @@ class StudyNoteViewSet(viewsets.ModelViewSet):
 
 class VocabularyWordViewSet(viewsets.ModelViewSet):
     """ViewSet for vocabulary words"""
+    pagination_class = None  # User-scoped: loaded entirely for client-side filtering
     serializer_class = VocabularyWordSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

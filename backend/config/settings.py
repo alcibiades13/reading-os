@@ -36,13 +36,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     
-    # Authentication - ZAKOMENTARIŠI OVO PRIVREMENO
-    # 'allauth',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
-    # 'dj_rest_auth',
-    # 'dj_rest_auth.registration',
-    
     # Local apps
     'apps.users',
     'apps.books',
@@ -60,13 +53,12 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # CORS - mora biti visoko
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -154,6 +146,9 @@ MEDIA_ROOT = BASE_DIR / config('MEDIA_ROOT', default='media')
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# External APIs
+HARDCOVER_API_TOKEN = config('HARDCOVER_API_TOKEN', default='')
+
 
 # REST Framework configuration
 REST_FRAMEWORK = {
@@ -161,15 +156,15 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',  # ← Promenili smo
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 1000,  # Increased for personal library usage - can adjust based on performance
+    'PAGE_SIZE': 50,
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',  # ← Dodaj
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 
@@ -198,14 +193,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = config('DEBUG', default=False, cast=bool)
 
 
-# Django Allauth settings
-# ACCOUNT_AUTHENTICATION_METHOD = 'email'
-# ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_USERNAME_REQUIRED = False
-# ACCOUNT_EMAIL_VERIFICATION = 'optional'  
-
-
-# Email settings (za development)
+# Email
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
