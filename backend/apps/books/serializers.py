@@ -67,27 +67,28 @@ class AuthorSerializer(serializers.ModelSerializer):
         if not instance.author_group_id:
             return data
 
-        # Find the best source within the group (primary first, then any sibling)
+        # Always prefer the primary author's data for bio/photo/dates
         primary = (
             instance.author_group.members
             .filter(is_primary_alias=True)
             .first()
         )
-        # Ordered preference: primary, then siblings with data, then self
-        sources = []
-        if primary and primary.id != instance.id:
-            sources.append(primary)
-        for sib in instance.author_group.members.exclude(id=instance.id).order_by('-is_primary_alias'):
-            if sib.id != (primary.id if primary else None):
-                sources.append(sib)
 
-        for field in ('bio', 'photo', 'birth_date', 'death_date'):
-            if not data.get(field):
-                for src in sources:
-                    val = getattr(src, field, None)
-                    if val:
-                        data[field] = str(val) if field in ('birth_date', 'death_date') else val
-                        break
+        if primary and primary.id != instance.id:
+            # Use primary's data, falling back to self if primary has no data
+            for field in ('bio', 'photo', 'birth_date', 'death_date'):
+                primary_val = getattr(primary, field, None)
+                if primary_val:
+                    data[field] = str(primary_val) if field in ('birth_date', 'death_date') else primary_val
+        elif not primary:
+            # No primary marked — fill empty fields from any sibling that has data
+            for field in ('bio', 'photo', 'birth_date', 'death_date'):
+                if not data.get(field):
+                    for sib in instance.author_group.members.exclude(id=instance.id):
+                        val = getattr(sib, field, None)
+                        if val:
+                            data[field] = str(val) if field in ('birth_date', 'death_date') else val
+                            break
 
         return data
 

@@ -74,7 +74,10 @@ function formatPages(pages) {
 }
 
 function humanizeSlug(slug) {
-  return slug.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  return slug
+    .replace(/_nf$/i, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
 }
 
 function getDnaWidth(key) {
@@ -154,9 +157,25 @@ const accentClasses = computed(() => {
       </div>
 
       <!-- Column 2: Genres + Themes -->
-      <div v-if="hasGenres || hasGenreTags || hasThemes" class="space-y-5">
-        <!-- Top Genres -->
-        <div v-if="hasGenres">
+      <div v-if="hasGenreTags || hasGenres || hasThemes" class="space-y-5">
+        <!-- Genre Tags from BookDNA (primary source) -->
+        <div v-if="hasGenreTags">
+          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-2">
+            <BookOpen :size="10" class="inline mr-1 -mt-0.5" />Top Genres
+          </span>
+          <div class="flex flex-wrap gap-1.5">
+            <span
+              v-for="tag in displayGenreTags"
+              :key="tag"
+              :class="['px-2.5 py-1 rounded-xl border text-[10px] font-black uppercase tracking-wider', accentClasses.pill]"
+            >
+              {{ humanizeSlug(tag) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Book genres (fallback if no DNA genre tags) -->
+        <div v-else-if="hasGenres">
           <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-2">
             <BookOpen :size="10" class="inline mr-1 -mt-0.5" />Top Genres
           </span>
@@ -168,22 +187,6 @@ const accentClasses = computed(() => {
               :style="{ opacity: 0.5 + (genre.score / maxGenreScore) * 0.5 }"
             >
               {{ genre.name }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Genre Tags (fallback if no genres) -->
-        <div v-else-if="hasGenreTags">
-          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-2">
-            <BookOpen :size="10" class="inline mr-1 -mt-0.5" />Top Genres
-          </span>
-          <div class="flex flex-wrap gap-1.5">
-            <span
-              v-for="tag in displayGenreTags"
-              :key="tag"
-              :class="['px-2.5 py-1 rounded-xl border text-[10px] font-black uppercase tracking-wider', accentClasses.pill]"
-            >
-              {{ humanizeSlug(tag) }}
             </span>
           </div>
         </div>

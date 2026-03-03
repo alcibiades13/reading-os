@@ -400,7 +400,7 @@ class UserViewSet(viewsets.ModelViewSet):
             shared_genres_count = len(current_user_genres & other_user_genres)
 
             # Total books for both users
-            current_total = len(current_user_book_ids)
+            current_total = current_user_books.count()
             other_total = UserBook.objects.filter(
                 user=user, replaced_by__isnull=True
             ).count()
