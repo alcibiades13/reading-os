@@ -1,18 +1,25 @@
 import io
 import json
+import logging
 import zipfile
 from datetime import timedelta
+from django.conf import settings
+from django.core.mail import send_mail
 from django.http import HttpResponse
+from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q, Count, Sum, F
 from django.db.models.functions import TruncMonth, TruncDate
 
-from apps.users.models import User, UserProfile
+from apps.users.models import User, UserProfile, AccountToken
 from apps.users.serializers import (
     UserSerializer,
     UserDetailSerializer,
@@ -20,6 +27,12 @@ from apps.users.serializers import (
     UserUpdateSerializer,
     UserProfileSerializer,
 )
+
+logger = logging.getLogger(__name__)
+
+
+class AuthRateThrottle(AnonRateThrottle):
+    rate = '5/minute'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -57,12 +70,15 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """Set permissions based on action"""
         if self.action == 'create':
-            # Anyone can register
             return [permissions.AllowAny()]
         elif self.action in ['update', 'partial_update', 'destroy']:
-            # Only owner can modify
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
+
+    def get_throttles(self):
+        if self.action in ['create', 'login', 'forgot_password']:
+            return [AuthRateThrottle()]
+        return super().get_throttles()
     
     def perform_create(self, serializer):
         """Create user and return tokens"""
@@ -87,7 +103,8 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         }, status=status.HTTP_201_CREATED, headers=headers)
     
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny],
+            throttle_classes=[AuthRateThrottle])
     def login(self, request):
         """
         Login endpoint.
@@ -296,17 +313,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 to_user=user,
                 status='accepted'
             ).first()
-
-            # Debug logging
-            all_friendships = Friendship.objects.filter(
-                from_user=request.user,
-                to_user=user
-            )
-            print(f"DEBUG Profile API - Current user: {request.user.id}, Viewed user: {user.id}")
-            print(f"DEBUG Profile API - All friendships from {request.user.id} to {user.id}: {list(all_friendships.values('id', 'from_user_id', 'to_user_id', 'status'))}")
-            print(f"DEBUG Profile API - Following friendship: {following_friendship}")
-            if following_friendship:
-                print(f"DEBUG Profile API - Following friendship ID: {following_friendship.id}")
 
             if following_friendship:
                 is_following = True
@@ -1039,4 +1045,230 @@ class UserViewSet(viewsets.ModelViewSet):
         response = HttpResponse(buffer.getvalue(), content_type='application/zip')
         response['Content-Disposition'] = f'attachment; filename="reading_os_export_{user.id}.zip"'
         return response
+
+    # ==================== AUTH ENDPOINTS ====================
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny],
+            throttle_classes=[AuthRateThrottle], url_path='forgot-password')
+    def forgot_password(self, request):
+        """
+        Request password reset email.
+        POST /api/users/forgot-password/
+        Body: {"email": "user@example.com"}
+        """
+        email = request.data.get('email', '').strip().lower()
+        # Always return success to prevent email enumeration
+        response_msg = {'message': 'If an account with this email exists, a password reset link has been sent.'}
+
+        if not email:
+            return Response(response_msg, status=status.HTTP_200_OK)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(response_msg, status=status.HTTP_200_OK)
+
+        # Invalidate old reset tokens
+        AccountToken.objects.filter(user=user, token_type='password_reset', used=False).update(used=True)
+
+        # Create new token
+        token = AccountToken.objects.create(user=user, token_type='password_reset')
+
+        # Send email
+        reset_url = f"{settings.FRONTEND_URL}/reset-password/{token.token}"
+        try:
+            send_mail(
+                subject='Reading OS - Password Reset',
+                message=f'Click this link to reset your password: {reset_url}\n\nThis link expires in 1 hour.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send password reset email to {email}: {e}")
+
+        return Response(response_msg, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny],
+            throttle_classes=[AuthRateThrottle], url_path='reset-password')
+    def reset_password(self, request):
+        """
+        Reset password using token.
+        POST /api/users/reset-password/
+        Body: {"token": "uuid", "password": "newpass", "password_confirm": "newpass"}
+        """
+        token_str = request.data.get('token')
+        password = request.data.get('password')
+        password_confirm = request.data.get('password_confirm')
+
+        if not all([token_str, password, password_confirm]):
+            return Response({'error': 'Token, password, and password confirmation are required.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if password != password_confirm:
+            return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            token = AccountToken.objects.get(token=token_str, token_type='password_reset', used=False)
+        except AccountToken.DoesNotExist:
+            return Response({'error': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if token.is_expired:
+            return Response({'error': 'Token has expired. Please request a new one.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate password strength
+        try:
+            validate_password(password, user=token.user)
+        except DjangoValidationError as e:
+            return Response({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        token.user.set_password(password)
+        token.user.save()
+        token.used = True
+        token.save()
+
+        return Response({'message': 'Password has been reset successfully.'})
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated],
+            url_path='change-password')
+    def change_password(self, request):
+        """
+        Change password for authenticated user.
+        POST /api/users/change-password/
+        Body: {"current_password": "...", "new_password": "...", "new_password_confirm": "..."}
+        """
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        new_password_confirm = request.data.get('new_password_confirm')
+
+        if not all([current_password, new_password, new_password_confirm]):
+            return Response({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.user.check_password(current_password):
+            return Response({'error': 'Current password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != new_password_confirm:
+            return Response({'error': 'New passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            validate_password(new_password, user=request.user)
+        except DjangoValidationError as e:
+            return Response({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        request.user.set_password(new_password)
+        request.user.save()
+
+        return Response({'message': 'Password changed successfully.'})
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated],
+            url_path='send-verification')
+    def send_verification(self, request):
+        """
+        Send email verification link.
+        POST /api/users/send-verification/
+        """
+        user = request.user
+        if user.email_verified:
+            return Response({'message': 'Email is already verified.'})
+
+        # Invalidate old verification tokens
+        AccountToken.objects.filter(user=user, token_type='email_verify', used=False).update(used=True)
+
+        token = AccountToken.objects.create(user=user, token_type='email_verify')
+        verify_url = f"{settings.FRONTEND_URL}/verify-email/{token.token}"
+
+        try:
+            send_mail(
+                subject='Reading OS - Verify Your Email',
+                message=f'Click this link to verify your email: {verify_url}\n\nThis link expires in 7 days.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send verification email to {user.email}: {e}")
+            return Response({'error': 'Failed to send email. Please try again later.'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'message': 'Verification email sent.'})
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny],
+            url_path='verify-email')
+    def verify_email(self, request):
+        """
+        Verify email using token.
+        POST /api/users/verify-email/
+        Body: {"token": "uuid"}
+        """
+        token_str = request.data.get('token')
+        if not token_str:
+            return Response({'error': 'Token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            token = AccountToken.objects.get(token=token_str, token_type='email_verify', used=False)
+        except AccountToken.DoesNotExist:
+            return Response({'error': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if token.is_expired:
+            return Response({'error': 'Token has expired. Please request a new one.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        token.user.email_verified = True
+        token.user.save(update_fields=['email_verified'])
+        token.used = True
+        token.save()
+
+        return Response({'message': 'Email verified successfully.'})
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated],
+            url_path='delete-account')
+    def delete_account(self, request):
+        """
+        Delete user account permanently.
+        POST /api/users/delete-account/
+        Body: {"password": "...", "confirm": true}
+        """
+        password = request.data.get('password')
+        confirm = request.data.get('confirm', False)
+
+        if not password:
+            return Response({'error': 'Password is required to delete account.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if not confirm:
+            return Response({'error': 'Please confirm account deletion.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.user.check_password(password):
+            return Response({'error': 'Incorrect password.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        logger.info(f"User {user.id} ({user.email}) requested account deletion.")
+
+        # Transfer circle ownership before deletion
+        from apps.social.models import Circle, CircleMembership
+        owned_circles = Circle.objects.filter(creator=user)
+        for circle in owned_circles:
+            # Find oldest admin or member to transfer ownership
+            next_admin = CircleMembership.objects.filter(
+                circle=circle, role__in=['admin', 'moderator']
+            ).exclude(user=user).order_by('joined_at').first()
+
+            if next_admin:
+                circle.creator = next_admin.user
+                circle.save(update_fields=['creator'])
+            else:
+                next_member = CircleMembership.objects.filter(
+                    circle=circle
+                ).exclude(user=user).order_by('joined_at').first()
+                if next_member:
+                    circle.creator = next_member.user
+                    next_member.role = 'admin'
+                    next_member.save(update_fields=['role'])
+                    circle.save(update_fields=['creator'])
+                # If no other members, circle will be deleted via cascade
+
+        user.delete()
+        return Response({'message': 'Account deleted successfully.'}, status=status.HTTP_200_OK)
 

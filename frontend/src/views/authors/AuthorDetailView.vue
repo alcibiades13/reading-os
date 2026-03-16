@@ -112,7 +112,6 @@ const linkPotentialAlias = async (aliasId) => {
       potentialAliases.value = potentialAliases.value.filter(a => a.id !== aliasId)
     }
   } catch (error) {
-    console.error('Failed to link author:', error)
     addToast(error.response?.data?.error || 'Error linking author', 'error')
   }
 }
@@ -123,7 +122,7 @@ const dismissPotentialAlias = async (aliasId) => {
     potentialAliases.value = potentialAliases.value.filter(a => a.id !== aliasId)
     addToast('Dismissed', 'success')
   } catch (error) {
-    console.error('Failed to dismiss author pair:', error)
+    // Dismiss failed
   }
 }
 
@@ -139,7 +138,6 @@ const linkManualAlias = async (aliasId) => {
       fetchPotentialAliases()
     }
   } catch (error) {
-    console.error('Failed to link author:', error)
     addToast(error.response?.data?.error || 'Error linking author', 'error')
   }
 }
@@ -187,7 +185,6 @@ const saveAuthor = async () => {
     isEditing.value = false
     addToast('Author updated!', 'success')
   } catch (error) {
-    console.error('Failed to update author:', error)
     addToast(error.response?.data?.detail || 'Error saving', 'error')
   } finally {
     isSaving.value = false
@@ -232,7 +229,7 @@ onMounted(async () => {
     // Fetch potential aliases in background
     fetchPotentialAliases()
   } catch (error) {
-    console.error('Failed to load author:', error)
+    // Author load failed
   } finally {
     loading.value = false
   }

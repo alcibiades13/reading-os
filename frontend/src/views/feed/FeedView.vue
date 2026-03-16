@@ -510,8 +510,6 @@ onMounted(async () => {
       api.get('/reading/user-books/')
     ])
 
-    console.log('Feed API response:', feedResponse.data)
-
     // Store userBooks
     userBooks.value = userBooksResponse.data?.results || userBooksResponse.data || []
 
@@ -587,8 +585,6 @@ onMounted(async () => {
 
     loading.value = false
   } catch (err) {
-    console.error('Feed error:', err)
-
     // Fallback to store data if API fails
     await Promise.all([
       quotesStore.fetchQuotes(),
@@ -617,7 +613,7 @@ const fetchRecommendations = async () => {
     recommendedBooks.value = books
     tasteProfile.value = profile
   } catch (error) {
-    console.error('Error fetching recommendations:', error)
+    // Recommendations fetch failed silently
   } finally {
     loadingRecommendations.value = false
   }

@@ -57,7 +57,7 @@ const fetchStats = async () => {
     const res = await adminAPI.stats()
     stats.value = res.data
   } catch (e) {
-    console.error('Failed to fetch admin stats:', e)
+    // Admin stats fetch failed
   } finally {
     loading.value.stats = false
   }
@@ -69,7 +69,7 @@ const fetchDataIssues = async () => {
     const res = await adminAPI.dataIssues({ type: issueFilter.value, page: issuesPage.value })
     dataIssues.value = res.data
   } catch (e) {
-    console.error('Failed to fetch data issues:', e)
+    // Data issues fetch failed
   } finally {
     loading.value.issues = false
   }
@@ -81,7 +81,7 @@ const fetchAuthorCandidates = async () => {
     const res = await adminAPI.authorMergeCandidates({ page: authorsPage.value })
     authorCandidates.value = res.data
   } catch (e) {
-    console.error('Failed to fetch author candidates:', e)
+    // Author candidates fetch failed
   } finally {
     loading.value.authors = false
   }
@@ -97,7 +97,7 @@ const fetchBooks = async () => {
     })
     books.value = res.data
   } catch (e) {
-    console.error('Failed to fetch admin books:', e)
+    // Admin books fetch failed
   } finally {
     loading.value.books = false
   }
@@ -109,7 +109,7 @@ const fetchReputation = async () => {
     const res = await contributionsAPI.dashboard()
     reputationData.value = res.data
   } catch (e) {
-    console.error('Failed to fetch reputation dashboard:', e)
+    // Reputation dashboard fetch failed
   } finally {
     loading.value.reputation = false
   }
@@ -121,7 +121,7 @@ const fetchBookCandidates = async () => {
     const res = await adminAPI.bookMergeCandidates({ page: bookSyncPage.value })
     bookCandidates.value = res.data
   } catch (e) {
-    console.error('Failed to fetch book candidates:', e)
+    // Book candidates fetch failed
   } finally {
     loading.value.bookSync = false
   }
@@ -142,7 +142,7 @@ const handleLinkBook = async (primaryId, variantId) => {
       }
     }
   } catch (e) {
-    console.error('Failed to link book:', e)
+    // Link book failed
   } finally {
     linkingBook.value = null
   }
@@ -163,7 +163,7 @@ const handleDismissBook = async (primaryId, variantId) => {
       }
     }
   } catch (e) {
-    console.error('Failed to dismiss book pair:', e)
+    // Dismiss book pair failed
   } finally {
     dismissingBook.value = null
   }
@@ -174,7 +174,7 @@ const handleUnlinkBook = async (bookId) => {
     await adminAPI.unlinkBook(bookId)
     fetchBookCandidates()
   } catch (e) {
-    console.error('Failed to unlink book:', e)
+    // Unlink book failed
   }
 }
 
@@ -187,7 +187,7 @@ const handleDeleteBook = async (bookId, transferToId = null) => {
     fetchBooks()
     fetchStats()
   } catch (e) {
-    console.error('Failed to delete book:', e)
+    // Delete book failed
   } finally {
     deletingBook.value = null
   }
@@ -229,7 +229,7 @@ const handleLinkAuthor = async (primaryId, variantId) => {
       }
     }
   } catch (e) {
-    console.error('Failed to link author:', e)
+    // Link author failed
   } finally {
     linkingAuthor.value = null
   }
@@ -251,7 +251,7 @@ const handleDismissAuthor = async (primaryId, variantId) => {
       }
     }
   } catch (e) {
-    console.error('Failed to dismiss author pair:', e)
+    // Dismiss author pair failed
   } finally {
     dismissingAuthor.value = null
   }
@@ -263,7 +263,7 @@ const handleUnlinkAuthor = async (authorId) => {
     // Refetch to update the candidates list (unlinked author may now appear)
     fetchAuthorCandidates()
   } catch (e) {
-    console.error('Failed to unlink author:', e)
+    // Unlink author failed
   }
 }
 

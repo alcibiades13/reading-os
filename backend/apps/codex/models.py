@@ -49,7 +49,8 @@ class JournalEntry(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='journal_entries'
+        related_name='journal_entries',
+        db_index=True,
     )
 
     # Soft delete

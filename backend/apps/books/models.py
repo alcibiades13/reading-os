@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.utils.text import slugify
 
 
@@ -43,6 +44,7 @@ class Author(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='members',
+        db_index=True,
     )
     is_primary_alias = models.BooleanField(default=False)
 
@@ -97,7 +99,8 @@ class Genre(models.Model):
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name='subgenres'
+        related_name='subgenres',
+        db_index=True,
     )
     description = models.TextField(blank=True)
     
@@ -182,13 +185,7 @@ class BookGroup(models.Model):
         verbose_name_plural = 'Book Groups'
 
     def __str__(self):
-        try:
-            authors = ", ".join([a.name for a in self.canonical_authors.all()[:2]])
-            if self.canonical_authors.count() > 2:
-                authors += "..."
-            return f"{self.canonical_title} - {authors}" if authors else self.canonical_title
-        except:
-            return self.canonical_title
+        return self.canonical_title
 
     def update_stats(self):
         """Update denormalized stats"""
@@ -348,7 +345,11 @@ class Book(models.Model):
     # Publishing details
     published_date = models.DateField(null=True, blank=True)
     language = models.CharField(max_length=10, default='sr')
-    pages = models.IntegerField(null=True, blank=True)
+    pages = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)]
+    )
     
     # Visual
     cover_image = models.URLField(
@@ -396,7 +397,8 @@ class Book(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='editions',
-        help_text="Group linking different editions of the same work"
+        help_text="Group linking different editions of the same work",
+        db_index=True,
     )
     is_primary_edition = models.BooleanField(
         default=False,
@@ -433,13 +435,7 @@ class Book(models.Model):
         ]
     
     def __str__(self):
-        try:
-            authors_str = ", ".join([a.name for a in self.authors.all()[:2]])
-            if self.authors.count() > 2:
-                authors_str += "..."
-            return f"{self.title} - {authors_str}" if authors_str else self.title
-        except:
-            return self.title
+        return self.title
     
     @property
     def author_names(self):

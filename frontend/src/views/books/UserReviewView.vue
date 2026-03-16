@@ -121,7 +121,7 @@ const toggleLike = async () => {
     liked.value = response.data.liked
     likeCount.value = response.data.like_count
   } catch (err) {
-    console.error('Failed to toggle like:', err)
+    // Toggle like failed
   } finally {
     isTogglingLike.value = false
   }
@@ -139,7 +139,7 @@ const addComment = async () => {
     comments.value.unshift(response.data)
     newComment.value = ''
   } catch (err) {
-    console.error('Failed to add comment:', err)
+    // Add comment failed
   } finally {
     isSubmittingComment.value = false
   }
@@ -150,7 +150,7 @@ const deleteComment = async (commentId) => {
     await socialAPI.deleteReviewComment(commentId)
     comments.value = comments.value.filter(c => c.id !== commentId)
   } catch (err) {
-    console.error('Failed to delete comment:', err)
+    // Delete comment failed
   }
 }
 
@@ -171,7 +171,7 @@ const fetchInteractionData = async () => {
       likeCount.value = likeRes.data.like_count
     }
   } catch (err) {
-    console.error('Failed to fetch interaction data:', err)
+    // Interaction data fetch failed
   }
 }
 
@@ -215,7 +215,6 @@ const fetchReview = async () => {
     const response = await booksAPI.userReview(bookId.value, userId.value)
     reviewData.value = response.data
   } catch (err) {
-    console.error('Failed to fetch review:', err)
     error.value = err.response?.data?.error || 'Failed to load review'
   } finally {
     loading.value = false
@@ -243,7 +242,7 @@ onMounted(async () => {
     communityReviews.value = allReviews.filter(r => String(r.user.id) !== String(userId.value))
     communityReviewsCount.value = response.data.reviews_count || 0
   } catch (err) {
-    console.error('Failed to fetch community reviews:', err)
+    // Community reviews fetch failed
   }
 
   // Fetch comments and full like status

@@ -34,18 +34,26 @@ class AuthorSerializer(serializers.ModelSerializer):
     def get_books_count(self, obj):
         """Count books by this author (across all aliases if grouped)"""
         if obj.author_group_id:
-            alias_ids = obj.author_group.members.values_list('id', flat=True)
-            return Book.objects.filter(authors__id__in=alias_ids).distinct().count()
+            # Use prefetched author_group.members and their books
+            all_book_ids = set()
+            for member in obj.author_group.members.all():
+                for book in member.books.all():
+                    all_book_ids.add(book.id)
+            return len(all_book_ids)
+        # Use annotation from viewset queryset if available
+        if hasattr(obj, 'books_count_annotation'):
+            return obj.books_count_annotation
         return obj.books.count()
 
     def get_aliases(self, obj):
         """Return other name spellings for this author."""
         if not obj.author_group_id:
             return []
+        # Filter in Python to use prefetched cache instead of hitting DB
         return [{
             'id': a.id, 'name': a.name, 'slug': a.slug,
             'photo': a.photo, 'is_primary': a.is_primary_alias,
-        } for a in obj.author_group.members.exclude(id=obj.id)]
+        } for a in obj.author_group.members.all() if a.id != obj.id]
 
     def get_similar_authors(self, obj):
         """Compute similar authors based on shared DNA themes."""
@@ -68,16 +76,18 @@ class AuthorSerializer(serializers.ModelSerializer):
             return data
 
         # Find the best source within the group (primary first, then any sibling)
-        primary = (
-            instance.author_group.members
-            .filter(is_primary_alias=True)
-            .first()
-        )
+        # Use Python filtering to leverage prefetched cache
+        members = list(instance.author_group.members.all())
+        primary = next((m for m in members if m.is_primary_alias), None)
         # Ordered preference: primary, then siblings with data, then self
         sources = []
         if primary and primary.id != instance.id:
             sources.append(primary)
-        for sib in instance.author_group.members.exclude(id=instance.id).order_by('-is_primary_alias'):
+        siblings = sorted(
+            [m for m in members if m.id != instance.id],
+            key=lambda m: (not m.is_primary_alias,)
+        )
+        for sib in siblings:
             if sib.id != (primary.id if primary else None):
                 sources.append(sib)
 
@@ -127,10 +137,16 @@ class GenreSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'slug', 'created_at']
     
     def get_subgenres(self, obj):
-        """Get child genres"""
-        if obj.subgenres.exists():
-            return GenreSerializer(obj.subgenres.all(), many=True).data
-        return []
+        """Get child genres (single level, no recursion to avoid exponential queries)"""
+        children = obj.subgenres.all()
+        if not children:
+            return []
+        return [{
+            'id': child.id,
+            'name': child.name,
+            'slug': child.slug,
+            'description': child.description,
+        } for child in children]
 
 
 class TagSerializer(serializers.ModelSerializer):

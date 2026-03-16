@@ -85,7 +85,7 @@ const handleMobileSend = async () => {
     mobileMessageInput.value = ''
     scrollMobileToBottom()
   } catch (error) {
-    console.error('Failed to send message:', error)
+    // Send failed
   } finally {
     sendingMobileMessage.value = false
   }
@@ -212,7 +212,7 @@ const handleSendMessage = async (messageData) => {
       }
     }, 100)
   } catch (error) {
-    console.error('Failed to send message:', error)
+    // Send failed
   }
 }
 
@@ -242,7 +242,7 @@ const selectUserForConversation = async (user) => {
     // Load messages
     await loadMessages(conversation.id)
   } catch (error) {
-    console.error('Failed to start conversation:', error)
+    // Start conversation failed
   }
 }
 

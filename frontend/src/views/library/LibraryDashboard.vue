@@ -2,17 +2,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserBooksStore } from '@/stores/userBooksStore'
+import { useQuotesStore } from '@/stores/quotesStore'
+import { useChallengesStore } from '@/stores/challengesStore'
+import { useListsStore } from '@/stores/listsStore'
 import { getBookUrl } from '@/utils/bookUrl'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
-import { 
-  BookOpen, 
-  Heart, 
-  Library as LibraryIcon, 
-  Plus, 
+import {
+  BookOpen,
+  Heart,
+  Library as LibraryIcon,
+  Plus,
   Quote,
   Target,
   List,
@@ -25,18 +28,21 @@ import {
 
 const router = useRouter()
 const booksStore = useUserBooksStore()
+const quotesStore = useQuotesStore()
+const challengesStore = useChallengesStore()
+const listsStore = useListsStore()
 
-// TODO: Import stores for quotes, challenges, lists when we create them
-const recentQuotes = ref([])
-const activeChallenges = ref([])
-const readingLists = ref([])
 const loading = ref(true)
 
 // Fetch all data
 onMounted(async () => {
   loading.value = true
-  await booksStore.fetchBooks()
-  // TODO: Fetch quotes, challenges, lists
+  await Promise.all([
+    booksStore.fetchBooks(),
+    quotesStore.fetchQuotes(),
+    challengesStore.fetchChallenges(),
+    listsStore.fetchLists(),
+  ])
   loading.value = false
 })
 
@@ -50,50 +56,27 @@ const currentlyReading = computed(() => {
 // Stats
 const stats = computed(() => booksStore.stats)
 
-// Mock data for now (replace with real data later)
-const mockRecentQuotes = ref([
-  {
-    id: 1,
-    text: 'The only way to do great work is to love what you do.',
-    book: { title: 'Steve Jobs', authors: [{ name: 'Walter Isaacson' }] },
-    created_at: '2024-03-15',
-  },
-  {
-    id: 2,
-    text: 'In the middle of difficulty lies opportunity.',
-    book: { title: 'Einstein: His Life and Universe', authors: [{ name: 'Walter Isaacson' }] },
-    created_at: '2024-03-14',
-  },
-  {
-    id: 3,
-    text: 'The future belongs to those who believe in the beauty of their dreams.',
-    book: { title: 'Meditations', authors: [{ name: 'Marcus Aurelius' }] },
-    created_at: '2024-03-13',
-  },
-])
+// Real data from stores
+const recentQuotes = computed(() => {
+  const quotes = quotesStore.quotes
+  if (!Array.isArray(quotes)) return []
+  return quotes.slice(0, 3)
+})
 
-const mockChallenges = ref([
-  {
-    id: 1,
-    title: '2026 Reading Challenge',
-    target_books: 50,
-    completed_books: 23,
-    progress_percentage: 46,
-  },
-  {
-    id: 2,
-    title: 'Philosophy Deep Dive',
-    target_books: 10,
-    completed_books: 7,
-    progress_percentage: 70,
-  },
-])
+const activeChallenges = computed(() => {
+  return challengesStore.activeChallenges
+})
 
-const mockLists = ref([
-  { id: 1, title: 'Summer Reads', books_count: 12 },
-  { id: 2, title: 'Non-Fiction Favorites', books_count: 8 },
-  { id: 3, title: 'Want to Read Next', books_count: 24 },
-])
+const readingLists = computed(() => {
+  const lists = listsStore.lists
+  if (!Array.isArray(lists)) return []
+  return lists.slice(0, 3)
+})
+
+const quotesCount = computed(() => {
+  const quotes = quotesStore.quotes
+  return Array.isArray(quotes) ? quotes.length : 0
+})
 
 // Navigation helpers
 const goToBooks = () => router.push('/library/all')
@@ -106,8 +89,7 @@ const goToFeed = () => router.push('/feed')
 // Book actions
 const viewBook = (book) => router.push(getBookUrl(book.book))
 const updateProgress = (book) => {
-  // TODO: Open progress update dialog
-  console.log('Update progress for:', book)
+  router.push(getBookUrl(book.book))
 }
 const addQuote = (book) => {
   router.push(`/quotes/new?book=${book.book.id}`)
@@ -174,7 +156,7 @@ const addQuote = (book) => {
             <div class="flex items-center justify-between mb-2">
               <Quote class="w-5 h-5 text-purple-500" />
             </div>
-            <p class="text-2xl font-bold text-purple-600">{{ mockRecentQuotes.length }}</p>
+            <p class="text-2xl font-bold text-purple-600">{{ quotesCount }}</p>
             <p class="text-sm text-muted-foreground">Quotes Saved</p>
           </CardContent>
         </Card>
@@ -268,7 +250,7 @@ const addQuote = (book) => {
 
           <div class="space-y-3">
             <Card 
-              v-for="quote in mockRecentQuotes" 
+              v-for="quote in recentQuotes" 
               :key="quote.id"
               class="hover:shadow-md transition-shadow cursor-pointer"
               @click="goToQuotes"
@@ -279,7 +261,7 @@ const addQuote = (book) => {
                 </blockquote>
                 <div class="flex items-center justify-between">
                   <p class="text-xs text-muted-foreground">
-                    {{ quote.book.title }}
+                    {{ quote.book_title || quote.book?.title || 'Unknown Book' }}
                   </p>
                   <Badge variant="secondary" class="text-xs">
                     {{ new Date(quote.created_at).toLocaleDateString() }}
@@ -310,7 +292,7 @@ const addQuote = (book) => {
 
           <div class="space-y-3">
             <Card 
-              v-for="challenge in mockChallenges" 
+              v-for="challenge in activeChallenges" 
               :key="challenge.id"
               class="hover:shadow-md transition-shadow cursor-pointer"
               @click="goToChallenges"
@@ -354,7 +336,7 @@ const addQuote = (book) => {
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card 
-            v-for="list in mockLists" 
+            v-for="list in readingLists" 
             :key="list.id"
             class="hover:shadow-lg transition-shadow cursor-pointer"
             @click="goToLists"

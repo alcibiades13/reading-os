@@ -29,7 +29,6 @@ export async function searchBooks(query, limit = 20) {
 
     return response.data.docs.map(item => formatBookData(item))
   } catch (error) {
-    console.error('Open Library API search error:', error)
     throw new Error('Failed to search books from Open Library')
   }
 }
@@ -55,7 +54,6 @@ export async function searchByISBN(isbn) {
     // Return the first (most relevant) result
     return formatBookData(response.data.docs[0])
   } catch (error) {
-    console.error('Open Library API ISBN search error:', error)
     throw new Error('Failed to search book by ISBN')
   }
 }
@@ -79,7 +77,6 @@ export async function getBookById(openLibraryId) {
 
     return formatWorkData(response.data, editionsResponse.data.entries?.[0])
   } catch (error) {
-    console.error('Open Library API get by ID error:', error)
     throw new Error('Failed to fetch book details')
   }
 }
@@ -246,7 +243,6 @@ export async function advancedSearch(filters) {
 
     return response.data.docs.map(item => formatBookData(item))
   } catch (error) {
-    console.error('Open Library API advanced search error:', error)
     throw new Error('Failed to perform advanced search')
   }
 }

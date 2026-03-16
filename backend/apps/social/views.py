@@ -2,6 +2,7 @@ from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
+from django.db.models import Count, Max, Prefetch, Q
 
 from apps.social.models import (
     Friendship, Circle, CircleMembership, CircleInvitation,
@@ -92,10 +93,6 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         friendship.status = 'accepted'
         friendship.save()
 
-        # Debug logging
-        print(f"DEBUG Create Friendship - Created friendship ID: {friendship.id}")
-        print(f"DEBUG Create Friendship - from_user: {friendship.from_user_id}, to_user: {friendship.to_user_id}, status: {friendship.status}")
-
         # Create notification for the followed user
         Notification.objects.create(
             recipient=friendship.to_user,
@@ -183,7 +180,13 @@ class CircleViewSet(viewsets.ModelViewSet):
         """Get circles user is member of"""
         return Circle.objects.filter(
             members=self.request.user
-        ).prefetch_related('memberships__user')
+        ).prefetch_related(
+            'memberships__user'
+        ).select_related(
+            'current_book', 'creator'
+        ).annotate(
+            members_count=Count('memberships', distinct=True)
+        )
     
     def perform_create(self, serializer):
         """Create circle and add creator as admin"""
@@ -287,7 +290,11 @@ class CircleViewSet(viewsets.ModelViewSet):
         ).values_list('circle_id', flat=True)
         public_circles = Circle.objects.filter(
             is_public=True
-        ).exclude(id__in=user_circle_ids)
+        ).exclude(id__in=user_circle_ids).select_related(
+            'creator', 'current_book'
+        ).annotate(
+            members_count=Count('memberships', distinct=True)
+        )
         serializer = CircleDiscoverySerializer(public_circles, many=True)
         return Response(serializer.data)
 
@@ -617,7 +624,6 @@ class FeedItemViewSet(viewsets.ReadOnlyModelViewSet):
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from apps.users.serializers import UserSerializer
-from django.db.models import Count, Q
 
 User = get_user_model()
 
@@ -895,7 +901,10 @@ class DiscussionTopicViewSet(viewsets.ModelViewSet):
 
         queryset = DiscussionTopic.objects.filter(
             circle__in=user_circles
-        ).select_related('circle', 'creator', 'book')
+        ).select_related('circle', 'creator', 'book').annotate(
+            message_count=Count('messages', distinct=True),
+            last_activity=Max('messages__created_at'),
+        )
 
         # Filter by circle
         circle_id = self.request.query_params.get('circle', None)
@@ -1101,7 +1110,6 @@ class TopicMessageViewSet(viewsets.ModelViewSet):
             reaction.delete()
 
         # Build reaction summary
-        from django.db.models import Count
         reactions = MessageReaction.objects.filter(
             message=message
         ).values('emoji').annotate(count=Count('id'))
@@ -1454,9 +1462,19 @@ class PollViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_circles = Circle.objects.filter(members=self.request.user)
+
+        # Prefetch options with annotated vote_count to avoid N+1
+        options_qs = PollOption.objects.annotate(
+            vote_count=Count('votes', distinct=True)
+        ).prefetch_related('votes')
+
         queryset = Poll.objects.filter(
             topic__circle__in=user_circles
-        ).select_related('topic__circle').prefetch_related('options__votes')
+        ).select_related('topic__circle').prefetch_related(
+            Prefetch('options', queryset=options_qs),
+        ).annotate(
+            total_votes=Count('options__votes', distinct=True)
+        )
 
         topic_id = self.request.query_params.get('topic')
         if topic_id:

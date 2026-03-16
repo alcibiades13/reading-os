@@ -1,7 +1,9 @@
+import uuid
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -58,9 +60,11 @@ class User(AbstractUser):
     website = models.URLField(blank=True)
     birth_date = models.DateField(null=True, blank=True, help_text="Date of birth")
 
+    email_verified = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     # Use custom manager
     objects = UserManager()
     
@@ -135,6 +139,31 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.email}'s profile"
+
+
+class AccountToken(models.Model):
+    """Tokens for password reset and email verification."""
+    TOKEN_TYPES = [
+        ('password_reset', 'Password Reset'),
+        ('email_verify', 'Email Verification'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='account_tokens')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
+    token_type = models.CharField(max_length=20, choices=TOKEN_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['token', 'token_type']),
+        ]
+
+    @property
+    def is_expired(self):
+        if self.token_type == 'password_reset':
+            return timezone.now() > self.created_at + timezone.timedelta(hours=1)
+        return timezone.now() > self.created_at + timezone.timedelta(days=7)
 
 
 # Signal to auto-create profile when user is created

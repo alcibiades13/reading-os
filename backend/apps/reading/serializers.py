@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.reading.models import UserBook, Quote, QuoteTag, VocabularyWord
+from apps.reading.models import UserBook, Quote, QuoteTag, VocabularyWord, ReadingSession
 from apps.books.serializers import BookListSerializer
 from apps.users.serializers import UserSerializer
 
@@ -61,8 +61,7 @@ class QuoteListSerializer(serializers.ModelSerializer):
                     return obj.book.cover_image
             # No book linked or no cover
             return None
-        except Exception as e:
-            print(f"Error getting book cover for quote {obj.id}: {e}")
+        except Exception:
             return None
 
 
@@ -345,5 +344,33 @@ class VocabularyWordSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class ReadingSessionSerializer(serializers.ModelSerializer):
+    """Serializer for reading sessions"""
+    book_title = serializers.SerializerMethodField()
+    pages_per_minute = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ReadingSession
+        fields = [
+            'id',
+            'user_book',
+            'book_title',
+            'duration_seconds',
+            'start_page',
+            'end_page',
+            'pages_read',
+            'pages_per_minute',
+            'started_at',
+            'ended_at',
+        ]
+        read_only_fields = ['id', 'ended_at']
+
+    def get_book_title(self, obj):
+        return obj.user_book.book.title if obj.user_book else ''
+
+    def get_pages_per_minute(self, obj):
+        return obj.pages_per_minute
 
 

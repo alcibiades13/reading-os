@@ -52,7 +52,7 @@ const loadUserBooks = async () => {
     const response = await api.get('/reading/user-books/')
     userBooks.value = response.data?.results || response.data || []
   } catch (err) {
-    console.error('Failed to load user books:', err)
+    // User books load failed
   }
 }
 
@@ -89,7 +89,6 @@ const loadFeed = async () => {
 
     loading.value = false
   } catch (err) {
-    console.error('Feed error:', err)
     error.value = 'Failed to load activity feed'
     loading.value = false
   }
@@ -194,7 +193,6 @@ const handleLike = async (activity) => {
     // Revert on error
     activity.is_liked = !activity.is_liked
     activity.likes_count += activity.is_liked ? 1 : -1
-    console.error('Failed to toggle like:', err)
   }
 }
 
@@ -243,7 +241,7 @@ const addToLibrary = async (bookId, status) => {
       userBooks.value.push(response.data)
     }
   } catch (err) {
-    console.error('Failed to add book to library:', err)
+    // Add to library failed
   }
 }
 

@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { Download, Layout, Palette, Type, RectangleHorizontal, Loader2, Minus, Plus } from 'lucide-vue-next'
+import { Download, Layout, Palette, Type, RectangleHorizontal, Loader2, Minus, Plus, Share2, Copy, Check } from 'lucide-vue-next'
+import { useToast } from '@/composables/useToast'
 import { useQuoteCardDesigner } from '@/composables/useQuoteCardDesigner'
 
 const props = defineProps({
@@ -71,9 +72,43 @@ const attribution = computed(() => {
   return parts
 })
 
+const { addToast } = useToast()
+const justCopied = ref(false)
+
 const handleDownload = async () => {
   if (!previewRef.value) return
   await downloadImage(previewRef.value, props.quote.book_title)
+}
+
+const quoteText = computed(() => {
+  const parts = [`"${props.quote.text}"`]
+  if (props.quote.book_author) parts.push(`— ${props.quote.book_author}`)
+  if (props.quote.book_title) parts.push(`(${props.quote.book_title})`)
+  return parts.join(' ')
+})
+
+const handleCopyText = async () => {
+  await navigator.clipboard.writeText(quoteText.value)
+  justCopied.value = true
+  addToast('Quote copied to clipboard')
+  setTimeout(() => { justCopied.value = false }, 2000)
+}
+
+const handleShareTwitter = () => {
+  const text = quoteText.value
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+  window.open(url, '_blank', 'width=550,height=420')
+}
+
+const canNativeShare = computed(() => !!navigator.share)
+
+const handleNativeShare = async () => {
+  if (!navigator.share) return
+  try {
+    await navigator.share({ text: quoteText.value })
+  } catch {
+    // User cancelled
+  }
 }
 
 // Text colors derived from background
@@ -489,8 +524,34 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
             </div>
           </div>
 
-          <!-- Footer: Download Button -->
-          <div class="p-4 sm:p-5 border-t border-slate-800 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
+          <!-- Footer: Share & Download -->
+          <div class="p-4 sm:p-5 border-t border-slate-800 shrink-0 space-y-3" style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
+            <!-- Share row -->
+            <div class="flex items-center gap-2">
+              <button
+                @click="handleCopyText"
+                class="flex-1 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-slate-500 hover:text-white transition-all"
+              >
+                <Check v-if="justCopied" :size="14" class="text-emerald-400" />
+                <Copy v-else :size="14" />
+                {{ justCopied ? 'Copied' : 'Copy text' }}
+              </button>
+              <button
+                @click="handleShareTwitter"
+                class="flex-1 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-sky-500/50 hover:text-sky-400 transition-all"
+              >
+                <svg :width="14" :height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                Post
+              </button>
+              <button
+                v-if="canNativeShare"
+                @click="handleNativeShare"
+                class="px-3 py-2 rounded-xl border border-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-slate-500 hover:text-white transition-all"
+              >
+                <Share2 :size="14" />
+              </button>
+            </div>
+            <!-- Download -->
             <button
               @click="handleDownload"
               :disabled="isGenerating"

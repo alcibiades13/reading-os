@@ -1,7 +1,9 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 from django.utils.text import slugify
+from django.utils import timezone
 
 from apps.books.models import Book
 
@@ -39,7 +41,7 @@ class UserBook(models.Model):
     
     # Reading tracking
     started_at = models.DateField(null=True, blank=True)
-    finished_at = models.DateField(null=True, blank=True)
+    finished_at = models.DateField(null=True, blank=True, db_index=True)
     current_page = models.IntegerField(
         default=0,
         validators=[MinValueValidator(0)]
@@ -115,9 +117,35 @@ class UserBook(models.Model):
             models.Index(fields=['user', 'is_wishlisted']),
         ]
     
+    def clean(self):
+        super().clean()
+        errors = {}
+
+        # current_page cannot exceed book.pages
+        if self.current_page and self.book_id and self.book.pages:
+            if self.current_page > self.book.pages:
+                errors['current_page'] = (
+                    f'Current page ({self.current_page}) cannot exceed '
+                    f'total pages ({self.book.pages}).'
+                )
+
+        # finished_at cannot be before started_at
+        if self.finished_at and self.started_at:
+            if self.finished_at < self.started_at:
+                errors['finished_at'] = (
+                    'Finished date cannot be before started date.'
+                )
+
+        # If status is 'read', ensure finished_at is set
+        if self.status == 'read' and not self.finished_at:
+            self.finished_at = timezone.now().date()
+
+        if errors:
+            raise ValidationError(errors)
+
     def __str__(self):
         return f"{self.user.email} - {self.book.title} ({self.status})"
-    
+
     def calculate_depth_score(self):
         """
         Calculate engagement depth score.
@@ -334,38 +362,105 @@ class VocabularyWord(models.Model):
             models.Index(fields=['user', '-created_at']),
             models.Index(fields=['user', 'mastery']),
             models.Index(fields=['word']),
+            models.Index(fields=['user', 'book']),
         ]
 
     def __str__(self):
         return f"{self.word} - {self.user.email}"
 
 
+class ReadingSession(models.Model):
+    """
+    Records individual reading sessions from the timer.
+    Captures duration, pages read, and reading speed.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='reading_sessions'
+    )
+    user_book = models.ForeignKey(
+        UserBook,
+        on_delete=models.CASCADE,
+        related_name='reading_sessions'
+    )
+
+    # Session data
+    duration_seconds = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        help_text="Total active reading time in seconds (excluding pauses)"
+    )
+    start_page = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    end_page = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    pages_read = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+
+    # Timestamps
+    started_at = models.DateTimeField(help_text="When the session started")
+    ended_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-ended_at']
+        verbose_name = 'Reading Session'
+        verbose_name_plural = 'Reading Sessions'
+        indexes = [
+            models.Index(fields=['user', '-ended_at']),
+            models.Index(fields=['user_book']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} - {self.user_book.book.title} ({self.pages_read}p, {self.duration_seconds}s)"
+
+    @property
+    def pages_per_minute(self):
+        minutes = self.duration_seconds / 60
+        if minutes == 0:
+            return 0
+        return round(self.pages_read / minutes, 1)
+
+
 # Signals to update UserBook.quotes_count
+from django.db.models import F
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 
 @receiver(post_save, sender=Quote)
 def update_quotes_count_on_create(sender, instance, created, **kwargs):
-    """Update UserBook quotes_count when Quote is created"""
-    if created and instance.user_book:
-        user_book = instance.user_book
-        user_book.quotes_count = user_book.quotes.count()
-        user_book.save(update_fields=['quotes_count'])
-        user_book.calculate_depth_score()
+    """Update UserBook quotes_count when Quote is created, using F() for atomicity."""
+    if created and instance.user_book_id:
+        UserBook.objects.filter(pk=instance.user_book_id).update(
+            quotes_count=F('quotes_count') + 1
+        )
+        # Refresh and recalculate depth score
+        try:
+            instance.user_book.refresh_from_db()
+            instance.user_book.calculate_depth_score()
+        except UserBook.DoesNotExist:
+            pass
 
 
 @receiver(post_delete, sender=Quote)
 def update_quotes_count_on_delete(sender, instance, **kwargs):
-    """Update UserBook quotes_count when Quote is deleted"""
-    if instance.user_book:
-        try:
-            user_book = instance.user_book
-            user_book.quotes_count = user_book.quotes.count()
-            user_book.save(update_fields=['quotes_count'])
-            user_book.calculate_depth_score()
-        except UserBook.DoesNotExist:
-            pass
+    """Update UserBook quotes_count when Quote is deleted, using F() for atomicity."""
+    if instance.user_book_id:
+        updated = UserBook.objects.filter(pk=instance.user_book_id).update(
+            quotes_count=F('quotes_count') - 1
+        )
+        if updated:
+            try:
+                user_book = UserBook.objects.get(pk=instance.user_book_id)
+                user_book.calculate_depth_score()
+            except UserBook.DoesNotExist:
+                pass
 
 
 @receiver(post_save, sender=UserBook)

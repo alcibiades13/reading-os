@@ -18,6 +18,9 @@ from .serializers import (
 )
 from .survey import SURVEY_QUESTIONS, THEME_OPTIONS, THEME_CATEGORIES, GENRE_TAG_OPTIONS
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Create theme ID to label mapping
 THEME_LABELS = {t['id']: t['label'] for t in THEME_OPTIONS}
 
@@ -142,12 +145,6 @@ class SimilarBooksView(APIView):
         limit = int(request.query_params.get('limit', 6))
         limit = min(limit, 12)
 
-        # Debug: Check BookDNA status
-        total_dna = BookDNA.objects.count()
-        dna_with_votes = BookDNA.objects.filter(vote_count__gte=1).count()
-        has_dna = hasattr(book, 'dna') and BookDNA.objects.filter(book=book).exists()
-        print(f"[Similar] Book {book_id}: total_dna={total_dna}, with_votes={dna_with_votes}, has_dna={has_dna}")
-
         # Use engine if user is authenticated, otherwise basic similarity
         if request.user.is_authenticated:
             engine = RecommendationEngine(request.user)
@@ -159,7 +156,6 @@ class SimilarBooksView(APIView):
             engine.excluded_book_ids = []
 
         similar = engine.get_similar_books(book, limit)
-        print(f"[Similar] Found {len(similar)} similar books")
 
         data = []
         for rec in similar:

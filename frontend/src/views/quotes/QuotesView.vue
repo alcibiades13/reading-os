@@ -7,11 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image, Download } from 'lucide-vue-next'
+import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image, Download, Share2, Camera, Loader2 } from 'lucide-vue-next'
 import { quotesAPI } from '@/services/api'
 import { downloadBlob } from '@/utils/downloadFile'
 import { getBookUrl } from '@/utils/bookUrl'
 import QuoteCardDesigner from '@/components/quotes/QuoteCardDesigner.vue'
+import { useQuoteScanner } from '@/composables/useQuoteScanner'
 
 const router = useRouter()
 const route = useRoute()
@@ -30,6 +31,19 @@ const designerQuote = ref(null)
 const openDesigner = (quote) => {
   designerQuote.value = quote
   isDesignerOpen.value = true
+}
+
+// OCR Scanner
+const { isScanning, scanProgress, scanError, scanImage } = useQuoteScanner()
+
+const handleScanForCreate = async () => {
+  const text = await scanImage()
+  if (text) newQuote.value.text = text
+}
+
+const handleScanForEdit = async () => {
+  const text = await scanImage()
+  if (text) editQuote.value.text = text
 }
 
 // Book autocomplete (for create)
@@ -140,7 +154,7 @@ const handleExportQuotes = async (format) => {
     const response = await quotesAPI.export(format)
     downloadBlob(response, format === 'csv' ? 'quotes.csv' : 'quotes.json')
   } catch (error) {
-    console.error('Error exporting quotes:', error)
+    // Export failed silently
   }
 }
 
@@ -190,8 +204,6 @@ const handleCreateQuote = async () => {
           const result = await quotesStore.createTag({ name: tagName })
           if (result.success) {
             tagIds.push(result.data.id)
-          } else {
-            console.error('Failed to create tag:', result.error)
           }
         }
       }
@@ -206,11 +218,9 @@ const handleCreateQuote = async () => {
       // Refresh quotes to show the new one
       await quotesStore.fetchQuotes()
     } else {
-      console.error('Quote creation failed:', result.error)
       alert(`Failed to create quote: ${JSON.stringify(result.error)}`)
     }
   } catch (error) {
-    console.error('Error creating quote:', error)
     alert(`Error: ${error.message}`)
   }
 }
@@ -234,20 +244,13 @@ const resetForm = () => {
 
 const toggleFavorite = async (quote) => {
   try {
-    console.log('Toggling favorite for quote:', quote.id, 'Current value:', quote.is_favorite)
     const result = await quotesStore.updateQuote(quote.id, {
       is_favorite: !quote.is_favorite,
     })
     if (!result.success) {
-      console.error('Failed to toggle favorite:', result.error)
-      console.error('Full error details:', JSON.stringify(result.error, null, 2))
       alert(`Failed to update favorite status: ${JSON.stringify(result.error)}`)
-    } else {
-      console.log('Successfully toggled favorite')
     }
   } catch (error) {
-    console.error('Error toggling favorite:', error)
-    console.error('Error response:', error.response)
     alert('Error updating favorite status')
   }
 }
@@ -261,6 +264,12 @@ const deleteQuote = async (quote) => {
 const copyQuote = (quote) => {
   const text = `"${quote.text}" — ${quote.book_title} by ${quote.book_author || 'Unknown Author'}`
   navigator.clipboard.writeText(text)
+}
+
+const shareQuoteTwitter = (quote) => {
+  const text = `"${quote.text}" — ${quote.book_author || 'Unknown Author'} (${quote.book_title})`
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+  window.open(url, '_blank', 'width=550,height=420')
 }
 
 // Track expanded notes
@@ -294,7 +303,6 @@ const searchBooks = async (query) => {
     bookSearchResults.value = response.data.results || response.data || []
     showBookDropdown.value = bookSearchResults.value.length > 0
   } catch (error) {
-    console.error('Error searching books:', error)
     bookSearchResults.value = []
   } finally {
     isSearchingBooks.value = false
@@ -330,7 +338,6 @@ const searchEditBooks = async (query) => {
     editBookSearchResults.value = response.data.results || response.data || []
     showEditBookDropdown.value = editBookSearchResults.value.length > 0
   } catch (error) {
-    console.error('Error searching books:', error)
     editBookSearchResults.value = []
   } finally {
     isSearchingEditBooks.value = false
@@ -338,14 +345,12 @@ const searchEditBooks = async (query) => {
 }
 
 const selectEditBook = (userBook) => {
-  console.log('Selected edit book:', userBook)
   editQuote.value.book = userBook.book.id
   editQuote.value.user_book = userBook.id
   editQuote.value.book_title = userBook.book.title
   editQuote.value.book_author = userBook.book.authors?.[0]?.name || ''
   editBookSearchQuery.value = userBook.book.title
   showEditBookDropdown.value = false
-  console.log('Updated editQuote:', editQuote.value)
 }
 
 const handleEditBookInputChange = async (e) => {
@@ -422,20 +427,16 @@ const handleEditQuote = async () => {
       payload.tag_ids = []
     }
 
-    console.log('Edit Quote Payload:', payload)
     const result = await quotesStore.updateQuote(editingQuote.value.id, payload)
 
     if (result.success) {
-      console.log('Quote updated successfully:', result)
       isEditDialogOpen.value = false
       editingQuote.value = null
       await quotesStore.fetchQuotes()
     } else {
-      console.error('Quote update failed:', result.error)
       alert(`Failed to update quote: ${JSON.stringify(result.error)}`)
     }
   } catch (error) {
-    console.error('Error updating quote:', error)
     alert(`Error: ${error.message}`)
   }
 }
@@ -683,16 +684,40 @@ const handleEditQuote = async () => {
             <form @submit.prevent="handleCreateQuote" class="space-y-5">
               <!-- Quote Content -->
               <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                  <component :is="AlignLeft" :size="12" /> The Quote
-                </label>
-                <Textarea
-                  v-model="newQuote.text"
-                  placeholder="Paste the brilliant words here..."
-                  rows="4"
-                  required
-                  class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
-                />
+                <div class="flex items-center justify-between">
+                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <component :is="AlignLeft" :size="12" /> The Quote
+                  </label>
+                  <button
+                    type="button"
+                    @click="handleScanForCreate"
+                    :disabled="isScanning"
+                    class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+                    :class="isScanning
+                      ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
+                      : 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 active:scale-95'"
+                  >
+                    <component :is="isScanning ? Loader2 : Camera" :size="14" :class="isScanning && 'animate-spin'" />
+                    {{ isScanning ? `Scanning... ${scanProgress}%` : 'Scan Page' }}
+                  </button>
+                </div>
+                <div class="relative">
+                  <Textarea
+                    v-model="newQuote.text"
+                    placeholder="Paste the brilliant words here, or scan a book page..."
+                    rows="4"
+                    required
+                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+                  />
+                  <div v-if="isScanning" class="absolute inset-0 bg-slate-900/60 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <Loader2 :size="24" class="text-indigo-400 animate-spin" />
+                    <div class="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" :style="{ width: scanProgress + '%' }"></div>
+                    </div>
+                    <span class="text-xs text-slate-400">Recognizing text...</span>
+                  </div>
+                </div>
+                <p v-if="scanError" class="text-xs text-red-400">Scan failed: {{ scanError }}</p>
               </div>
 
               <!-- Book Info Grid -->
@@ -1065,6 +1090,14 @@ const handleEditQuote = async () => {
                   <Image :size="18" class="sm:hidden" />
                   <Image :size="20" class="hidden sm:block" />
                 </button>
+                <button
+                  @click="shareQuoteTwitter(quote)"
+                  class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-sky-400 hover:bg-slate-800 transition-all"
+                  title="Share on X"
+                >
+                  <Share2 :size="18" class="sm:hidden" />
+                  <Share2 :size="20" class="hidden sm:block" />
+                </button>
               </div>
 
               <div class="flex items-center gap-1 sm:gap-2">
@@ -1116,16 +1149,40 @@ const handleEditQuote = async () => {
         <form @submit.prevent="handleEditQuote" class="space-y-5">
           <!-- Quote Content -->
           <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <component :is="AlignLeft" :size="12" /> The Quote
-            </label>
-            <Textarea
-              v-model="editQuote.text"
-              placeholder="Paste the brilliant words here..."
-              rows="4"
-              required
-              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
-            />
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <component :is="AlignLeft" :size="12" /> The Quote
+              </label>
+              <button
+                type="button"
+                @click="handleScanForEdit"
+                :disabled="isScanning"
+                class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+                :class="isScanning
+                  ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
+                  : 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 active:scale-95'"
+              >
+                <component :is="isScanning ? Loader2 : Camera" :size="14" :class="isScanning && 'animate-spin'" />
+                {{ isScanning ? `Scanning... ${scanProgress}%` : 'Scan Page' }}
+              </button>
+            </div>
+            <div class="relative">
+              <Textarea
+                v-model="editQuote.text"
+                placeholder="Paste the brilliant words here, or scan a book page..."
+                rows="4"
+                required
+                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+              />
+              <div v-if="isScanning" class="absolute inset-0 bg-slate-900/60 rounded-xl flex flex-col items-center justify-center gap-2">
+                <Loader2 :size="24" class="text-indigo-400 animate-spin" />
+                <div class="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" :style="{ width: scanProgress + '%' }"></div>
+                </div>
+                <span class="text-xs text-slate-400">Recognizing text...</span>
+              </div>
+            </div>
+            <p v-if="scanError" class="text-xs text-red-400">Scan failed: {{ scanError }}</p>
           </div>
 
           <!-- Book Info Grid -->

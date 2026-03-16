@@ -83,7 +83,7 @@ export const useVocabularyStore = defineStore('vocabulary', {
         this.words = words.map(word => this._transformWord(word))
       } catch (error) {
         this.error = error.response?.data || 'Failed to load vocabulary'
-        console.error('Failed to load vocabulary:', error)
+        // Vocabulary load failed
       } finally {
         this.loading = false
       }
@@ -126,7 +126,7 @@ export const useVocabularyStore = defineStore('vocabulary', {
         }
       } catch (error) {
         this.error = error.response?.data || 'Failed to save word'
-        console.error('Failed to save word:', error)
+        // Word save failed
         throw error
       } finally {
         this.loading = false
@@ -141,7 +141,7 @@ export const useVocabularyStore = defineStore('vocabulary', {
         this.words = this.words.filter(w => w.id !== id)
       } catch (error) {
         this.error = error.response?.data || 'Failed to delete word'
-        console.error('Failed to delete word:', error)
+        // Word delete failed
         throw error
       } finally {
         this.loading = false
@@ -161,7 +161,7 @@ export const useVocabularyStore = defineStore('vocabulary', {
         return transformedWord
       } catch (error) {
         this.error = error.response?.data || 'Failed to update mastery'
-        console.error('Failed to update mastery:', error)
+        // Mastery update failed
         throw error
       } finally {
         this.loading = false
@@ -181,7 +181,7 @@ export const useVocabularyStore = defineStore('vocabulary', {
         return transformedWord
       } catch (error) {
         this.error = error.response?.data || 'Failed to toggle favorite'
-        console.error('Failed to toggle favorite:', error)
+        // Toggle favorite failed
         throw error
       } finally {
         this.loading = false

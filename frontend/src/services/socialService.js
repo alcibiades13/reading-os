@@ -104,7 +104,7 @@ export const socialService = {
       const response = await socialAPI.sendFriendRequest(userId)
       return { success: true, is_following: true, data: response.data }
     } catch (error) {
-      console.error('Error following user:', error)
+      // Follow user failed
       // Fallback to mock for development
       if (error.response?.status === 404) {
         await new Promise(resolve => setTimeout(resolve, 500))
@@ -122,7 +122,7 @@ export const socialService = {
       await socialAPI.removeFriend(friendshipId)
       return { success: true, is_following: false }
     } catch (error) {
-      console.error('Error unfollowing user:', error)
+      // Unfollow user failed
       // Fallback to mock for development
       if (error.response?.status === 404) {
         await new Promise(resolve => setTimeout(resolve, 500))
@@ -140,7 +140,7 @@ export const socialService = {
       const response = await socialAPI.suggestedUsers({ limit })
       return response.data
     } catch (error) {
-      console.error('Error getting suggested users:', error)
+      // Suggested users fetch failed
       // Fallback to mock data if backend not ready
       if (error.response?.status === 404) {
         const suggestions = MOCK_USERS
@@ -155,17 +155,13 @@ export const socialService = {
 
   /**
    * Get users with similar reading taste (Kindred Spirits)
+   * Uses the suggested users endpoint as the underlying data source
    */
   async getKindredSpirits(limit = 5) {
     try {
-      // TODO: Replace with actual API call implementing the full algorithm
-      // const response = await api.get('/api/social/kindred-spirits/', { params: { limit } })
-      // return response.data
-
-      // Mock implementation
       return this.getSuggestedUsers(limit)
     } catch (error) {
-      console.error('Error getting kindred spirits:', error)
+      // Kindred spirits fetch failed
       return []
     }
   },
@@ -178,7 +174,7 @@ export const socialService = {
       const response = await api.get(`/users/${userId}/followers/`)
       return response.data
     } catch (error) {
-      console.error('Error getting followers:', error)
+      // Followers fetch failed
       return []
     }
   },
@@ -191,26 +187,17 @@ export const socialService = {
       const response = await api.get(`/users/${userId}/following/`)
       return response.data
     } catch (error) {
-      console.error('Error getting following:', error)
+      // Following fetch failed
       return []
     }
   },
 
   /**
    * Get users reading a specific book
+   * Planned feature - endpoint not yet available
    */
   async getBookReaders(bookId, limit = 10) {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await api.get(`/api/books/${bookId}/readers/`, { params: { limit } })
-      // return response.data
-
-      // Mock implementation
-      return MOCK_USERS.slice(0, limit)
-    } catch (error) {
-      console.error('Error getting book readers:', error)
-      return []
-    }
+    return []
   },
 
   /**
@@ -221,7 +208,7 @@ export const socialService = {
       const response = await socialAPI.searchUsers(query)
       return response.data
     } catch (error) {
-      console.error('Error searching users:', error)
+      // User search failed
       // Fallback to mock data
       if (error.response?.status === 404) {
         const lowerQuery = query.toLowerCase()
@@ -243,7 +230,7 @@ export const socialService = {
       const response = await socialAPI.getUserProfile(userId)
       return response.data
     } catch (error) {
-      console.error('Error getting user profile:', error)
+      // User profile fetch failed
       // Fallback to mock data
       if (error.response?.status === 404) {
         return MOCK_USERS.find(u => u.id === parseInt(userId)) || null
@@ -266,7 +253,7 @@ export const socialService = {
       const response = await socialAPI.getUserBooks(userId, queryParams)
       return response.data.results || response.data
     } catch (error) {
-      console.error('Error getting user books:', error)
+      // User books fetch failed
       return []
     }
   },
@@ -279,7 +266,7 @@ export const socialService = {
       const response = await socialAPI.getUserStats(userId)
       return response.data
     } catch (error) {
-      console.error('Error getting user stats:', error)
+      // User stats fetch failed
       return null
     }
   },

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBooksStore } from '@/stores/booksStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
 import { useQuotesStore } from '@/stores/quotesStore'
+import { readingSessionsAPI } from '@/services/api'
 import { getBookUrl } from '@/utils/bookUrl'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ const quotesStore = useQuotesStore()
 const bookId = route.params.id
 const book = ref(null)
 const userBook = ref(null)
+const loadingData = ref(true)
 
 // Session state
 const isActive = ref(false)
@@ -73,6 +75,7 @@ onBeforeUnmount(() => {
 })
 
 const loadBookData = async () => {
+  loadingData.value = true
   const result = await booksStore.fetchBook(bookId)
   if (result.success) {
     book.value = result.data
@@ -81,10 +84,14 @@ const loadBookData = async () => {
   await userBooksStore.fetchBooks()
   userBook.value = userBooksStore.books.find(b => b.book.id === parseInt(bookId))
 
-  if (userBook.value) {
-    currentPage.value = userBook.value.current_page || 0
-    startPage.value = currentPage.value
+  if (!userBook.value) {
+    loadingData.value = false
+    return
   }
+
+  currentPage.value = userBook.value.current_page || 0
+  startPage.value = currentPage.value
+  loadingData.value = false
 }
 
 const formattedTime = computed(() => {
@@ -142,11 +149,11 @@ const pauseSession = () => {
   }
 }
 
-const endSession = () => {
+const endSession = async () => {
   if (timerInterval.value) clearInterval(timerInterval.value)
-  
+
   pagesRead.value = currentPage.value - startPage.value
-  
+
   sessionStats.value = {
     duration: formattedTime.value,
     pagesRead: pagesRead.value,
@@ -157,6 +164,23 @@ const endSession = () => {
   }
 
   saveProgress()
+
+  // Persist session to backend
+  if (userBook.value && elapsedSeconds.value > 0) {
+    try {
+      await readingSessionsAPI.create({
+        user_book: userBook.value.id,
+        duration_seconds: elapsedSeconds.value,
+        start_page: startPage.value,
+        end_page: currentPage.value,
+        pages_read: Math.max(0, pagesRead.value),
+        started_at: new Date(startTime.value).toISOString(),
+      })
+    } catch (err) {
+      // Session save failed
+    }
+  }
+
   isSessionEndDialogOpen.value = true
   isActive.value = false
 }
@@ -233,8 +257,19 @@ const getCoverImage = computed(() => {
       </Button>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loadingData" class="flex items-center justify-center py-24">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+    </div>
+
+    <!-- No user book found -->
+    <div v-else-if="!userBook" class="text-center py-24">
+      <p class="text-red-400 mb-4">This book is not in your library.</p>
+      <button @click="router.back()" class="text-amber-500 hover:text-amber-400">Go back</button>
+    </div>
+
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <div v-else class="container mx-auto px-4 py-8 max-w-5xl">
       <!-- Book Info Header -->
       <div class="text-center mb-8">
         <div class="flex items-center justify-center gap-4 mb-4">

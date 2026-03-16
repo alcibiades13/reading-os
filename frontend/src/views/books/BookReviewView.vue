@@ -86,9 +86,6 @@ onMounted(async () => {
 
     await Promise.all(promises)
 
-    console.log('User book after fetch:', userBook.value)
-    console.log('Review from userBook:', userBook.value?.review)
-
     // Load existing dates
     if (userBook.value?.started_at) {
       startedAt.value = userBook.value.started_at
@@ -101,7 +98,6 @@ onMounted(async () => {
     await nextTick()
 
     const saved = localStorage.getItem(`draft_review_${bookId.value}`)
-    console.log('Saved draft from localStorage:', saved)
 
     if (saved && !userBook.value?.review) {
       content.value = saved
@@ -109,7 +105,6 @@ onMounted(async () => {
     } else if (userBook.value?.review) {
       content.value = userBook.value.review
       if (editorRef.value) editorRef.value.innerHTML = userBook.value.review
-      console.log('Loaded review into editor:', userBook.value.review)
     }
 
     // Clean up and add metadata button to existing blockquotes
@@ -149,7 +144,7 @@ onMounted(async () => {
       })
     }
   } catch (error) {
-    console.error('Error loading review:', error)
+    // Review loading failed
   }
 })
 
@@ -175,7 +170,6 @@ const handleCommand = (command, value) => {
     const selection = window.getSelection()
 
     if (!selection || selection.rangeCount === 0) {
-      console.log('No selection found')
       return
     }
 
@@ -183,7 +177,6 @@ const handleCommand = (command, value) => {
 
     // Check if there's actually selected text
     if (range.collapsed) {
-      console.log('No text selected')
       return
     }
 
@@ -222,8 +215,7 @@ const handleCommand = (command, value) => {
   } else {
     // For all other commands, just execute them
     // The mousedown preventDefault should preserve selection
-    const success = document.execCommand(command, false, value)
-    console.log(`Command ${command} executed:`, success)
+    document.execCommand(command, false, value)
     if (editorRef.value) content.value = editorRef.value.innerHTML
   }
 }
@@ -277,12 +269,7 @@ const extractQuotesFromReview = (htmlContent) => {
 }
 
 const handlePublish = async () => {
-  if (!userBook.value) {
-    console.error('No userBook found')
-    return
-  }
-  if (!content.value || content.value.trim() === '') {
-    console.error('Cannot publish empty review')
+  if (!userBook.value || !content.value || content.value.trim() === '') {
     return
   }
 
@@ -356,7 +343,7 @@ const handlePublish = async () => {
     // Navigate back to book detail
     router.push(book.value ? getBookUrl(book.value) : `/books/${bookId.value}`)
   } catch (error) {
-    console.error('Failed to publish review:', error)
+    // Review publish failed
   } finally {
     isSaving.value = false
   }

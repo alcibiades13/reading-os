@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { socialService } from '@/services/socialService'
 import { useAuthStore } from '@/stores/authStore'
+import { useToast } from '@/composables/useToast'
 import FollowButton from '@/components/social/FollowButton.vue'
 import BookCard from '@/components/BookCard.vue'
 import TasteProfile from '@/components/recommendations/TasteProfile.vue'
@@ -18,6 +19,7 @@ import { getTier } from '@/config/tiers'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { addToast } = useToast()
 
 const userId = computed(() => route.params.id)
 const isOwnProfile = computed(() => String(userId.value) === String(authStore.user?.id))
@@ -44,7 +46,6 @@ const loadingMoreBooks = ref(false)
 // Watch for route parameter changes to reload profile
 watch(() => route.params.id, async (newId, oldId) => {
   if (newId && newId !== oldId) {
-    console.log('Route changed from user', oldId, 'to user', newId)
     loading.value = true
 
     // Reset data
@@ -107,11 +108,8 @@ const userTier = computed(() => getTier(userReputation.value?.tier))
 const loadUserProfile = async () => {
   try {
     userProfile.value = await socialService.getUserProfile(userId.value)
-    console.log('Loaded user profile:', userProfile.value)
-    console.log('Friendship ID:', userProfile.value?.friendship_id)
-    console.log('Is following:', userProfile.value?.is_following)
   } catch (error) {
-    console.error('Error loading user profile:', error)
+    // Profile load failed silently
   }
 }
 
@@ -135,7 +133,7 @@ const loadUserBooks = async (append = false) => {
     // Check if there are more books
     hasMoreBooks.value = response.data.next !== null
   } catch (error) {
-    console.error('Error loading user books:', error)
+    // User books load failed silently
   }
 }
 
@@ -152,7 +150,7 @@ const loadUserStats = async () => {
   try {
     userStats.value = await socialService.getUserStats(userId.value)
   } catch (error) {
-    console.error('Error loading user stats:', error)
+    // Stats load failed silently
   }
 }
 
@@ -160,7 +158,7 @@ const loadFollowers = async () => {
   try {
     followers.value = await socialService.getUserFollowers(userId.value)
   } catch (error) {
-    console.error('Error loading followers:', error)
+    // Followers load failed silently
   }
 }
 
@@ -168,7 +166,7 @@ const loadFollowing = async () => {
   try {
     following.value = await socialService.getUserFollowing(userId.value)
   } catch (error) {
-    console.error('Error loading following:', error)
+    // Following load failed silently
   }
 }
 
@@ -180,9 +178,8 @@ const loadUserQuotes = async () => {
     })
     // Handle paginated response
     userQuotes.value = response.data.results || response.data
-    console.log('Loaded quotes:', userQuotes.value)
   } catch (error) {
-    console.error('Error loading user quotes:', error)
+    // Quotes load failed silently
   } finally {
     quotesLoading.value = false
   }
@@ -194,7 +191,7 @@ const loadUserWishlist = async () => {
     const response = await userBooksAPI.wishlist(userId.value)
     userWishlist.value = response.data
   } catch (error) {
-    console.error('Error loading user wishlist:', error)
+    // Wishlist load failed silently
   }
 }
 
@@ -220,47 +217,30 @@ const filteredBooks = computed(() => {
 
 const handleFollow = async (userId) => {
   try {
-    console.log('Attempting to follow user:', userId)
     const result = await socialService.followUser(userId)
-    console.log('Follow result:', result)
-    console.log('Follow result data:', result.data)
 
     if (userProfile.value && result.data?.id) {
-      // Update local state with the friendship data
       userProfile.value.is_following = true
       userProfile.value.followers_count++
       userProfile.value.friendship_id = result.data.id
-      console.log('Updated profile - is_following:', userProfile.value.is_following)
-      console.log('Updated profile - friendship_id:', userProfile.value.friendship_id)
-    } else {
-      console.error('No friendship_id in response:', result)
     }
   } catch (error) {
-    console.error('Error following user:', error)
-    console.error('Error response:', error.response?.data)
-    console.error('Error status:', error.response?.status)
+    // Follow failed
   }
 }
 
 const handleUnfollow = async () => {
   try {
-    console.log('Attempting to unfollow, friendship_id:', userProfile.value?.friendship_id)
-    // Use friendship_id for unfollow
     if (userProfile.value?.friendship_id) {
-      const result = await socialService.unfollowUser(userProfile.value.friendship_id)
-      console.log('Unfollow result:', result)
+      await socialService.unfollowUser(userProfile.value.friendship_id)
       if (userProfile.value) {
         userProfile.value.is_following = false
         userProfile.value.followers_count--
         userProfile.value.friendship_id = null
       }
-    } else {
-      console.error('No friendship_id available for unfollow')
     }
   } catch (error) {
-    console.error('Error unfollowing user:', error)
-    console.error('Error response:', error.response?.data)
-    console.error('Error status:', error.response?.status)
+    // Unfollow failed
   }
 }
 
@@ -271,10 +251,9 @@ const goBack = () => {
 const copyQuote = async (quote) => {
   try {
     await navigator.clipboard.writeText(quote.text)
-    // TODO: Add toast notification
-    console.log('Quote copied to clipboard!')
+    addToast('Quote copied to clipboard', 'success')
   } catch (error) {
-    console.error('Failed to copy quote:', error)
+    addToast('Failed to copy quote', 'error')
   }
 }
 

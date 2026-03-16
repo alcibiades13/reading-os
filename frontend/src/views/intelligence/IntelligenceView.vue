@@ -61,7 +61,6 @@ watch(messages, async () => {
 const initializeGemini = () => {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY
   if (!apiKey) {
-    console.error('VITE_GEMINI_API_KEY is not set')
     return
   }
   geminiAI = new GoogleGenAI({ apiKey })
@@ -84,7 +83,6 @@ const fetchLibraryContext = async () => {
       vocabulary: vocabRes.data.results || vocabRes.data,
     }
   } catch (error) {
-    console.error('Error fetching library context:', error)
     libraryContext.value = { taste: null, books: [], quotes: [], vocabulary: [] }
   } finally {
     contextLoading.value = false
@@ -192,7 +190,6 @@ const sendMessage = async () => {
       content: response.text || 'No response generated.',
     })
   } catch (error) {
-    console.error('Gemini error:', error)
     messages.value.push({
       role: 'ai',
       content: 'An error occurred while processing your request. Please check your API key and internet connection.',

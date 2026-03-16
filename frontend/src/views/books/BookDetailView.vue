@@ -286,13 +286,11 @@ const checkDNAVoteStatus = async () => {
 
   try {
     const result = await recommendationsService.hasVotedForBook(bookId.value)
-    console.log('[DNA Check] Book ID:', bookId.value, '| hasVoted:', result)
     hasVotedForBook.value = result
     if (result) {
       existingVote.value = await recommendationsService.getVoteForBook(bookId.value)
     }
   } catch (error) {
-    console.error('[DNA Check] Error:', error)
     hasVotedForBook.value = false
   }
 }
@@ -331,7 +329,6 @@ const fetchPotentialEditions = async () => {
     const response = await booksAPI.potentialEditions(bookId.value)
     potentialEditions.value = response.data || []
   } catch (error) {
-    console.error('Failed to fetch potential editions:', error)
     potentialEditions.value = []
   } finally {
     loadingPotentialEditions.value = false
@@ -404,7 +401,6 @@ watch(userBook, (newVal, oldVal) => {
 
 // Handlers
 const handleCoverLoad = () => {
-  console.log('Image @load fired, setting coverLoaded to true')
   coverLoaded.value = true
 }
 
@@ -597,14 +593,36 @@ const handleCreateQuote = async () => {
       addToast('Failed to create quote', 'error')
     }
   } catch (error) {
-    console.error('Error creating quote:', error)
     addToast('Error creating quote', 'error')
   }
 }
 
-const handleShareProgress = () => {
-  // TODO: Implement share functionality
-  alert('Share functionality coming soon!')
+const handleShareProgress = async () => {
+  const shareUrl = window.location.href
+  const shareTitle = book.value?.title || 'Check out this book'
+  const shareText = `I'm reading "${shareTitle}" on Reading OS`
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: shareTitle,
+        text: shareText,
+        url: shareUrl,
+      })
+    } catch (error) {
+      // User cancelled or share failed - ignore AbortError from cancellation
+      if (error.name !== 'AbortError') {
+        addToast('Failed to share', 'error')
+      }
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      addToast('Link copied to clipboard', 'success')
+    } catch (error) {
+      addToast('Failed to copy link', 'error')
+    }
+  }
 }
 
 const getStatusBadgeClass = (status) => {
@@ -685,7 +703,6 @@ const confirmSwitchEdition = async () => {
       await userBooksStore.fetchBooks()
     }
   } catch (error) {
-    console.error('Failed to switch edition:', error)
     addToast(error.response?.data?.error || 'Failed to switch edition', 'error')
   }
 }
@@ -707,7 +724,6 @@ const linkPotentialEdition = async (editionId) => {
       fetchPotentialEditions()
     }
   } catch (error) {
-    console.error('Failed to link edition:', error)
     addToast(error.response?.data?.error || 'Failed to link edition', 'error')
   }
 }
@@ -740,7 +756,6 @@ const searchEditions = async (query) => {
       return true
     }).slice(0, 10)
   } catch (error) {
-    console.error('Failed to search editions:', error)
     editionSearchResults.value = []
   } finally {
     isSearchingEditions.value = false
@@ -771,7 +786,6 @@ const linkManualEdition = async (editionId) => {
       fetchPotentialEditions()
     }
   } catch (error) {
-    console.error('Failed to link edition:', error)
     addToast(error.response?.data?.error || 'Failed to link edition', 'error')
   }
 }

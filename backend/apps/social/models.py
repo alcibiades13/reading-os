@@ -100,7 +100,8 @@ class Circle(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='active_clubs',
-        help_text="Current book being read by the club"
+        help_text="Current book being read by the club",
+        db_index=True,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1030,10 +1031,8 @@ class Message(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Update conversation's last message info
-        self.conversation.last_message_at = self.created_at
-        self.conversation.last_message_preview = self.content[:100] if self.content else ''
-        self.conversation.save(update_fields=['last_message_at', 'last_message_preview', 'updated_at'])
+        # Conversation.last_message_at and last_message_preview are updated
+        # via post_save/post_delete signals in apps.social.signals
 
 
 class ReviewLike(models.Model):
