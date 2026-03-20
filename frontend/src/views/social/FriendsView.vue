@@ -15,6 +15,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const loading = ref(true)
+const error = ref(null)
 const friends = ref([])
 const pendingRequests = ref([])
 const suggestedUsers = ref([])
@@ -28,6 +29,7 @@ onMounted(async () => {
 
 const loadData = async () => {
   loading.value = true
+  error.value = null
   try {
     const [friendsRes, pendingRes, suggestedRes] = await Promise.allSettled([
       socialAPI.myFriends(),
@@ -44,8 +46,13 @@ const loadData = async () => {
     if (suggestedRes.status === 'fulfilled') {
       suggestedUsers.value = suggestedRes.value || []
     }
+
+    // If all requests failed, show error
+    if (friendsRes.status === 'rejected' && pendingRes.status === 'rejected' && suggestedRes.status === 'rejected') {
+      error.value = 'Failed to load friends data. Please try again.'
+    }
   } catch (e) {
-    console.error('Error loading friends data:', e)
+    error.value = 'Failed to load friends data. Please try again.'
   } finally {
     loading.value = false
   }
@@ -105,7 +112,7 @@ const acceptRequest = async (friendship) => {
     pendingRequests.value = pendingRequests.value.filter(r => r.id !== friendship.id)
     await loadData()
   } catch (e) {
-    console.error('Error accepting request:', e)
+    // Accept request failed
   } finally {
     acceptingIds.value.delete(friendship.id)
   }
@@ -117,7 +124,7 @@ const declineRequest = async (friendship) => {
     await socialAPI.declineFriend(friendship.id)
     pendingRequests.value = pendingRequests.value.filter(r => r.id !== friendship.id)
   } catch (e) {
-    console.error('Error declining request:', e)
+    // Decline request failed
   } finally {
     decliningIds.value.delete(friendship.id)
   }
@@ -129,7 +136,7 @@ const followUser = async (user) => {
     await socialService.followUser(user.id)
     suggestedUsers.value = suggestedUsers.value.filter(u => u.id !== user.id)
   } catch (e) {
-    console.error('Error following user:', e)
+    // Follow user failed
   } finally {
     followingIds.value.delete(user.id)
   }
@@ -252,6 +259,12 @@ const getStatusColor = (user) => {
     <!-- Loading State -->
     <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
       <div v-for="i in 8" :key="i" class="h-[280px] sm:h-[420px] rounded-2xl sm:rounded-3xl bg-white/[0.03] animate-pulse" />
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-12">
+      <p class="text-red-400 mb-4">{{ error }}</p>
+      <button @click="loadData" class="text-amber-500 hover:text-amber-400 font-bold text-sm">Try again</button>
     </div>
 
     <!-- ═══ TAB: Friends ═══ -->

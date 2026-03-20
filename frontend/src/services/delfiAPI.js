@@ -15,7 +15,6 @@ export async function scrapeBookByUrl(url) {
     const response = await api.post('/books/scrape_delfi/', { url })
     return formatBookData(response.data)
   } catch (error) {
-    console.error('Delfi scraping error:', error)
     throw new Error(error.response?.data?.error || 'Failed to scrape book from Delfi.rs')
   }
 }
@@ -29,9 +28,7 @@ export async function scrapeBookByUrl(url) {
  * @returns {Promise<Array>} - Empty array (search not implemented yet)
  */
 export async function searchBooks(query, maxResults = 20) {
-  // TODO: Implement search when Delfi search page is analyzed
-  // For now, return empty array - users will use direct URL input
-  console.warn('Delfi.rs search not yet implemented - use direct URL input')
+  // Delfi.rs search not yet available - users should use direct URL input
   return []
 }
 
@@ -41,8 +38,7 @@ export async function searchBooks(query, maxResults = 20) {
  * @returns {Promise<Object|null>} - Formatted book object or null
  */
 export async function searchByISBN(isbn) {
-  // TODO: Implement ISBN search when available
-  console.warn('Delfi.rs ISBN search not yet implemented')
+  // Delfi.rs ISBN search not yet available
   return null
 }
 

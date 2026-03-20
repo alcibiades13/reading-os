@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
+let authInitialized = false
+
 const routes = [
   {
     path: '/',
@@ -179,9 +181,13 @@ const routes = [
   },
   {
     path: '/profile',
-    name: 'Profile',
-    component: () => import('@/views/profile/ProfileView.vue'),
-    meta: { requiresAuth: true, title: 'Profile' },
+    redirect: '/settings',
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/views/settings/SettingsView.vue'),
+    meta: { requiresAuth: true, title: 'Settings' },
   },
   {
     path: '/intelligence',
@@ -200,6 +206,42 @@ const routes = [
     name: 'Admin',
     component: () => import('@/views/admin/AdminView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin' },
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('@/views/auth/ForgotPasswordView.vue'),
+    meta: { requiresAuth: false, hideForAuth: true, title: 'Forgot Password' },
+  },
+  {
+    path: '/reset-password/:token',
+    name: 'ResetPassword',
+    component: () => import('@/views/auth/ResetPasswordView.vue'),
+    meta: { requiresAuth: false, title: 'Reset Password' },
+  },
+  {
+    path: '/verify-email/:token',
+    name: 'VerifyEmail',
+    component: () => import('@/views/auth/VerifyEmailView.vue'),
+    meta: { requiresAuth: false, title: 'Verify Email' },
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('@/views/legal/TermsView.vue'),
+    meta: { requiresAuth: false, title: 'Terms of Service' },
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('@/views/legal/PrivacyView.vue'),
+    meta: { requiresAuth: false, title: 'Privacy Policy' },
+  },
+  {
+    path: '/error',
+    name: 'ServerError',
+    component: () => import('@/views/errors/ServerErrorView.vue'),
+    meta: { requiresAuth: false, title: 'Server Error' },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -225,8 +267,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   
-  // Initialize auth state if not already done
-  if (!authStore.isAuthenticated) {
+  // Initialize auth state only once
+  if (!authInitialized) {
+    authInitialized = true
     authStore.initAuth()
   }
 

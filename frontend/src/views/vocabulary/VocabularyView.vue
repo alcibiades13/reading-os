@@ -101,7 +101,7 @@ const handleExportVocabulary = async (format) => {
     const filenames = { json: 'vocabulary.json', csv: 'vocabulary.csv', anki: 'vocabulary_anki.txt' }
     downloadBlob(response, filenames[format] || 'vocabulary.json')
   } catch (error) {
-    console.error('Error exporting vocabulary:', error)
+    // Export failed
   }
 }
 </script>
@@ -459,8 +459,14 @@ const handleExportVocabulary = async (format) => {
           <div class="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-4 lg:mb-6 text-slate-600">
             <BookOpen :size="24" class="lg:w-7 lg:h-7" />
           </div>
-          <h3 class="text-lg lg:text-xl font-bold text-white mb-2">Lexicon empty</h3>
-          <p class="text-slate-500 text-sm lg:text-base px-4">Try searching for a different term or capture your first word.</p>
+          <template v-if="searchQuery || filterLevel !== 'all' || filterBookId">
+            <h3 class="text-lg lg:text-xl font-bold text-white mb-2">No matching words</h3>
+            <p class="text-slate-500 text-sm lg:text-base px-4">No words match your current filters. Try adjusting your search or filter criteria.</p>
+          </template>
+          <template v-else>
+            <h3 class="text-lg lg:text-xl font-bold text-white mb-2">Lexicon empty</h3>
+            <p class="text-slate-500 text-sm lg:text-base px-4">Capture your first word from a reading session to get started.</p>
+          </template>
         </div>
       </div>
 

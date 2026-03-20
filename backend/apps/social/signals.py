@@ -1,14 +1,27 @@
-from django.db.models.signals import post_save, pre_save
+import threading
+
+from django.db.models import F
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 
 from apps.reading.models import Quote, UserBook
-from apps.social.models import FeedItem, Friendship
+from apps.social.models import (
+    Conversation, FeedItem, Friendship, Message,
+    TopicMessage, TopicMessageLike,
+)
 
 User = get_user_model()
 
-# Store previous state of UserBook before save
-_userbook_pre_save_state = {}
+# Thread-safe storage for UserBook pre-save state
+_thread_local = threading.local()
+
+
+def _get_pre_save_state():
+    """Get the thread-local pre-save state dict, creating it if needed."""
+    if not hasattr(_thread_local, 'userbook_pre_save_state'):
+        _thread_local.userbook_pre_save_state = {}
+    return _thread_local.userbook_pre_save_state
 
 
 @receiver(pre_save, sender=UserBook)
@@ -17,7 +30,7 @@ def store_userbook_pre_save_state(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_instance = UserBook.objects.get(pk=instance.pk)
-            _userbook_pre_save_state[instance.pk] = {
+            _get_pre_save_state()[instance.pk] = {
                 'status': old_instance.status,
                 'current_page': old_instance.current_page,
             }
@@ -77,14 +90,11 @@ def create_userbook_feed_item(sender, instance, created, **kwargs):
         status='accepted'
     ).values_list('from_user', flat=True)
 
-    # Get previous state
-    old_state = _userbook_pre_save_state.get(instance.pk, {})
+    # Get previous state (thread-safe)
+    pre_save_state = _get_pre_save_state()
+    old_state = pre_save_state.pop(instance.pk, {})
     old_status = old_state.get('status')
     old_page = old_state.get('current_page')
-
-    # Clean up the stored state
-    if instance.pk in _userbook_pre_save_state:
-        del _userbook_pre_save_state[instance.pk]
 
     # Handle want_to_read status (only when status changes TO want_to_read or when created with want_to_read)
     status_changed_to_want = old_status and old_status != 'want_to_read' and instance.status == 'want_to_read'
@@ -258,3 +268,64 @@ def create_userbook_feed_item(sender, instance, created, **kwargs):
 
         if feed_items:
             FeedItem.objects.bulk_create(feed_items)
+
+
+# ── TopicMessageLike denormalization ─────────────────────────────────
+
+@receiver(post_save, sender=TopicMessageLike)
+def increment_topic_message_likes_count(sender, instance, created, **kwargs):
+    """Increment likes_count on TopicMessage when a like is created."""
+    if created:
+        TopicMessage.objects.filter(pk=instance.message_id).update(
+            likes_count=F('likes_count') + 1
+        )
+
+
+@receiver(post_delete, sender=TopicMessageLike)
+def decrement_topic_message_likes_count(sender, instance, **kwargs):
+    """Decrement likes_count on TopicMessage when a like is deleted."""
+    TopicMessage.objects.filter(pk=instance.message_id).update(
+        likes_count=F('likes_count') - 1
+    )
+
+
+# ── Conversation last_message denormalization ────────────────────────
+
+@receiver(post_save, sender=Message)
+def update_conversation_on_message_save(sender, instance, **kwargs):
+    """
+    Update Conversation.last_message_at and last_message_preview when
+    a message is created or edited. This replaces the inline save() override
+    on the Message model to also handle edits correctly.
+    """
+    conversation = instance.conversation
+    # Re-derive from the actual latest message (handles edits of the last msg)
+    latest_msg = conversation.messages.order_by('-created_at').first()
+    if latest_msg:
+        conversation.last_message_at = latest_msg.created_at
+        conversation.last_message_preview = latest_msg.content[:100] if latest_msg.content else ''
+    else:
+        conversation.last_message_at = None
+        conversation.last_message_preview = ''
+    conversation.save(update_fields=['last_message_at', 'last_message_preview', 'updated_at'])
+
+
+@receiver(post_delete, sender=Message)
+def update_conversation_on_message_delete(sender, instance, **kwargs):
+    """
+    Update Conversation.last_message_at and last_message_preview when
+    a message is deleted, falling back to the next most recent message.
+    """
+    try:
+        conversation = Conversation.objects.get(pk=instance.conversation_id)
+    except Conversation.DoesNotExist:
+        return
+
+    latest_msg = conversation.messages.order_by('-created_at').first()
+    if latest_msg:
+        conversation.last_message_at = latest_msg.created_at
+        conversation.last_message_preview = latest_msg.content[:100] if latest_msg.content else ''
+    else:
+        conversation.last_message_at = None
+        conversation.last_message_preview = ''
+    conversation.save(update_fields=['last_message_at', 'last_message_preview', 'updated_at'])

@@ -158,7 +158,7 @@ export const useCirclesStore = defineStore('circles', {
           this.lastSyncTimestamp = data.server_time
         }
       } catch (error) {
-        console.error('Error syncing messages:', error)
+        // Message sync failed
       }
     },
 

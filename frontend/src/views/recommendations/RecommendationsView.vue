@@ -66,7 +66,7 @@ onMounted(async () => {
     discoverSections.value = sections
     contextualSections.value = contextual.filter(s => s.books && s.books.length > 0)
   } catch (error) {
-    console.error('Error loading recommendations:', error)
+    // Recommendations load failed
   } finally {
     loading.value = false
   }
@@ -81,7 +81,7 @@ const refreshRecommendations = async () => {
   try {
     forYouBooks.value = await recommendationsService.getForYouBooks(12)
   } catch (error) {
-    console.error('Error refreshing recommendations:', error)
+    // Recommendations refresh failed
   } finally {
     loading.value = false
   }

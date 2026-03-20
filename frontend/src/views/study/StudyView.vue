@@ -958,11 +958,8 @@ const handlePromote = async (note) => {
 }
 
 const handleHighlight = async (highlightData) => {
-  console.log('handleHighlight called with:', highlightData)
-
   // Store highlight in the note
   const note = notes.value.find(n => n.id === highlightData.noteId)
-  console.log('Found note:', note)
 
   if (note) {
     if (!note.highlights) {
@@ -986,27 +983,15 @@ const handleHighlight = async (highlightData) => {
       highlights: note.highlights
     })
 
-    console.log('Update result:', result)
-    if (result.data) {
-      console.log('Backend returned data:', result.data)
-      console.log('Backend returned data.id:', result.data.id)
-    }
-
     if (!result.success) {
-      console.error('Failed to save highlight:', result.error)
       // Remove the highlight from local state if save failed
       note.highlights.pop()
     }
-  } else {
-    console.error('Note not found! noteId:', highlightData.noteId, 'Available notes:', notes.value.map(n => n.id))
   }
 }
 
 const handleRemoveHighlight = async (highlightData) => {
-  console.log('handleRemoveHighlight called with:', highlightData)
-
   const note = notes.value.find(n => n.id === highlightData.noteId)
-  console.log('Found note:', note)
 
   if (note && note.highlights) {
     // Remove the highlight from the array
@@ -1018,14 +1003,11 @@ const handleRemoveHighlight = async (highlightData) => {
     })
 
     if (!result.success) {
-      console.error('Failed to remove highlight:', result.error)
       // Restore the highlight if save failed
       note.highlights.push({
         text: highlightData.text
       })
     }
-  } else {
-    console.error('Note not found! noteId:', highlightData.noteId, 'Available notes:', notes.value.map(n => n.id))
   }
 }
 

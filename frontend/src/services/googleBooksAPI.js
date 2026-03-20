@@ -30,7 +30,6 @@ export async function searchBooks(query, maxResults = 20) {
 
     return response.data.items.map(item => formatBookData(item))
   } catch (error) {
-    console.error('Google Books API search error:', error)
     throw new Error('Failed to search books from Google Books')
   }
 }
@@ -55,7 +54,6 @@ export async function searchByISBN(isbn) {
     // Return the first (most relevant) result
     return formatBookData(response.data.items[0])
   } catch (error) {
-    console.error('Google Books API ISBN search error:', error)
     throw new Error('Failed to search book by ISBN')
   }
 }
@@ -70,7 +68,6 @@ export async function getBookById(googleBooksId) {
     const response = await axios.get(`${GOOGLE_BOOKS_API_URL}/${googleBooksId}`)
     return formatBookData(response.data)
   } catch (error) {
-    console.error('Google Books API get by ID error:', error)
     throw new Error('Failed to fetch book details')
   }
 }

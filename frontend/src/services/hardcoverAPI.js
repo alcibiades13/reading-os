@@ -18,7 +18,6 @@ export async function searchBooks(query, maxResults = 20) {
     })
     return (response.data || []).map(formatBookData)
   } catch (error) {
-    console.error('Hardcover search error:', error)
     throw new Error(error.response?.data?.error || 'Failed to search Hardcover')
   }
 }
@@ -49,7 +48,6 @@ export async function getBookDetails(hardcoverId) {
     })
     return response.data ? formatBookData(response.data) : null
   } catch (error) {
-    console.error('Hardcover details error:', error)
     return null
   }
 }

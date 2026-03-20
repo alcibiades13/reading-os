@@ -2,21 +2,41 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.db import connection
+from django.http import JsonResponse
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
 
+
+def health_check(request):
+    """Health check endpoint for load balancers and monitoring."""
+    try:
+        connection.ensure_connection()
+        db_ok = True
+    except Exception:
+        db_ok = False
+    healthy = db_ok
+    return JsonResponse(
+        {'status': 'ok' if healthy else 'unhealthy', 'database': db_ok},
+        status=200 if healthy else 503,
+    )
+
+
 urlpatterns = [
+    # Health check
+    path('api/health/', health_check, name='health_check'),
+
     # Admin panel
     path('admin/', admin.site.urls),
-    
+
     # JWT Authentication endpoints
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    
+
     # App API endpoints
     path('api/users/', include('apps.users.urls')),
     path('api/books/', include('apps.books.urls')),

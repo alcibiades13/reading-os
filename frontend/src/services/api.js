@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
 // Base URL za Django backend
 // U development: koristi Vite proxy (/api)
@@ -59,9 +60,8 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed - logout user
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user')
+        const authStore = useAuthStore()
+        authStore.logout()
         window.location.href = '/login'
         return Promise.reject(refreshError)
       }
@@ -249,6 +249,11 @@ export const vocabularyAPI = {
   updateMastery: (id, mastery) => api.post(`/reading/vocabulary/${id}/update_mastery/`, { mastery }),
   toggleFavorite: (id) => api.post(`/reading/vocabulary/${id}/toggle_favorite/`),
   export: (format = 'json') => api.get('/reading/vocabulary/export/', { params: { format }, responseType: 'blob' }),
+}
+
+export const readingSessionsAPI = {
+  list: (params) => api.get('/reading/reading-sessions/', { params }),
+  create: (data) => api.post('/reading/reading-sessions/', data),
 }
 
 export const usersAPI = {

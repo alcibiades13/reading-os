@@ -47,7 +47,10 @@ class ReadingListViewSet(viewsets.ModelViewSet):
         
         # Filter by current user or specific user
         user_id = self.request.query_params.get('user', None)
-        if user_id:
+        if user_id and str(user_id) != str(self.request.user.id):
+            # Viewing another user's lists - only return public ones
+            queryset = queryset.filter(user_id=user_id, is_public=True)
+        elif user_id:
             queryset = queryset.filter(user_id=user_id)
         else:
             # Default to current user's lists

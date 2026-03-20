@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, Count
 
-from apps.reading.models import UserBook, Quote, QuoteTag, VocabularyWord
+from apps.reading.models import UserBook, Quote, QuoteTag, VocabularyWord, ReadingSession
 from apps.reading.models_study import StudyNote
 from apps.reading.serializers import (
     UserBookListSerializer,
@@ -19,6 +19,7 @@ from apps.reading.serializers import (
     QuoteUpdateSerializer,
     QuoteTagSerializer,
     VocabularyWordSerializer,
+    ReadingSessionSerializer,
 )
 from apps.reading.serializers_study import (
     StudyNoteListSerializer,
@@ -71,7 +72,17 @@ class UserBookViewSet(viewsets.ModelViewSet):
         
         # Filter by current user or specific user
         user_id = self.request.query_params.get('user', None)
-        if user_id:
+        if user_id and str(user_id) != str(self.request.user.id):
+            # Viewing another user's books - check if their profile is public
+            from apps.users.models import UserProfile
+            try:
+                profile = UserProfile.objects.get(user_id=user_id)
+                if not profile.is_public:
+                    return queryset.none()
+            except UserProfile.DoesNotExist:
+                return queryset.none()
+            queryset = queryset.filter(user_id=user_id)
+        elif user_id:
             queryset = queryset.filter(user_id=user_id)
         else:
             # Default to current user's books
@@ -142,12 +153,22 @@ class UserBookViewSet(viewsets.ModelViewSet):
         Handle status changes and automatically set dates:
         - Set started_at when status changes to 'currently_reading'
         - Set finished_at when status changes to 'read'
+        - Prevent invalid status transitions (e.g. 'read' -> 'want_to_read')
         """
         from django.utils import timezone
+        from rest_framework.exceptions import ValidationError
 
         instance = self.get_object()
         old_status = instance.status
         new_status = serializer.validated_data.get('status', old_status)
+
+        # Status transition validation: cannot go from 'read' back to
+        # 'want_to_read' or 'currently_reading'
+        if old_status == 'read' and new_status in ('want_to_read', 'currently_reading'):
+            raise ValidationError({
+                'status': f"Cannot transition from 'read' to '{new_status}'. "
+                          f"A finished book cannot be reverted."
+            })
 
         # Auto-set started_at when beginning to read
         if new_status == 'currently_reading' and old_status != 'currently_reading':
@@ -166,16 +187,38 @@ class UserBookViewSet(viewsets.ModelViewSet):
         """Update reading progress"""
         user_book = self.get_object()
         current_page = request.data.get('current_page')
-        
+
         if current_page is None:
             return Response(
                 {'error': 'current_page is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
+        # Validate current_page is a positive integer
+        try:
+            current_page = int(current_page)
+        except (TypeError, ValueError):
+            return Response(
+                {'error': 'current_page must be a valid integer'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if current_page < 1:
+            return Response(
+                {'error': 'current_page must be a positive integer'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate current_page does not exceed book.pages
+        if user_book.book.pages and current_page > user_book.book.pages:
+            return Response(
+                {'error': f'current_page ({current_page}) cannot exceed total pages ({user_book.book.pages})'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         user_book.current_page = current_page
         user_book.save()
-        
+
         serializer = UserBookDetailSerializer(user_book)
         return Response(serializer.data)
     
@@ -202,8 +245,20 @@ class UserBookViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def wishlist(self, request):
-        """Get a user's wishlist (wishlisted books). Accessible by other users."""
+        """Get a user's wishlist (wishlisted books). Accessible only if profile is public."""
         user_id = request.query_params.get('user', request.user.id)
+        if str(user_id) != str(request.user.id):
+            # Check if target user's profile is public
+            from apps.users.models import UserProfile
+            try:
+                profile = UserProfile.objects.get(user_id=user_id)
+                if not profile.is_public:
+                    return Response(
+                        {'error': 'This profile is private'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            except UserProfile.DoesNotExist:
+                return Response([], status=status.HTTP_200_OK)
         wishlisted = UserBook.objects.filter(
             user_id=user_id,
             is_wishlisted=True,
@@ -332,12 +387,23 @@ class QuoteViewSet(viewsets.ModelViewSet):
         queryset = Quote.objects.all().select_related(
             'user',
             'book',
+            'book__publisher',
             'user_book'
-        ).prefetch_related('tags')
+        ).prefetch_related('tags', 'book__authors')
         
         # Filter by current user or specific user
         user_id = self.request.query_params.get('user', None)
-        if user_id:
+        if user_id and str(user_id) != str(self.request.user.id):
+            # Viewing another user's quotes - check privacy + only public quotes
+            from apps.users.models import UserProfile
+            try:
+                profile = UserProfile.objects.get(user_id=user_id)
+                if not profile.is_public:
+                    return queryset.none()
+            except UserProfile.DoesNotExist:
+                return queryset.none()
+            queryset = queryset.filter(user_id=user_id, is_public=True)
+        elif user_id:
             queryset = queryset.filter(user_id=user_id)
         else:
             # Default to current user's quotes
@@ -713,4 +779,26 @@ class VocabularyWordViewSet(viewsets.ModelViewSet):
             response = HttpResponse(data, content_type='application/json; charset=utf-8')
             response['Content-Disposition'] = 'attachment; filename="vocabulary.json"'
             return response
+
+
+class ReadingSessionViewSet(viewsets.ModelViewSet):
+    """ViewSet for reading sessions"""
+    pagination_class = None
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    serializer_class = ReadingSessionSerializer
+    ordering = ['-ended_at']
+
+    def get_queryset(self):
+        queryset = ReadingSession.objects.filter(
+            user=self.request.user
+        ).select_related('user_book', 'user_book__book')
+
+        user_book = self.request.query_params.get('user_book')
+        if user_book:
+            queryset = queryset.filter(user_book_id=user_book)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 

@@ -6,6 +6,7 @@ from apps.reading.views import (
     QuoteViewSet,
     StudyNoteViewSet,
     VocabularyWordViewSet,
+    ReadingSessionViewSet,
 )
 
 app_name = 'reading'
@@ -17,6 +18,7 @@ router.register(r'quote-tags', QuoteTagViewSet, basename='quotetag')
 router.register(r'quotes', QuoteViewSet, basename='quote')
 router.register(r'study-notes', StudyNoteViewSet, basename='studynote')
 router.register(r'vocabulary', VocabularyWordViewSet, basename='vocabulary')
+router.register(r'reading-sessions', ReadingSessionViewSet, basename='readingsession')
 
 urlpatterns = [
     path('', include(router.urls)),

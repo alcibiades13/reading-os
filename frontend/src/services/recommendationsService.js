@@ -60,7 +60,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.getRecommendations({ limit })
       return response.data
     } catch (error) {
-      console.error('Error fetching recommendations:', error)
+      // Recommendations fetch failed
       return []
     }
   },
@@ -76,7 +76,7 @@ export const recommendationsService = {
         books: response.data.books || [],
       }
     } catch (error) {
-      console.error('Error fetching contextual recommendations:', error)
+      // Contextual recommendations fetch failed
       return {
         ...CONTEXT_CONFIG[context],
         books: [],
@@ -92,7 +92,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.getSimilar(bookId, limit)
       return response.data
     } catch (error) {
-      console.error('Error fetching similar books:', error)
+      // Similar books fetch failed
       return []
     }
   },
@@ -103,10 +103,8 @@ export const recommendationsService = {
   async hasVotedForBook(bookId) {
     try {
       const response = await recommendationsAPI.checkSurvey(bookId)
-      console.log('[API] checkSurvey response for book', bookId, ':', response.data)
       return response.data.has_voted
     } catch (error) {
-      console.error('[API] checkSurvey error:', error.response?.status, error.message)
       return false
     }
   },
@@ -119,7 +117,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.checkSurvey(bookId)
       return response.data.vote
     } catch (error) {
-      console.error('Error getting vote:', error)
+      // Vote fetch failed
       return null
     }
   },
@@ -140,7 +138,7 @@ export const recommendationsService = {
       })
       return response.data
     } catch (error) {
-      console.error('Error submitting survey:', error)
+      // Survey submit failed
       throw error
     }
   },
@@ -153,7 +151,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.getSurveyConfig()
       return response.data
     } catch (error) {
-      console.error('Error getting survey config:', error)
+      // Survey config fetch failed
       // Return default config if API fails
       return {
         questions: [
@@ -180,7 +178,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.getTasteProfile()
       return response.data
     } catch (error) {
-      console.error('Error getting taste profile:', error)
+      // Taste profile fetch failed
       return null
     }
   },
@@ -193,7 +191,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.getReadingTaste(scope)
       return response.data
     } catch (error) {
-      console.error('Error getting reading taste:', error)
+      // Reading taste fetch failed
       return null
     }
   },
@@ -206,7 +204,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.getDiscoverSections()
       return response.data
     } catch (error) {
-      console.error('Error getting discover sections:', error)
+      // Discover sections fetch failed
       return { author_picks: [], genre_picks: [], because_you_read: [] }
     }
   },
@@ -219,7 +217,7 @@ export const recommendationsService = {
       const response = await recommendationsAPI.getBookDNA(bookId)
       return response.data
     } catch (error) {
-      console.error('Error getting book DNA:', error)
+      // Book DNA fetch failed
       return null
     }
   },

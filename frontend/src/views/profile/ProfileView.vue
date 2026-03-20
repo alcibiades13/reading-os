@@ -13,6 +13,7 @@ const authStore = useAuthStore()
 const booksStore = useUserBooksStore()
 const quotesStore = useQuotesStore()
 
+const loading = ref(true)
 const isEditing = ref(false)
 const avatarFile = ref(null)
 const avatarPreview = ref(null)
@@ -49,6 +50,7 @@ onMounted(async () => {
     contributionsAPI.myReputation().then(r => reputation.value = r.data).catch(() => {}),
     contributionsAPI.myBadges().then(r => badges.value = r.data).catch(() => {}),
   ])
+  loading.value = false
 })
 
 const currentTier = computed(() => getTier(authStore.user?.tier))
@@ -113,7 +115,7 @@ const handleExportAllData = async () => {
     const response = await usersAPI.exportAllData()
     downloadBlob(response, 'reading_os_export.zip')
   } catch (error) {
-    console.error('Error exporting data:', error)
+    // Export failed
   } finally {
     exportingData.value = false
   }
@@ -139,8 +141,13 @@ const cancelEdit = () => {
 
 <template>
   <div class="animate-in fade-in duration-700 pb-20">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center py-24">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+    </div>
+
     <!-- Page Header -->
-    <div class="max-w-5xl mx-auto pt-6 sm:pt-12 pb-4 sm:pb-8 px-4 sm:px-6">
+    <div v-else class="max-w-5xl mx-auto pt-6 sm:pt-12 pb-4 sm:pb-8 px-4 sm:px-6">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-8 mb-6 sm:mb-12">
         <header>
           <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">

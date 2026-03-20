@@ -20,7 +20,7 @@ export const correspondenceService = {
       // DRF paginated response
       return data.results || []
     } catch (error) {
-      console.error('Error fetching conversations:', error)
+      // Conversations fetch failed
       return []
     }
   },
@@ -33,7 +33,7 @@ export const correspondenceService = {
       const response = await conversationsAPI.get(conversationId)
       return response.data
     } catch (error) {
-      console.error('Error fetching conversation:', error)
+      // Conversation fetch failed
       return null
     }
   },
@@ -51,7 +51,7 @@ export const correspondenceService = {
       }
       return data.results || []
     } catch (error) {
-      console.error('Error fetching messages:', error)
+      // Messages fetch failed
       return []
     }
   },
@@ -93,7 +93,7 @@ export const correspondenceService = {
       const response = await conversationsAPI.sendMessage(payload)
       return response.data
     } catch (error) {
-      console.error('Error sending message:', error)
+      // Message send failed
       throw error
     }
   },
@@ -107,7 +107,7 @@ export const correspondenceService = {
       const response = await conversationsAPI.start(recipientId)
       return response.data
     } catch (error) {
-      console.error('Error starting conversation:', error)
+      // Start conversation failed
       throw error
     }
   },
@@ -119,7 +119,7 @@ export const correspondenceService = {
     try {
       await conversationsAPI.markRead(conversationId)
     } catch (error) {
-      console.error('Error marking messages as read:', error)
+      // Mark as read failed
     }
   },
 
@@ -141,7 +141,7 @@ export const correspondenceService = {
       }
       return data.results || []
     } catch (error) {
-      console.error('Error searching users:', error)
+      // User search failed
       return []
     }
   },
@@ -170,7 +170,7 @@ export const correspondenceService = {
         return false
       })
     } catch (error) {
-      console.error('Error searching conversations:', error)
+      // Conversation search failed
       return []
     }
   },

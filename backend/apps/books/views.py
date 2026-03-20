@@ -20,13 +20,22 @@ from apps.books.filters import UnaccentSearchFilter
 
 class AuthorViewSet(viewsets.ModelViewSet):
     """ViewSet for Author model"""
-    queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [UnaccentSearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'bio']
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
+
+    def get_queryset(self):
+        return Author.objects.all().select_related(
+            'author_group'
+        ).prefetch_related(
+            'author_group__members',
+            'author_group__members__books',
+        ).annotate(
+            books_count_annotation=Count('books', distinct=True)
+        )
 
     @action(detail=True, methods=['get'])
     def books(self, request, pk=None):

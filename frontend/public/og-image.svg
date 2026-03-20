@@ -1,0 +1,17 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e1b4b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="80" y="80" width="48" height="48" rx="12" fill="#6366f1"/>
+  <text x="144" y="116" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="900" fill="#f8fafc" letter-spacing="-0.02em">Marginalia</text>
+  <text x="600" y="280" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="900" fill="#f8fafc" text-anchor="middle" letter-spacing="-0.02em">A place where your</text>
+  <text x="600" y="345" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="900" fill="#f8fafc" text-anchor="middle" letter-spacing="-0.02em">reading lives.</text>
+  <text x="600" y="420" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Save the passages that move you. Track the words you discover.</text>
+  <text x="600" y="450" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Discuss ideas with others who care.</text>
+  <rect x="470" y="500" width="260" height="50" rx="12" fill="#6366f1"/>
+  <text x="600" y="532" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">Get Started Free</text>
+</svg>

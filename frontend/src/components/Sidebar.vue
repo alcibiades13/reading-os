@@ -368,7 +368,7 @@ const handleStudyModeClick = async () => {
               <User class="w-4 h-4 mr-2" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem @click="router.push('/profile')">
+            <DropdownMenuItem @click="router.push('/settings')">
               <Settings class="w-4 h-4 mr-2" />
               Settings
             </DropdownMenuItem>

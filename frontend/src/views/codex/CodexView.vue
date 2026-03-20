@@ -284,7 +284,7 @@ onMounted(async () => {
     entries.value = await getJournalEntries()
     manuscripts.value = await getManuscripts()
   } catch (error) {
-    console.error('Error loading codex data:', error)
+    // Codex data load failed
   } finally {
     loading.value = false
   }
@@ -319,7 +319,7 @@ const handleNewEntry = async () => {
     selectedEntry.value = entry
     selectedManuscript.value = null
   } catch (error) {
-    console.error('Error creating entry:', error)
+    // Entry creation failed
   }
 }
 
@@ -331,7 +331,7 @@ const handleSaveEntry = async () => {
     selectedEntry.value = saved
     entries.value = await getJournalEntries()
   } catch (error) {
-    console.error('Error saving entry:', error)
+    // Entry save failed
   } finally {
     saving.value = false
   }
@@ -345,7 +345,7 @@ const handleDeleteEntry = async () => {
     selectedEntry.value = entries.value[0] || null
     mobileView.value = 'list'
   } catch (error) {
-    console.error('Error deleting entry:', error)
+    // Entry deletion failed
   }
 }
 
@@ -369,7 +369,7 @@ const handleNewManuscript = async () => {
     activeChapterIndex.value = 0
     showNewManuscriptForm.value = false
   } catch (error) {
-    console.error('Error creating manuscript:', error)
+    // Manuscript creation failed
   }
 }
 
@@ -381,7 +381,7 @@ const handleDeleteManuscript = async () => {
     selectedManuscript.value = null
     mobileView.value = 'list'
   } catch (error) {
-    console.error('Error deleting manuscript:', error)
+    // Manuscript deletion failed
   }
 }
 
@@ -394,7 +394,7 @@ const handleAddChapter = async () => {
     manuscripts.value = await getManuscripts()
     activeChapterIndex.value = selectedManuscript.value.chapters.length - 1
   } catch (error) {
-    console.error('Error adding chapter:', error)
+    // Chapter add failed
   }
 }
 
@@ -414,7 +414,7 @@ const handleSaveManuscript = async () => {
     selectedManuscript.value = await getManuscript(selectedManuscript.value.id)
     manuscripts.value = await getManuscripts()
   } catch (error) {
-    console.error('Error saving manuscript:', error)
+    // Manuscript save failed
   } finally {
     saving.value = false
   }
@@ -431,7 +431,7 @@ const selectManuscript = async (manuscript) => {
     selectedEntry.value = null
     activeChapterIndex.value = 0
   } catch (error) {
-    console.error('Error loading manuscript:', error)
+    // Manuscript load failed
   }
 }
 
@@ -478,7 +478,7 @@ const loadTrash = async () => {
     trashEntries.value = await getTrashEntries()
     trashManuscripts.value = await getTrashManuscripts()
   } catch (error) {
-    console.error('Error loading trash:', error)
+    // Trash load failed
   }
 }
 
@@ -488,7 +488,7 @@ const handleRestoreEntry = async (entryId) => {
     entries.value = await getJournalEntries()
     await loadTrash()
   } catch (error) {
-    console.error('Error restoring entry:', error)
+    // Entry restore failed
   }
 }
 
@@ -498,7 +498,7 @@ const handleRestoreManuscript = async (msId) => {
     manuscripts.value = await getManuscripts()
     await loadTrash()
   } catch (error) {
-    console.error('Error restoring manuscript:', error)
+    // Manuscript restore failed
   }
 }
 
@@ -514,7 +514,7 @@ const handleExportJournal = async () => {
     const response = await exportJournal()
     downloadBlob(response, 'journal_entries.json')
   } catch (error) {
-    console.error('Error exporting journal:', error)
+    // Journal export failed
   }
 }
 
@@ -567,7 +567,7 @@ const handleToggleShare = async () => {
       shareLink.value = ''
     }
   } catch (error) {
-    console.error('Error toggling share:', error)
+    // Share toggle failed
   }
 }
 

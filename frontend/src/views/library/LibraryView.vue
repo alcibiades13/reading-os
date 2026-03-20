@@ -67,7 +67,7 @@ onMounted(async () => {
       readingTaste.value = taste
     })
   } catch (error) {
-    console.error('Error loading library data:', error)
+    // Library data load failed
   } finally {
     loading.value = false
   }
@@ -122,15 +122,11 @@ const handleViewBook = (book) => {
 
 const handleEditBook = (book) => {
   // TODO: Open edit dialog
-  console.log('Edit book:', book)
 }
 
 const handleDeleteBook = async (book) => {
   if (confirm(`Remove "${book.book.title}" from your library?`)) {
-    const result = await booksStore.removeBook(book.id)
-    if (result.success) {
-      console.log('Book removed')
-    }
+    await booksStore.removeBook(book.id)
   }
 }
 

@@ -143,8 +143,11 @@ class CircleDetailSerializer(serializers.ModelSerializer):
         return None
 
     def get_topics(self, obj):
-        # Lazy import to avoid circular dependency
-        topics = obj.topics.all()[:10]  # Limit to first 10
+        from django.db.models import Count, Max
+        topics = obj.topics.annotate(
+            message_count=Count('messages', distinct=True),
+            last_activity=Max('messages__created_at'),
+        )[:10]
         return DiscussionTopicListSerializer(topics, many=True, context=self.context).data
 
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserBook, Quote, QuoteTag
+from .models import UserBook, Quote, QuoteTag, ReadingSession
 from .models_study import StudyNote
 
 
@@ -115,3 +115,13 @@ class StudyNoteAdmin(admin.ModelAdmin):
     content_preview.short_description = 'Content'
 
 
+@admin.register(ReadingSession)
+class ReadingSessionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'book_title', 'duration_seconds', 'pages_read', 'started_at', 'ended_at']
+    list_filter = ['started_at', 'ended_at']
+    search_fields = ['user__email', 'user_book__book__title']
+    readonly_fields = ['ended_at']
+
+    def book_title(self, obj):
+        return obj.user_book.book.title
+    book_title.short_description = 'Book'
