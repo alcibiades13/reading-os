@@ -1247,6 +1247,17 @@ export const QuoteCard = defineComponent({
             <!-- Content for In-Library books -->
             <div v-if="isInLibrary" :key="`library-${userBook?.id || 'new'}`" class="pt-6 border-t border-slate-800/50 space-y-6">
 
+              <!-- Study Mode Button (always visible for in-library books) -->
+              <div class="hidden lg:flex">
+                <button
+                  @click="handleStudyMode"
+                  class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                >
+                  <Brain :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
+                  <span class="transition-colors group-hover/btn:text-indigo-400">Study Mode</span>
+                </button>
+              </div>
+
               <!-- Rating Section (for finished/abandoned) -->
               <div v-if="currentStatus === 'read' || currentStatus === 'abandoned'" class="space-y-6">
                 <!-- Rating -->
@@ -1310,14 +1321,6 @@ export const QuoteCard = defineComponent({
                   >
                     <Sparkles :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
                     <span class="transition-colors group-hover/btn:text-indigo-400">Update DNA</span>
-                  </button>
-
-                  <button
-                    @click="handleStudyMode"
-                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
-                  >
-                    <Brain :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
-                    <span class="transition-colors group-hover/btn:text-indigo-400">Study Mode</span>
                   </button>
 
                   <button

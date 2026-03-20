@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, defineComponent, h } from 'vue'
 import {
   getJournalEntries,
   saveJournalEntry,
@@ -38,8 +38,40 @@ import {
   Share2,
   Link,
   Check,
-  Printer
+  Printer,
+  Bold,
+  Italic,
+  Heading1,
+  Heading2,
+  Quote,
+  AlignCenter,
+  AlignLeft,
+  Minus
 } from 'lucide-vue-next'
+
+// Inline toolbar button component
+const ToolbarBtn = defineComponent({
+  props: { icon: Object, label: String, active: Boolean },
+  emits: ['click'],
+  setup(props, { emit }) {
+    return () => h('button', {
+      type: 'button',
+      title: props.label,
+      onMousedown: (e) => { e.preventDefault(); emit('click') },
+      class: [
+        'p-2 rounded-lg transition-all relative group',
+        props.active
+          ? 'text-indigo-400 bg-indigo-500/10'
+          : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+      ]
+    }, [
+      h(props.icon, { size: 15 }),
+      h('span', {
+        class: 'absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50'
+      }, props.label)
+    ])
+  }
+})
 
 // State
 const activeTab = ref('journal') // 'journal' | 'manuscript'
@@ -75,6 +107,166 @@ const showNewManuscriptForm = ref(false)
 const newManuscriptTitle = ref('')
 const newManuscriptGenre = ref('Fiction')
 
+// Rich text editor refs
+const journalEditorRef = ref(null)
+const manuscriptEditorRef = ref(null)
+const mobileJournalEditorRef = ref(null)
+const mobileManuscriptEditorRef = ref(null)
+
+// Convert plain text to HTML if not already HTML
+const ensureHtml = (content) => {
+  if (!content) return ''
+  if (/<[a-z][\s\S]*>/i.test(content)) return content
+  return content
+    .split(/\n\n+/)
+    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+    .join('')
+}
+
+// Sync editor DOM when entry/chapter changes
+watch(() => selectedEntry.value?.id, async () => {
+  await nextTick()
+  const html = ensureHtml(selectedEntry.value?.content || '')
+  if (journalEditorRef.value) journalEditorRef.value.innerHTML = html
+  if (mobileJournalEditorRef.value) mobileJournalEditorRef.value.innerHTML = html
+}, { immediate: true })
+
+watch(() => currentChapter.value?.id, async () => {
+  await nextTick()
+  const html = ensureHtml(currentChapter.value?.content || '')
+  if (manuscriptEditorRef.value) manuscriptEditorRef.value.innerHTML = html
+  if (mobileManuscriptEditorRef.value) mobileManuscriptEditorRef.value.innerHTML = html
+}, { immediate: true })
+
+// Rich text command handler
+const handleCommand = (command, value = null) => {
+  if (command === 'insertHorizontalRule') {
+    document.execCommand('insertHTML', false, '<hr><p><br></p>')
+    syncEditorContent()
+    return
+  }
+  if (command === 'formatBlock' && value === 'BLOCKQUOTE') {
+    const selection = window.getSelection()
+    if (!selection.rangeCount) return
+    const range = selection.getRangeAt(0)
+    const selectedText = range.extractContents()
+    const bq = document.createElement('blockquote')
+    bq.appendChild(selectedText)
+    range.insertNode(bq)
+    // Move cursor after blockquote
+    const p = document.createElement('p')
+    p.innerHTML = '<br>'
+    bq.parentNode.insertBefore(p, bq.nextSibling)
+    const newRange = document.createRange()
+    newRange.setStart(p, 0)
+    newRange.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(newRange)
+    syncEditorContent()
+    return
+  }
+  document.execCommand(command, false, value)
+  syncEditorContent()
+}
+
+// Sync active editor content back to model
+const syncEditorContent = () => {
+  if (selectedEntry.value && journalEditorRef.value) {
+    selectedEntry.value.content = journalEditorRef.value.innerHTML
+  } else if (selectedEntry.value && mobileJournalEditorRef.value) {
+    selectedEntry.value.content = mobileJournalEditorRef.value.innerHTML
+  }
+  if (currentChapter.value && manuscriptEditorRef.value) {
+    currentChapter.value.content = manuscriptEditorRef.value.innerHTML
+  } else if (currentChapter.value && mobileManuscriptEditorRef.value) {
+    currentChapter.value.content = mobileManuscriptEditorRef.value.innerHTML
+  }
+}
+
+// Handle @input on editor divs
+const handleJournalInput = (e) => {
+  if (!selectedEntry.value) return
+  selectedEntry.value.content = e.target.innerHTML
+  handleMarkdownShortcuts(e.target)
+}
+const handleManuscriptInput = (e) => {
+  if (!currentChapter.value) return
+  currentChapter.value.content = e.target.innerHTML
+  handleMarkdownShortcuts(e.target)
+}
+
+// Convert markdown shorthand (--- / ***) to <hr> on Enter
+const handleMarkdownShortcuts = (el) => {
+  const selection = window.getSelection()
+  if (!selection.rangeCount) return
+  const node = selection.anchorNode
+  if (!node || node.nodeType !== Node.TEXT_NODE) return
+  const text = node.textContent.trim()
+  if (/^[-*]{3,}$/.test(text)) {
+    const parent = node.parentElement
+    const hr = document.createElement('hr')
+    const p = document.createElement('p')
+    p.innerHTML = '<br>'
+    parent.replaceWith(hr)
+    hr.parentNode.insertBefore(p, hr.nextSibling)
+    const range = document.createRange()
+    range.setStart(p, 0)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    syncEditorContent()
+  }
+}
+
+// Handle Enter key inside blockquotes — exit on empty line
+const handleEditorKeydown = (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    const selection = window.getSelection()
+    if (!selection.rangeCount) return
+    const node = selection.anchorNode
+    let bq = null
+    let cur = node
+    const editorEl = e.target
+    while (cur && cur !== editorEl) {
+      if (cur.nodeName === 'BLOCKQUOTE') { bq = cur; break }
+      cur = cur.parentNode
+    }
+    if (!bq) return
+    // Check if current line is empty
+    const range = selection.getRangeAt(0)
+    const anchorNode = selection.anchorNode
+    let isEmptyLine = false
+    if (anchorNode === bq) {
+      const childBefore = range.startOffset > 0 ? bq.childNodes[range.startOffset - 1] : null
+      if (childBefore && childBefore.nodeName === 'BR') isEmptyLine = true
+    } else if (anchorNode.nodeType === Node.TEXT_NODE) {
+      if (anchorNode.textContent.trim() === '') isEmptyLine = true
+    } else if (anchorNode.nodeName === 'DIV' || anchorNode.nodeName === 'P') {
+      if (!anchorNode.textContent.trim()) isEmptyLine = true
+    }
+    if (!isEmptyLine) return
+    e.preventDefault()
+    // Remove empty node from blockquote
+    if (anchorNode.nodeType === Node.TEXT_NODE && anchorNode.textContent.trim() === '') {
+      const prev = anchorNode.previousSibling
+      anchorNode.remove()
+      if (prev && prev.nodeName === 'BR') prev.remove()
+    } else if (anchorNode === bq) {
+      const childBefore = range.startOffset > 0 ? bq.childNodes[range.startOffset - 1] : null
+      if (childBefore && childBefore.nodeName === 'BR') childBefore.remove()
+    }
+    // Create paragraph after blockquote
+    const p = document.createElement('p')
+    p.innerHTML = '<br>'
+    bq.parentNode.insertBefore(p, bq.nextSibling)
+    const newRange = document.createRange()
+    newRange.setStart(p, 0)
+    newRange.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(newRange)
+  }
+}
+
 // Mood types and colors
 const moods = ['contemplative', 'inspired', 'melancholic', 'energetic', 'serene']
 const moodColors = {
@@ -105,12 +297,13 @@ const currentChapter = computed(() => {
 })
 
 const wordCount = computed(() => {
-  if (selectedEntry.value) {
-    return selectedEntry.value.content?.split(/\s+/).filter(Boolean).length || 0
+  const count = (html) => {
+    if (!html) return 0
+    const text = html.replace(/<[^>]*>/g, ' ').replace(/&[^;]+;/g, ' ')
+    return text.split(/\s+/).filter(Boolean).length
   }
-  if (currentChapter.value) {
-    return currentChapter.value.content?.split(/\s+/).filter(Boolean).length || 0
-  }
+  if (selectedEntry.value) return count(selectedEntry.value.content)
+  if (currentChapter.value) return count(currentChapter.value.content)
   return 0
 })
 
@@ -333,7 +526,7 @@ const handleExportManuscript = (format = 'txt') => {
   const chaptersHtml = (ms.chapters || []).map((ch, idx) => `
     <div style="${idx > 0 ? 'page-break-before: always;' : ''}">
       <h2 style="font-size: 18pt; margin-bottom: 24px;">${ch.title || `Chapter ${idx + 1}`}</h2>
-      <div style="white-space: pre-wrap; word-wrap: break-word;">${(ch.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      <div style="line-height: 1.8;">${ch.content || ''}</div>
     </div>
   `).join('')
 
@@ -782,10 +975,27 @@ onUnmounted(() => {
                   </button>
                 </div>
               </div>
-              <textarea
-                v-model="selectedEntry.content"
-                class="w-full bg-transparent border-none outline-none text-2xl md:text-3xl font-serif italic text-slate-300 leading-relaxed placeholder-slate-900 min-h-[60vh] resize-none"
-                placeholder="Breathe and let your thoughts flow onto the digital parchment..."
+              <!-- Formatting Toolbar -->
+              <div class="codex-toolbar flex items-center gap-0.5 mb-6 p-1.5 rounded-xl bg-white/3 border border-white/5 sticky top-4 z-10 backdrop-blur-sm">
+                <ToolbarBtn :icon="Bold" label="Bold" @click="handleCommand('bold')" />
+                <ToolbarBtn :icon="Italic" label="Italic" @click="handleCommand('italic')" />
+                <div class="w-px h-4 bg-white/10 mx-1" />
+                <ToolbarBtn :icon="Heading1" label="Heading 1" @click="handleCommand('formatBlock', 'H1')" />
+                <ToolbarBtn :icon="Heading2" label="Heading 2" @click="handleCommand('formatBlock', 'H2')" />
+                <div class="w-px h-4 bg-white/10 mx-1" />
+                <ToolbarBtn :icon="AlignCenter" label="Center" @click="handleCommand('justifyCenter')" />
+                <ToolbarBtn :icon="AlignLeft" label="Align Left" @click="handleCommand('justifyLeft')" />
+                <div class="w-px h-4 bg-white/10 mx-1" />
+                <ToolbarBtn :icon="Minus" label="Horizontal Rule (---)" @click="handleCommand('insertHorizontalRule')" />
+                <ToolbarBtn :icon="Quote" label="Blockquote" @click="handleCommand('formatBlock', 'BLOCKQUOTE')" />
+              </div>
+              <div
+                ref="journalEditorRef"
+                contenteditable="true"
+                @input="handleJournalInput"
+                @keydown="handleEditorKeydown"
+                class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-xl font-serif italic text-slate-300 leading-relaxed min-h-[60vh] focus:outline-none"
+                data-placeholder="Breathe and let your thoughts flow onto the digital parchment..."
               />
             </div>
 
@@ -799,10 +1009,27 @@ onUnmounted(() => {
                 class="bg-transparent border-none text-3xl lg:text-4xl font-black text-white outline-none w-full tracking-tighter mb-8"
                 placeholder="Chapter Title"
               />
-              <textarea
-                v-model="currentChapter.content"
-                class="w-full bg-transparent border-none outline-none text-xl text-slate-300 leading-[1.9] placeholder-slate-700 min-h-[60vh] resize-none font-serif overflow-hidden"
-                placeholder="Continue the legacy..."
+              <!-- Formatting Toolbar -->
+              <div class="codex-toolbar flex items-center gap-0.5 mb-6 p-1.5 rounded-xl bg-white/3 border border-white/5 sticky top-4 z-10 backdrop-blur-sm">
+                <ToolbarBtn :icon="Bold" label="Bold" @click="handleCommand('bold')" />
+                <ToolbarBtn :icon="Italic" label="Italic" @click="handleCommand('italic')" />
+                <div class="w-px h-4 bg-white/10 mx-1" />
+                <ToolbarBtn :icon="Heading1" label="Heading 1" @click="handleCommand('formatBlock', 'H1')" />
+                <ToolbarBtn :icon="Heading2" label="Heading 2" @click="handleCommand('formatBlock', 'H2')" />
+                <div class="w-px h-4 bg-white/10 mx-1" />
+                <ToolbarBtn :icon="AlignCenter" label="Center" @click="handleCommand('justifyCenter')" />
+                <ToolbarBtn :icon="AlignLeft" label="Align Left" @click="handleCommand('justifyLeft')" />
+                <div class="w-px h-4 bg-white/10 mx-1" />
+                <ToolbarBtn :icon="Minus" label="Horizontal Rule (---)" @click="handleCommand('insertHorizontalRule')" />
+                <ToolbarBtn :icon="Quote" label="Blockquote" @click="handleCommand('formatBlock', 'BLOCKQUOTE')" />
+              </div>
+              <div
+                ref="manuscriptEditorRef"
+                contenteditable="true"
+                @input="handleManuscriptInput"
+                @keydown="handleEditorKeydown"
+                class="codex-editor w-full bg-transparent border-none outline-none text-xl text-slate-300 leading-[1.9] min-h-[60vh] focus:outline-none font-serif"
+                data-placeholder="Continue the legacy..."
               />
             </div>
 
@@ -1085,16 +1312,31 @@ onUnmounted(() => {
 
         <!-- Mobile Entry Editor -->
         <div class="flex-1 overflow-y-auto p-5">
-          <textarea
-            v-model="selectedEntry.content"
-            class="w-full bg-transparent border-none outline-none text-lg font-serif italic text-slate-300 leading-relaxed placeholder-slate-900 min-h-[60vh] resize-none"
-            placeholder="Breathe and let your thoughts flow onto the digital parchment..."
+          <div
+            ref="mobileJournalEditorRef"
+            contenteditable="true"
+            @input="handleJournalInput"
+            @keydown="handleEditorKeydown"
+            class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-base font-serif italic text-slate-300 leading-relaxed min-h-[60vh] focus:outline-none"
+            data-placeholder="Breathe and let your thoughts flow onto the digital parchment..."
           />
         </div>
 
         <!-- Mobile Entry Footer -->
-        <footer class="px-5 py-3 border-t border-white/5 bg-ink/90 backdrop-blur-xl safe-area-bottom">
-          <div class="flex items-center justify-between">
+        <footer class="border-t border-white/5 bg-ink/90 backdrop-blur-xl safe-area-bottom">
+          <!-- Mobile formatting toolbar -->
+          <div class="flex items-center gap-0.5 px-3 pt-2 pb-1 overflow-x-auto no-scrollbar">
+            <ToolbarBtn :icon="Bold" label="Bold" @click="handleCommand('bold')" />
+            <ToolbarBtn :icon="Italic" label="Italic" @click="handleCommand('italic')" />
+            <div class="w-px h-4 bg-white/10 mx-0.5 shrink-0" />
+            <ToolbarBtn :icon="Heading1" label="H1" @click="handleCommand('formatBlock', 'H1')" />
+            <ToolbarBtn :icon="Heading2" label="H2" @click="handleCommand('formatBlock', 'H2')" />
+            <div class="w-px h-4 bg-white/10 mx-0.5 shrink-0" />
+            <ToolbarBtn :icon="AlignCenter" label="Center" @click="handleCommand('justifyCenter')" />
+            <ToolbarBtn :icon="Minus" label="HR" @click="handleCommand('insertHorizontalRule')" />
+            <ToolbarBtn :icon="Quote" label="Quote" @click="handleCommand('formatBlock', 'BLOCKQUOTE')" />
+          </div>
+          <div class="flex items-center justify-between px-5 py-2">
             <div class="flex items-center gap-2">
               <FileText :size="13" class="text-slate-600" />
               <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{{ wordCount }} words</span>
@@ -1175,16 +1417,31 @@ onUnmounted(() => {
             class="bg-transparent border-none text-xl font-black text-white outline-none w-full tracking-tighter mb-4 placeholder-slate-800"
             placeholder="Chapter Title"
           />
-          <textarea
-            v-model="currentChapter.content"
-            class="w-full bg-transparent border-none outline-none text-base text-slate-300 leading-loose placeholder-slate-700 min-h-[60vh] resize-none font-serif"
-            placeholder="Continue the legacy..."
+          <div
+            ref="mobileManuscriptEditorRef"
+            contenteditable="true"
+            @input="handleManuscriptInput"
+            @keydown="handleEditorKeydown"
+            class="codex-editor w-full bg-transparent border-none outline-none text-base text-slate-300 leading-loose min-h-[60vh] focus:outline-none font-serif"
+            data-placeholder="Continue the legacy..."
           />
         </div>
 
         <!-- Mobile Manuscript Footer -->
-        <footer class="px-5 py-3 border-t border-white/5 bg-ink/90 backdrop-blur-xl safe-area-bottom">
-          <div class="flex items-center justify-between">
+        <footer class="border-t border-white/5 bg-ink/90 backdrop-blur-xl safe-area-bottom">
+          <!-- Mobile formatting toolbar -->
+          <div class="flex items-center gap-0.5 px-3 pt-2 pb-1 overflow-x-auto no-scrollbar">
+            <ToolbarBtn :icon="Bold" label="Bold" @click="handleCommand('bold')" />
+            <ToolbarBtn :icon="Italic" label="Italic" @click="handleCommand('italic')" />
+            <div class="w-px h-4 bg-white/10 mx-0.5 shrink-0" />
+            <ToolbarBtn :icon="Heading1" label="H1" @click="handleCommand('formatBlock', 'H1')" />
+            <ToolbarBtn :icon="Heading2" label="H2" @click="handleCommand('formatBlock', 'H2')" />
+            <div class="w-px h-4 bg-white/10 mx-0.5 shrink-0" />
+            <ToolbarBtn :icon="AlignCenter" label="Center" @click="handleCommand('justifyCenter')" />
+            <ToolbarBtn :icon="Minus" label="HR" @click="handleCommand('insertHorizontalRule')" />
+            <ToolbarBtn :icon="Quote" label="Quote" @click="handleCommand('formatBlock', 'BLOCKQUOTE')" />
+          </div>
+          <div class="flex items-center justify-between px-5 py-2">
             <div class="flex items-center gap-2">
               <FileText :size="13" class="text-slate-600" />
               <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{{ wordCount }} words in chapter</span>
@@ -1209,6 +1466,94 @@ onUnmounted(() => {
   background: rgba(2, 4, 10, 0.8);
   backdrop-filter: blur(20px);
 }
+
+/* ===== Rich text editor ===== */
+
+.codex-editor {
+  outline: none;
+  caret-color: rgb(99, 102, 241);
+}
+
+.codex-editor:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(30, 41, 59, 0.6);
+  pointer-events: none;
+  font-style: italic;
+}
+
+.codex-editor:focus {
+  outline: none;
+}
+
+/* Journal italic base — non-italic elements override */
+.journal-editor { font-style: italic; }
+.journal-editor b,
+.journal-editor strong,
+.journal-editor h1,
+.journal-editor h2,
+.journal-editor blockquote { font-style: normal; }
+
+.codex-editor p {
+  margin: 0.4em 0;
+}
+
+.codex-editor h1 {
+  font-size: 1.7em;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin: 1.2em 0 0.4em;
+  font-style: normal;
+  font-family: inherit;
+}
+
+.codex-editor h2 {
+  font-size: 1.25em;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 1em 0 0.3em;
+  font-style: normal;
+  font-family: inherit;
+}
+
+.codex-editor hr {
+  border: none;
+  border-top: 1px solid rgba(99, 102, 241, 0.3);
+  margin: 2em auto;
+  width: 60%;
+}
+
+.codex-editor blockquote {
+  border-left: 3px solid rgb(99, 102, 241);
+  padding: 0.5em 1.5em;
+  margin: 1em 0;
+  color: rgb(148, 163, 184);
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  font-family: Georgia, serif;
+  position: relative;
+}
+
+.codex-editor blockquote::before {
+  content: '"';
+  font-size: 2em;
+  color: rgba(99, 102, 241, 0.4);
+  position: absolute;
+  left: 0.2em;
+  top: -0.1em;
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+
+/* Toolbar */
+.codex-toolbar {
+  background: rgba(2, 6, 23, 0.6);
+}
+
+/* no-scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
