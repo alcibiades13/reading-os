@@ -318,6 +318,7 @@ export const contributionsAPI = {
   userReputation: (userId) => api.get(`/contributions/user/${userId}/reputation/`),
   leaderboard: (params) => api.get('/contributions/leaderboard/', { params }),
   allBadges: () => api.get('/contributions/badges/'),
+  flag: (id, reason) => api.post(`/contributions/${id}/flag/`, { reason }),
   // Admin / Moderator
   dashboard: () => api.get('/contributions/dashboard/'),
   reviewQueue: (params) => api.get('/contributions/review-queue/', { params }),

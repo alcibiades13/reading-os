@@ -37,6 +37,20 @@ class AuthorViewSet(viewsets.ModelViewSet):
             books_count_annotation=Count('books', distinct=True)
         )
 
+    def perform_update(self, serializer):
+        """Log contribution when author bio is added/edited."""
+        author = self.get_object()
+        old_bio = author.bio or ''
+        instance = serializer.save()
+        new_bio = instance.bio or ''
+        # Log if bio was added or meaningfully changed
+        if new_bio and new_bio != old_bio and self.request.user.is_authenticated:
+            create_contribution(
+                self.request.user, 'author_bio_added', 'Author', instance.id,
+                previous_state={'bio': old_bio},
+                metadata={'author_name': instance.name},
+            )
+
     @action(detail=True, methods=['get'])
     def books(self, request, pk=None):
         """Get all books by this author (including alias authors if grouped)."""
@@ -540,6 +554,11 @@ class BookViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
 
+        # Capture previous state for contribution logging
+        metadata_fields = ['title', 'isbn', 'description', 'language', 'pages']
+        previous_state = {f: getattr(instance, f, '') for f in metadata_fields}
+        previous_state['publisher'] = instance.publisher.name if instance.publisher else ''
+
         # Extract special fields that need custom handling
         authors = request.data.get('authors', None)
         publisher_name = request.data.get('publisher_name', None)
@@ -575,6 +594,14 @@ class BookViewSet(viewsets.ModelViewSet):
                     )
                     author_objs.append(author)
             instance.authors.set(author_objs)
+
+        # Log book_metadata_edited contribution
+        if request.user.is_authenticated:
+            create_contribution(
+                request.user, 'book_metadata_edited', 'Book', instance.id,
+                previous_state=previous_state,
+                metadata={'title': instance.title},
+            )
 
         # Return updated book with all relations
         book_with_relations = Book.objects.select_related('publisher').prefetch_related(

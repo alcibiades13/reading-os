@@ -14,7 +14,7 @@ const emit = defineEmits(['edit', 'delete', 'update-mastery'])
 const masteryConfig = {
   new: { label: 'New', color: 'bg-indigo-500' },
   learning: { label: 'Learning', color: 'bg-amber-500' },
-  mastered: { label: 'Mastered', color: 'bg-emerald-500' }
+  mastered: { label: 'Mastered', color: 'bg-sky-500' }
 }
 
 const config = computed(() => masteryConfig[props.word.mastery])
@@ -25,11 +25,11 @@ const returnToLearning = () => {
 </script>
 
 <template>
-  <div class="group glass bg-slate-900/40 rounded-2xl p-6 border border-slate-800/50 hover:border-emerald-500/30 transition-all duration-300">
+  <div class="group glass bg-slate-900/40 rounded-2xl p-6 border border-slate-800/50 hover:border-indigo-500/30 transition-all duration-300">
     <div class="flex items-start justify-between mb-4 gap-2">
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap">
-          <h3 class="text-xl font-serif font-black text-white group-hover:text-emerald-400 transition-colors overflow-wrap-anywhere">
+          <h3 class="text-xl font-serif font-black text-white group-hover:text-indigo-400 transition-colors overflow-wrap-anywhere">
             {{ word.word }}
           </h3>
           <span :class="['px-2 py-0.5 rounded text-[8px] font-black uppercase text-white tracking-widest flex-shrink-0', config.color]">

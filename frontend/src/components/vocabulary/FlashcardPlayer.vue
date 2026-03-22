@@ -174,17 +174,17 @@ onUnmounted(() => {
         </div>
 
         <!-- Back -->
-        <div class="flip-card-back glass bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20 p-4 sm:p-10 flex flex-col border border-emerald-500/20 shadow-2xl">
+        <div class="flip-card-back glass bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/20 p-4 sm:p-10 flex flex-col border border-indigo-500/20 shadow-2xl">
           <!-- Scrollable content area -->
           <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0">
             <div class="mb-3 sm:mb-6">
-              <span class="text-[10px] sm:text-xs font-black text-emerald-400 uppercase tracking-widest block mb-2">Definition</span>
+              <span class="text-[10px] sm:text-xs font-black text-indigo-400 uppercase tracking-widest block mb-2">Definition</span>
               <p class="text-sm sm:text-lg text-white font-medium leading-relaxed">
                 {{ currentWord.definition || "No definition provided." }}
               </p>
             </div>
 
-            <div v-if="currentWord.context" class="mb-3 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-500/5 border-l-4 border-emerald-500/30 italic text-slate-300 font-serif text-xs sm:text-base">
+            <div v-if="currentWord.context" class="mb-3 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-indigo-500/5 border-l-4 border-indigo-500/30 italic text-slate-300 font-serif text-xs sm:text-base">
               "{{ currentWord.context }}"
             </div>
           </div>
@@ -223,12 +223,12 @@ onUnmounted(() => {
 
       <button
         @click.stop="emit('update-mastery', currentWord.id, 'mastered'); handleNext()"
-        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
+        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
       >
-        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-emerald-500/20 flex items-center justify-center text-slate-500 group-hover:text-emerald-400 transition-colors">
+        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-sky-500/20 flex items-center justify-center text-slate-500 group-hover:text-sky-400 transition-colors">
           <Check :size="16" class="sm:w-6 sm:h-6" />
         </div>
-        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-emerald-400 text-center">Got it!</span>
+        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-sky-400 text-center">Got it!</span>
       </button>
 
       <button

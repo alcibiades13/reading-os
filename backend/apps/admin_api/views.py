@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 from difflib import SequenceMatcher
 
+from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework.generics import ListAPIView
@@ -17,6 +18,15 @@ from apps.contributions.permissions import IsCuratorOrAdmin
 from apps.contributions.signals import create_contribution
 from apps.reading.models import Quote, VocabularyWord
 from apps.users.models import User
+
+
+def _safe_int(value, default=1, min_val=1):
+    """Safely parse an int from query params."""
+    try:
+        result = int(value)
+        return max(min_val, result)
+    except (TypeError, ValueError):
+        return default
 
 
 class AdminStatsView(APIView):
@@ -98,8 +108,8 @@ class AdminDataIssuesView(APIView):
 
     def get(self, request):
         issue_type = request.query_params.get('type', 'all')
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
+        page = _safe_int(request.query_params.get('page', 1))
+        page_size = min(_safe_int(request.query_params.get('page_size', 20), default=20), 100)
 
         # Compute summaries
         missing_cover = Book.objects.filter(
@@ -333,9 +343,12 @@ class AdminAuthorMergeCandidatesView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        min_similarity = float(request.query_params.get('min_similarity', 0.75))
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
+        try:
+            min_similarity = float(request.query_params.get('min_similarity', 0.75))
+        except (TypeError, ValueError):
+            min_similarity = 0.75
+        page = _safe_int(request.query_params.get('page', 1))
+        page_size = min(_safe_int(request.query_params.get('page_size', 20), default=20), 100)
 
         # Only ungrouped authors with at least 1 book
         authors = list(
@@ -354,46 +367,53 @@ class AdminAuthorMergeCandidatesView(APIView):
         # Load dismissed pairs for filtering
         dismissed = DismissedAuthorPair.get_dismissed_set()
 
+        # Bucket authors by last name to avoid O(n²) full comparison.
+        # Only compare authors within the same last-name bucket.
+        last_name_buckets = defaultdict(list)
+        for author in authors:
+            parts = author.name.lower().strip().split()
+            last = parts[-1] if parts else ''
+            last_name_buckets[last].append(author)
+
         seen_pairs = set()
         candidates = []
 
-        for i, author in enumerate(authors):
-            variants = []
+        for bucket_authors in last_name_buckets.values():
+            if len(bucket_authors) < 2:
+                continue
+            for i, author in enumerate(bucket_authors):
+                variants = []
+                for other in bucket_authors[i + 1:]:
+                    pair_key = tuple(sorted([author.id, other.id]))
+                    if pair_key in seen_pairs:
+                        continue
+                    if frozenset([author.id, other.id]) in dismissed:
+                        continue
 
-            for other in authors[i + 1:]:
-                pair_key = tuple(sorted([author.id, other.id]))
-                if pair_key in seen_pairs:
-                    continue
+                    is_match, similarity = _are_potential_duplicates(
+                        author.name, other.name, min_similarity
+                    )
+                    if is_match:
+                        seen_pairs.add(pair_key)
+                        variants.append({
+                            'id': other.id,
+                            'name': other.name,
+                            'book_count': other.book_count,
+                            'similarity': round(similarity, 3),
+                        })
 
-                # Skip dismissed pairs
-                if frozenset([author.id, other.id]) in dismissed:
-                    continue
-
-                is_match, similarity = _are_potential_duplicates(
-                    author.name, other.name, min_similarity
-                )
-
-                if is_match:
-                    seen_pairs.add(pair_key)
-                    variants.append({
-                        'id': other.id,
-                        'name': other.name,
-                        'book_count': other.book_count,
-                        'similarity': round(similarity, 3),
+                if variants:
+                    variants.sort(key=lambda x: x['similarity'], reverse=True)
+                    candidates.append({
+                        'primary': {
+                            'id': author.id,
+                            'name': author.name,
+                            'book_count': author.book_count,
+                            'photo': author.photo or '',
+                        },
+                        'variants': variants,
+                        'total_books': author.book_count + sum(v['book_count'] for v in variants),
                     })
-
-            if variants:
-                variants.sort(key=lambda x: x['similarity'], reverse=True)
-                candidates.append({
-                    'primary': {
-                        'id': author.id,
-                        'name': author.name,
-                        'book_count': author.book_count,
-                        'photo': author.photo or '',
-                    },
-                    'variants': variants,
-                    'total_books': author.book_count + sum(v['book_count'] for v in variants),
-                })
 
         # Sort by total_books desc
         candidates.sort(key=lambda x: x['total_books'], reverse=True)
@@ -438,8 +458,8 @@ class AdminBooksView(APIView):
 
     def get(self, request):
         search = request.query_params.get('search', '')
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 30))
+        page = _safe_int(request.query_params.get('page', 1))
+        page_size = min(_safe_int(request.query_params.get('page_size', 30), default=30), 100)
         filter_type = request.query_params.get('filter', 'all')
 
         qs = Book.objects.annotate(
@@ -634,9 +654,12 @@ class AdminBookMergeCandidatesView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        min_similarity = float(request.query_params.get('min_similarity', 0.75))
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
+        try:
+            min_similarity = float(request.query_params.get('min_similarity', 0.75))
+        except (TypeError, ValueError):
+            min_similarity = 0.75
+        page = _safe_int(request.query_params.get('page', 1))
+        page_size = min(_safe_int(request.query_params.get('page_size', 20), default=20), 100)
 
         # Only ungrouped books
         books = list(
@@ -818,37 +841,38 @@ class AdminDeleteBookView(APIView):
             return Response({'error': 'Book not found'}, status=404)
 
         transfer_to_id = request.query_params.get('transfer_to')
-
-        if transfer_to_id:
-            try:
-                target = Book.objects.get(id=int(transfer_to_id))
-            except Book.DoesNotExist:
-                return Response({'error': 'Transfer target book not found'}, status=404)
-
-            # Transfer UserBooks
-            from apps.reading.models import UserBook
-            for ub in UserBook.objects.filter(book=book):
-                if not UserBook.objects.filter(user=ub.user, book=target).exists():
-                    ub.book = target
-                    ub.save()
-                else:
-                    ub.delete()
-
-            # Transfer Quotes
-            from apps.reading.models import Quote
-            Quote.objects.filter(book=book).update(book=target)
-
-            # Transfer VocabularyWords
-            from apps.reading.models import VocabularyWord
-            VocabularyWord.objects.filter(book=book).update(book=target)
-
-            # Transfer StudyNotes
-            from apps.reading.models import StudyNote
-            StudyNote.objects.filter(book=book).update(book=target)
-
         title = book.title
         book_id_deleted = book.id
-        book.delete()
+
+        with transaction.atomic():
+            if transfer_to_id:
+                try:
+                    target = Book.objects.get(id=int(transfer_to_id))
+                except Book.DoesNotExist:
+                    return Response({'error': 'Transfer target book not found'}, status=404)
+
+                # Transfer UserBooks
+                from apps.reading.models import UserBook
+                for ub in UserBook.objects.filter(book=book):
+                    if not UserBook.objects.filter(user=ub.user, book=target).exists():
+                        ub.book = target
+                        ub.save()
+                    else:
+                        ub.delete()
+
+                # Transfer Quotes
+                from apps.reading.models import Quote
+                Quote.objects.filter(book=book).update(book=target)
+
+                # Transfer VocabularyWords
+                from apps.reading.models import VocabularyWord
+                VocabularyWord.objects.filter(book=book).update(book=target)
+
+                # Transfer StudyNotes
+                from apps.reading.models import StudyNote
+                StudyNote.objects.filter(book=book).update(book=target)
+
+            book.delete()
 
         return Response({
             'success': True,

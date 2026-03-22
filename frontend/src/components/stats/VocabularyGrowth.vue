@@ -41,13 +41,13 @@ const chartData = computed(() => ({
   labels: monthLabels,
   datasets: [{
     data: cumulativeData.value,
-    borderColor: 'rgba(16, 185, 129, 0.8)',
-    backgroundColor: isDark.value ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.12)',
+    borderColor: 'rgba(99, 102, 241, 0.8)',
+    backgroundColor: isDark.value ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.12)',
     fill: true,
     tension: 0.4,
     pointRadius: 3,
     pointHoverRadius: 6,
-    pointBackgroundColor: 'rgba(16, 185, 129, 0.8)',
+    pointBackgroundColor: 'rgba(99, 102, 241, 0.8)',
     pointBorderColor: isDark.value ? '#0f172a' : '#ffffff',
     pointBorderWidth: 2,
   }],
@@ -96,7 +96,7 @@ const masteryCards = computed(() => {
   return [
     { label: 'New', count: props.data.new || 0, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
     { label: 'Learning', count: props.data.learning || 0, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-    { label: 'Mastered', count: props.data.mastered || 0, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+    { label: 'Mastered', count: props.data.mastered || 0, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
   ]
 })
 </script>
@@ -108,7 +108,7 @@ const masteryCards = computed(() => {
   >
     <div class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
       <div class="flex items-center gap-2 mb-4">
-        <Brain :size="15" class="text-emerald-400" />
+        <Brain :size="15" class="text-indigo-400" />
         <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Vocabulary Growth</h3>
       </div>
 
