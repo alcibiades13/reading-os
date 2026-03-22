@@ -132,18 +132,36 @@ from apps.reading.models import UserBook
 @receiver(post_save, sender=UserBook)
 def update_challenge_progress(sender, instance, **kwargs):
     """
-    Update all active challenges when a UserBook status changes to 'read'
+    Update all active challenges when a UserBook status changes to 'read'.
+    Also logs challenge_completed contribution when a challenge is newly completed.
     """
     if instance.status == 'read' and instance.finished_at:
-        # Find all active challenges for this user
+        from apps.contributions.models import ContributionLog
+        from apps.contributions.signals import create_contribution
+
         active_challenges = ReadingChallenge.objects.filter(
             user=instance.user,
             is_active=True,
             start_date__lte=instance.finished_at,
             end_date__gte=instance.finished_at
         )
-        
+
         for challenge in active_challenges:
+            was_completed = challenge.is_completed
             challenge.update_progress()
+            # Log contribution if challenge just became completed
+            if not was_completed and challenge.is_completed:
+                already_logged = ContributionLog.objects.filter(
+                    user=instance.user,
+                    action='challenge_completed',
+                    content_type='ReadingChallenge',
+                    object_id=challenge.id,
+                ).exists()
+                if not already_logged:
+                    create_contribution(
+                        instance.user, 'challenge_completed',
+                        'ReadingChallenge', challenge.id,
+                        metadata={'title': challenge.title},
+                    )
 
 

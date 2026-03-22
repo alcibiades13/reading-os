@@ -127,8 +127,8 @@ const handleKeyDown = (e) => {
       <!-- Header -->
       <div class="flex items-center justify-between p-4 lg:p-8 border-b border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50">
         <div class="flex items-center gap-3 lg:gap-4">
-          <div class="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/5">
-            <Type :size="18" class="lg:w-6 lg:h-6 text-emerald-400" />
+          <div class="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
+            <Type :size="18" class="lg:w-6 lg:h-6 text-indigo-400" />
           </div>
           <div>
             <h2 class="text-base lg:text-xl font-black text-white light:text-slate-900">{{ word ? 'Edit Word' : 'Add Word' }}</h2>
@@ -145,7 +145,7 @@ const handleKeyDown = (e) => {
         <!-- Main Word -->
         <div class="space-y-2 lg:space-y-4">
           <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
-            <Type :size="12" class="lg:w-3.5 lg:h-3.5 text-emerald-400" /> The Word
+            <Type :size="12" class="lg:w-3.5 lg:h-3.5 text-indigo-400" /> The Word
           </label>
           <input
             ref="wordRef"
@@ -153,7 +153,7 @@ const handleKeyDown = (e) => {
             type="text"
             v-model="wordText"
             placeholder="e.g. Mellifluous"
-            class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl px-4 lg:px-6 py-3 lg:py-4 text-xl lg:text-3xl font-serif text-white light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
+            class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl px-4 lg:px-6 py-3 lg:py-4 text-xl lg:text-3xl font-serif text-white light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none"
           />
         </div>
 
@@ -166,7 +166,7 @@ const handleKeyDown = (e) => {
             <textarea
               v-model="context"
               placeholder="Where did you find it?"
-              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
+              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none resize-none"
             />
           </div>
           <div class="space-y-2 lg:space-y-4">
@@ -176,7 +176,7 @@ const handleKeyDown = (e) => {
             <textarea
               v-model="definition"
               placeholder="What does it mean to you?"
-              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none resize-none"
+              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none resize-none"
             />
           </div>
         </div>
@@ -194,7 +194,7 @@ const handleKeyDown = (e) => {
               @focus="showBookDropdown = bookSearchResults.length > 0"
               placeholder="Search your books or type manually..."
               autocomplete="off"
-              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
+              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none"
             />
             <!-- Book Search Dropdown -->
             <div
@@ -224,7 +224,7 @@ const handleKeyDown = (e) => {
               </button>
             </div>
             <p v-if="isSearchingBooks" class="text-[10px] text-slate-500 mt-1">Searching...</p>
-            <p v-if="selectedBookId && bookAuthor" class="text-[10px] text-emerald-400 mt-1">{{ bookAuthor }}</p>
+            <p v-if="selectedBookId && bookAuthor" class="text-[10px] text-indigo-400 mt-1">{{ bookAuthor }}</p>
           </div>
           <div class="space-y-2 lg:space-y-4">
             <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
@@ -234,7 +234,7 @@ const handleKeyDown = (e) => {
               type="number"
               v-model.number="pageNumber"
               placeholder="Page..."
-              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-emerald-500/50 transition-all outline-none"
+              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none"
             />
           </div>
         </div>
@@ -246,7 +246,7 @@ const handleKeyDown = (e) => {
             @click="isFavorite = !isFavorite"
             :class="[
               'flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl border-2 transition-all',
-              isFavorite ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-slate-800 text-slate-600'
+              isFavorite ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-800 text-slate-600'
             ]"
           >
             <Star :size="16" class="lg:w-[18px] lg:h-[18px]" :fill="isFavorite ? 'currentColor' : 'none'" />
@@ -280,7 +280,7 @@ const handleKeyDown = (e) => {
         <button
           @click="handleSubmit(false)"
           type="button"
-          class="flex-1 lg:flex-none flex items-center justify-center gap-2 lg:gap-3 px-6 lg:px-10 py-3 lg:py-4 rounded-xl lg:rounded-2xl bg-emerald-500 text-white font-bold lg:font-black text-xs uppercase tracking-wider lg:tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all"
+          class="flex-1 lg:flex-none flex items-center justify-center gap-2 lg:gap-3 px-6 lg:px-10 py-3 lg:py-4 rounded-xl lg:rounded-2xl bg-indigo-500 text-white font-bold lg:font-black text-xs uppercase tracking-wider lg:tracking-widest shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 active:scale-95 transition-all"
         >
           <Save :size="18" class="lg:w-5 lg:h-5" />
           <span class="hidden lg:inline">Capture Entry</span>

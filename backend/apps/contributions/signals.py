@@ -1,3 +1,4 @@
+from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
@@ -27,15 +28,17 @@ def create_contribution(user, action, content_type, object_id,
         metadata=metadata or {},
     )
 
-    # Update denormalized UserReputation
+    # Atomic update of denormalized UserReputation using F() expressions
     rep, _ = UserReputation.objects.get_or_create(user=user)
     category_field = f'{category}_points'
-    setattr(rep, category_field, getattr(rep, category_field) + awarded_points)
-    rep.total_points += awarded_points
-    rep.total_contributions += 1
-    rep.save()
+    UserReputation.objects.filter(pk=rep.pk).update(
+        **{category_field: F(category_field) + awarded_points},
+        total_points=F('total_points') + awarded_points,
+        total_contributions=F('total_contributions') + 1,
+    )
 
-    # Check tier promotion
+    # Refresh from DB for tier check
+    rep.refresh_from_db()
     rep.check_and_update_tier()
 
     # Check badge awards

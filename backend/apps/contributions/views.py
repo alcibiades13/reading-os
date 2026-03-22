@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Avg, Count, Sum
+from django.db.models import Avg, Count, F, Prefetch, Sum
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,11 +10,20 @@ from apps.admin_api.permissions import IsAdminUser
 from apps.contributions.models import (
     ContributionLog, UserReputation, Badge, UserBadge, ContributionFlag,
 )
-from apps.contributions.permissions import IsModeratorOrAdmin
+from apps.contributions.permissions import IsCuratorOrAdmin, IsModeratorOrAdmin
 from apps.contributions.serializers import (
     UserReputationSerializer, PublicUserReputationSerializer,
     ContributionLogSerializer, UserBadgeSerializer, BadgeSerializer,
 )
+
+
+def _safe_int(value, default=1, min_val=1):
+    """Safely parse an int from query params."""
+    try:
+        result = int(value)
+        return max(min_val, result)
+    except (TypeError, ValueError):
+        return default
 
 
 # ─── Public endpoints (authenticated user) ───
@@ -44,8 +53,9 @@ class MyContributionsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
+        page = _safe_int(request.query_params.get('page', 1))
+        page_size = _safe_int(request.query_params.get('page_size', 20), default=20)
+        page_size = min(page_size, 100)
 
         qs = ContributionLog.objects.filter(user=request.user)
         total = qs.count()
@@ -82,16 +92,24 @@ class ContributionLeaderboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        limit = min(int(request.query_params.get('limit', 20)), 50)
-        reps = UserReputation.objects.filter(
-            total_points__gt=0
-        ).select_related('user').order_by('-total_points')[:limit]
+        limit = min(_safe_int(request.query_params.get('limit', 20), default=20), 50)
+
+        # Prefetch badges to avoid N+1
+        badge_prefetch = Prefetch(
+            'user__earned_badges',
+            queryset=UserBadge.objects.select_related('badge').order_by('-awarded_at')[:3],
+        )
+        reps = (
+            UserReputation.objects
+            .filter(total_points__gt=0)
+            .select_related('user')
+            .prefetch_related(badge_prefetch)
+            .order_by('-total_points')[:limit]
+        )
 
         results = []
         for rep in reps:
-            earned_badges = UserBadge.objects.filter(
-                user=rep.user
-            ).select_related('badge')[:3]
+            earned_badges = list(rep.user.earned_badges.all())[:3]
             results.append({
                 'user_id': rep.user.id,
                 'name': rep.user.full_name or rep.user.email,
@@ -180,8 +198,9 @@ class ContributionReviewQueueView(APIView):
     permission_classes = [IsModeratorOrAdmin]
 
     def get(self, request):
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
+        page = _safe_int(request.query_params.get('page', 1))
+        page_size = _safe_int(request.query_params.get('page_size', 20), default=20)
+        page_size = min(page_size, 100)
 
         qs = ContributionLog.objects.filter(
             quality_status__in=['flagged', 'unreviewed'],
@@ -209,16 +228,22 @@ class ApproveContributionView(APIView):
         except ContributionLog.DoesNotExist:
             return Response({'error': 'Not found'}, status=404)
 
-        log.quality_status = 'approved'
-        log.save()
+        if log.quality_status == 'approved':
+            return Response({'error': 'Already approved'}, status=400)
 
-        # Update user quality stats
-        rep, _ = UserReputation.objects.get_or_create(user=log.user)
-        rep.approved_count += 1
-        rep.quality_ratio = (
-            rep.approved_count / max(1, rep.approved_count + rep.rejected_count)
-        )
-        rep.save()
+        old_status = log.quality_status
+        log.quality_status = 'approved'
+        log.save(update_fields=['quality_status'])
+
+        # Atomic update of user quality stats
+        update_kwargs = {'approved_count': F('approved_count') + 1}
+        # If it was previously rejected, undo the rejection
+        if old_status == 'rejected':
+            update_kwargs['rejected_count'] = F('rejected_count') - 1
+        UserReputation.objects.filter(user=log.user).update(**update_kwargs)
+
+        # Recalculate quality_ratio from DB
+        _recalculate_quality_ratio(log.user)
 
         return Response({'success': True})
 
@@ -233,20 +258,36 @@ class RejectContributionView(APIView):
         except ContributionLog.DoesNotExist:
             return Response({'error': 'Not found'}, status=404)
 
-        log.quality_status = 'rejected'
-        log.save()
+        if log.quality_status == 'rejected':
+            return Response({'error': 'Already rejected'}, status=400)
 
-        # Deduct points and update quality
-        rep, _ = UserReputation.objects.get_or_create(user=log.user)
+        old_status = log.quality_status
+        log.quality_status = 'rejected'
+        log.save(update_fields=['quality_status'])
+
+        # Atomic point deduction + quality stat update
         category_field = f'{log.category}_points'
-        setattr(rep, category_field,
-                max(0, getattr(rep, category_field) - log.awarded_points))
-        rep.total_points = max(0, rep.total_points - log.awarded_points)
-        rep.rejected_count += 1
-        rep.quality_ratio = (
-            rep.approved_count / max(1, rep.approved_count + rep.rejected_count)
-        )
-        rep.save()
+        update_kwargs = {
+            category_field: F(category_field) - log.awarded_points,
+            'total_points': F('total_points') - log.awarded_points,
+            'rejected_count': F('rejected_count') + 1,
+        }
+        # If it was previously approved, undo the approval
+        if old_status == 'approved':
+            update_kwargs['approved_count'] = F('approved_count') - 1
+
+        UserReputation.objects.filter(user=log.user).update(**update_kwargs)
+
+        # Ensure points don't go negative
+        UserReputation.objects.filter(
+            user=log.user, total_points__lt=0
+        ).update(total_points=0)
+        UserReputation.objects.filter(
+            user=log.user, **{f'{category_field}__lt': 0}
+        ).update(**{category_field: 0})
+
+        # Recalculate quality_ratio from DB
+        _recalculate_quality_ratio(log.user)
 
         return Response({'success': True})
 
@@ -268,42 +309,68 @@ class RevertContributionView(APIView):
 
         success = _execute_revert(log)
         if not success:
-            return Response({'error': 'Revert failed'}, status=500)
+            return Response({'error': 'Revert failed — action type not supported or object not found'}, status=400)
 
         log.is_reverted = True
         log.reverted_at = timezone.now()
         log.reverted_by = request.user
         log.save()
 
-        # Deduct points
-        rep, _ = UserReputation.objects.get_or_create(user=log.user)
+        # Atomic point deduction
         category_field = f'{log.category}_points'
-        setattr(rep, category_field,
-                max(0, getattr(rep, category_field) - log.awarded_points))
-        rep.total_points = max(0, rep.total_points - log.awarded_points)
-        rep.save()
+        UserReputation.objects.filter(user=log.user).update(
+            **{category_field: F(category_field) - log.awarded_points},
+            total_points=F('total_points') - log.awarded_points,
+        )
+        # Ensure points don't go negative
+        UserReputation.objects.filter(
+            user=log.user, total_points__lt=0
+        ).update(total_points=0)
+        UserReputation.objects.filter(
+            user=log.user, **{f'{category_field}__lt': 0}
+        ).update(**{category_field: 0})
 
         return Response({'success': True})
 
 
 def _execute_revert(log):
     """Dispatch revert based on action type and previous_state."""
-    from apps.books.models import Author
+    from apps.books.models import Author, Book
+
+    prev = log.previous_state
+    if not prev:
+        return False
 
     try:
-        if log.action == 'author_linked' and log.content_type == 'Author':
+        # Author linking/unlinking revert
+        if log.action in ('author_linked', 'author_unlinked') and log.content_type == 'Author':
             author = Author.objects.get(id=log.object_id)
-            prev = log.previous_state
             author.author_group_id = prev.get('author_group_id')
             author.is_primary_alias = prev.get('is_primary_alias', False)
             author.save()
             return True
 
-        if log.action == 'author_unlinked' and log.content_type == 'Author':
+        # Book linking revert
+        if log.action == 'books_linked' and log.content_type == 'Book':
+            book = Book.objects.get(id=log.object_id)
+            book.book_group_id = prev.get('book_group_id')
+            book.is_primary_edition = prev.get('is_primary_edition', False)
+            book.save()
+            return True
+
+        # Book metadata edit revert
+        if log.action == 'book_metadata_edited' and log.content_type == 'Book':
+            book = Book.objects.get(id=log.object_id)
+            for field, value in prev.items():
+                if hasattr(book, field):
+                    setattr(book, field, value)
+            book.save()
+            return True
+
+        # Author bio revert
+        if log.action == 'author_bio_added' and log.content_type == 'Author':
             author = Author.objects.get(id=log.object_id)
-            prev = log.previous_state
-            author.author_group_id = prev.get('author_group_id')
-            author.is_primary_alias = prev.get('is_primary_alias', False)
+            author.bio = prev.get('bio', '')
             author.save()
             return True
 
@@ -311,6 +378,58 @@ def _execute_revert(log):
         return False
 
     return False
+
+
+def _recalculate_quality_ratio(user):
+    """Recalculate quality_ratio from actual DB counts."""
+    try:
+        rep = UserReputation.objects.get(user=user)
+        total_reviewed = rep.approved_count + rep.rejected_count
+        if total_reviewed > 0:
+            rep.quality_ratio = rep.approved_count / total_reviewed
+        else:
+            rep.quality_ratio = 1.0
+        rep.save(update_fields=['quality_ratio'])
+    except UserReputation.DoesNotExist:
+        pass
+
+
+class FlagContributionView(APIView):
+    """Flag a contribution as problematic."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, contribution_id):
+        try:
+            log = ContributionLog.objects.get(id=contribution_id)
+        except ContributionLog.DoesNotExist:
+            return Response({'error': 'Not found'}, status=404)
+
+        reason = request.data.get('reason', '').strip()
+        if not reason:
+            return Response({'error': 'reason is required'}, status=400)
+
+        if ContributionFlag.objects.filter(
+            contribution=log, flagged_by=request.user
+        ).exists():
+            return Response({'error': 'Already flagged by you'}, status=400)
+
+        ContributionFlag.objects.create(
+            contribution=log,
+            flagged_by=request.user,
+            reason=reason,
+        )
+
+        # Update the contribution's quality_status to flagged
+        if log.quality_status == 'unreviewed':
+            log.quality_status = 'flagged'
+            log.save(update_fields=['quality_status'])
+
+        # Update user's flagged_count
+        UserReputation.objects.filter(user=log.user).update(
+            flagged_count=F('flagged_count') + 1
+        )
+
+        return Response({'success': True})
 
 
 class AwardBadgeView(APIView):

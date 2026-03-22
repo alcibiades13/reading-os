@@ -11,6 +11,7 @@ from apps.contributions.views import (
     ApproveContributionView,
     RejectContributionView,
     RevertContributionView,
+    FlagContributionView,
     AwardBadgeView,
     AllBadgesView,
 )
@@ -23,6 +24,7 @@ urlpatterns = [
     path('user/<int:user_id>/reputation/', UserReputationPublicView.as_view(), name='user-reputation'),
     path('leaderboard/', ContributionLeaderboardView.as_view(), name='leaderboard'),
     path('badges/', AllBadgesView.as_view(), name='all-badges'),
+    path('<int:contribution_id>/flag/', FlagContributionView.as_view(), name='flag-contribution'),
 
     # Admin / Moderator
     path('dashboard/', ContributionDashboardView.as_view(), name='contribution-dashboard'),
