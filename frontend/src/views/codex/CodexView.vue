@@ -131,13 +131,6 @@ watch(() => selectedEntry.value?.id, async () => {
   if (mobileJournalEditorRef.value) mobileJournalEditorRef.value.innerHTML = html
 }, { immediate: true })
 
-watch(() => currentChapter.value?.id, async () => {
-  await nextTick()
-  const html = ensureHtml(currentChapter.value?.content || '')
-  if (manuscriptEditorRef.value) manuscriptEditorRef.value.innerHTML = html
-  if (mobileManuscriptEditorRef.value) mobileManuscriptEditorRef.value.innerHTML = html
-}, { immediate: true })
-
 // Rich text command handler
 const handleCommand = (command, value = null) => {
   if (command === 'insertHorizontalRule') {
@@ -295,6 +288,13 @@ const currentChapter = computed(() => {
   if (!selectedManuscript.value?.chapters) return null
   return selectedManuscript.value.chapters[activeChapterIndex.value]
 })
+
+watch(() => currentChapter.value?.id, async () => {
+  await nextTick()
+  const html = ensureHtml(currentChapter.value?.content || '')
+  if (manuscriptEditorRef.value) manuscriptEditorRef.value.innerHTML = html
+  if (mobileManuscriptEditorRef.value) mobileManuscriptEditorRef.value.innerHTML = html
+}, { immediate: true })
 
 const wordCount = computed(() => {
   const count = (html) => {
