@@ -3,13 +3,14 @@ import { ref } from 'vue'
 const toasts = ref([])
 
 export function useToast() {
-  const addToast = (message, type = 'success') => {
+  const addToast = (message, type = 'success', action = null) => {
     const id = Date.now()
-    toasts.value.push({ id, message, type })
+    toasts.value.push({ id, message, type, action })
 
+    const duration = action ? 6000 : 4000
     setTimeout(() => {
       toasts.value = toasts.value.filter(t => t.id !== id)
-    }, 4000)
+    }, duration)
   }
 
   const removeToast = (id) => {

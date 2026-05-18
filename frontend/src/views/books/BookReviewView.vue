@@ -181,6 +181,12 @@ const handleEditorInput = (e) => {
   content.value = editorRef.value.innerHTML
 }
 
+const handlePaste = (e) => {
+  e.preventDefault()
+  const text = e.clipboardData.getData('text/plain')
+  document.execCommand('insertText', false, text)
+}
+
 const handleCommand = (command, value) => {
   if (!editorRef.value) return
 
@@ -578,6 +584,7 @@ const saveQuoteMetadata = () => {
               contenteditable="true"
               @input="handleEditorInput"
               @keydown="handleEditorKeydown"
+              @paste="handlePaste"
               class="editor-surface text-sm text-slate-200 leading-relaxed min-h-[50vh] focus:outline-none"
             />
             <div

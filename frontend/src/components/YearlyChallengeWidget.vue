@@ -1,58 +1,71 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useChallengesStore } from '@/stores/challengesStore'
 import { useUserBooksStore } from '@/stores/userBooksStore'
-import { Target, Edit2, Plus, TrendingUp, BookOpen } from 'lucide-vue-next'
+import { challengesAPI } from '@/services/api'
+import { Target, Edit2, Plus, TrendingUp, BookOpen, ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 const challengesStore = useChallengesStore()
 const booksStore = useUserBooksStore()
+const router = useRouter()
 
 const emit = defineEmits(['edit', 'create'])
 
 const currentYear = new Date().getFullYear()
 
-// Fetch current challenges on mount
 onMounted(async () => {
   await challengesStore.fetchCurrentChallenges()
 })
 
-// Get current year's challenge
 const yearlyChallenge = computed(() => challengesStore.currentYearChallenge)
 
-// Progress percentage
 const progressPercentage = computed(() => {
   if (!yearlyChallenge.value) return 0
   return yearlyChallenge.value.progress_percentage || 0
 })
 
-// Calculate pages read this year
 const pagesReadThisYear = computed(() => {
   let totalPages = 0
-
   booksStore.books.forEach(userBook => {
     const book = userBook.book
     const finishedAt = userBook.finished_at ? new Date(userBook.finished_at) : null
-
-    // Completed books finished this year
     if (userBook.status === 'read' && finishedAt && finishedAt.getFullYear() === currentYear) {
       totalPages += book?.pages || 0
-    }
-    // Currently reading books - add current progress
-    else if (userBook.status === 'currently_reading') {
+    } else if (userBook.status === 'currently_reading') {
       totalPages += userBook.current_page || 0
     }
   })
-
   return totalPages
 })
 
-// Handle edit click
 const handleEdit = () => {
   if (yearlyChallenge.value) {
     emit('edit', yearlyChallenge.value)
   } else {
     emit('create')
   }
+}
+
+// Books list
+const showBooks = ref(false)
+const books = ref([])
+const loadingBooks = ref(false)
+
+const toggleBooks = async () => {
+  showBooks.value = !showBooks.value
+  if (!showBooks.value || books.value.length) return
+  loadingBooks.value = true
+  try {
+    const res = await challengesAPI.progressDetails(yearlyChallenge.value.id)
+    books.value = res.data.qualifying_items || []
+  } finally {
+    loadingBooks.value = false
+  }
+}
+
+const goToBook = (book) => {
+  router.push(`/books/${book.id}-${book.slug}`)
 }
 </script>
 
@@ -77,13 +90,9 @@ const handleEdit = () => {
     <div v-if="yearlyChallenge" class="space-y-4">
       <!-- Progress Numbers -->
       <div class="flex items-baseline gap-2">
-        <span class="text-4xl font-black text-white">
-          {{ yearlyChallenge.completed_books || 0 }}
-        </span>
+        <span class="text-4xl font-black text-white">{{ yearlyChallenge.completed_books || 0 }}</span>
         <span class="text-2xl font-bold text-slate-500">/</span>
-        <span class="text-2xl font-bold text-slate-400">
-          {{ yearlyChallenge.target_books || 0 }}
-        </span>
+        <span class="text-2xl font-bold text-slate-400">{{ yearlyChallenge.target_books || 0 }}</span>
         <span class="text-xs text-slate-500 ml-1">books</span>
       </div>
 
@@ -107,16 +116,43 @@ const handleEdit = () => {
         </span>
       </div>
 
-      <!-- Pages Read This Year -->
-      <div class="flex items-center gap-2 pt-3 mt-3 border-t border-slate-800/50">
-        <BookOpen :size="14" class="text-indigo-400" />
-        <span class="text-xs text-slate-400">
-          <span class="font-bold text-white">{{ pagesReadThisYear.toLocaleString() }}</span> pages read this year
-        </span>
+      <!-- Books toggle -->
+      <button
+        @click="toggleBooks"
+        class="w-full flex items-center justify-between pt-3 mt-1 border-t border-slate-800/50 text-xs text-slate-400 hover:text-white transition-colors"
+      >
+        <div class="flex items-center gap-2">
+          <BookOpen :size="14" class="text-indigo-400" />
+          <span><span class="font-bold text-white">{{ pagesReadThisYear.toLocaleString() }}</span> pages · {{ yearlyChallenge.completed_books || 0 }} books</span>
+        </div>
+        <ChevronUp v-if="showBooks" :size="14" />
+        <ChevronDown v-else :size="14" />
+      </button>
+
+      <!-- Books list -->
+      <div v-if="showBooks" class="space-y-1 max-h-52 overflow-y-auto -mx-1 px-1">
+        <div v-if="loadingBooks" class="text-xs text-slate-500 py-3 text-center">Loading...</div>
+        <template v-else>
+          <div
+            v-for="book in books"
+            :key="book.id"
+            @click="goToBook(book)"
+            class="flex items-center gap-2 py-1.5 px-1 rounded-lg hover:bg-slate-800/60 cursor-pointer transition-colors"
+          >
+            <img v-if="book.cover_image" :src="book.cover_image" class="w-6 h-9 object-cover rounded shrink-0" />
+            <div v-else class="w-6 h-9 bg-slate-800 rounded shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-slate-200 truncate">{{ book.title }}</p>
+              <p class="text-[10px] text-slate-500 truncate">{{ book.authors?.join(', ') }}</p>
+            </div>
+            <span class="text-[10px] text-slate-600 shrink-0">{{ book.finished_at }}</span>
+          </div>
+          <p v-if="!books.length" class="text-xs text-slate-500 py-2 text-center">No books read yet.</p>
+        </template>
       </div>
 
       <!-- Challenge Title (if custom) -->
-      <p v-if="yearlyChallenge.title && yearlyChallenge.title !== `${currentYear} Reading Challenge`" class="text-xs text-slate-400 italic mt-2">
+      <p v-if="yearlyChallenge.title && yearlyChallenge.title !== `${currentYear} Reading Challenge`" class="text-xs text-slate-400 italic">
         "{{ yearlyChallenge.title }}"
       </p>
     </div>

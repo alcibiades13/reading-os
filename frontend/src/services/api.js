@@ -51,8 +51,11 @@ api.interceptors.response.use(
             refresh: refreshToken,
           })
 
-          const { access } = response.data
+          const { access, refresh: newRefresh } = response.data
           localStorage.setItem('access_token', access)
+          if (newRefresh) {
+            localStorage.setItem('refresh_token', newRefresh)
+          }
 
           // Pokušaj ponovo sa novim tokenom
           originalRequest.headers.Authorization = `Bearer ${access}`
@@ -147,6 +150,8 @@ export const userBooksAPI = {
     api.get('/reading/user-books/wishlist/', { params: userId ? { user: userId } : {} }),
   bulkToggleOwned: (ids, isOwned) =>
     api.post('/reading/user-books/bulk_toggle_owned/', { ids, is_owned: isOwned }),
+  readingHistory: (id) =>
+    api.get(`/reading/user-books/${id}/reading_history/`),
 }
 
 export const quotesAPI = {
@@ -200,6 +205,19 @@ export const challengesAPI = {
   delete: (id) => api.delete(`/challenges/${id}/`),
   current: () => api.get('/challenges/current/'),
   updateProgress: (id) => api.post(`/challenges/${id}/update_progress/`),
+  progressDetails: (id) => api.get(`/challenges/${id}/progress_details/`),
+}
+
+export const schedulesAPI = {
+  list: () => api.get('/challenges/schedules/'),
+  create: (data) => api.post('/challenges/schedules/', data),
+  update: (id, data) => api.patch(`/challenges/schedules/${id}/`, data),
+  delete: (id) => api.delete(`/challenges/schedules/${id}/`),
+  addSection: (id, data) => api.post(`/challenges/schedules/${id}/add_section/`, data),
+  updateSection: (scheduleId, sectionId, data) =>
+    api.patch(`/challenges/schedules/${scheduleId}/sections/${sectionId}/`, data),
+  deleteSection: (scheduleId, sectionId) =>
+    api.delete(`/challenges/schedules/${scheduleId}/sections/${sectionId}/delete/`),
 }
 
 export const socialAPI = {

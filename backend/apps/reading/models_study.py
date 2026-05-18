@@ -31,7 +31,7 @@ class StudyNote(models.Model):
 
     # Optional fields
     page_number = models.IntegerField(null=True, blank=True)
-    chapter = models.CharField(max_length=100, blank=True)
+    chapter = models.CharField(max_length=100, blank=True, null=True, default='')
 
     # Highlights - JSON field to store highlighted text portions
     highlights = models.JSONField(

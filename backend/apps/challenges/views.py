@@ -4,12 +4,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 
-from apps.challenges.models import ReadingChallenge
+from apps.challenges.models import ReadingChallenge, ReadingSchedule, ReadingScheduleSection
 from apps.challenges.serializers import (
     ReadingChallengeListSerializer,
     ReadingChallengeDetailSerializer,
     ReadingChallengeCreateSerializer,
     ReadingChallengeUpdateSerializer,
+    ReadingScheduleSerializer,
+    ReadingScheduleSectionSerializer,
 )
 
 
@@ -128,36 +130,116 @@ class ReadingChallengeViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def progress_details(self, request, pk=None):
-        """Get detailed progress breakdown"""
+        """Get detailed progress breakdown with list of qualifying items."""
         challenge = self.get_object()
-        from apps.reading.models import UserBook
-        
-        # Get books that count toward this challenge
-        query = UserBook.objects.filter(
-            user=request.user,
-            status='read',
+
+        if challenge.challenge_type == challenge.TYPE_VOCABULARY:
+            from apps.reading.models import VocabularyWord
+            words = VocabularyWord.objects.filter(
+                user=request.user,
+                created_at__date__gte=challenge.start_date,
+                created_at__date__lte=challenge.end_date,
+            ).order_by('created_at').select_related('book')
+
+            items = [
+                {
+                    'id': w.id,
+                    'word': w.word,
+                    'definition': w.definition,
+                    'mastery': w.mastery,
+                    'book_title': w.book.title if w.book else w.book_title,
+                    'created_at': w.created_at.date(),
+                }
+                for w in words
+            ]
+            return Response({
+                'challenge': ReadingChallengeDetailSerializer(challenge).data,
+                'qualifying_items': items,
+                'item_type': 'vocabulary',
+                'count': len(items),
+            })
+
+        # Default: books
+        from apps.reading.models import BookReadLog
+        logs = BookReadLog.objects.filter(
+            user_book__user=request.user,
             finished_at__gte=challenge.start_date,
-            finished_at__lte=challenge.end_date
-        )
-        
-        # Apply filters
+            finished_at__lte=challenge.end_date,
+        ).select_related('user_book__book').prefetch_related('user_book__book__authors')
+
         if challenge.genre_filter.exists():
-            query = query.filter(book__genres__in=challenge.genre_filter.all())
-        
+            logs = logs.filter(user_book__book__genres__in=challenge.genre_filter.all())
         if challenge.tag_filter.exists():
-            query = query.filter(book__tags__in=challenge.tag_filter.all())
-        
+            logs = logs.filter(user_book__book__tags__in=challenge.tag_filter.all())
         if challenge.min_pages:
-            query = query.filter(book__pages__gte=challenge.min_pages)
-        
-        books = query.distinct().select_related('book').prefetch_related('book__authors')
-        
-        from apps.reading.serializers import UserBookListSerializer
-        serializer = UserBookListSerializer(books, many=True)
-        
+            logs = logs.filter(user_book__book__pages__gte=challenge.min_pages)
+
+        seen = set()
+        items = []
+        for log in logs:
+            book = log.user_book.book
+            if book.id not in seen:
+                seen.add(book.id)
+                items.append({
+                    'id': book.id,
+                    'title': book.title,
+                    'cover_image': book.cover_image,
+                    'authors': [a.name for a in book.authors.all()],
+                    'pages': book.pages,
+                    'finished_at': log.finished_at,
+                    'slug': book.slug,
+                })
+
         return Response({
             'challenge': ReadingChallengeDetailSerializer(challenge).data,
-            'qualifying_books': serializer.data,
-            'count': books.count(),
+            'qualifying_items': items,
+            'item_type': 'books',
+            'count': len(items),
         })
+
+
+class ReadingScheduleViewSet(viewsets.ModelViewSet):
+    serializer_class = ReadingScheduleSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return ReadingSchedule.objects.filter(
+            user=self.request.user
+        ).prefetch_related('sections')
+
+    def perform_create(self, serializer):
+        schedule = serializer.save(user=self.request.user)
+        # Create 3 default sections
+        defaults = ['January', 'February', 'March']
+        for i, name in enumerate(defaults):
+            ReadingScheduleSection.objects.create(
+                schedule=schedule, title=name, order=i
+            )
+
+    @action(detail=True, methods=['post'])
+    def add_section(self, request, pk=None):
+        schedule = self.get_object()
+        title = request.data.get('title', 'New Section')
+        order = schedule.sections.count()
+        section = ReadingScheduleSection.objects.create(
+            schedule=schedule, title=title, order=order
+        )
+        return Response(ReadingScheduleSectionSerializer(section).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['patch'], url_path='sections/(?P<section_id>[0-9]+)')
+    def update_section(self, request, pk=None, section_id=None):
+        schedule = self.get_object()
+        section = ReadingScheduleSection.objects.get(id=section_id, schedule=schedule)
+        for field in ('title', 'book_ids', 'order'):
+            if field in request.data:
+                setattr(section, field, request.data[field])
+        section.save()
+        return Response(ReadingScheduleSectionSerializer(section).data)
+
+    @action(detail=True, methods=['delete'], url_path='sections/(?P<section_id>[0-9]+)/delete')
+    def delete_section(self, request, pk=None, section_id=None):
+        schedule = self.get_object()
+        ReadingScheduleSection.objects.filter(id=section_id, schedule=schedule).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 

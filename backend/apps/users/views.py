@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class AuthRateThrottle(AnonRateThrottle):
-    rate = '5/minute'
+    rate = '20/minute'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -76,8 +76,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_throttles(self):
-        if self.action in ['create', 'login', 'forgot_password']:
-            return [AuthRateThrottle()]
         return super().get_throttles()
     
     def perform_create(self, serializer):
@@ -103,8 +101,7 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         }, status=status.HTTP_201_CREATED, headers=headers)
     
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny],
-            throttle_classes=[AuthRateThrottle])
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def login(self, request):
         """
         Login endpoint.

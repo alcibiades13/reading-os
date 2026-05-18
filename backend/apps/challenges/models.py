@@ -7,9 +7,21 @@ from apps.books.models import Genre, Tag
 
 class ReadingChallenge(models.Model):
     """
-    Reading challenges/goals (yearly or custom periods).
-    Examples: "Read 50 books in 2025", "Read 10 spiritual books this year"
+    Challenges/goals (yearly or custom periods).
+    Supports books, vocabulary words, quotes, and manuscript words.
     """
+    TYPE_BOOKS = 'books'
+    TYPE_VOCABULARY = 'vocabulary_words'
+    TYPE_QUOTES = 'quotes'
+    TYPE_MANUSCRIPT = 'manuscript_words'
+
+    CHALLENGE_TYPES = [
+        (TYPE_BOOKS, 'Books Read'),
+        (TYPE_VOCABULARY, 'Vocabulary Words'),
+        (TYPE_QUOTES, 'Quotes Collected'),
+        (TYPE_MANUSCRIPT, 'Manuscript Words'),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -17,16 +29,22 @@ class ReadingChallenge(models.Model):
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    
+
+    challenge_type = models.CharField(
+        max_length=20,
+        choices=CHALLENGE_TYPES,
+        default=TYPE_BOOKS,
+    )
+
     # Goal settings
     target_books = models.IntegerField(
         validators=[MinValueValidator(1)],
-        help_text="Target number of books to read"
+        help_text="Target count (books/words/quotes depending on type)"
     )
     start_date = models.DateField()
     end_date = models.DateField()
-    
-    # Optional filters (to make challenge more specific)
+
+    # Optional filters (books challenge only)
     genre_filter = models.ManyToManyField(
         Genre,
         blank=True,
@@ -42,7 +60,7 @@ class ReadingChallenge(models.Model):
         blank=True,
         help_text="Minimum pages per book to count"
     )
-    
+
     # Tracking
     is_active = models.BooleanField(
         default=True,
@@ -50,7 +68,7 @@ class ReadingChallenge(models.Model):
     )
     completed_books = models.IntegerField(
         default=0,
-        help_text="Number of books completed (auto-calculated)"
+        help_text="Current count (auto-calculated)"
     )
     
     # Privacy
@@ -84,42 +102,66 @@ class ReadingChallenge(models.Model):
         return self.completed_books >= self.target_books
     
     def update_progress(self):
-        """
-        Recalculate completed_books based on UserBooks that match criteria.
-        Called when a book is finished.
-        """
-        from apps.reading.models import UserBook
-        from django.db.models import Q
-        
-        # Base query: finished books in date range
-        query = Q(
-            user=self.user,
-            status='read',
+        """Recalculate completed count based on challenge type."""
+        if self.challenge_type == self.TYPE_BOOKS:
+            self._update_books_progress()
+        elif self.challenge_type == self.TYPE_VOCABULARY:
+            self._update_vocabulary_progress()
+        elif self.challenge_type == self.TYPE_QUOTES:
+            self._update_quotes_progress()
+        elif self.challenge_type == self.TYPE_MANUSCRIPT:
+            self._update_manuscript_progress()
+
+    def _update_books_progress(self):
+        from apps.reading.models import BookReadLog
+        logs = BookReadLog.objects.filter(
+            user_book__user=self.user,
             finished_at__gte=self.start_date,
-            finished_at__lte=self.end_date
+            finished_at__lte=self.end_date,
         )
-        
-        user_books = UserBook.objects.filter(query)
-        
-        # Apply genre filter if exists
         if self.genre_filter.exists():
-            user_books = user_books.filter(
-                book__genres__in=self.genre_filter.all()
-            )
-        
-        # Apply tag filter if exists
+            logs = logs.filter(user_book__book__genres__in=self.genre_filter.all())
         if self.tag_filter.exists():
-            user_books = user_books.filter(
-                book__tags__in=self.tag_filter.all()
-            )
-        
-        # Apply minimum pages filter if exists
+            logs = logs.filter(user_book__book__tags__in=self.tag_filter.all())
         if self.min_pages:
-            user_books = user_books.filter(
-                book__pages__gte=self.min_pages
-            )
-        
-        self.completed_books = user_books.distinct().count()
+            logs = logs.filter(user_book__book__pages__gte=self.min_pages)
+        self.completed_books = logs.values('user_book__book').distinct().count()
+        self.save(update_fields=['completed_books'])
+
+    def _update_vocabulary_progress(self):
+        from apps.reading.models import VocabularyWord
+        count = VocabularyWord.objects.filter(
+            user=self.user,
+            created_at__date__gte=self.start_date,
+            created_at__date__lte=self.end_date,
+        ).count()
+        self.completed_books = count
+        self.save(update_fields=['completed_books'])
+
+    def _update_quotes_progress(self):
+        from apps.reading.models import Quote
+        count = Quote.objects.filter(
+            user=self.user,
+            created_at__date__gte=self.start_date,
+            created_at__date__lte=self.end_date,
+        ).count()
+        self.completed_books = count
+        self.save(update_fields=['completed_books'])
+
+    def _update_manuscript_progress(self):
+        from apps.codex.models import ManuscriptChapter
+        from django.db.models import Sum
+        import re
+        chapters = ManuscriptChapter.objects.filter(
+            manuscript__user=self.user,
+            updated_at__date__gte=self.start_date,
+            updated_at__date__lte=self.end_date,
+        )
+        total = 0
+        for ch in chapters:
+            text = re.sub(r'<[^>]+>', ' ', ch.content or '')
+            total += len(text.split())
+        self.completed_books = total
         self.save(update_fields=['completed_books'])
 
 
@@ -130,7 +172,7 @@ from apps.reading.models import UserBook
 
 
 @receiver(post_save, sender=UserBook)
-def update_challenge_progress(sender, instance, **kwargs):
+def update_challenge_progress_books(sender, instance, **kwargs):
     """
     Update all active challenges when a UserBook status changes to 'read'.
     Also logs challenge_completed contribution when a challenge is newly completed.
@@ -165,3 +207,55 @@ def update_challenge_progress(sender, instance, **kwargs):
                     )
 
 
+from apps.reading.models import VocabularyWord
+
+
+@receiver(post_save, sender=VocabularyWord)
+def update_challenge_progress_vocabulary(sender, instance, **kwargs):
+    """Update vocabulary_words challenges when a new word is added."""
+    created_date = instance.created_at.date()
+    active_challenges = ReadingChallenge.objects.filter(
+        user=instance.user,
+        challenge_type=ReadingChallenge.TYPE_VOCABULARY,
+        is_active=True,
+        start_date__lte=created_date,
+        end_date__gte=created_date,
+    )
+    for challenge in active_challenges:
+        challenge.update_progress()
+
+
+class ReadingSchedule(models.Model):
+    """A named reading plan containing ordered sections."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='reading_schedules'
+    )
+    title = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.title}"
+
+
+class ReadingScheduleSection(models.Model):
+    """A section (e.g. month) within a reading schedule, containing ordered book IDs."""
+    schedule = models.ForeignKey(
+        ReadingSchedule,
+        on_delete=models.CASCADE,
+        related_name='sections'
+    )
+    title = models.CharField(max_length=200)
+    order = models.PositiveIntegerField(default=0)
+    book_ids = models.JSONField(default=list, help_text="Ordered list of book IDs")
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.schedule.title} / {self.title}"

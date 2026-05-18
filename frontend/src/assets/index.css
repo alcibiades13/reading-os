@@ -502,6 +502,23 @@
     color: #0f172a !important;
   }
 
+  /* Inputs with bg-slate-800 + text-white match the button→indigo rule (higher specificity).
+     Override with 3 classes + element to win the specificity battle. */
+  body.light input.bg-slate-800.text-white,
+  body.light input.bg-slate-800.text-slate-200,
+  body.light input.bg-slate-800.text-slate-100,
+  body.light input.bg-slate-800 {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  body.light input.bg-slate-800::placeholder,
+  body.light input.bg-slate-800.text-white::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+  }
+
   body.light input[class*="bg-slate-8"]:focus,
   body.light textarea[class*="bg-slate-8"]:focus,
   body.light input[class*="bg-slate-7"]:focus,
@@ -707,6 +724,30 @@
   body.light .ring-offset-\[\#02040a\],
   body.light .ring-offset-ink {
     --tw-ring-offset-color: #f8fafc !important;
+  }
+
+  /* Schedule - active section highlight (indigo-950/20 is too dark in light mode) */
+  body.light .bg-indigo-950\/20 {
+    background-color: rgba(99, 102, 241, 0.07) !important;
+  }
+
+  /* Global scrollbar styling for light mode */
+  body.light ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  body.light ::-webkit-scrollbar-track {
+    background-color: #f1f5f9;
+  }
+
+  body.light ::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  body.light ::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
   }
 }
 

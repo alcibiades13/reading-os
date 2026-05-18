@@ -10,7 +10,7 @@ import { useToast } from '@/composables/useToast'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const { toasts } = useToast()
+const { toasts, removeToast } = useToast()
 
 // Pages that should NOT show navigation
 const noNavRoutes = ['/', '/login', '/register', '/404']
@@ -57,6 +57,8 @@ onMounted(() => {
           :key="toast.id"
           :message="toast.message"
           :type="toast.type"
+          :action="toast.action"
+          @dismiss="removeToast(toast.id)"
         />
       </div>
     </div>

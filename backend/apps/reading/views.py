@@ -162,13 +162,6 @@ class UserBookViewSet(viewsets.ModelViewSet):
         old_status = instance.status
         new_status = serializer.validated_data.get('status', old_status)
 
-        # Status transition validation: cannot go from 'read' back to
-        # 'want_to_read' or 'currently_reading'
-        if old_status == 'read' and new_status in ('want_to_read', 'currently_reading'):
-            raise ValidationError({
-                'status': f"Cannot transition from 'read' to '{new_status}'. "
-                          f"A finished book cannot be reverted."
-            })
 
         # Auto-set started_at when beginning to read
         if new_status == 'currently_reading' and old_status != 'currently_reading':
@@ -176,11 +169,52 @@ class UserBookViewSet(viewsets.ModelViewSet):
                 serializer.validated_data['started_at'] = timezone.now().date()
 
         # Auto-set finished_at when marking as read
+        finished_at_for_log = None
         if new_status == 'read' and old_status != 'read':
+            finished_at_for_log = instance.finished_at or timezone.now().date()
             if not instance.finished_at:
-                serializer.validated_data['finished_at'] = timezone.now().date()
+                serializer.validated_data['finished_at'] = finished_at_for_log
+
+        # Re-reading: clear dates on UserBook so the new read starts fresh
+        if old_status == 'read' and new_status == 'currently_reading':
+            serializer.validated_data['finished_at'] = None
+            serializer.validated_data['started_at'] = timezone.now().date()
+        elif old_status == 'read' and new_status != 'read':
+            serializer.validated_data['finished_at'] = None
 
         serializer.save()
+
+        # Create BookReadLog when marking as read
+        if new_status == 'read' and old_status != 'read':
+            from apps.reading.models import BookReadLog
+            BookReadLog.objects.create(
+                user_book=instance,
+                started_at=instance.started_at,
+                finished_at=finished_at_for_log,
+            )
+
+        # Recalculate challenges on any status change involving 'read'
+        if new_status == 'read' or old_status == 'read':
+            from apps.challenges.models import ReadingChallenge
+            for challenge in ReadingChallenge.objects.filter(user=instance.user, is_active=True):
+                challenge.update_progress()
+
+    @action(detail=True, methods=['get'])
+    def reading_history(self, request, pk=None):
+        """Return all completed reads of this book for the current user."""
+        user_book = self.get_object()
+        from apps.reading.models import BookReadLog
+        logs = BookReadLog.objects.filter(user_book=user_book).order_by('-finished_at')
+        data = [
+            {
+                'id': log.id,
+                'started_at': log.started_at,
+                'finished_at': log.finished_at,
+                'notes': log.notes,
+            }
+            for log in logs
+        ]
+        return Response(data)
 
     @action(detail=True, methods=['post'])
     def update_progress(self, request, pk=None):

@@ -424,18 +424,26 @@ const handleAddToLibrary = async () => {
 }
 
 const handleStatusChange = async (newStatus) => {
-  const wasNotRead = currentStatus.value !== 'read'
+  const wasRead = currentStatus.value === 'read'
+  const wasNotRead = !wasRead
+  const previousStatus = currentStatus.value
 
   if (!userBook.value) {
-    // Add to library with this status
     await userBooksStore.addBook({
       book: bookId.value,
       status: newStatus
     })
   } else {
-    // Update existing
     await userBooksStore.updateBook(userBook.value.id, {
       status: newStatus
+    })
+  }
+
+  // Undo toast when accidentally marking as read
+  if (newStatus === 'read' && wasNotRead) {
+    addToast('Marked as finished', 'success', {
+      label: 'Undo',
+      callback: () => handleStatusChange(previousStatus)
     })
   }
 

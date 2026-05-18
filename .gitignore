@@ -74,3 +74,9 @@ coverage.xml
 # Logs
 logs/
 *.log
+
+# Local prototype/design directory
+frontend/lumina-library/
+
+# Claude Code local settings
+.claude/settings.local.json

@@ -111,7 +111,7 @@ const routes = [
     path: '/challenges',
     name: 'Challenges',
     component: () => import('@/views/challenges/ChallengesView.vue'),
-    meta: { requiresAuth: true, title: 'Challenges' },
+    meta: { requiresAuth: true, title: 'Reading Plans' },
   },
   {
     path: '/stats',

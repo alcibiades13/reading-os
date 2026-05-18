@@ -369,6 +369,28 @@ class VocabularyWord(models.Model):
         return f"{self.word} - {self.user.email}"
 
 
+class BookReadLog(models.Model):
+    """
+    Records each completed reading of a book.
+    Allows tracking multiple reads of the same book with separate dates.
+    """
+    user_book = models.ForeignKey(
+        UserBook,
+        on_delete=models.CASCADE,
+        related_name='read_logs'
+    )
+    started_at = models.DateField(null=True, blank=True)
+    finished_at = models.DateField()
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-finished_at']
+
+    def __str__(self):
+        return f"{self.user_book} — finished {self.finished_at}"
+
+
 class ReadingSession(models.Model):
     """
     Records individual reading sessions from the timer.

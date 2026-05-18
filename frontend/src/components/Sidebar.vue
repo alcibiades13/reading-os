@@ -280,7 +280,7 @@ const handleStudyModeClick = async () => {
           <SidebarItem
             :active="isActive('/challenges')"
             @click="router.push('/challenges')"
-            label="Challenges"
+            label="Reading Plans"
             :icon="Trophy"
             :collapsed="isCollapsed && !isMobileOpen"
           />

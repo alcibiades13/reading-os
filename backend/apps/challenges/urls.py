@@ -1,11 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from apps.challenges.views import ReadingChallengeViewSet
+from apps.challenges.views import ReadingChallengeViewSet, ReadingScheduleViewSet
 
 app_name = 'challenges'
 
-# Create router and register viewsets
 router = DefaultRouter()
+router.register(r'schedules', ReadingScheduleViewSet, basename='schedule')
 router.register(r'', ReadingChallengeViewSet, basename='challenge')
 
 urlpatterns = [

@@ -29,7 +29,9 @@ export const useChallengesStore = defineStore('challenges', {
       if (!Array.isArray(state.challenges)) return null
       const currentYear = new Date().getFullYear()
       return state.challenges.find(c =>
-        c.is_active && new Date(c.start_date).getFullYear() === currentYear
+        c.is_active &&
+        new Date(c.start_date).getFullYear() === currentYear &&
+        (!c.challenge_type || c.challenge_type === 'books')
       )
     },
 

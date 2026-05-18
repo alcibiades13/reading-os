@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.challenges.models import ReadingChallenge
+from apps.challenges.models import ReadingChallenge, ReadingSchedule, ReadingScheduleSection
 from apps.books.serializers import GenreSerializer, TagSerializer
 from apps.books.models import Genre, Tag
 
@@ -8,12 +8,13 @@ class ReadingChallengeListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for challenge lists"""
     progress_percentage = serializers.FloatField(read_only=True)
     is_completed = serializers.BooleanField(read_only=True)
-    
+
     class Meta:
         model = ReadingChallenge
         fields = [
             'id',
             'title',
+            'challenge_type',
             'target_books',
             'completed_books',
             'progress_percentage',
@@ -56,6 +57,7 @@ class ReadingChallengeDetailSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'description',
+            'challenge_type',
             'target_books',
             'completed_books',
             'progress_percentage',
@@ -95,6 +97,7 @@ class ReadingChallengeCreateSerializer(serializers.ModelSerializer):
         fields = [
             'title',
             'description',
+            'challenge_type',
             'target_books',
             'start_date',
             'end_date',
@@ -104,7 +107,7 @@ class ReadingChallengeCreateSerializer(serializers.ModelSerializer):
             'is_active',
             'is_public',
         ]
-    
+
     def validate(self, data):
         """Validate challenge dates and targets"""
         start_date = data.get('start_date')
@@ -165,6 +168,7 @@ class ReadingChallengeUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'title',
             'description',
+            'challenge_type',
             'target_books',
             'start_date',
             'end_date',
@@ -174,7 +178,7 @@ class ReadingChallengeUpdateSerializer(serializers.ModelSerializer):
             'is_active',
             'is_public',
         ]
-    
+
     def update(self, instance, validated_data):
         """Handle many-to-many relationships"""
         genre_filter = validated_data.pop('genre_filter', None)
@@ -193,6 +197,22 @@ class ReadingChallengeUpdateSerializer(serializers.ModelSerializer):
         
         # Recalculate progress
         instance.update_progress()
-        
+
         return instance
+
+
+class ReadingScheduleSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReadingScheduleSection
+        fields = ['id', 'title', 'order', 'book_ids']
+
+
+class ReadingScheduleSerializer(serializers.ModelSerializer):
+    sections = ReadingScheduleSectionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ReadingSchedule
+        fields = ['id', 'title', 'sections', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
 
