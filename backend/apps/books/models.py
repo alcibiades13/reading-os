@@ -378,6 +378,8 @@ class Book(models.Model):
         ('delfi_scrape', 'Delfi Scrape'),
         ('vulkan_scrape', 'Vulkan Scrape'),
         ('laguna_scrape', 'Laguna Scrape'),
+        ('goodreads', 'Goodreads Import'),
+        ('storygraph', 'StoryGraph Import'),
     ]
     source = models.CharField(
         max_length=50,

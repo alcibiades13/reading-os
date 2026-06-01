@@ -10,6 +10,7 @@ import { useMobileSidebar } from '@/composables/useMobileSidebar'
 import {
   Library,
   Search,
+  TextSearch,
   Users,
   Quote,
   Brain,
@@ -256,6 +257,13 @@ const handleStudyModeClick = async () => {
         </NavGroup>
 
         <NavGroup label="Commonplace" :collapsed="isCollapsed && !isMobileOpen">
+          <SidebarItem
+            :active="isActive('/search')"
+            @click="router.push('/search')"
+            label="Search"
+            :icon="TextSearch"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
           <SidebarItem
             :active="isActive('/quotes')"
             @click="router.push('/quotes')"

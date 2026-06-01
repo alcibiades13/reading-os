@@ -13,6 +13,7 @@ import FriendsWidget from '@/components/social/FriendsWidget.vue'
 import ConsistencyWidget from '@/components/ConsistencyWidget.vue'
 import DailyQuote from '@/components/DailyQuote.vue'
 import GoodreadsImportDialog from '@/components/GoodreadsImportDialog.vue'
+import StorygraphImportDialog from '@/components/StorygraphImportDialog.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,8 +45,9 @@ const editingChallenge = ref(null)
 const viewMode = ref('grid') // 'grid' or 'list'
 const showMobileWidgets = ref(false)
 
-// Import dialog
+// Import dialogs
 const showImportDialog = ref(false)
+const showStorygraphDialog = ref(false)
 
 // Pagination state
 const itemsPerPage = 24 // Show 24 books per load (4 rows of 6)
@@ -760,14 +762,23 @@ const handleSaveChallenge = async (challengeData) => {
             />
           </div>
 
-          <!-- Import from Goodreads Button -->
-          <button
-            @click="showImportDialog = true"
-            class="px-6 py-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 flex items-center gap-2 shrink-0"
-          >
-            <Upload :size="18" />
-            <span class="hidden sm:inline">Import from Goodreads</span>
-          </button>
+          <!-- Import buttons -->
+          <div class="flex gap-2 shrink-0">
+            <button
+              @click="showImportDialog = true"
+              class="px-4 py-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+            >
+              <Upload :size="18" />
+              <span class="hidden sm:inline">Goodreads</span>
+            </button>
+            <button
+              @click="showStorygraphDialog = true"
+              class="px-4 py-3 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-lg shadow-violet-500/20 flex items-center gap-2"
+            >
+              <Upload :size="18" />
+              <span class="hidden sm:inline">StoryGraph</span>
+            </button>
+          </div>
         </div>
 
         <!-- Mobile Tabs (Horizontal Scroll) -->
@@ -1236,8 +1247,9 @@ const handleSaveChallenge = async (challengeData) => {
       </Transition>
     </Teleport>
 
-    <!-- Import Dialog -->
+    <!-- Import Dialogs -->
     <GoodreadsImportDialog v-model:open="showImportDialog" />
+    <StorygraphImportDialog v-model:open="showStorygraphDialog" />
   </div>
 </template>
 

@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from apps.reading.models import Quote, UserBook
 from apps.social.models import (
     Conversation, FeedItem, Friendship, Message,
-    TopicMessage, TopicMessageLike,
+    Notification, TopicMessage, TopicMessageLike,
 )
 
 User = get_user_model()
@@ -329,3 +329,26 @@ def update_conversation_on_message_delete(sender, instance, **kwargs):
         conversation.last_message_at = None
         conversation.last_message_preview = ''
     conversation.save(update_fields=['last_message_at', 'last_message_preview', 'updated_at'])
+
+
+@receiver(post_save, sender=Notification)
+def send_push_on_notification(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from apps.social.push import send_push_to_user
+    type_titles = {
+        'new_follower': 'New follower',
+        'circle_invitation': 'Circle invitation',
+        'circle_post': 'New post in your circle',
+        'comment': 'New comment',
+        'new_topic': 'New discussion',
+        'topic_reply': 'New reply',
+        'new_club_book': 'New book added',
+    }
+    title = type_titles.get(instance.notification_type, 'Marginalia')
+    send_push_to_user(
+        instance.recipient,
+        title,
+        instance.message,
+        {'type': instance.notification_type}
+    )

@@ -17,6 +17,7 @@ from apps.social.views import (
     ReviewCommentViewSet,
     ReviewLikeToggleView,
     PollViewSet,
+    DevicePushTokenViewSet,
 )
 
 app_name = 'social'
@@ -38,6 +39,7 @@ router.register(r'topic-messages', TopicMessageViewSet, basename='topicmessage')
 router.register(r'club-readings', BookClubReadingViewSet, basename='bookclubreading')
 router.register(r'review-comments', ReviewCommentViewSet, basename='reviewcomment')
 router.register(r'polls', PollViewSet, basename='poll')
+router.register(r'push-tokens', DevicePushTokenViewSet, basename='pushtoken')
 
 urlpatterns = [
     path('', include(router.urls)),

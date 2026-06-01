@@ -93,9 +93,14 @@ export const booksAPI = {
     const formData = new FormData()
     formData.append('file', file)
     return api.post('/books/import_goodreads_csv/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+  importStorygraphCSV: (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/books/import-storygraph/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
   update: (id, data) => api.put(`/books/${id}/`, data),
@@ -166,6 +171,10 @@ export const quotesAPI = {
   export: (format = 'json') => api.get('/reading/quotes/export/', { params: { format }, responseType: 'blob' }),
 }
 
+export const searchAPI = {
+  unified: (query, limit = 5) => api.get('/reading/search/', { params: { q: query, limit } }),
+}
+
 export const quoteTagsAPI = {
   list: () => api.get('/reading/quote-tags/'),
   create: (data) => api.post('/reading/quote-tags/', data),
@@ -183,6 +192,7 @@ export const studyNotesAPI = {
   promoteToQuote: (id) => api.post(`/reading/study-notes/${id}/promote_to_quote/`),
   booksWithNotes: () => api.get('/reading/study-notes/books_with_notes/'),
   export: (params) => api.get('/reading/study-notes/export/', { params, responseType: 'blob' }),
+  search: (query) => api.get('/reading/study-notes/search/', { params: { q: query } }),
 }
 
 export const listsAPI = {
@@ -256,6 +266,12 @@ export const socialAPI = {
   getUserProfile: (userId) => api.get(`/users/${userId}/profile/`),
   getUserBooks: (userId, params) => api.get(`/users/${userId}/books/`, { params }),
   getUserStats: (userId) => api.get(`/users/${userId}/stats/`),
+
+  // Push notification device tokens
+  registerPushToken: (token, platform = 'android') =>
+    api.post('/social/push-tokens/register/', { token, platform }),
+  unregisterPushToken: (token) =>
+    api.post('/social/push-tokens/unregister/', { token }),
 }
 
 export const vocabularyAPI = {
@@ -276,6 +292,7 @@ export const readingSessionsAPI = {
 
 export const usersAPI = {
   exportAllData: () => api.get('/users/export_all_data/', { responseType: 'blob' }),
+  deleteAccount: (password) => api.post('/users/delete-account/', { password, confirm: true }),
   getConsistency: () => api.get('/users/consistency/'),
   getReadingStats: (year) => api.get('/users/reading-stats/', { params: year ? { year } : {} }),
 }

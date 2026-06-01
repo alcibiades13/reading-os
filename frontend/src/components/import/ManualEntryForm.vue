@@ -1,6 +1,23 @@
 <script setup>
 import { reactive, computed } from 'vue'
 import { BookPlus, Image, PenLine } from 'lucide-vue-next'
+import IsbnScannerButton from '@/components/IsbnScannerButton.vue'
+import { useToast } from '@/composables/useToast'
+
+const { addToast } = useToast()
+
+const handleIsbnScanned = (isbn) => {
+  if (isbn.length === 13) {
+    form.isbn_13 = isbn
+  } else if (isbn.length === 10) {
+    form.isbn_10 = isbn
+  }
+  addToast(`ISBN scanned: ${isbn}`)
+}
+
+const handleScanError = (msg) => {
+  addToast(msg, 'error')
+}
 
 const emit = defineEmits(['submit'])
 
@@ -172,7 +189,10 @@ function handleSubmit() {
             <!-- ISBN row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">ISBN-13</label>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ISBN-13</label>
+                  <IsbnScannerButton @scanned="handleIsbnScanned" @error="handleScanError" />
+                </div>
                 <input
                   v-model="form.isbn_13"
                   type="text"

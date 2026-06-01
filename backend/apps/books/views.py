@@ -1,5 +1,6 @@
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from django.db.models import Q, Count, Avg
 
@@ -1604,4 +1605,191 @@ class BookViewSet(viewsets.ModelViewSet):
                 {'error': f'Failed to process CSV: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated],
+            url_path='import-storygraph', parser_classes=[MultiPartParser])
+    def import_storygraph_csv(self, request):
+        """
+        Import books from StoryGraph CSV export.
+        StoryGraph columns: Title, Author, Read Status, Star Rating, Review,
+        Review Date, Owned?, Format, Pages, Publisher, ISBN/UID, Genres, Read Dates
+        """
+        import csv
+        import io
+        from datetime import datetime
+        from apps.reading.models import UserBook
+        from django.db.models.signals import post_save
+        from apps.social import signals as social_signals
+
+        csv_file = request.FILES.get('file')
+        if not csv_file:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        post_save.disconnect(social_signals.create_userbook_feed_item, sender=UserBook)
+
+        try:
+            decoded_file = csv_file.read().decode('utf-8-sig')  # utf-8-sig handles BOM
+            csv_reader = csv.DictReader(io.StringIO(decoded_file))
+
+            imported_count = 0
+            skipped_count = 0
+            errors = []
+            created_books = []
+            updated_books = []
+
+            for row_num, row in enumerate(csv_reader, start=2):
+                try:
+                    title = row.get('Title', '').strip()
+                    if not title:
+                        skipped_count += 1
+                        continue
+
+                    # StoryGraph uses "ISBN/UID" — could be ISBN or their own ID
+                    isbn_raw = row.get('ISBN/UID', '').strip()
+                    isbn = isbn_raw if isbn_raw and isbn_raw.isdigit() and len(isbn_raw) in (10, 13) else ''
+
+                    author_name = row.get('Author', '').strip()
+
+                    # Find or create book
+                    book = None
+                    if isbn:
+                        book = Book.objects.filter(isbn=isbn).first()
+
+                    if not book and title and author_name:
+                        book = Book.objects.filter(
+                            title__iexact=title,
+                            authors__name__iexact=author_name
+                        ).first()
+                        if not book:
+                            book = Book.objects.filter(title__iexact=title).first()
+
+                    if not book:
+                        # Create new book
+                        pages_str = row.get('Pages', '').strip()
+                        num_pages = None
+                        if pages_str:
+                            try:
+                                num_pages = int(pages_str)
+                            except ValueError:
+                                pass
+
+                        book = Book.objects.create(
+                            title=title,
+                            isbn=isbn if isbn else '',
+                            num_pages=num_pages,
+                            publisher_name=row.get('Publisher', '').strip() or '',
+                            source='storygraph',
+                        )
+                        if author_name:
+                            author, _ = Author.objects.get_or_create(
+                                name=author_name, defaults={'bio': ''}
+                            )
+                            book.authors.add(author)
+                        created_books.append(book.id)
+
+                    # Map StoryGraph shelf to our status
+                    shelf = row.get('Read Status', '').strip().lower()
+                    status_mapping = {
+                        'read': 'read',
+                        'currently-reading': 'currently_reading',
+                        'to-read': 'want_to_read',
+                    }
+                    book_status = status_mapping.get(shelf, 'want_to_read')
+
+                    user_book, created = UserBook.objects.get_or_create(
+                        user=request.user, book=book, defaults={'status': book_status}
+                    )
+                    if not created:
+                        user_book.status = book_status
+                    else:
+                        updated_books.append(book.id)
+
+                    # Rating: StoryGraph uses 0.5-5.0 half-stars → convert to our 1-10 scale
+                    rating_str = row.get('Star Rating', '').strip()
+                    if rating_str:
+                        try:
+                            sg_rating = float(rating_str)
+                            if sg_rating > 0:
+                                user_book.rating = sg_rating * 2  # 5.0 → 10.0
+                        except ValueError:
+                            pass
+
+                    # Parse Read Dates ("YYYY-MM-DD to YYYY-MM-DD" or single date)
+                    read_dates_str = row.get('Read Dates', '').strip()
+                    if read_dates_str:
+                        parts = [p.strip() for p in read_dates_str.split(' to ')]
+                        try:
+                            if len(parts) == 2:
+                                user_book.started_at = datetime.strptime(parts[0], '%Y-%m-%d').date()
+                                user_book.finished_at = datetime.strptime(parts[1], '%Y-%m-%d').date()
+                            elif len(parts) == 1 and parts[0]:
+                                finished = datetime.strptime(parts[0], '%Y-%m-%d').date()
+                                if book_status == 'read':
+                                    user_book.finished_at = finished
+                        except ValueError:
+                            pass
+
+                    # Review Date as creation timestamp fallback
+                    review_date_str = row.get('Review Date', '').strip()
+                    if review_date_str:
+                        try:
+                            from django.utils import timezone
+                            rd = datetime.strptime(review_date_str, '%Y-%m-%d')
+                            user_book.created_at = timezone.make_aware(rd)
+                        except ValueError:
+                            pass
+
+                    # Review text
+                    review_text = row.get('Review', '').strip()
+                    if review_text and book_status == 'read':
+                        user_book.review = review_text
+
+                    # Owned
+                    owned_str = row.get('Owned?', '').strip().lower()
+                    if owned_str in ('true', 'yes', '1'):
+                        user_book.is_owned = True
+
+                    user_book.save()
+                    imported_count += 1
+
+                except Exception as e:
+                    errors.append({'row': row_num, 'title': row.get('Title', 'Unknown'), 'error': str(e)})
+                    skipped_count += 1
+
+            post_save.connect(social_signals.create_userbook_feed_item, sender=UserBook)
+
+            # Create feed items for most recent 10 finished books
+            from apps.social.models import FeedItem, Friendship
+            recent_finished = UserBook.objects.filter(
+                user=request.user, status='read', finished_at__isnull=False
+            ).order_by('-finished_at')[:10]
+            followers = Friendship.objects.filter(
+                to_user=request.user, status='accepted'
+            ).values_list('from_user', flat=True)
+
+            feed_items = []
+            for ub in recent_finished:
+                if not FeedItem.objects.filter(actor=request.user, content_type='UserBook',
+                                               object_id=ub.id, feed_type='book_finished').exists():
+                    preview = f'finished reading {ub.book.title}'
+                    for uid in [request.user.id] + list(followers):
+                        feed_items.append(FeedItem(
+                            user_id=uid, actor=request.user, feed_type='book_finished',
+                            content_type='UserBook', object_id=ub.id, preview_text=preview,
+                            preview_image=ub.book.cover_image if ub.book.cover_image else '',
+                        ))
+            if feed_items:
+                FeedItem.objects.bulk_create(feed_items)
+
+            return Response({
+                'success': True,
+                'imported': imported_count,
+                'skipped': skipped_count,
+                'created_books': len(created_books),
+                'errors': errors[:10]
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            post_save.connect(social_signals.create_userbook_feed_item, sender=UserBook)
+            return Response({'error': f'Failed to process CSV: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

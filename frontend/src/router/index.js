@@ -90,6 +90,12 @@ const routes = [
     meta: { requiresAuth: true, title: 'Import Books' },
   },
   {
+    path: '/search',
+    name: 'Search',
+    component: () => import('@/views/search/SearchView.vue'),
+    meta: { requiresAuth: true, title: 'Search' },
+  },
+  {
     path: '/quotes',
     name: 'Quotes',
     component: () => import('@/views/quotes/QuotesView.vue'),

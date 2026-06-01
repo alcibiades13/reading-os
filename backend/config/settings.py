@@ -28,6 +28,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # PostgreSQL specific features (full-text search, etc.)
+    'django.contrib.postgres',
+
     # Third party apps
     'rest_framework',
     'rest_framework.authtoken',
@@ -155,6 +158,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # External APIs
 HARDCOVER_API_TOKEN = config('HARDCOVER_API_TOKEN', default='')
+
+# Firebase Cloud Messaging (for push notifications)
+# Set FIREBASE_SERVER_KEY in your .env to enable push notifications.
+# Get it from Firebase Console → Project Settings → Cloud Messaging → Server key
+FIREBASE_SERVER_KEY = config('FIREBASE_SERVER_KEY', default='')
 
 
 # REST Framework configuration

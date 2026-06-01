@@ -7,6 +7,7 @@ import HeaderNav from '@/components/HeaderNav.vue'
 import GradientBackground from '@/components/GradientBackground.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
 import { useToast } from '@/composables/useToast'
+import { initPushNotifications } from '@/composables/usePushNotifications'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -19,9 +20,10 @@ const showNavigation = computed(() => {
   return authStore.isAuthenticated && !noNavRoutes.includes(route.path) && !route.meta.hideNav
 })
 
-// Initialize auth state on app mount
+// Initialize auth state and push notifications on app mount
 onMounted(() => {
   authStore.initAuth()
+  initPushNotifications()
 })
 </script>
 

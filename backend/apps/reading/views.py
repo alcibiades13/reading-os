@@ -3,9 +3,10 @@ import json
 import io
 from django.http import HttpResponse
 from rest_framework import viewsets, filters, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes as drf_permission_classes
 from rest_framework.response import Response
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Value, FloatField
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, SearchHeadline
 
 from apps.reading.models import UserBook, Quote, QuoteTag, VocabularyWord, ReadingSession
 from apps.reading.models_study import StudyNote
@@ -500,23 +501,36 @@ class QuoteViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def search_semantic(self, request):
-        """
-        Semantic search through quotes.
-        TODO: Implement with AI embeddings later
-        For now, just basic text search
-        """
+        """Full-text search through quotes using PostgreSQL FTS with ranking."""
         query = request.query_params.get('q', '')
         if not query:
             return Response(
                 {'error': 'q parameter is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        quotes = Quote.objects.filter(
-            user=request.user
-        ).filter(
-            Q(text__icontains=query) | Q(note__icontains=query)
-        ).select_related('book').prefetch_related('tags')
+
+        search_query = SearchQuery(query, search_type='websearch')
+        search_vector = SearchVector('text', weight='A') + SearchVector('note', weight='B')
+
+        quotes = (
+            Quote.objects
+            .filter(user=request.user)
+            .annotate(rank=SearchRank(search_vector, search_query))
+            .filter(rank__gt=0)
+            .order_by('-rank')
+            .select_related('book')
+            .prefetch_related('tags')
+        )
+
+        # Fallback to icontains if FTS returns nothing (short queries, special chars)
+        if not quotes.exists():
+            quotes = (
+                Quote.objects
+                .filter(user=request.user)
+                .filter(Q(text__icontains=query) | Q(note__icontains=query))
+                .select_related('book')
+                .prefetch_related('tags')
+            )
 
         serializer = QuoteListSerializer(quotes, many=True)
         return Response(serializer.data)
@@ -700,6 +714,41 @@ class StudyNoteViewSet(viewsets.ModelViewSet):
             'quote_id': quote.id
         })
 
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        """Full-text search through study notes using PostgreSQL FTS."""
+        query = request.query_params.get('q', '')
+        if not query:
+            return Response(
+                {'error': 'q parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        search_query = SearchQuery(query, search_type='websearch')
+        search_vector = SearchVector('content', weight='A') + SearchVector('reference', weight='B')
+
+        notes = (
+            StudyNote.objects
+            .filter(user=request.user)
+            .annotate(rank=SearchRank(search_vector, search_query))
+            .filter(rank__gt=0)
+            .order_by('-rank')
+            .select_related('book')
+            .prefetch_related('tags')
+        )
+
+        if not notes.exists():
+            notes = (
+                StudyNote.objects
+                .filter(user=request.user)
+                .filter(Q(content__icontains=query) | Q(reference__icontains=query))
+                .select_related('book')
+                .prefetch_related('tags')
+            )
+
+        serializer = StudyNoteListSerializer(notes, many=True)
+        return Response(serializer.data)
+
 
 class VocabularyWordViewSet(viewsets.ModelViewSet):
     """ViewSet for vocabulary words"""
@@ -835,4 +884,113 @@ class ReadingSessionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+@api_view(['GET'])
+@drf_permission_classes([permissions.IsAuthenticated])
+def unified_search(request):
+    """
+    Search across quotes, study notes, and vocabulary simultaneously.
+    Returns up to 5 results per category, sorted by relevance.
+    Query param: q (required), limit (optional, default 5 per type)
+    """
+    query = request.query_params.get('q', '').strip()
+    if not query or len(query) < 2:
+        return Response({'error': 'q must be at least 2 characters'}, status=status.HTTP_400_BAD_REQUEST)
+
+    limit = min(int(request.query_params.get('limit', 5)), 20)
+    search_query = SearchQuery(query, search_type='websearch')
+
+    # --- Quotes ---
+    quote_vector = SearchVector('text', weight='A') + SearchVector('note', weight='B')
+    quotes_qs = (
+        Quote.objects
+        .filter(user=request.user)
+        .annotate(rank=SearchRank(quote_vector, search_query))
+        .filter(rank__gt=0)
+        .order_by('-rank')
+        .select_related('book')
+        [:limit]
+    )
+    if not quotes_qs:
+        quotes_qs = (
+            Quote.objects
+            .filter(user=request.user)
+            .filter(Q(text__icontains=query) | Q(note__icontains=query))
+            .select_related('book')
+            [:limit]
+        )
+
+    # --- Study Notes ---
+    note_vector = SearchVector('content', weight='A') + SearchVector('reference', weight='B')
+    notes_qs = (
+        StudyNote.objects
+        .filter(user=request.user)
+        .annotate(rank=SearchRank(note_vector, search_query))
+        .filter(rank__gt=0)
+        .order_by('-rank')
+        .select_related('book')
+        [:limit]
+    )
+    if not notes_qs:
+        notes_qs = (
+            StudyNote.objects
+            .filter(user=request.user)
+            .filter(Q(content__icontains=query) | Q(reference__icontains=query))
+            .select_related('book')
+            [:limit]
+        )
+
+    # --- Vocabulary ---
+    vocab_qs = (
+        VocabularyWord.objects
+        .filter(user=request.user)
+        .filter(Q(word__icontains=query) | Q(definition__icontains=query) | Q(context__icontains=query))
+        .select_related('book')
+        [:limit]
+    )
+
+    def quote_to_dict(q):
+        return {
+            'id': q.id,
+            'type': 'quote',
+            'text': q.text[:200],
+            'note': q.note[:100] if q.note else None,
+            'book_title': q.book_title or (q.book.title if q.book else None),
+            'book_id': q.book_id,
+            'page_number': q.page_number,
+            'chapter': q.chapter,
+            'is_favorite': q.is_favorite,
+        }
+
+    def note_to_dict(n):
+        return {
+            'id': n.id,
+            'type': 'study_note',
+            'text': n.content[:200],
+            'reference': n.reference,
+            'book_title': n.book.title if n.book else None,
+            'book_id': n.book_id,
+            'note_type': n.note_type,
+            'chapter': n.chapter,
+        }
+
+    def vocab_to_dict(v):
+        return {
+            'id': v.id,
+            'type': 'vocabulary',
+            'text': v.word,
+            'definition': v.definition[:150] if v.definition else None,
+            'book_title': v.book_title or (v.book.title if v.book else None),
+            'book_id': v.book_id,
+            'mastery': v.mastery,
+        }
+
+    return Response({
+        'query': query,
+        'quotes': [quote_to_dict(q) for q in quotes_qs],
+        'study_notes': [note_to_dict(n) for n in notes_qs],
+        'vocabulary': [vocab_to_dict(v) for v in vocab_qs],
+        'total': len(list(quotes_qs)) + len(list(notes_qs)) + len(list(vocab_qs)),
+    })
 

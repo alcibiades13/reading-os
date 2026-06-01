@@ -11,6 +11,9 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorHttp: {
       enabled: true
+    },
+    BarcodeScanner: {
+      // Uses Google ML Kit — no extra config needed beyond camera permission
     }
   }
 };

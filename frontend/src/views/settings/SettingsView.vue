@@ -28,6 +28,8 @@ import {
   MapPin,
   Globe,
   Calendar,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
@@ -38,6 +40,11 @@ const saving = ref(false)
 const exportingData = ref(false)
 const avatarFile = ref(null)
 const avatarPreview = ref(null)
+
+const showDeleteDialog = ref(false)
+const deletePassword = ref('')
+const deletingAccount = ref(false)
+const deleteError = ref('')
 
 // Profile form
 const profileForm = ref({
@@ -166,6 +173,22 @@ const handleExportData = async () => {
     addToast('Export failed', 'error')
   } finally {
     exportingData.value = false
+  }
+}
+
+const handleDeleteAccount = async () => {
+  if (!deletePassword.value) {
+    deleteError.value = 'Password is required.'
+    return
+  }
+  deletingAccount.value = true
+  deleteError.value = ''
+  try {
+    await usersAPI.deleteAccount(deletePassword.value)
+    authStore.logout()
+  } catch (e) {
+    deleteError.value = e?.response?.data?.error || 'Incorrect password or error occurred.'
+    deletingAccount.value = false
   }
 }
 </script>
@@ -492,6 +515,77 @@ const handleExportData = async () => {
           {{ saving ? 'Saving...' : 'Save Settings' }}
         </button>
       </div>
+
+      <!-- ===== DANGER ZONE ===== -->
+      <section class="rounded-2xl border border-red-500/20 bg-red-500/5 p-5 sm:p-6">
+        <div class="flex items-center gap-2.5 mb-4">
+          <AlertTriangle :size="16" class="text-red-400" />
+          <h2 class="text-sm font-bold text-red-400 uppercase tracking-wider">Danger Zone</h2>
+        </div>
+
+        <div v-if="!showDeleteDialog" class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-white">Delete account</p>
+            <p class="text-xs text-slate-500">Permanently delete your account and all data. This cannot be undone.</p>
+          </div>
+          <button
+            @click="showDeleteDialog = true"
+            class="px-4 py-2 rounded-xl border border-red-500/40 text-xs font-bold text-red-400 hover:border-red-500 hover:bg-red-500/10 transition-all flex items-center gap-1.5"
+          >
+            <Trash2 :size="14" />
+            Delete
+          </button>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div class="flex items-start gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+            <AlertTriangle :size="16" class="text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p class="text-sm font-bold text-red-300">This will permanently delete your account</p>
+              <p class="text-xs text-red-400/80 mt-0.5">All your books, quotes, notes, and vocabulary will be lost. We recommend exporting your data first.</p>
+            </div>
+          </div>
+
+          <button
+            @click="handleExportData"
+            :disabled="exportingData"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 hover:border-slate-500 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            <Loader2 v-if="exportingData" :size="14" class="animate-spin" />
+            <Download v-else :size="14" />
+            {{ exportingData ? 'Exporting...' : 'Export my data first (recommended)' }}
+          </button>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Confirm with your password</label>
+            <input
+              v-model="deletePassword"
+              type="password"
+              placeholder="Your password"
+              class="w-full bg-slate-800/80 border border-slate-700/60 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500/50 transition-all"
+            />
+            <p v-if="deleteError" class="text-xs text-red-400 mt-1.5">{{ deleteError }}</p>
+          </div>
+
+          <div class="flex gap-2">
+            <button
+              @click="showDeleteDialog = false; deletePassword = ''; deleteError = ''"
+              class="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-400 hover:text-white hover:border-slate-500 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              @click="handleDeleteAccount"
+              :disabled="deletingAccount"
+              class="flex-1 px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/40 text-xs font-bold text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              <Loader2 v-if="deletingAccount" :size="14" class="animate-spin" />
+              <Trash2 v-else :size="14" />
+              {{ deletingAccount ? 'Deleting...' : 'Delete my account' }}
+            </button>
+          </div>
+        </div>
+      </section>
 
     </div>
   </div>

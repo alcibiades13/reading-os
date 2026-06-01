@@ -10,7 +10,7 @@ from apps.social.models import (
     Notification, Conversation, Message, DiscussionTopic, TopicMessage,
     TopicMessageLike, BookClubReading, ReviewLike, ReviewComment,
     MessageReaction, TopicReadStatus, Poll, PollOption, PollVote,
-    CircleEvent,
+    CircleEvent, DevicePushToken,
 )
 from apps.social.serializers import (
     FriendshipSerializer, FriendshipCreateSerializer,
@@ -1370,6 +1370,34 @@ class ReviewCommentViewSet(viewsets.ModelViewSet):
             ReviewCommentSerializer(comment).data,
             status=status.HTTP_201_CREATED
         )
+
+
+class DevicePushTokenViewSet(viewsets.ViewSet):
+    """
+    Register / unregister FCM device tokens for push notifications.
+    POST /api/social/push-tokens/register/   { token, platform }
+    POST /api/social/push-tokens/unregister/ { token }
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        token = request.data.get('token', '').strip()
+        platform = request.data.get('platform', 'android')
+        if not token:
+            return Response({'error': 'token is required'}, status=status.HTTP_400_BAD_REQUEST)
+        DevicePushToken.objects.update_or_create(
+            token=token,
+            defaults={'user': request.user, 'platform': platform}
+        )
+        return Response({'status': 'registered'})
+
+    @action(detail=False, methods=['post'])
+    def unregister(self, request):
+        token = request.data.get('token', '').strip()
+        if token:
+            DevicePushToken.objects.filter(token=token).delete()
+        return Response({'status': 'unregistered'})
 
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()
