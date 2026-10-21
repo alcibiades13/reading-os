@@ -604,11 +604,11 @@ onMounted(async () => {
 
 <style>
 .review-display {
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
 }
 
 .review-display * {
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
 }
 
 .review-display p {

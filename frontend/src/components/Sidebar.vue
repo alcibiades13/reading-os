@@ -30,7 +30,8 @@ import {
   PenTool,
   Cpu,
   Database,
-  BarChart3
+  BarChart3,
+  Tablet
 } from 'lucide-vue-next'
 import { getTier } from '@/config/tiers'
 import SidebarItem from './sidebar/SidebarItem.vue'
@@ -245,6 +246,13 @@ const handleStudyModeClick = async () => {
             @click="router.push('/import')"
             :icon="Download"
             label="Import"
+            :collapsed="isCollapsed && !isMobileOpen"
+          />
+          <SidebarItem
+            :active="isActive('/ebooks')"
+            @click="router.push('/ebooks')"
+            label="E-books"
+            :icon="Tablet"
             :collapsed="isCollapsed && !isMobileOpen"
           />
           <SidebarItem

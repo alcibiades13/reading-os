@@ -75,7 +75,7 @@ onMounted(async () => {
       <!-- Active Chapter Content -->
       <div v-if="activeChapter" class="prose-reader">
         <h2 class="text-2xl font-black text-white mb-8">{{ activeChapter.title }}</h2>
-        <div class="text-base text-zinc-300 leading-[1.9] whitespace-pre-wrap font-serif">{{ activeChapter.content }}</div>
+        <div class="text-reading text-zinc-300 leading-[1.9] whitespace-pre-wrap font-serif">{{ activeChapter.content }}</div>
       </div>
 
       <!-- Chapter Navigation -->

@@ -15,7 +15,7 @@ import SimilarBooksList from '@/components/books/SimilarBooksList.vue'
 import BookDNACard from '@/components/books/BookDNACard.vue'
 import BookEditionsList from '@/components/books/BookEditionsList.vue'
 import { recommendationsService } from '@/services/recommendationsService'
-import { booksAPI, userBooksAPI } from '@/services/api'
+import { booksAPI, userBooksAPI, ebooksAPI } from '@/services/api'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import { getAuthorUrl } from '@/utils/authorUrl'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select'
 import {
   ArrowLeft, ArrowRight, BookOpen, Calendar, Globe, Hash, Building2,
-  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2, X, MoreHorizontal, ChevronDown, Home, Gift
+  Heart, Share2, Plus, Users, Sparkles, Bookmark, SquarePen, Eye, CheckCircle, Edit3, Copy, Brain, AlignLeft, Lock, Star, Dna, Search, Loader2, X, MoreHorizontal, ChevronDown, Home, Gift, Tablet
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -368,6 +368,20 @@ const handleSurveySubmitted = async () => {
   // Refresh existing vote data for future updates
   existingVote.value = await recommendationsService.getVoteForBook(bookId.value)
 }
+
+// The user's own e-book files linked to this book ("Read e-book" shortcut)
+const linkedEbooks = ref([])
+const loadLinkedEbooks = async (id) => {
+  linkedEbooks.value = []
+  if (!authStore.isAuthenticated || !id) return
+  try {
+    const { data } = await ebooksAPI.list({ book: id })
+    linkedEbooks.value = data?.results || data || []
+  } catch {
+    // optional feature
+  }
+}
+watch(bookId, loadLinkedEbooks, { immediate: true })
 
 // Reset cover loaded state when bookId or coverUrl changes
 watch(bookId, async (newId, oldId) => {
@@ -1217,7 +1231,7 @@ export const QuoteCard = defineComponent({
         <!-- Description -->
         <section class="space-y-4">
           <h2 class="text-sm font-bold text-zinc-500 uppercase tracking-[0.2em]">About the Book</h2>
-          <div :class="['text-zinc-300 text-sm lg:text-base leading-relaxed space-y-4 relative', !showFullDesc ? 'max-h-48 overflow-hidden' : '']">
+          <div :class="['text-zinc-300 text-reading-sm lg:text-reading leading-relaxed space-y-4 relative', !showFullDesc ? 'max-h-48 overflow-hidden' : '']">
             <div v-html="descriptionHtml" />
             <div v-if="!showFullDesc && descriptionHtml.length > 300" class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-zinc-950 to-transparent" />
           </div>
@@ -1286,6 +1300,20 @@ export const QuoteCard = defineComponent({
               <span :class="['px-2 py-1 rounded-lg text-[10px] font-bold border', getStatusBadgeClass(currentStatus)]">
                 {{ getStatusLabel(currentStatus) }}
               </span>
+            </div>
+
+            <!-- Read the user's own e-book of this title -->
+            <div v-if="linkedEbooks.length" class="pt-4 flex flex-wrap gap-2">
+              <router-link
+                v-for="ebook in linkedEbooks"
+                :key="ebook.id"
+                :to="`/ebooks/${ebook.id}/read`"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-500 text-white text-xs font-bold hover:bg-indigo-400 transition-all shadow-lg shadow-indigo-500/20"
+              >
+                <Tablet :size="14" />
+                {{ ebook.progress > 0 ? 'Continue e-book' : 'Read e-book' }}
+                <span class="opacity-70 font-semibold uppercase">· {{ ebook.format }}<template v-if="ebook.progress > 0"> · {{ Math.round(ebook.progress * 100) }}%</template></span>
+              </router-link>
             </div>
 
             <!-- Content for In-Library books -->

@@ -3,7 +3,11 @@ import { createPinia } from 'pinia'
 import { App as CapApp } from '@capacitor/app'
 import router from './router'
 import App from './App.vue'
+import { applyReadingScale } from './stores/themeStore'
 import './assets/index.css'
+
+// Apply saved reading text size before first render
+applyReadingScale()
 
 const app = createApp(App)
 const pinia = createPinia()

@@ -48,6 +48,7 @@ urlpatterns = [
     path('api/codex/', include('apps.codex.urls')),
     path('api/admin-console/', include('apps.admin_api.urls')),
     path('api/contributions/', include('apps.contributions.urls')),
+    path('api/ebooks/', include('apps.ebooks.urls')),
 ]
 
 # Serve media files in development

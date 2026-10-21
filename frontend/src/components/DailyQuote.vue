@@ -40,7 +40,7 @@ const displayText = computed(() => {
         <div :class="compact ? 'mb-2' : 'mb-5'">
           <p
             class="font-serif italic text-zinc-200 leading-relaxed"
-            :class="compact ? 'text-sm' : 'text-quote'"
+            :class="compact ? 'text-reading-sm' : 'text-quote'"
           >
             "{{ displayText }}"
           </p>

@@ -58,7 +58,7 @@
       <div
         @mouseup="handleTextSelection"
         @click="handleClickOnContent"
-        class="font-serif text-sm lg:text-lg text-zinc-200 leading-relaxed mb-4 lg:mb-6 whitespace-pre-wrap select-text"
+        class="font-serif text-reading-sm lg:text-reading-lg text-zinc-200 leading-relaxed mb-4 lg:mb-6 whitespace-pre-wrap select-text"
         v-html="contentWithHighlights"
       />
 

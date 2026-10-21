@@ -55,7 +55,7 @@ const formatDateTime = (timestamp) => {
       </h3>
 
       <!-- Message Content -->
-      <p class="text-sm text-zinc-200 leading-relaxed mb-3 selection:bg-indigo-500/30">
+      <p class="text-reading-sm text-zinc-200 leading-relaxed mb-3 selection:bg-indigo-500/30">
         {{ message.content }}
       </p>
 

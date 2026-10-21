@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import {
   Library,
   Quote,
@@ -34,6 +35,7 @@ import {
 } from 'lucide-vue-next'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // Scroll-based reveal
 const revealedSections = ref(new Set())
@@ -128,7 +130,15 @@ const currentTab = computed(() => tabContent[activeTab.value])
           </div>
           <span class="font-black text-lg tracking-tight">Marginalia</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div v-if="authStore.isAuthenticated" class="flex items-center gap-2">
+          <button
+            @click="router.push('/library')"
+            class="px-5 py-2 text-sm font-semibold bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30"
+          >
+            Open Library
+          </button>
+        </div>
+        <div v-else class="flex items-center gap-2">
           <button
             @click="router.push('/login')"
             class="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
@@ -177,10 +187,10 @@ const currentTab = computed(() => tabContent[activeTab.value])
 
           <div class="flex flex-wrap items-center gap-3 mb-10">
             <button
-              @click="router.push('/register')"
+              @click="router.push(authStore.isAuthenticated ? '/library' : '/register')"
               class="group px-7 py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-semibold rounded-lg transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 flex items-center gap-2 text-sm"
             >
-              Start for free
+              {{ authStore.isAuthenticated ? 'Go to your library' : 'Start for free' }}
               <ArrowRight :size="15" class="group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button
@@ -848,13 +858,14 @@ const currentTab = computed(() => tabContent[activeTab.value])
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
-            @click="router.push('/register')"
+            @click="router.push(authStore.isAuthenticated ? '/library' : '/register')"
             class="group px-8 py-3.5 bg-indigo-500 hover:bg-indigo-400 text-white font-semibold rounded-lg transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 flex items-center gap-2"
           >
-            Get Started — it's free
+            {{ authStore.isAuthenticated ? 'Go to your library' : "Get Started — it's free" }}
             <ArrowRight :size="16" class="group-hover:translate-x-0.5 transition-transform" />
           </button>
           <button
+            v-if="!authStore.isAuthenticated"
             @click="router.push('/login')"
             class="px-8 py-3.5 text-zinc-400 hover:text-white font-medium rounded-lg border border-zinc-700 hover:border-zinc-500 transition-all"
           >
@@ -876,8 +887,11 @@ const currentTab = computed(() => tabContent[activeTab.value])
         </div>
         <p class="text-zinc-600 text-[11px]">A place where your reading lives.</p>
         <div class="flex items-center gap-4 text-xs text-zinc-500">
-          <button @click="router.push('/login')" class="hover:text-zinc-300 transition-colors">Sign in</button>
-          <button @click="router.push('/register')" class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Get started</button>
+          <button v-if="authStore.isAuthenticated" @click="router.push('/library')" class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Open Library</button>
+          <template v-else>
+            <button @click="router.push('/login')" class="hover:text-zinc-300 transition-colors">Sign in</button>
+            <button @click="router.push('/register')" class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Get started</button>
+          </template>
         </div>
       </div>
     </footer>
@@ -887,8 +901,8 @@ const currentTab = computed(() => tabContent[activeTab.value])
 <style scoped>
 .landing-page {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background-color: #0f172a !important;
-  color: #f8fafc !important;
+  background-color: #18181b !important;
+  color: #fafafa !important;
 }
 
 /* Tab content enter animation */

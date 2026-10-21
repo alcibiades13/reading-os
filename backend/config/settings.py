@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.codex',
     'apps.admin_api',
     'apps.contributions',
+    'apps.ebooks',
 ]
 
 MIDDLEWARE = [
@@ -147,6 +148,33 @@ STORAGES = {
 # Media files (User uploads)
 MEDIA_URL = config('MEDIA_URL', default='/media/')
 MEDIA_ROOT = BASE_DIR / config('MEDIA_ROOT', default='media')
+
+# E-books (private user uploads - never served from MEDIA_URL)
+# Dev: local disk outside MEDIA_ROOT. Production: set EBOOK_S3_BUCKET (S3 or Cloudflare R2).
+PRIVATE_MEDIA_ROOT = BASE_DIR / config('PRIVATE_MEDIA_ROOT', default='private_media')
+EBOOK_MAX_UPLOAD_MB = config('EBOOK_MAX_UPLOAD_MB', default=100, cast=int)
+EBOOK_USER_QUOTA_MB = config('EBOOK_USER_QUOTA_MB', default=2048, cast=int)
+EBOOK_S3_BUCKET = config('EBOOK_S3_BUCKET', default='')
+
+if EBOOK_S3_BUCKET:
+    STORAGES["ebooks"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": EBOOK_S3_BUCKET,
+            "endpoint_url": config('EBOOK_S3_ENDPOINT_URL', default='') or None,  # R2: https://<account>.r2.cloudflarestorage.com
+            "access_key": config('EBOOK_S3_ACCESS_KEY_ID', default=''),
+            "secret_key": config('EBOOK_S3_SECRET_ACCESS_KEY', default=''),
+            "region_name": config('EBOOK_S3_REGION', default='auto'),
+            "default_acl": "private",
+            "querystring_auth": True,
+            "file_overwrite": False,
+        },
+    }
+else:
+    STORAGES["ebooks"] = {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {"location": PRIVATE_MEDIA_ROOT},
+    }
 
 # File upload limits
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB

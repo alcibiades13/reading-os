@@ -928,7 +928,7 @@ const handleEditQuote = async () => {
     </div>
 
     <!-- Book Filter Banner -->
-    <div v-if="quotesStore.filters.book" class="max-w-7xl mx-auto px-6 mb-6">
+    <div v-if="quotesStore.filters.book" class="max-w-7xl mx-auto px-4 lg:px-6 mt-4 lg:mt-0 mb-6">
       <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
         <div class="flex items-center gap-2 text-sm">
           <BookOpen :size="16" class="text-sky-400" />
@@ -946,7 +946,7 @@ const handleEditQuote = async () => {
     </div>
 
     <!-- Main Content Area -->
-    <div class="max-w-7xl mx-auto px-6">
+    <div class="max-w-7xl mx-auto px-4 lg:px-6 pt-5 lg:pt-0">
       <!-- Loading State -->
       <div v-if="quotesStore.loading" class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div v-for="i in 6" :key="i" class="space-y-3">
@@ -977,12 +977,12 @@ const handleEditQuote = async () => {
         <div
           v-for="quote in displayedQuotes"
           :key="quote.id"
-          class="group relative glass bg-zinc-900/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-zinc-800/50 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/5"
+          class="group relative glass bg-zinc-900/40 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-zinc-800/50 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/5"
         >
           <!-- Quote Mark -->
           <div class="absolute -top-4 -left-2 text-7xl text-indigo-500/10 font-serif pointer-events-none select-none">"</div>
 
-          <div class="relative space-y-6">
+          <div class="relative space-y-5 sm:space-y-6">
             <!-- Quote Content -->
             <p class="text-quote font-medium text-zinc-100 leading-relaxed italic font-serif whitespace-pre-wrap">
               {{ quote.text }}
@@ -1058,7 +1058,7 @@ const handleEditQuote = async () => {
               </button>
               <p
                 v-if="expandedNotes.has(quote.id)"
-                class="mt-3 p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 text-zinc-400 text-sm leading-relaxed animate-in slide-in-from-top-2"
+                class="mt-3 p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 text-zinc-400 text-reading-sm leading-relaxed animate-in slide-in-from-top-2"
               >
                 {{ quote.note }}
               </p>

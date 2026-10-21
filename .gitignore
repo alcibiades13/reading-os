@@ -21,6 +21,7 @@ db.sqlite3
 db.sqlite3-journal
 /backend/staticfiles/
 /backend/media/
+/backend/private_media/
 *.pot
 
 # Environment variables
@@ -80,3 +81,4 @@ frontend/lumina-library/
 
 # Claude Code local settings
 .claude/settings.local.json
+/reading-os-export/

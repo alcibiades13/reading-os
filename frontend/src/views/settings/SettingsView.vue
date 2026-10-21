@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
-import { useThemeStore } from '@/stores/themeStore'
+import { useThemeStore, READING_SCALES } from '@/stores/themeStore'
 import { useToast } from '@/composables/useToast'
 import { usersAPI } from '@/services/api'
 import { downloadBlob } from '@/utils/downloadFile'
@@ -345,6 +345,29 @@ const handleDeleteAccount = async () => {
               <Sun :size="13" /> Light
             </button>
           </div>
+        </div>
+
+        <div class="mt-5 pt-5 border-t border-zinc-800/50">
+          <div class="mb-3">
+            <p class="text-sm font-semibold text-white">Reading text size</p>
+            <p class="text-xs text-zinc-500 mt-0.5">Quotes, notes, reviews, codex, letters and vocabulary. Saved on this device.</p>
+          </div>
+          <div class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+            <button
+              v-for="(scale, i) in READING_SCALES"
+              :key="scale.id"
+              @click="themeStore.setReadingScale(scale.id)"
+              :class="themeStore.readingScale === scale.id ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-300'"
+              class="py-2 rounded-lg font-bold flex flex-col items-center gap-0.5 transition-all"
+              :title="scale.label"
+            >
+              <span :style="{ fontSize: `${13 + i * 3}px` }" class="leading-none font-serif">Aa</span>
+              <span class="text-[10px] font-semibold opacity-80">{{ scale.label }}</span>
+            </button>
+          </div>
+          <p class="mt-4 p-4 rounded-xl bg-zinc-950/40 border border-zinc-800/50 font-serif italic text-quote text-zinc-200 leading-relaxed">
+            "A reader lives a thousand lives before he dies. The man who never reads lives only one."
+          </p>
         </div>
       </section>
 

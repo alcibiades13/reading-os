@@ -837,11 +837,11 @@ const ToolbarButton = defineComponent({
 
 .editor-surface {
   outline: none;
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
 }
 
 .editor-surface * {
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
 }
 
 .editor-surface:focus {
@@ -849,7 +849,7 @@ const ToolbarButton = defineComponent({
 }
 
 .editor-surface p {
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
   margin: 0.5em 0;
 }
 
@@ -876,7 +876,7 @@ const ToolbarButton = defineComponent({
   color: rgb(226 232 240);
   background: rgba(99, 102, 241, 0.05);
   border-radius: 0 8px 8px 0;
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
   font-family: 'Georgia', 'Garamond', 'Times New Roman', serif;
   position: relative;
   transition: all 0.2s;
@@ -934,12 +934,12 @@ body.light .editor-surface blockquote {
 }
 
 .editor-surface li {
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
 }
 
 .editor-surface a {
   color: rgb(99 102 241);
   text-decoration: underline;
-  font-size: 16px !important;
+  font-size: calc(16px * var(--reading-scale, 1)) !important;
 }
 </style>

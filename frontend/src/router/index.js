@@ -8,7 +8,7 @@ const routes = [
     path: '/',
     name: 'Landing',
     component: () => import('@/views/LandingView.vue'),
-    meta: { requiresAuth: false, hideForAuth: true, title: 'Marginalia — A place where your reading lives' },
+    meta: { requiresAuth: false, title: 'Marginalia — A place where your reading lives' },
   },
   {
     path: '/home',
@@ -100,6 +100,18 @@ const routes = [
     name: 'Quotes',
     component: () => import('@/views/quotes/QuotesView.vue'),
     meta: { requiresAuth: true, title: 'Quotes' },
+  },
+  {
+    path: '/ebooks',
+    name: 'EBooks',
+    component: () => import('@/views/ebooks/EBooksView.vue'),
+    meta: { requiresAuth: true, title: 'E-books' },
+  },
+  {
+    path: '/ebooks/:id/read',
+    name: 'EBookReader',
+    component: () => import('@/views/ebooks/EBookReaderView.vue'),
+    meta: { requiresAuth: true, hideNav: true, title: 'Reading' },
   },
   {
     path: '/vocabulary',

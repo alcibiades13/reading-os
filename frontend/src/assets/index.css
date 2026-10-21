@@ -1009,17 +1009,39 @@
 }
 
 @layer utilities {
-  /* Quote text size */
+  /* Quote text size - scaled by --reading-scale (future user font-size setting) */
   .text-quote {
-    font-size: 0.875rem; /* 14px */
-    line-height: 1.5rem; /* 24px */
+    font-size: calc(1.0625rem * var(--reading-scale, 1)); /* 17px */
+    line-height: 1.6;
   }
 
   @media (min-width: 768px) {
     .text-quote {
-      font-size: 1rem; /* 16px */
-      line-height: 1.75rem; /* 28px */
+      font-size: calc(1.125rem * var(--reading-scale, 1)); /* 18px */
+      line-height: 1.65;
     }
+  }
+
+  /*
+    Reading content sizes - long-form user content (quotes, notes, reviews,
+    codex, letters, book descriptions, vocabulary). Scaled by --reading-scale, which is
+    set on <html> from the user's "Reading text size" setting (themeStore).
+    UI chrome (nav, buttons, labels, metadata) intentionally does NOT scale.
+  */
+  .text-reading-xs {
+    font-size: calc(0.75rem * var(--reading-scale, 1)); /* 12px */
+  }
+  .text-reading-sm {
+    font-size: calc(0.875rem * var(--reading-scale, 1)); /* 14px */
+  }
+  .text-reading {
+    font-size: calc(1rem * var(--reading-scale, 1)); /* 16px */
+  }
+  .text-reading-lg {
+    font-size: calc(1.125rem * var(--reading-scale, 1)); /* 18px */
+  }
+  .text-reading-xl {
+    font-size: calc(1.25rem * var(--reading-scale, 1)); /* 20px */
   }
 
   /* Subtitle/description text size */
@@ -1076,7 +1098,7 @@
 
   /* Codex editor - force correct text color */
   .codex-editor {
-    color: #cbd5e1; /* zinc-300 */
+    color: #d4d4d8; /* zinc-300 */
   }
 
   .codex-editor * {
@@ -1084,7 +1106,7 @@
   }
 
   body.light .codex-editor {
-    color: #1e293b; /* zinc-800 */
+    color: #27272a; /* zinc-800 */
   }
 
   /* Codex toolbar - light mode */
@@ -1098,7 +1120,7 @@
   }
 
   body.light .codex-toolbar button:hover {
-    color: #1e293b; /* zinc-800 */
+    color: #27272a; /* zinc-800 */
     background-color: rgba(0, 0, 0, 0.06);
   }
 

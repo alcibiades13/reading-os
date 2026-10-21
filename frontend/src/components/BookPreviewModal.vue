@@ -300,7 +300,7 @@ const truncatedDescription = computed(() => {
               </div>
             </div>
             <div v-else class="hidden md:block">
-              <h1 class="text-2xl md:text-3xl font-bold text-white light:text-zinc-900 leading-tight">{{ editableData.title }}</h1>
+              <h1 class="text-2xl md:text-3xl font-bold text-white light:text-zinc-900 leading-tight md:pr-44">{{ editableData.title }}</h1>
               <p v-if="editableData.authors" class="text-lg text-indigo-400/80 light:text-indigo-600 mt-2 font-medium">
                 {{ editableData.authors }}
               </p>

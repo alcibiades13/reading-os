@@ -994,7 +994,7 @@ onUnmounted(() => {
                 contenteditable="true"
                 @input="handleJournalInput"
                 @keydown="handleEditorKeydown"
-                class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-xl font-serif italic text-zinc-300 leading-relaxed min-h-[60vh] focus:outline-none"
+                class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-reading-xl font-serif italic text-zinc-300 leading-relaxed min-h-[60vh] focus:outline-none"
                 data-placeholder="Breathe and let your thoughts flow onto the digital parchment..."
               />
             </div>
@@ -1028,7 +1028,7 @@ onUnmounted(() => {
                 contenteditable="true"
                 @input="handleManuscriptInput"
                 @keydown="handleEditorKeydown"
-                class="codex-editor w-full bg-transparent border-none outline-none text-xl text-zinc-300 leading-[1.9] min-h-[60vh] focus:outline-none font-serif"
+                class="codex-editor w-full bg-transparent border-none outline-none text-reading-xl text-zinc-300 leading-[1.9] min-h-[60vh] focus:outline-none font-serif"
                 data-placeholder="Continue the legacy..."
               />
             </div>
@@ -1317,7 +1317,7 @@ onUnmounted(() => {
             contenteditable="true"
             @input="handleJournalInput"
             @keydown="handleEditorKeydown"
-            class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-base font-serif italic text-zinc-300 leading-relaxed min-h-[60vh] focus:outline-none"
+            class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-reading font-serif italic text-zinc-300 leading-relaxed min-h-[60vh] focus:outline-none"
             data-placeholder="Breathe and let your thoughts flow onto the digital parchment..."
           />
         </div>
@@ -1422,7 +1422,7 @@ onUnmounted(() => {
             contenteditable="true"
             @input="handleManuscriptInput"
             @keydown="handleEditorKeydown"
-            class="codex-editor w-full bg-transparent border-none outline-none text-base text-zinc-300 leading-loose min-h-[60vh] focus:outline-none font-serif"
+            class="codex-editor w-full bg-transparent border-none outline-none text-reading text-zinc-300 leading-loose min-h-[60vh] focus:outline-none font-serif"
             data-placeholder="Continue the legacy..."
           />
         </div>

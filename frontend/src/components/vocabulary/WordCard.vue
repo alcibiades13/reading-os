@@ -56,7 +56,7 @@ const returnToLearning = () => {
       </div>
     </div>
 
-    <p class="text-sm text-zinc-400 italic mb-4 line-clamp-[8]">
+    <p class="text-reading-sm text-zinc-400 italic mb-4 line-clamp-[8]">
       "{{ word.context || "No context provided." }}"
     </p>
 

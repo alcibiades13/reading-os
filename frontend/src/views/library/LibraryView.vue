@@ -580,16 +580,6 @@ const handleSaveChallenge = async (challengeData) => {
           :to="getBookUrl(expedition.book)"
           class="shrink-0 w-[280px] relative p-3 rounded-xl glass border-zinc-800 active:scale-[0.98] transition-transform"
         >
-          <!-- Badge -->
-          <div class="absolute top-2 right-2 z-10">
-            <span
-              :class="expedition.isLastRead ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'"
-              class="px-1.5 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-wider"
-            >
-              {{ expedition.isLastRead ? 'Last Read' : 'Reading' }}
-            </span>
-          </div>
-
           <div class="flex gap-3">
             <div class="shrink-0 w-12 h-[72px] rounded-lg overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 shadow-lg flex items-center justify-center">
               <img
@@ -602,9 +592,17 @@ const handleSaveChallenge = async (challengeData) => {
               <BookOpen v-else :size="18" class="text-zinc-600" />
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="font-bold text-white text-sm mb-0.5 line-clamp-1">
-                {{ expedition.book?.title }}
-              </h3>
+              <div class="flex items-start gap-2 mb-0.5">
+                <h3 class="flex-1 min-w-0 font-bold text-white text-sm truncate">
+                  {{ expedition.book?.title }}
+                </h3>
+                <span
+                  :class="expedition.isLastRead ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'"
+                  class="shrink-0 mt-0.5 px-1.5 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-wider"
+                >
+                  {{ expedition.isLastRead ? 'Last Read' : 'Reading' }}
+                </span>
+              </div>
               <p class="text-zinc-500 text-[10px] mb-2 line-clamp-1">
                 {{ expedition.book?.authors?.map(a => a.name).join(', ') }}
               </p>
@@ -655,22 +653,6 @@ const handleSaveChallenge = async (challengeData) => {
           :to="getBookUrl(expedition.book)"
           class="group relative p-5 rounded-2xl glass border-zinc-800 hover:border-indigo-500/30 transition-all duration-300 cursor-pointer overflow-hidden"
         >
-          <!-- Badge: Currently Reading or Last Read -->
-          <div class="absolute top-3 right-3 z-10">
-            <span
-              v-if="expedition.isLastRead"
-              class="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider"
-            >
-              Last Read
-            </span>
-            <span
-              v-else
-              class="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-[9px] font-black uppercase tracking-wider"
-            >
-              Reading
-            </span>
-          </div>
-
           <div class="flex gap-4">
             <div class="shrink-0 w-16 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 shadow-lg flex items-center justify-center">
               <img
@@ -683,9 +665,17 @@ const handleSaveChallenge = async (challengeData) => {
               <BookOpen v-if="!getCoverUrl(expedition.book)" :size="24" class="text-zinc-600" />
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="font-bold text-white text-sm mb-1 line-clamp-2 group-hover:text-indigo-400 transition-colors">
-                {{ expedition.book?.title }}
-              </h3>
+              <div class="flex items-start gap-2 mb-1">
+                <h3 class="flex-1 min-w-0 font-bold text-white text-sm line-clamp-2 group-hover:text-indigo-400 transition-colors">
+                  {{ expedition.book?.title }}
+                </h3>
+                <span
+                  :class="expedition.isLastRead ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'"
+                  class="shrink-0 px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider"
+                >
+                  {{ expedition.isLastRead ? 'Last Read' : 'Reading' }}
+                </span>
+              </div>
               <p class="text-zinc-500 text-[11px] mb-3 line-clamp-1">
                 {{ expedition.book?.authors?.map(a => a.name).join(', ') }}
               </p>

@@ -346,6 +346,32 @@ export const adminAPI = {
   deleteBook: (bookId, transferTo) => api.delete(`/admin-console/delete-book/${bookId}/`, { params: transferTo ? { transfer_to: transferTo } : {} }),
 }
 
+export const ebooksAPI = {
+  list: (params) => api.get('/ebooks/', { params }),
+  get: (id) => api.get(`/ebooks/${id}/`),
+  upload: (formData, onUploadProgress) =>
+    api.post('/ebooks/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress,
+      timeout: 0,
+    }),
+  update: (id, data) => api.patch(`/ebooks/${id}/`, data),
+  delete: (id) => api.delete(`/ebooks/${id}/`),
+  file: (id, onDownloadProgress) =>
+    api.get(`/ebooks/${id}/file/`, { responseType: 'arraybuffer', onDownloadProgress, timeout: 0 }),
+  cover: (id) => api.get(`/ebooks/${id}/cover/`, { responseType: 'blob' }),
+  usage: () => api.get('/ebooks/usage/'),
+  // Progress tracking (phase 2)
+  setTracking: (id, data) => api.post(`/ebooks/${id}/tracking/`, data),
+  finish: (id) => api.post(`/ebooks/${id}/finish/`),
+  linkCatalog: (id) => api.post(`/ebooks/${id}/link-catalog/`),
+  // Public-domain catalog (Project Gutenberg)
+  publicDomainSearch: (params) => api.get('/ebooks/public-domain/search/', { params, timeout: 30000 }),
+  publicDomainImport: (gutenbergId) =>
+    api.post('/ebooks/public-domain/import/', { gutenberg_id: gutenbergId }, { timeout: 120000 }),
+  logSession: (id, data) => api.post(`/ebooks/${id}/session/`, data),
+}
+
 export const contributionsAPI = {
   myReputation: () => api.get('/contributions/my-reputation/'),
   myBadges: () => api.get('/contributions/my-badges/'),
