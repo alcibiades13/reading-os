@@ -116,11 +116,6 @@ class Circle(models.Model):
         return self.name
 
     @property
-    def members_count(self):
-        """Number of active members"""
-        return self.members.count()
-
-    @property
     def average_progress(self):
         """Average reading progress of all members on current book"""
         if not self.current_book:
@@ -378,18 +373,7 @@ class DiscussionTopic(models.Model):
     def __str__(self):
         return f"{self.circle.name} - {self.title}"
 
-    @property
-    def message_count(self):
-        """Number of messages in this topic"""
-        return self.messages.count()
 
-    @property
-    def last_activity(self):
-        """Time of last message or topic update"""
-        last_msg = self.messages.order_by('-created_at').first()
-        if last_msg:
-            return last_msg.created_at
-        return self.updated_at
 
     def can_user_access(self, user):
         """Check if user can access this topic based on progress"""
@@ -679,11 +663,6 @@ class Poll(models.Model):
             return timezone.now() > self.closes_at
         return False
 
-    @property
-    def total_votes(self):
-        return PollVote.objects.filter(option__poll=self).count()
-
-
 class PollOption(models.Model):
     """
     An option in a poll. For book_vote type, links to a Book.
@@ -710,11 +689,6 @@ class PollOption(models.Model):
 
     def __str__(self):
         return self.text
-
-    @property
-    def vote_count(self):
-        return self.votes.count()
-
 
 class PollVote(models.Model):
     """

@@ -234,16 +234,16 @@ const getUserName = (user) => {
 <template>
   <div ref="dropdownRef" class="relative flex-1 max-w-2xl">
     <div class="relative group">
-      <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" :size="18" />
+      <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-indigo-500 transition-colors" :size="18" />
       <input
         ref="inputRef"
         v-model="localQuery"
         type="text"
         placeholder="Search books, quotes, authors, people..."
         @focus="handleFocus"
-        class="w-full bg-white/5 border border-slate-800/50 rounded-2xl pl-12 pr-4 py-2.5 text-sm text-slate-50 outline-none focus:border-indigo-500 transition-all placeholder-slate-600"
+        class="w-full bg-white/5 border border-zinc-800/50 rounded-2xl pl-12 pr-4 py-2.5 text-sm text-zinc-50 outline-none focus:border-indigo-500 transition-all placeholder-zinc-600"
       />
-      <div class="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/5 border border-slate-800/50 text-[9px] font-black text-slate-500 uppercase tracking-widest">
+      <div class="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/5 border border-zinc-800/50 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
         Cmd + K
       </div>
     </div>
@@ -251,26 +251,26 @@ const getUserName = (user) => {
     <!-- Dropdown Results -->
     <div
       v-if="isOpen && (hasAnyResults || isLoading)"
-      class="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto custom-scrollbar z-50"
+      class="absolute top-full left-0 right-0 mt-2 bg-zinc-900/95 backdrop-blur-xl border border-zinc-800/50 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto custom-scrollbar z-50"
     >
       <!-- Loading skeleton -->
       <div v-if="isLoadingLocal && !hasAnyResults" class="p-4">
         <div class="space-y-2">
           <div v-for="n in 3" :key="n" class="flex gap-3 p-2 rounded-lg animate-pulse">
-            <div class="w-10 h-10 bg-slate-800 rounded-lg"></div>
+            <div class="w-10 h-10 bg-zinc-800 rounded-lg"></div>
             <div class="flex-1 space-y-2">
-              <div class="h-4 bg-slate-800 rounded w-3/4"></div>
-              <div class="h-3 bg-slate-800 rounded w-1/2"></div>
+              <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+              <div class="h-3 bg-zinc-800 rounded w-1/2"></div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Local Books Section -->
-      <div v-if="localResults.length > 0" class="p-4 border-b border-slate-800/50">
+      <div v-if="localResults.length > 0" class="p-4 border-b border-zinc-800/50">
         <div class="flex items-center gap-2 mb-3">
           <BookOpen :size="14" class="text-indigo-400" />
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Your Library</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Your Library</h3>
         </div>
 
         <div class="space-y-1">
@@ -278,9 +278,9 @@ const getUserName = (user) => {
             v-for="book in localResults"
             :key="book.id"
             @click="viewLocalBook(book)"
-            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors text-left group"
+            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/50 transition-colors text-left group"
           >
-            <div class="w-10 h-14 bg-slate-800 rounded overflow-hidden flex-shrink-0 border border-slate-700/50">
+            <div class="w-10 h-14 bg-zinc-800 rounded overflow-hidden flex-shrink-0 border border-zinc-700/50">
               <img
                 v-if="book.cover_image"
                 :src="book.cover_image"
@@ -288,14 +288,14 @@ const getUserName = (user) => {
                 class="w-full h-full object-cover"
               />
               <div v-else class="w-full h-full flex items-center justify-center">
-                <BookOpen :size="14" class="text-slate-600" />
+                <BookOpen :size="14" class="text-zinc-600" />
               </div>
             </div>
             <div class="flex-1 min-w-0">
               <h4 class="text-sm font-semibold text-white truncate group-hover:text-indigo-400 transition-colors">
                 {{ book.title }}
               </h4>
-              <p class="text-xs text-slate-400 truncate">
+              <p class="text-xs text-zinc-400 truncate">
                 {{ getAuthorsString(book) }}
               </p>
             </div>
@@ -304,10 +304,10 @@ const getUserName = (user) => {
       </div>
 
       <!-- Quotes Section -->
-      <div v-if="quoteResults.length > 0" class="p-4 border-b border-slate-800/50">
+      <div v-if="quoteResults.length > 0" class="p-4 border-b border-zinc-800/50">
         <div class="flex items-center gap-2 mb-3">
           <Quote :size="14" class="text-amber-400" />
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Quotes</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Quotes</h3>
         </div>
 
         <div class="space-y-1">
@@ -315,16 +315,16 @@ const getUserName = (user) => {
             v-for="quote in quoteResults"
             :key="quote.id"
             @click="viewQuote"
-            class="w-full flex items-start gap-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors text-left group"
+            class="w-full flex items-start gap-3 p-2 rounded-lg hover:bg-zinc-800/50 transition-colors text-left group"
           >
             <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
               <Quote :size="12" class="text-amber-400" />
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm text-slate-300 leading-snug group-hover:text-amber-300 transition-colors">
+              <p class="text-sm text-zinc-300 leading-snug group-hover:text-amber-300 transition-colors">
                 "{{ truncateText(quote.text, 100) }}"
               </p>
-              <p class="text-xs text-slate-500 mt-1">
+              <p class="text-xs text-zinc-500 mt-1">
                 {{ quote.book_title || (quote.book && quote.book.title) || 'Unknown book' }}
               </p>
             </div>
@@ -333,10 +333,10 @@ const getUserName = (user) => {
       </div>
 
       <!-- Authors Section -->
-      <div v-if="authorResults.length > 0" class="p-4 border-b border-slate-800/50">
+      <div v-if="authorResults.length > 0" class="p-4 border-b border-zinc-800/50">
         <div class="flex items-center gap-2 mb-3">
           <Feather :size="14" class="text-purple-400" />
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Authors</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Authors</h3>
         </div>
 
         <div class="space-y-1">
@@ -344,7 +344,7 @@ const getUserName = (user) => {
             v-for="author in authorResults"
             :key="author.id"
             @click="viewAuthor(author)"
-            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors text-left group"
+            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/50 transition-colors text-left group"
           >
             <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
               <Feather :size="12" class="text-purple-400" />
@@ -353,7 +353,7 @@ const getUserName = (user) => {
               <h4 class="text-sm font-semibold text-white truncate group-hover:text-purple-400 transition-colors">
                 {{ author.name }}
               </h4>
-              <p v-if="author.books_count" class="text-xs text-slate-500">
+              <p v-if="author.books_count" class="text-xs text-zinc-500">
                 {{ author.books_count }} book{{ author.books_count !== 1 ? 's' : '' }}
               </p>
             </div>
@@ -362,10 +362,10 @@ const getUserName = (user) => {
       </div>
 
       <!-- Vocabulary Section -->
-      <div v-if="vocabularyResults.length > 0" class="p-4 border-b border-slate-800/50">
+      <div v-if="vocabularyResults.length > 0" class="p-4 border-b border-zinc-800/50">
         <div class="flex items-center gap-2 mb-3">
           <Brain :size="14" class="text-emerald-400" />
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Vocabulary</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Vocabulary</h3>
         </div>
 
         <div class="space-y-1">
@@ -373,7 +373,7 @@ const getUserName = (user) => {
             v-for="word in vocabularyResults"
             :key="word.id"
             @click="viewVocabulary"
-            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors text-left group"
+            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/50 transition-colors text-left group"
           >
             <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
               <Brain :size="12" class="text-emerald-400" />
@@ -382,7 +382,7 @@ const getUserName = (user) => {
               <h4 class="text-sm font-semibold text-white group-hover:text-emerald-400 transition-colors">
                 {{ word.word }}
               </h4>
-              <p class="text-xs text-slate-500 truncate">
+              <p class="text-xs text-zinc-500 truncate">
                 {{ truncateText(word.definition, 60) }}
               </p>
             </div>
@@ -391,10 +391,10 @@ const getUserName = (user) => {
       </div>
 
       <!-- Users Section -->
-      <div v-if="userResults.length > 0" class="p-4 border-b border-slate-800/50">
+      <div v-if="userResults.length > 0" class="p-4 border-b border-zinc-800/50">
         <div class="flex items-center gap-2 mb-3">
           <User :size="14" class="text-sky-400" />
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">People</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">People</h3>
         </div>
 
         <div class="space-y-1">
@@ -402,7 +402,7 @@ const getUserName = (user) => {
             v-for="user in userResults"
             :key="user.id"
             @click="viewUser(user)"
-            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors text-left group"
+            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/50 transition-colors text-left group"
           >
             <div class="w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img v-if="user.avatar" :src="user.avatar" class="w-full h-full object-cover" />
@@ -412,7 +412,7 @@ const getUserName = (user) => {
               <h4 class="text-sm font-semibold text-white truncate group-hover:text-sky-400 transition-colors">
                 {{ getUserName(user) }}
               </h4>
-              <p v-if="user.books_read_count" class="text-xs text-slate-500">
+              <p v-if="user.books_read_count" class="text-xs text-zinc-500">
                 {{ user.books_read_count }} books read
               </p>
             </div>
@@ -423,18 +423,18 @@ const getUserName = (user) => {
       <!-- External Books Section -->
       <div v-if="externalResults.length > 0" class="p-4">
         <div class="flex items-center gap-2 mb-3">
-          <ExternalLink :size="14" class="text-slate-500" />
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Import from Library</h3>
+          <ExternalLink :size="14" class="text-zinc-500" />
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Import from Library</h3>
         </div>
 
         <div class="space-y-1">
           <div
             v-for="(book, index) in externalResults"
             :key="book.google_books_id || book.open_library_id || `ext-${index}`"
-            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors group cursor-pointer"
+            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/50 transition-colors group cursor-pointer"
             @click="viewExternalBook(book)"
           >
-            <div class="w-10 h-14 bg-slate-800 rounded overflow-hidden flex-shrink-0 border border-slate-700/50">
+            <div class="w-10 h-14 bg-zinc-800 rounded overflow-hidden flex-shrink-0 border border-zinc-700/50">
               <img
                 v-if="book.cover_image_url"
                 :src="book.cover_image_url"
@@ -442,14 +442,14 @@ const getUserName = (user) => {
                 class="w-full h-full object-cover"
               />
               <div v-else class="w-full h-full flex items-center justify-center">
-                <BookOpen :size="14" class="text-slate-600" />
+                <BookOpen :size="14" class="text-zinc-600" />
               </div>
             </div>
             <div class="flex-1 min-w-0">
               <h4 class="text-sm font-semibold text-white truncate group-hover:text-emerald-400 transition-colors">
                 {{ book.title }}
               </h4>
-              <p class="text-xs text-slate-400 truncate">
+              <p class="text-xs text-zinc-400 truncate">
                 {{ getAuthorsString(book) }}
               </p>
             </div>
@@ -466,11 +466,11 @@ const getUserName = (user) => {
 
       <!-- No Results Message -->
       <div v-if="!isLoading && !hasAnyResults && localQuery.trim().length >= 2" class="p-8 text-center">
-        <div class="w-16 h-16 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mx-auto mb-4">
-          <Search :size="24" class="text-slate-600" />
+        <div class="w-16 h-16 rounded-full bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center mx-auto mb-4">
+          <Search :size="24" class="text-zinc-600" />
         </div>
-        <p class="text-sm font-semibold text-slate-400 mb-1">Nothing found</p>
-        <p class="text-xs text-slate-500">Try a different search term</p>
+        <p class="text-sm font-semibold text-zinc-400 mb-1">Nothing found</p>
+        <p class="text-xs text-zinc-500">Try a different search term</p>
       </div>
     </div>
   </div>

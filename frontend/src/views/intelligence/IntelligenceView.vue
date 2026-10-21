@@ -242,19 +242,19 @@ const latencyDisplay = computed(() => {
     </div>
 
     <!-- Header -->
-    <header class="flex-shrink-0 border-b border-slate-800/50 glass relative z-10">
+    <header class="flex-shrink-0 border-b border-zinc-800/50 glass relative z-10">
       <div class="px-4 lg:px-6 py-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 p-0.5">
-              <div class="w-full h-full rounded-xl bg-slate-900 flex items-center justify-center">
+              <div class="w-full h-full rounded-xl bg-zinc-900 flex items-center justify-center">
                 <Sparkles :size="16" class="text-white animate-pulse" />
               </div>
             </div>
             <div>
               <h1 class="text-base font-black text-white tracking-tight uppercase">Intelligence</h1>
               <div class="flex items-center gap-2">
-                <span class="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em]">Core Synthesis v4.2</span>
+                <span class="text-[8px] font-black text-zinc-500 uppercase tracking-[0.3em]">Core Synthesis v4.2</span>
                 <div class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-[7px] font-black text-emerald-400 uppercase tracking-wider">Free Tier</div>
               </div>
             </div>
@@ -263,26 +263,26 @@ const latencyDisplay = computed(() => {
           <div class="flex items-center gap-3">
             <div class="hidden lg:flex items-center gap-4 mr-2 text-right">
               <div>
-                <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">Model</p>
+                <p class="text-[7px] font-black text-zinc-500 uppercase tracking-widest">Model</p>
                 <p class="text-xs font-black text-white">Gemini Flash</p>
               </div>
               <div v-if="latencyDisplay">
-                <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">Latency</p>
+                <p class="text-[7px] font-black text-zinc-500 uppercase tracking-widest">Latency</p>
                 <p class="text-xs font-black text-white">{{ latencyDisplay }}</p>
               </div>
             </div>
             <button
               v-if="hasMessages"
               @click="clearChat"
-              class="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 hover:text-white transition-all"
+              class="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-400 hover:text-white transition-all"
             >
               Clear
             </button>
             <div class="relative group">
-              <button class="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-all">
+              <button class="p-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-all">
                 <ShieldCheck :size="15" />
               </button>
-              <div class="absolute top-full mt-2 right-0 w-48 p-3 glass rounded-xl border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] text-[10px] text-slate-400 leading-relaxed shadow-xl">
+              <div class="absolute top-full mt-2 right-0 w-48 p-3 glass rounded-xl border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] text-[10px] text-zinc-400 leading-relaxed shadow-xl">
                 Your data stays in your browser. Only reading context is sent to Google Gemini.
               </div>
             </div>
@@ -301,7 +301,7 @@ const latencyDisplay = computed(() => {
             <Brain :size="28" class="text-indigo-400" />
           </div>
           <h2 class="text-2xl font-black text-white tracking-tighter">What shall we synthesize today?</h2>
-          <p class="text-sm text-slate-500 max-w-md mx-auto">
+          <p class="text-sm text-zinc-500 max-w-md mx-auto">
             <template v-if="booksCount">{{ booksCount }} books indexed.</template>
             Ask about connections, themes, or recommendations.
           </p>
@@ -311,19 +311,19 @@ const latencyDisplay = computed(() => {
               @click="handleSuggestion('Connect the Stoic philosophy with modern habit-building concepts from my library.')"
               class="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-white/10 transition-all text-left flex items-center gap-3 group"
             >
-              <div class="p-2 rounded-lg bg-slate-800 text-slate-500 group-hover:text-indigo-400 transition-colors flex-shrink-0">
+              <div class="p-2 rounded-lg bg-zinc-800 text-zinc-500 group-hover:text-indigo-400 transition-colors flex-shrink-0">
                 <Network :size="14" />
               </div>
-              <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">Connect Stoicism with habit-building</span>
+              <span class="text-xs font-bold text-zinc-400 group-hover:text-white transition-colors">Connect Stoicism with habit-building</span>
             </button>
             <button
               @click="handleSuggestion('Analyze my reading patterns and tell me what kind of reader I am based on my library.')"
               class="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-white/10 transition-all text-left flex items-center gap-3 group"
             >
-              <div class="p-2 rounded-lg bg-slate-800 text-slate-500 group-hover:text-indigo-400 transition-colors flex-shrink-0">
+              <div class="p-2 rounded-lg bg-zinc-800 text-zinc-500 group-hover:text-indigo-400 transition-colors flex-shrink-0">
                 <BookOpen :size="14" />
               </div>
-              <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">Analyze my reading patterns</span>
+              <span class="text-xs font-bold text-zinc-400 group-hover:text-white transition-colors">Analyze my reading patterns</span>
             </button>
           </div>
         </div>
@@ -352,7 +352,7 @@ const latencyDisplay = computed(() => {
                 <Sparkles :size="12" class="text-indigo-400" />
               </div>
               <div
-                class="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-slate-800/60 border border-white/5 text-sm text-slate-200 leading-relaxed ai-response"
+                class="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-zinc-800/60 border border-white/5 text-sm text-zinc-200 leading-relaxed ai-response"
                 v-html="formatMarkdown(msg.content)"
               />
             </div>
@@ -364,7 +364,7 @@ const latencyDisplay = computed(() => {
               <div class="flex-shrink-0 w-6 h-6 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                 <Sparkles :size="12" class="text-indigo-400" />
               </div>
-              <div class="px-4 py-2.5 rounded-2xl bg-slate-800/40 border border-white/5 flex items-center gap-1.5">
+              <div class="px-4 py-2.5 rounded-2xl bg-zinc-800/40 border border-white/5 flex items-center gap-1.5">
                 <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0s" />
                 <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.15s" />
                 <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.3s" />
@@ -385,7 +385,7 @@ const latencyDisplay = computed(() => {
             type="text"
             placeholder="Ask about your reading..."
             :disabled="isProcessing || contextLoading"
-            class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-500/50 transition-all"
+            class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-indigo-500/50 transition-all"
           />
           <button
             @click="sendMessage"
@@ -394,13 +394,13 @@ const latencyDisplay = computed(() => {
               'w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0',
               inputText.trim() && !isProcessing
                 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-400'
-                : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'
+                : 'bg-zinc-800/50 text-zinc-600 cursor-not-allowed'
             ]"
           >
             <Send :size="16" />
           </button>
         </div>
-        <p class="text-[9px] text-slate-700 text-center mt-2">AI may make mistakes. Always consult the original text.</p>
+        <p class="text-[9px] text-zinc-700 text-center mt-2">AI may make mistakes. Always consult the original text.</p>
       </div>
     </footer>
   </div>

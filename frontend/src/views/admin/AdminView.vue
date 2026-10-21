@@ -281,7 +281,7 @@ const issuesBadge = computed(() => {
 const severityColor = (severity) => {
   if (severity === 'high') return 'bg-rose-500/10 text-rose-500'
   if (severity === 'medium') return 'bg-amber-500/10 text-amber-500'
-  return 'bg-slate-500/10 text-slate-400'
+  return 'bg-zinc-500/10 text-zinc-400'
 }
 
 const issueTypeLabel = (type) => {
@@ -311,7 +311,7 @@ const formatDate = (date) => {
   <div class="h-full flex flex-col bg-[#02040a] overflow-hidden">
 
     <!-- Top Architect Bar -->
-    <header class="border-b border-white/5 bg-slate-950/40 backdrop-blur-3xl shrink-0">
+    <header class="border-b border-white/5 bg-zinc-950/40 backdrop-blur-3xl shrink-0">
       <!-- Title Row -->
       <div class="h-14 lg:h-24 flex items-center justify-between px-4 lg:px-10">
         <div class="flex items-center gap-3 lg:gap-6">
@@ -322,7 +322,7 @@ const formatDate = (date) => {
           <div>
             <h1 class="text-sm lg:text-2xl font-black text-white tracking-tighter uppercase">Architect <span class="text-indigo-500">Command</span></h1>
             <div class="flex items-center gap-2 lg:gap-3">
-              <span class="text-[8px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest hidden sm:inline">System Core v8.4.1</span>
+              <span class="text-[8px] lg:text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden sm:inline">System Core v8.4.1</span>
               <div class="flex items-center gap-1">
                 <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span class="text-[8px] lg:text-[9px] font-black text-emerald-500/80 uppercase">Active</span>
@@ -332,7 +332,7 @@ const formatDate = (date) => {
         </div>
 
         <div class="hidden lg:flex items-center gap-4">
-          <button class="p-3 rounded-2xl bg-white/5 text-slate-500 hover:text-white transition-all">
+          <button class="p-3 rounded-2xl bg-white/5 text-zinc-500 hover:text-white transition-all">
             <Settings :size="18" />
           </button>
           <button class="p-3 rounded-2xl bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-400 transition-all" title="Export Schema">
@@ -359,7 +359,7 @@ const formatDate = (date) => {
               'px-2.5 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 lg:gap-2 whitespace-nowrap flex-shrink-0',
               activeTab === tab.id
                 ? 'bg-indigo-500 text-white shadow-lg'
-                : 'text-slate-500 hover:text-slate-300'
+                : 'text-zinc-500 hover:text-zinc-300'
             ]"
           >
             <component :is="tab.icon" :size="13" class="lg:w-[14px] lg:h-[14px]" />
@@ -403,7 +403,7 @@ const formatDate = (date) => {
                     +{{ stats.activity.books_added_this_week }} this week
                   </span>
                 </div>
-                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Library</p>
+                <p class="text-[9px] lg:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5 lg:mb-1">Library</p>
                 <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">{{ stats.counts.total_books.toLocaleString() }}</p>
               </div>
 
@@ -417,7 +417,7 @@ const formatDate = (date) => {
                     Action
                   </span>
                 </div>
-                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Issues</p>
+                <p class="text-[9px] lg:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5 lg:mb-1">Issues</p>
                 <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">
                   {{ (stats.data_quality.books_without_cover + stats.data_quality.books_without_isbn + stats.data_quality.books_without_authors) }}
                 </p>
@@ -433,7 +433,7 @@ const formatDate = (date) => {
                     Consistency
                   </span>
                 </div>
-                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Authors</p>
+                <p class="text-[9px] lg:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5 lg:mb-1">Authors</p>
                 <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">{{ stats.data_quality.author_consistency }}%</p>
               </div>
 
@@ -447,7 +447,7 @@ const formatDate = (date) => {
                     {{ stats.counts.total_users }} users
                   </span>
                 </div>
-                <p class="text-[9px] lg:text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5 lg:mb-1">Knowledge</p>
+                <p class="text-[9px] lg:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5 lg:mb-1">Knowledge</p>
                 <p class="text-lg lg:text-3xl font-black text-white tracking-tighter">{{ (stats.counts.total_quotes + stats.counts.total_vocabulary).toLocaleString() }}</p>
               </div>
             </div>
@@ -468,21 +468,21 @@ const formatDate = (date) => {
                     class="flex items-center justify-between p-4 lg:p-5 rounded-xl lg:rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group cursor-pointer"
                   >
                     <div class="flex items-center gap-4 lg:gap-5 min-w-0">
-                      <div class="w-8 h-12 lg:w-10 lg:h-14 rounded-lg bg-slate-900 border border-white/5 flex-shrink-0 overflow-hidden">
+                      <div class="w-8 h-12 lg:w-10 lg:h-14 rounded-lg bg-zinc-900 border border-white/5 flex-shrink-0 overflow-hidden">
                         <img v-if="book.cover_image" :src="book.cover_image" class="w-full h-full object-cover" />
                         <div v-else class="w-full h-full flex items-center justify-center">
-                          <BookOpen :size="14" class="text-slate-700" />
+                          <BookOpen :size="14" class="text-zinc-700" />
                         </div>
                       </div>
                       <div class="min-w-0">
                         <p class="text-sm font-bold text-white truncate">{{ book.title }}</p>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase">
+                        <p class="text-[10px] text-zinc-500 font-bold uppercase">
                           <span :class="sourceColor(book.source)" class="px-1.5 py-0.5 rounded text-[8px]">{{ sourceLabel(book.source) }}</span>
                           <span class="ml-2">{{ formatDate(book.created_at) }}</span>
                         </p>
                       </div>
                     </div>
-                    <ChevronRight :size="16" class="text-slate-700 group-hover:text-indigo-400 transition-all flex-shrink-0" />
+                    <ChevronRight :size="16" class="text-zinc-700 group-hover:text-indigo-400 transition-all flex-shrink-0" />
                   </div>
                 </div>
               </div>
@@ -491,7 +491,7 @@ const formatDate = (date) => {
               <div class="glass rounded-2xl lg:rounded-[2.5rem] p-6 lg:p-10 border-white/5 space-y-6 self-start">
                 <div>
                   <h3 class="text-lg lg:text-xl font-black text-white tracking-tight uppercase mb-2">Data Health</h3>
-                  <p class="text-slate-500 text-sm font-medium">Coverage across covers, ISBNs, and author links.</p>
+                  <p class="text-zinc-500 text-sm font-medium">Coverage across covers, ISBNs, and author links.</p>
                 </div>
 
                 <div class="flex flex-col items-center py-4">
@@ -508,15 +508,15 @@ const formatDate = (date) => {
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
                       <span class="text-2xl font-black text-white">{{ stats.data_quality.health_percentage }}%</span>
-                      <span class="text-[8px] font-black text-slate-500 uppercase">Health</span>
+                      <span class="text-[8px] font-black text-zinc-500 uppercase">Health</span>
                     </div>
                   </div>
                 </div>
 
                 <div class="space-y-2 text-[10px] font-bold">
-                  <div class="flex justify-between text-slate-500"><span>Missing covers</span><span class="text-white">{{ stats.data_quality.books_without_cover }}</span></div>
-                  <div class="flex justify-between text-slate-500"><span>Missing ISBNs</span><span class="text-white">{{ stats.data_quality.books_without_isbn }}</span></div>
-                  <div class="flex justify-between text-slate-500"><span>No authors</span><span class="text-white">{{ stats.data_quality.books_without_authors }}</span></div>
+                  <div class="flex justify-between text-zinc-500"><span>Missing covers</span><span class="text-white">{{ stats.data_quality.books_without_cover }}</span></div>
+                  <div class="flex justify-between text-zinc-500"><span>Missing ISBNs</span><span class="text-white">{{ stats.data_quality.books_without_isbn }}</span></div>
+                  <div class="flex justify-between text-zinc-500"><span>No authors</span><span class="text-white">{{ stats.data_quality.books_without_authors }}</span></div>
                 </div>
               </div>
             </div>
@@ -528,7 +528,7 @@ const formatDate = (date) => {
           <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Data <span class="text-rose-500">Issues</span></h2>
-              <p class="text-slate-500 font-medium text-xs lg:text-sm">Books with missing or inconsistent data requiring attention.</p>
+              <p class="text-zinc-500 font-medium text-xs lg:text-sm">Books with missing or inconsistent data requiring attention.</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button
@@ -545,7 +545,7 @@ const formatDate = (date) => {
                   'px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all',
                   issueFilter === f.id
                     ? 'bg-indigo-500 text-white shadow-lg'
-                    : 'bg-white/5 border border-white/5 text-slate-400 hover:text-white'
+                    : 'bg-white/5 border border-white/5 text-zinc-400 hover:text-white'
                 ]"
               >{{ f.label }}</button>
             </div>
@@ -561,19 +561,19 @@ const formatDate = (date) => {
             <div class="flex flex-wrap gap-2">
               <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-amber-500/10 border border-amber-500/20">
                 <span class="text-amber-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.missing_cover }}</span>
-                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">covers</span>
+                <span class="text-zinc-500 text-[9px] lg:text-[10px] ml-1">covers</span>
               </div>
               <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-sky-500/10 border border-sky-500/20">
                 <span class="text-sky-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.missing_isbn }}</span>
-                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">ISBNs</span>
+                <span class="text-zinc-500 text-[9px] lg:text-[10px] ml-1">ISBNs</span>
               </div>
               <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-rose-500/10 border border-rose-500/20">
                 <span class="text-rose-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.missing_authors }}</span>
-                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">authors</span>
+                <span class="text-zinc-500 text-[9px] lg:text-[10px] ml-1">authors</span>
               </div>
               <div class="px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl bg-purple-500/10 border border-purple-500/20">
                 <span class="text-purple-400 text-[10px] lg:text-xs font-black">{{ dataIssues.summary.duplicates }}</span>
-                <span class="text-slate-500 text-[9px] lg:text-[10px] ml-1">dupes</span>
+                <span class="text-zinc-500 text-[9px] lg:text-[10px] ml-1">dupes</span>
               </div>
             </div>
 
@@ -585,15 +585,15 @@ const formatDate = (date) => {
                 class="flex items-end justify-between p-4 lg:p-5 rounded-2xl glass border-white/5 hover:bg-white/[0.04] transition-all group"
               >
                 <div class="flex items-center gap-4 min-w-0 flex-1">
-                  <div class="w-10 h-14 rounded-lg bg-slate-900 border border-white/10 flex-shrink-0 overflow-hidden">
+                  <div class="w-10 h-14 rounded-lg bg-zinc-900 border border-white/10 flex-shrink-0 overflow-hidden">
                     <img v-if="issue.cover_image" :src="issue.cover_image" class="w-full h-full object-cover" />
                     <div v-else class="w-full h-full flex items-center justify-center">
-                      <BookOpen :size="14" class="text-slate-700" />
+                      <BookOpen :size="14" class="text-zinc-700" />
                     </div>
                   </div>
                   <div class="min-w-0">
                     <p class="text-sm font-bold text-white line-clamp-2">{{ issue.title }}</p>
-                    <p class="text-[10px] text-slate-500 mt-0.5">{{ issue.description }}</p>
+                    <p class="text-[10px] text-zinc-500 mt-0.5">{{ issue.description }}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-3 flex-shrink-0 ml-3">
@@ -616,15 +616,15 @@ const formatDate = (date) => {
               <button
                 :disabled="issuesPage <= 1"
                 @click="issuesPage--; fetchDataIssues()"
-                class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
               >
                 <ChevronLeft :size="14" />
               </button>
-              <span class="text-xs font-bold text-slate-500">Page {{ issuesPage }} <span class="text-slate-600">of {{ Math.ceil(dataIssues.count / 20) }}</span></span>
+              <span class="text-xs font-bold text-zinc-500">Page {{ issuesPage }} <span class="text-zinc-600">of {{ Math.ceil(dataIssues.count / 20) }}</span></span>
               <button
                 :disabled="issuesPage * 20 >= dataIssues.count"
                 @click="issuesPage++; fetchDataIssues()"
-                class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
               >
                 <ChevronRight :size="14" />
               </button>
@@ -636,7 +636,7 @@ const formatDate = (date) => {
         <div v-if="activeTab === 'authors'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header>
             <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Author <span class="text-indigo-500">Synchronizer</span></h2>
-            <p class="text-slate-500 font-medium text-xs lg:text-sm">Merge name variations and link creators to their canonical records.</p>
+            <p class="text-zinc-500 font-medium text-xs lg:text-sm">Merge name variations and link creators to their canonical records.</p>
           </header>
 
           <!-- Loading -->
@@ -658,7 +658,7 @@ const formatDate = (date) => {
                 <Check :size="24" class="text-emerald-500" />
               </div>
               <h3 class="text-xl font-black text-white mb-2">All Clear</h3>
-              <p class="text-slate-500 text-sm">No duplicate author variations detected.</p>
+              <p class="text-zinc-500 text-sm">No duplicate author variations detected.</p>
             </div>
 
             <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
@@ -671,7 +671,7 @@ const formatDate = (date) => {
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-3 lg:gap-6">
                     <div class="w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5 flex-shrink-0">
-                      <div class="w-full h-full rounded-xl lg:rounded-2xl bg-slate-900 flex items-center justify-center font-black text-base lg:text-xl text-white overflow-hidden">
+                      <div class="w-full h-full rounded-xl lg:rounded-2xl bg-zinc-900 flex items-center justify-center font-black text-base lg:text-xl text-white overflow-hidden">
                         <img v-if="auth.primary.photo" :src="auth.primary.photo" class="w-full h-full object-cover" />
                         <span v-else>{{ auth.primary.name.charAt(0) }}</span>
                       </div>
@@ -682,14 +682,14 @@ const formatDate = (date) => {
                     </div>
                   </div>
                   <div class="text-right hidden sm:block">
-                    <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Total Books</p>
-                    <p class="text-xs font-bold text-slate-400">{{ auth.total_books }}</p>
+                    <p class="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Total Books</p>
+                    <p class="text-xs font-bold text-zinc-400">{{ auth.total_books }}</p>
                   </div>
                 </div>
 
                 <!-- Variants -->
                 <div class="p-3 lg:p-6 rounded-2xl bg-black/40 border border-white/5 space-y-2 lg:space-y-4">
-                  <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 lg:mb-2">Duplicate Variations Detected:</p>
+                  <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 lg:mb-2">Duplicate Variations Detected:</p>
                   <div
                     v-for="variant in auth.variants"
                     :key="variant.id"
@@ -697,14 +697,14 @@ const formatDate = (date) => {
                   >
                     <div class="flex items-center gap-2 lg:gap-3 min-w-0">
                       <AlertTriangle :size="12" class="text-amber-500 flex-shrink-0" />
-                      <span class="text-sm font-medium text-slate-300">{{ variant.name }}</span>
-                      <span class="text-[9px] font-bold text-slate-600 flex-shrink-0">({{ variant.book_count }} books, {{ Math.round(variant.similarity * 100) }}%)</span>
+                      <span class="text-sm font-medium text-zinc-300">{{ variant.name }}</span>
+                      <span class="text-[9px] font-bold text-zinc-600 flex-shrink-0">({{ variant.book_count }} books, {{ Math.round(variant.similarity * 100) }}%)</span>
                     </div>
                     <div class="flex items-center gap-3 flex-shrink-0 pl-5 sm:pl-0">
                       <button
                         @click="handleDismissAuthor(auth.primary.id, variant.id)"
                         :disabled="dismissingAuthor === variant.id"
-                        class="text-[10px] sm:text-[9px] font-black text-slate-500 uppercase hover:text-rose-400 hover:underline disabled:opacity-50 transition-colors"
+                        class="text-[10px] sm:text-[9px] font-black text-zinc-500 uppercase hover:text-rose-400 hover:underline disabled:opacity-50 transition-colors"
                         title="Not the same author"
                       >
                         {{ dismissingAuthor === variant.id ? '...' : 'Not Same' }}
@@ -737,15 +737,15 @@ const formatDate = (date) => {
               <button
                 :disabled="authorsPage <= 1"
                 @click="authorsPage--; fetchAuthorCandidates()"
-                class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
               >
                 <ChevronLeft :size="14" />
               </button>
-              <span class="text-xs font-bold text-slate-500">Page {{ authorsPage }} <span class="text-slate-600">of {{ Math.ceil(authorCandidates.count / 20) }}</span></span>
+              <span class="text-xs font-bold text-zinc-500">Page {{ authorsPage }} <span class="text-zinc-600">of {{ Math.ceil(authorCandidates.count / 20) }}</span></span>
               <button
                 :disabled="authorsPage * 20 >= authorCandidates.count"
                 @click="authorsPage++; fetchAuthorCandidates()"
-                class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
               >
                 <ChevronRight :size="14" />
               </button>
@@ -754,7 +754,7 @@ const formatDate = (date) => {
             <!-- Linked Author Groups -->
             <div v-if="authorCandidates.linked_groups?.length > 0" class="mt-8 lg:mt-12">
               <h3 class="text-base lg:text-lg font-black text-white tracking-tight mb-1">Linked <span class="text-indigo-500">Groups</span></h3>
-              <p class="text-slate-500 text-xs font-medium mb-4 lg:mb-6">Authors already linked as the same person. Unlink if linked by mistake.</p>
+              <p class="text-zinc-500 text-xs font-medium mb-4 lg:mb-6">Authors already linked as the same person. Unlink if linked by mistake.</p>
 
               <div class="space-y-3">
                 <div
@@ -770,7 +770,7 @@ const formatDate = (date) => {
                         v-for="member in group.members"
                         :key="member.id"
                         class="text-[9px] font-bold px-2 py-0.5 rounded-full border"
-                        :class="member.is_primary ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'bg-white/5 border-white/10 text-slate-400'"
+                        :class="member.is_primary ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'bg-white/5 border-white/10 text-zinc-400'"
                       >
                         {{ member.name }}
                       </span>
@@ -781,7 +781,7 @@ const formatDate = (date) => {
                       v-for="member in group.members.filter(m => !m.is_primary)"
                       :key="'unlink-' + member.id"
                       @click="handleUnlinkAuthor(member.id)"
-                      class="text-[9px] font-black text-slate-500 uppercase hover:text-rose-400 hover:underline transition-colors flex items-center gap-1"
+                      class="text-[9px] font-black text-zinc-500 uppercase hover:text-rose-400 hover:underline transition-colors flex items-center gap-1"
                       :title="`Unlink ${member.name}`"
                     >
                       <Unlink :size="10" />
@@ -798,7 +798,7 @@ const formatDate = (date) => {
         <div v-if="activeTab === 'bookSync'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header>
             <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Book <span class="text-indigo-500">Deduplication</span></h2>
-            <p class="text-slate-500 font-medium text-xs lg:text-sm">Detect and merge duplicate book entries across different sources.</p>
+            <p class="text-zinc-500 font-medium text-xs lg:text-sm">Detect and merge duplicate book entries across different sources.</p>
           </header>
 
           <!-- Loading -->
@@ -812,7 +812,7 @@ const formatDate = (date) => {
                 <Check :size="24" class="text-emerald-500" />
               </div>
               <h3 class="text-xl font-black text-white mb-2">All Clear</h3>
-              <p class="text-slate-500 text-sm">No duplicate books detected.</p>
+              <p class="text-zinc-500 text-sm">No duplicate books detected.</p>
             </div>
 
             <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
@@ -823,43 +823,43 @@ const formatDate = (date) => {
               >
                 <!-- Primary Book -->
                 <div class="flex items-center gap-4">
-                  <div class="w-10 h-14 rounded-lg bg-slate-900 border border-white/5 flex-shrink-0 overflow-hidden">
+                  <div class="w-10 h-14 rounded-lg bg-zinc-900 border border-white/5 flex-shrink-0 overflow-hidden">
                     <img v-if="pair.primary.cover_image" :src="pair.primary.cover_image" class="w-full h-full object-cover" />
                     <div v-else class="w-full h-full flex items-center justify-center">
-                      <BookOpen :size="14" class="text-slate-700" />
+                      <BookOpen :size="14" class="text-zinc-700" />
                     </div>
                   </div>
                   <div class="min-w-0">
                     <h3 class="text-base lg:text-lg font-black text-white truncate">{{ pair.primary.title }}</h3>
-                    <p class="text-[10px] font-bold text-slate-500">{{ pair.primary.author_names || 'No author' }}</p>
+                    <p class="text-[10px] font-bold text-zinc-500">{{ pair.primary.author_names || 'No author' }}</p>
                     <div class="flex items-center gap-2 mt-1">
                       <span :class="sourceColor(pair.primary.source)" class="px-1.5 py-0.5 rounded text-[8px]">{{ sourceLabel(pair.primary.source) }}</span>
-                      <span v-if="pair.primary.isbn" class="text-[9px] text-slate-600 font-mono">{{ pair.primary.isbn }}</span>
+                      <span v-if="pair.primary.isbn" class="text-[9px] text-zinc-600 font-mono">{{ pair.primary.isbn }}</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Variants -->
                 <div class="p-4 lg:p-6 rounded-2xl bg-black/40 border border-white/5 space-y-3">
-                  <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Potential Duplicates:</p>
+                  <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Potential Duplicates:</p>
                   <div
                     v-for="variant in pair.variants"
                     :key="variant.id"
                     class="flex items-start justify-between gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5"
                   >
                     <div class="flex items-center gap-3 min-w-0">
-                      <div class="w-8 h-11 rounded-md bg-slate-900 border border-white/5 flex-shrink-0 overflow-hidden">
+                      <div class="w-8 h-11 rounded-md bg-zinc-900 border border-white/5 flex-shrink-0 overflow-hidden">
                         <img v-if="variant.cover_image" :src="variant.cover_image" class="w-full h-full object-cover" />
                         <div v-else class="w-full h-full flex items-center justify-center">
-                          <BookOpen :size="10" class="text-slate-700" />
+                          <BookOpen :size="10" class="text-zinc-700" />
                         </div>
                       </div>
                       <div class="min-w-0">
-                        <span class="text-sm font-medium text-slate-300 truncate block">{{ variant.title }}</span>
-                        <span class="text-[9px] text-slate-500">{{ variant.author_names }} · {{ Math.round(variant.similarity * 100) }}%</span>
+                        <span class="text-sm font-medium text-zinc-300 truncate block">{{ variant.title }}</span>
+                        <span class="text-[9px] text-zinc-500">{{ variant.author_names }} · {{ Math.round(variant.similarity * 100) }}%</span>
                         <div class="flex items-center gap-2 mt-0.5">
                           <span :class="sourceColor(variant.source)" class="px-1 py-0.5 rounded text-[7px]">{{ sourceLabel(variant.source) }}</span>
-                          <span v-if="variant.isbn" class="text-[8px] text-slate-600 font-mono">{{ variant.isbn }}</span>
+                          <span v-if="variant.isbn" class="text-[8px] text-zinc-600 font-mono">{{ variant.isbn }}</span>
                         </div>
                       </div>
                     </div>
@@ -867,7 +867,7 @@ const formatDate = (date) => {
                       <button
                         @click="handleDismissBook(pair.primary.id, variant.id)"
                         :disabled="dismissingBook === variant.id"
-                        class="text-[9px] font-black text-slate-500 uppercase hover:text-rose-400 hover:underline disabled:opacity-50 transition-colors"
+                        class="text-[9px] font-black text-zinc-500 uppercase hover:text-rose-400 hover:underline disabled:opacity-50 transition-colors"
                         title="Not the same book"
                       >
                         {{ dismissingBook === variant.id ? '...' : 'Not Same' }}
@@ -906,15 +906,15 @@ const formatDate = (date) => {
               <button
                 :disabled="bookSyncPage <= 1"
                 @click="bookSyncPage--; fetchBookCandidates()"
-                class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
               >
                 <ChevronLeft :size="14" />
               </button>
-              <span class="text-xs font-bold text-slate-500">Page {{ bookSyncPage }} <span class="text-slate-600">of {{ Math.ceil(bookCandidates.count / 20) }}</span></span>
+              <span class="text-xs font-bold text-zinc-500">Page {{ bookSyncPage }} <span class="text-zinc-600">of {{ Math.ceil(bookCandidates.count / 20) }}</span></span>
               <button
                 :disabled="bookSyncPage * 20 >= bookCandidates.count"
                 @click="bookSyncPage++; fetchBookCandidates()"
-                class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
               >
                 <ChevronRight :size="14" />
               </button>
@@ -923,7 +923,7 @@ const formatDate = (date) => {
             <!-- Linked Book Groups -->
             <div v-if="bookCandidates.linked_groups?.length > 0" class="mt-8 lg:mt-12">
               <h3 class="text-base lg:text-lg font-black text-white tracking-tight mb-1">Linked <span class="text-indigo-500">Editions</span></h3>
-              <p class="text-slate-500 text-xs font-medium mb-4 lg:mb-6">Books already linked as editions of the same work. Unlink if linked by mistake.</p>
+              <p class="text-zinc-500 text-xs font-medium mb-4 lg:mb-6">Books already linked as editions of the same work. Unlink if linked by mistake.</p>
 
               <div class="space-y-3">
                 <div
@@ -939,9 +939,9 @@ const formatDate = (date) => {
                         v-for="ed in group.editions"
                         :key="ed.id"
                         class="text-[9px] font-bold px-2 py-0.5 rounded-full border"
-                        :class="ed.is_primary ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'bg-white/5 border-white/10 text-slate-400'"
+                        :class="ed.is_primary ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'bg-white/5 border-white/10 text-zinc-400'"
                       >
-                        {{ ed.title }} <span class="text-slate-600">({{ sourceLabel(ed.source) }})</span>
+                        {{ ed.title }} <span class="text-zinc-600">({{ sourceLabel(ed.source) }})</span>
                       </span>
                     </div>
                   </div>
@@ -950,7 +950,7 @@ const formatDate = (date) => {
                       v-for="ed in group.editions.filter(e => !e.is_primary)"
                       :key="'unlink-' + ed.id"
                       @click="handleUnlinkBook(ed.id)"
-                      class="text-[9px] font-black text-slate-500 uppercase hover:text-rose-400 hover:underline transition-colors flex items-center gap-1"
+                      class="text-[9px] font-black text-zinc-500 uppercase hover:text-rose-400 hover:underline transition-colors flex items-center gap-1"
                       :title="`Unlink ${ed.title}`"
                     >
                       <Unlink :size="10" />
@@ -967,7 +967,7 @@ const formatDate = (date) => {
           <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div>
               <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Digital <span class="text-indigo-500">Archive</span></h2>
-              <p class="text-slate-500 font-medium text-xs lg:text-sm">Browse, search, and manage all books in the system.</p>
+              <p class="text-zinc-500 font-medium text-xs lg:text-sm">Browse, search, and manage all books in the system.</p>
             </div>
           </div>
 
@@ -975,7 +975,7 @@ const formatDate = (date) => {
             <!-- Search & Filters -->
             <div class="p-4 lg:p-8 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-white/[0.02]">
               <div class="flex items-center gap-4 flex-1">
-                <Search class="text-slate-600 flex-shrink-0" :size="18" />
+                <Search class="text-zinc-600 flex-shrink-0" :size="18" />
                 <input
                   v-model="searchQuery"
                   @keyup.enter="handleBookSearch"
@@ -997,7 +997,7 @@ const formatDate = (date) => {
                     'px-3 lg:px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all',
                     bookFilter === f.id
                       ? 'bg-white/10 text-white'
-                      : 'text-slate-600 hover:text-slate-400'
+                      : 'text-zinc-600 hover:text-zinc-400'
                   ]"
                 >{{ f.label }}</button>
               </div>
@@ -1023,32 +1023,32 @@ const formatDate = (date) => {
                 class="p-4 lg:p-6 flex items-center justify-between hover:bg-white/[0.02] transition-all cursor-pointer"
               >
                 <div class="flex items-center gap-4 lg:gap-6 flex-1 min-w-0">
-                  <div class="w-10 h-14 rounded bg-slate-900 border border-white/10 flex-shrink-0 overflow-hidden">
+                  <div class="w-10 h-14 rounded bg-zinc-900 border border-white/10 flex-shrink-0 overflow-hidden">
                     <img v-if="book.cover_image" :src="book.cover_image" class="w-full h-full object-cover" />
                     <div v-else class="w-full h-full flex items-center justify-center">
-                      <BookOpen :size="12" class="text-slate-700" />
+                      <BookOpen :size="12" class="text-zinc-700" />
                     </div>
                   </div>
                   <div class="min-w-0">
                     <h4 class="text-sm font-bold text-white truncate">{{ book.title }}</h4>
-                    <p class="text-xs text-slate-500 truncate">{{ book.authors?.map(a => a.name).join(', ') || 'No authors' }} • {{ book.publisher || 'Unknown publisher' }}</p>
+                    <p class="text-xs text-zinc-500 truncate">{{ book.authors?.map(a => a.name).join(', ') || 'No authors' }} • {{ book.publisher || 'Unknown publisher' }}</p>
                   </div>
                 </div>
                 <div class="hidden md:flex items-center gap-6 lg:gap-12 flex-shrink-0">
                   <div class="text-right">
-                    <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Source</p>
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Source</p>
                     <p :class="[sourceColor(book.source), 'text-xs font-bold px-1.5 py-0.5 rounded inline-block']">{{ sourceLabel(book.source) }}</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Readers</p>
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Readers</p>
                     <p class="text-xs font-bold text-white">{{ book.readers_count }}</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Quotes</p>
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Quotes</p>
                     <p class="text-xs font-bold text-white">{{ book.quotes_count }}</p>
                   </div>
                   <div v-if="book.book_group_id" class="text-right">
-                    <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Editions</p>
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Editions</p>
                     <p class="text-xs font-bold text-indigo-400">Linked</p>
                   </div>
                 </div>
@@ -1056,26 +1056,26 @@ const formatDate = (date) => {
 
               <!-- Empty state -->
               <div v-if="books.results.length === 0" class="py-16 text-center">
-                <p class="text-slate-500 text-sm">No books found matching your criteria.</p>
+                <p class="text-zinc-500 text-sm">No books found matching your criteria.</p>
               </div>
             </div>
 
             <!-- Pagination -->
             <div v-if="books && books.total_pages > 1" class="p-4 lg:p-6 border-t border-white/5 flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500">{{ books.count }} books total</span>
+              <span class="text-xs font-bold text-zinc-500">{{ books.count }} books total</span>
               <div class="flex items-center gap-4">
                 <button
                   :disabled="booksPage <= 1"
                   @click="booksPage--; fetchBooks()"
-                  class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                  class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
                 >
                   <ChevronLeft :size="14" />
                 </button>
-                <span class="text-xs font-bold text-slate-500">{{ booksPage }} / {{ books.total_pages }}</span>
+                <span class="text-xs font-bold text-zinc-500">{{ booksPage }} / {{ books.total_pages }}</span>
                 <button
                   :disabled="booksPage >= books.total_pages"
                   @click="booksPage++; fetchBooks()"
-                  class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs font-bold disabled:opacity-30"
+                  class="px-4 py-2 rounded-xl bg-white/5 text-zinc-400 text-xs font-bold disabled:opacity-30"
                 >
                   <ChevronRight :size="14" />
                 </button>
@@ -1088,7 +1088,7 @@ const formatDate = (date) => {
         <div v-if="activeTab === 'reputation'" class="space-y-6 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header>
             <h2 class="text-xl lg:text-4xl font-black text-white tracking-tighter uppercase mb-1 lg:mb-2">Community <span class="text-amber-500">Reputation</span></h2>
-            <p class="text-slate-500 font-medium text-xs lg:text-sm">Contribution tracking, user tiers, and quality metrics.</p>
+            <p class="text-zinc-500 font-medium text-xs lg:text-sm">Contribution tracking, user tiers, and quality metrics.</p>
           </header>
 
           <!-- Loading -->
@@ -1106,7 +1106,7 @@ const formatDate = (date) => {
                   </div>
                 </div>
                 <p class="text-lg lg:text-2xl font-black text-white">{{ reputationData.active_contributors_this_week }}</p>
-                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Active This Week</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5 lg:mt-1">Active This Week</p>
               </div>
 
               <div class="glass rounded-xl lg:rounded-2xl p-3 lg:p-5 border-white/5">
@@ -1116,7 +1116,7 @@ const formatDate = (date) => {
                   </div>
                 </div>
                 <p class="text-lg lg:text-2xl font-black text-white">{{ reputationData.total_contributions_all_time }}</p>
-                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Contributions</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5 lg:mt-1">Contributions</p>
               </div>
 
               <div class="glass rounded-xl lg:rounded-2xl p-3 lg:p-5 border-white/5">
@@ -1126,7 +1126,7 @@ const formatDate = (date) => {
                   </div>
                 </div>
                 <p class="text-lg lg:text-2xl font-black text-white">{{ reputationData.flagged_pending }}</p>
-                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Flagged</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5 lg:mt-1">Flagged</p>
               </div>
 
               <div class="glass rounded-xl lg:rounded-2xl p-3 lg:p-5 border-white/5">
@@ -1136,7 +1136,7 @@ const formatDate = (date) => {
                   </div>
                 </div>
                 <p class="text-lg lg:text-2xl font-black text-white">{{ Math.round(reputationData.average_quality * 100) }}%</p>
-                <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 lg:mt-1">Avg Quality</p>
+                <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5 lg:mt-1">Avg Quality</p>
               </div>
             </div>
 
@@ -1146,7 +1146,7 @@ const formatDate = (date) => {
                 <h3 class="text-lg lg:text-xl font-black text-white tracking-tight uppercase mb-6">Top <span class="text-amber-500">Contributors</span></h3>
 
                 <div v-if="reputationData.top_contributors.length === 0" class="py-12 text-center">
-                  <p class="text-slate-500 text-sm">No contributions yet.</p>
+                  <p class="text-zinc-500 text-sm">No contributions yet.</p>
                 </div>
 
                 <div v-else class="space-y-3">
@@ -1158,16 +1158,16 @@ const formatDate = (date) => {
                   >
                     <!-- Rank -->
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      :class="idx === 0 ? 'bg-amber-500/20 text-amber-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : idx === 2 ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-slate-500'"
+                      :class="idx === 0 ? 'bg-amber-500/20 text-amber-400' : idx === 1 ? 'bg-zinc-400/20 text-zinc-300' : idx === 2 ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-zinc-500'"
                     >
                       <Crown v-if="idx === 0" :size="14" />
                       <span v-else class="text-xs font-black">{{ idx + 1 }}</span>
                     </div>
 
                     <!-- Avatar -->
-                    <div class="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div class="w-9 h-9 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                       <img v-if="user.avatar" :src="user.avatar" class="w-full h-full object-cover" />
-                      <span v-else class="text-xs font-black text-slate-400">{{ user.name?.charAt(0)?.toUpperCase() }}</span>
+                      <span v-else class="text-xs font-black text-zinc-400">{{ user.name?.charAt(0)?.toUpperCase() }}</span>
                     </div>
 
                     <!-- Info -->
@@ -1179,14 +1179,14 @@ const formatDate = (date) => {
                         </span>
                       </div>
                       <div class="flex items-center gap-3 mt-0.5">
-                        <span class="text-[10px] text-slate-500">{{ user.total_contributions }} contributions</span>
+                        <span class="text-[10px] text-zinc-500">{{ user.total_contributions }} contributions</span>
                       </div>
                     </div>
 
                     <!-- Points -->
                     <div class="text-right flex-shrink-0">
                       <p class="text-sm font-black text-amber-400">{{ user.total_points }}</p>
-                      <p class="text-[9px] font-bold text-slate-600 uppercase">points</p>
+                      <p class="text-[9px] font-bold text-zinc-600 uppercase">points</p>
                     </div>
                   </div>
                 </div>
@@ -1204,7 +1204,7 @@ const formatDate = (date) => {
                     { key: 'reading', label: 'Reading', color: 'bg-emerald-500' },
                   ]" :key="cat.key" class="space-y-2">
                     <div class="flex justify-between text-[10px] font-bold">
-                      <span class="text-slate-400 uppercase tracking-widest">{{ cat.label }}</span>
+                      <span class="text-zinc-400 uppercase tracking-widest">{{ cat.label }}</span>
                       <span class="text-white">{{ reputationData.category_breakdown?.[cat.key] || 0 }} pts</span>
                     </div>
                     <div class="h-2 rounded-full bg-white/5 overflow-hidden">
@@ -1220,7 +1220,7 @@ const formatDate = (date) => {
 
                 <!-- Tier Distribution -->
                 <div class="mt-8 pt-6 border-t border-white/5">
-                  <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Tier Legend</h4>
+                  <h4 class="text-xs font-black text-zinc-400 uppercase tracking-widest mb-4">Tier Legend</h4>
                   <div class="space-y-2">
                     <div v-for="t in [
                       { tier: 'reader', label: 'Reader', desc: 'Default', pts: '0' },
@@ -1231,7 +1231,7 @@ const formatDate = (date) => {
                       <div class="flex items-center gap-2">
                         <span :class="[tierColor(t.tier), 'text-[9px] font-black px-2 py-0.5 rounded-full border']">{{ t.label }}</span>
                       </div>
-                      <span class="text-[9px] text-slate-600">{{ t.pts }} pts</span>
+                      <span class="text-[9px] text-zinc-600">{{ t.pts }} pts</span>
                     </div>
                   </div>
                 </div>
@@ -1243,7 +1243,7 @@ const formatDate = (date) => {
               <h3 class="text-lg lg:text-xl font-black text-white tracking-tight uppercase mb-6">Recent <span class="text-indigo-500">Activity</span></h3>
 
               <div v-if="reputationData.recent_contributions.length === 0" class="py-12 text-center">
-                <p class="text-slate-500 text-sm">No contributions recorded yet.</p>
+                <p class="text-zinc-500 text-sm">No contributions recorded yet.</p>
               </div>
 
               <div v-else class="space-y-2">
@@ -1259,14 +1259,14 @@ const formatDate = (date) => {
                       <Star :size="11" :class="entry.category === 'curation' ? 'text-amber-400' : entry.category === 'content' ? 'text-indigo-400' : entry.category === 'community' ? 'text-sky-400' : 'text-emerald-400'" />
                     </div>
                     <div class="min-w-0 truncate">
-                      <span class="text-[11px] lg:text-xs font-medium text-slate-300">{{ entry.user_name }}</span>
-                      <span class="text-slate-600 mx-1">·</span>
-                      <span class="text-[11px] lg:text-xs text-slate-500">{{ entry.action_display }}</span>
+                      <span class="text-[11px] lg:text-xs font-medium text-zinc-300">{{ entry.user_name }}</span>
+                      <span class="text-zinc-600 mx-1">·</span>
+                      <span class="text-[11px] lg:text-xs text-zinc-500">{{ entry.action_display }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2 lg:gap-3 flex-shrink-0">
                     <span class="text-[11px] lg:text-xs font-black text-amber-400">+{{ entry.awarded_points }}</span>
-                    <span class="text-[8px] lg:text-[9px] text-slate-600 hidden sm:inline">{{ new Date(entry.created_at).toLocaleDateString() }}</span>
+                    <span class="text-[8px] lg:text-[9px] text-zinc-600 hidden sm:inline">{{ new Date(entry.created_at).toLocaleDateString() }}</span>
                   </div>
                 </div>
               </div>

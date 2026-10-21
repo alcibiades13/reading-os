@@ -90,7 +90,7 @@ function handleSubmit() {
         </div>
         <div>
           <h2 class="text-lg lg:text-xl font-bold text-white">Add Book Manually</h2>
-          <p class="text-xs text-slate-500">Fill in the book details below. Only title is required.</p>
+          <p class="text-xs text-zinc-500">Fill in the book details below. Only title is required.</p>
         </div>
       </div>
 
@@ -99,15 +99,15 @@ function handleSubmit() {
         <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <!-- Left: Cover Preview -->
           <div class="lg:w-48 flex-shrink-0">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Cover Preview</label>
-            <div class="w-32 lg:w-48 aspect-[2/3] rounded-xl bg-slate-800/50 border border-slate-700/50 overflow-hidden flex items-center justify-center mx-auto lg:mx-0">
+            <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">Cover Preview</label>
+            <div class="w-32 lg:w-48 aspect-[2/3] rounded-xl bg-zinc-800/50 border border-zinc-700/50 overflow-hidden flex items-center justify-center mx-auto lg:mx-0">
               <img
                 v-if="form.cover_image_url && !coverPreviewError.failed"
                 :src="form.cover_image_url"
                 class="w-full h-full object-cover"
                 @error="coverPreviewError.failed = true"
               />
-              <div v-else class="flex flex-col items-center gap-2 text-slate-600">
+              <div v-else class="flex flex-col items-center gap-2 text-zinc-600">
                 <Image :size="32" />
                 <span class="text-[10px] font-medium">No cover</span>
               </div>
@@ -119,7 +119,7 @@ function handleSubmit() {
                 type="url"
                 placeholder="Cover image URL"
                 @input="coverPreviewError.failed = false"
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none"
               />
             </div>
           </div>
@@ -128,7 +128,7 @@ function handleSubmit() {
           <div class="flex-1 space-y-4">
             <!-- Title (required) -->
             <div>
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">
                 Title <span class="text-rose-500">*</span>
               </label>
               <input
@@ -136,48 +136,48 @@ function handleSubmit() {
                 type="text"
                 required
                 placeholder="Book title"
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
               />
             </div>
 
             <!-- Subtitle -->
             <div>
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Subtitle</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Subtitle</label>
               <input
                 v-model="form.subtitle"
                 type="text"
                 placeholder="Optional subtitle"
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
               />
             </div>
 
             <!-- Authors -->
             <div>
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Authors</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Authors</label>
               <input
                 v-model="form.authors"
                 type="text"
                 placeholder="Author names, comma-separated"
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
               />
             </div>
 
             <!-- Publisher + Language row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Publisher</label>
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Publisher</label>
                 <input
                   v-model="form.publisher"
                   type="text"
                   placeholder="Publisher name"
-                  class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                  class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Language</label>
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Language</label>
                 <select
                   v-model="form.language"
-                  class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-colors appearance-none"
+                  class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-colors appearance-none"
                 >
                   <option v-for="lang in languages" :key="lang.value" :value="lang.value">
                     {{ lang.label }}
@@ -190,7 +190,7 @@ function handleSubmit() {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <div class="flex items-center justify-between mb-1.5">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ISBN-13</label>
+                  <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">ISBN-13</label>
                   <IsbnScannerButton @scanned="handleIsbnScanned" @error="handleScanError" />
                 </div>
                 <input
@@ -198,17 +198,17 @@ function handleSubmit() {
                   type="text"
                   maxlength="13"
                   placeholder="978..."
-                  class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors font-mono"
+                  class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors font-mono"
                 />
               </div>
               <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">ISBN-10</label>
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">ISBN-10</label>
                 <input
                   v-model="form.isbn_10"
                   type="text"
                   maxlength="10"
                   placeholder="Optional"
-                  class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors font-mono"
+                  class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors font-mono"
                 />
               </div>
             </div>
@@ -216,57 +216,57 @@ function handleSubmit() {
             <!-- Pages + Published Date row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Pages</label>
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Pages</label>
                 <input
                   v-model="form.page_count"
                   type="number"
                   min="1"
                   placeholder="Page count"
-                  class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                  class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Published Date</label>
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Published Date</label>
                 <input
                   v-model="form.published_date"
                   type="text"
                   placeholder="YYYY or YYYY-MM-DD"
-                  class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                  class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             <!-- Cover URL (desktop only — mobile is near preview) -->
             <div class="hidden lg:block">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Cover Image URL</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Cover Image URL</label>
               <input
                 v-model="form.cover_image_url"
                 type="url"
                 placeholder="https://..."
                 @input="coverPreviewError.failed = false"
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
               />
             </div>
 
             <!-- Categories -->
             <div>
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Genres / Categories</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Genres / Categories</label>
               <input
                 v-model="form.categories"
                 type="text"
                 placeholder="Fiction, Science Fiction, Classic — comma-separated"
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
               />
             </div>
 
             <!-- Description -->
             <div>
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Description</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">Description</label>
               <textarea
                 v-model="form.description"
                 rows="4"
                 placeholder="Book description or synopsis..."
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors resize-none"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors resize-none"
               />
             </div>
           </div>

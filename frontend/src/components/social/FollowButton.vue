@@ -48,7 +48,7 @@ const buttonConfig = computed(() => {
     following: {
       label: 'Following',
       icon: UserCheck,
-      class: 'bg-white/5 text-slate-400 hover:bg-red-500/10 hover:text-red-400 border border-white/10'
+      class: 'bg-white/5 text-zinc-400 hover:bg-red-500/10 hover:text-red-400 border border-white/10'
     },
     pending: {
       label: 'Requested',

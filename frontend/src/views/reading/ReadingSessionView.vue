@@ -244,7 +244,7 @@ const getCoverImage = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+  <div class="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
     <!-- Exit Button -->
     <div class="fixed top-4 left-4 z-50">
       <Button 

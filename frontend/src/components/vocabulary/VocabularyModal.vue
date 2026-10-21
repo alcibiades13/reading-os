@@ -118,24 +118,24 @@ const handleKeyDown = (e) => {
 
 <template>
   <div
-    class="fixed inset-0 z-[110] flex items-end lg:items-center justify-center lg:p-4 bg-slate-950/90 light:bg-white/90 backdrop-blur-md animate-in fade-in duration-300"
+    class="fixed inset-0 z-[110] flex items-end lg:items-center justify-center lg:p-4 bg-zinc-950/90 light:bg-white/90 backdrop-blur-md animate-in fade-in duration-300"
     @keydown="handleKeyDown"
     @click.self="emit('close')"
   >
-    <div class="relative w-full lg:max-w-2xl glass light:bg-white light:border light:border-slate-200 rounded-t-2xl lg:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] lg:max-h-[90vh] animate-in slide-in-from-bottom lg:zoom-in-95 duration-300">
+    <div class="relative w-full lg:max-w-2xl glass light:bg-white light:border light:border-zinc-200 rounded-t-2xl lg:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] lg:max-h-[90vh] animate-in slide-in-from-bottom lg:zoom-in-95 duration-300">
 
       <!-- Header -->
-      <div class="flex items-center justify-between p-4 lg:p-8 border-b border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50">
+      <div class="flex items-center justify-between p-4 lg:p-8 border-b border-zinc-800 light:border-zinc-200 bg-zinc-900/50 light:bg-zinc-50">
         <div class="flex items-center gap-3 lg:gap-4">
           <div class="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
             <Type :size="18" class="lg:w-6 lg:h-6 text-indigo-400" />
           </div>
           <div>
-            <h2 class="text-base lg:text-xl font-black text-white light:text-slate-900">{{ word ? 'Edit Word' : 'Add Word' }}</h2>
-            <p class="text-[9px] lg:text-[10px] uppercase font-black tracking-wider lg:tracking-widest text-slate-500 light:text-slate-600">Add to your lexicon</p>
+            <h2 class="text-base lg:text-xl font-black text-white light:text-zinc-900">{{ word ? 'Edit Word' : 'Add Word' }}</h2>
+            <p class="text-[9px] lg:text-[10px] uppercase font-black tracking-wider lg:tracking-widest text-zinc-500 light:text-zinc-600">Add to your lexicon</p>
           </div>
         </div>
-        <button @click="emit('close')" class="p-2 lg:p-2.5 rounded-full hover:bg-slate-800 light:hover:bg-slate-200 text-slate-400 light:text-slate-600 transition-colors">
+        <button @click="emit('close')" class="p-2 lg:p-2.5 rounded-full hover:bg-zinc-800 light:hover:bg-zinc-200 text-zinc-400 light:text-zinc-600 transition-colors">
           <X :size="20" />
         </button>
       </div>
@@ -144,7 +144,7 @@ const handleKeyDown = (e) => {
       <div class="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar space-y-5 lg:space-y-10" @click="showBookDropdown = false">
         <!-- Main Word -->
         <div class="space-y-2 lg:space-y-4">
-          <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+          <label class="text-[9px] lg:text-[10px] font-black text-zinc-500 light:text-zinc-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
             <Type :size="12" class="lg:w-3.5 lg:h-3.5 text-indigo-400" /> The Word
           </label>
           <input
@@ -153,30 +153,30 @@ const handleKeyDown = (e) => {
             type="text"
             v-model="wordText"
             placeholder="e.g. Mellifluous"
-            class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl px-4 lg:px-6 py-3 lg:py-4 text-xl lg:text-3xl font-serif text-white light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none"
+            class="w-full bg-zinc-800/20 light:bg-white border-2 border-zinc-800 light:border-zinc-200 rounded-xl lg:rounded-2xl px-4 lg:px-6 py-3 lg:py-4 text-xl lg:text-3xl font-serif text-white light:text-zinc-900 placeholder-zinc-700 light:placeholder-zinc-400 focus:border-indigo-500/50 transition-all outline-none"
           />
         </div>
 
         <!-- Context & Definition -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
           <div class="space-y-2 lg:space-y-4">
-            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+            <label class="text-[9px] lg:text-[10px] font-black text-zinc-500 light:text-zinc-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
               <AlignLeft :size="12" class="lg:w-3.5 lg:h-3.5" /> Context / Sentence
             </label>
             <textarea
               v-model="context"
               placeholder="Where did you find it?"
-              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none resize-none"
+              class="w-full h-20 lg:h-28 bg-zinc-800/20 light:bg-white border-2 border-zinc-800 light:border-zinc-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-zinc-300 light:text-zinc-900 placeholder-zinc-700 light:placeholder-zinc-400 focus:border-indigo-500/50 transition-all outline-none resize-none"
             />
           </div>
           <div class="space-y-2 lg:space-y-4">
-            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+            <label class="text-[9px] lg:text-[10px] font-black text-zinc-500 light:text-zinc-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
               <Plus :size="12" class="lg:w-3.5 lg:h-3.5" /> Your Definition
             </label>
             <textarea
               v-model="definition"
               placeholder="What does it mean to you?"
-              class="w-full h-20 lg:h-28 bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-slate-300 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none resize-none"
+              class="w-full h-20 lg:h-28 bg-zinc-800/20 light:bg-white border-2 border-zinc-800 light:border-zinc-200 rounded-xl lg:rounded-2xl p-3 lg:p-4 text-sm text-zinc-300 light:text-zinc-900 placeholder-zinc-700 light:placeholder-zinc-400 focus:border-indigo-500/50 transition-all outline-none resize-none"
             />
           </div>
         </div>
@@ -184,7 +184,7 @@ const handleKeyDown = (e) => {
         <!-- Metadata -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-8">
           <div class="space-y-2 lg:space-y-4 relative">
-            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+            <label class="text-[9px] lg:text-[10px] font-black text-zinc-500 light:text-zinc-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
               <Book :size="12" class="lg:w-3.5 lg:h-3.5" /> Source Book
             </label>
             <input
@@ -194,47 +194,47 @@ const handleKeyDown = (e) => {
               @focus="showBookDropdown = bookSearchResults.length > 0"
               placeholder="Search your books or type manually..."
               autocomplete="off"
-              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none"
+              class="w-full bg-zinc-800/20 light:bg-white border-2 border-zinc-800 light:border-zinc-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-zinc-100 light:text-zinc-900 placeholder-zinc-700 light:placeholder-zinc-400 focus:border-indigo-500/50 transition-all outline-none"
             />
             <!-- Book Search Dropdown -->
             <div
               v-if="showBookDropdown && bookSearchResults.length > 0"
-              class="absolute z-50 w-full mt-1 bg-slate-800 light:bg-white border-2 border-slate-700 light:border-slate-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto"
+              class="absolute z-50 w-full mt-1 bg-zinc-800 light:bg-white border-2 border-zinc-700 light:border-zinc-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto"
             >
               <button
                 v-for="userBook in bookSearchResults"
                 :key="userBook.id"
                 type="button"
                 @click="selectBook(userBook)"
-                class="w-full flex items-center gap-3 p-2.5 hover:bg-slate-700 light:hover:bg-slate-100 transition-colors text-left border-b border-slate-700/50 light:border-slate-200/50 last:border-0"
+                class="w-full flex items-center gap-3 p-2.5 hover:bg-zinc-700 light:hover:bg-zinc-100 transition-colors text-left border-b border-zinc-700/50 light:border-zinc-200/50 last:border-0"
               >
-                <div class="w-7 h-10 rounded overflow-hidden flex-shrink-0 bg-slate-700 light:bg-slate-200 flex items-center justify-center">
+                <div class="w-7 h-10 rounded overflow-hidden flex-shrink-0 bg-zinc-700 light:bg-zinc-200 flex items-center justify-center">
                   <img
                     v-if="userBook.book.cover_image"
                     :src="userBook.book.cover_image"
                     :alt="userBook.book.title"
                     class="w-full h-full object-cover"
                   />
-                  <BookOpen v-else :size="12" class="text-slate-500" />
+                  <BookOpen v-else :size="12" class="text-zinc-500" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-bold text-white light:text-slate-900 truncate">{{ userBook.book.title }}</p>
-                  <p class="text-xs text-slate-400 light:text-slate-500 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
+                  <p class="text-sm font-bold text-white light:text-zinc-900 truncate">{{ userBook.book.title }}</p>
+                  <p class="text-xs text-zinc-400 light:text-zinc-500 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
                 </div>
               </button>
             </div>
-            <p v-if="isSearchingBooks" class="text-[10px] text-slate-500 mt-1">Searching...</p>
+            <p v-if="isSearchingBooks" class="text-[10px] text-zinc-500 mt-1">Searching...</p>
             <p v-if="selectedBookId && bookAuthor" class="text-[10px] text-indigo-400 mt-1">{{ bookAuthor }}</p>
           </div>
           <div class="space-y-2 lg:space-y-4">
-            <label class="text-[9px] lg:text-[10px] font-black text-slate-500 light:text-slate-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
+            <label class="text-[9px] lg:text-[10px] font-black text-zinc-500 light:text-zinc-600 uppercase tracking-wider lg:tracking-widest flex items-center gap-2">
               <Hash :size="12" class="lg:w-3.5 lg:h-3.5" /> Page
             </label>
             <input
               type="number"
               v-model.number="pageNumber"
               placeholder="Page..."
-              class="w-full bg-slate-800/20 light:bg-white border-2 border-slate-800 light:border-slate-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-slate-100 light:text-slate-900 placeholder-slate-700 light:placeholder-slate-400 focus:border-indigo-500/50 transition-all outline-none"
+              class="w-full bg-zinc-800/20 light:bg-white border-2 border-zinc-800 light:border-zinc-200 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm text-zinc-100 light:text-zinc-900 placeholder-zinc-700 light:placeholder-zinc-400 focus:border-indigo-500/50 transition-all outline-none"
             />
           </div>
         </div>
@@ -246,7 +246,7 @@ const handleKeyDown = (e) => {
             @click="isFavorite = !isFavorite"
             :class="[
               'flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl border-2 transition-all',
-              isFavorite ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-800 text-slate-600'
+              isFavorite ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-zinc-800 text-zinc-600'
             ]"
           >
             <Star :size="16" class="lg:w-[18px] lg:h-[18px]" :fill="isFavorite ? 'currentColor' : 'none'" />
@@ -257,7 +257,7 @@ const handleKeyDown = (e) => {
             @click="isPublic = !isPublic"
             :class="[
               'flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl border-2 transition-all',
-              isPublic ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-slate-800 text-slate-600'
+              isPublic ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-zinc-800 text-zinc-600'
             ]"
           >
             <Globe v-if="isPublic" :size="16" class="lg:w-[18px] lg:h-[18px]" />
@@ -268,11 +268,11 @@ const handleKeyDown = (e) => {
       </div>
 
       <!-- Footer Actions -->
-      <div class="p-4 lg:p-8 border-t border-slate-800 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex gap-3 lg:gap-4 safe-area-bottom">
+      <div class="p-4 lg:p-8 border-t border-zinc-800 light:border-zinc-200 bg-zinc-900/50 light:bg-zinc-50 flex gap-3 lg:gap-4 safe-area-bottom">
         <button
           @click="handleSubmit(true)"
           type="button"
-          class="px-4 lg:px-6 py-3 lg:py-4 rounded-xl lg:rounded-2xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 font-bold lg:font-black text-[10px] lg:text-xs uppercase tracking-wider lg:tracking-widest hover:bg-slate-800 light:hover:bg-slate-200 transition-all"
+          class="px-4 lg:px-6 py-3 lg:py-4 rounded-xl lg:rounded-2xl border border-zinc-700 light:border-zinc-300 text-zinc-300 light:text-zinc-700 font-bold lg:font-black text-[10px] lg:text-xs uppercase tracking-wider lg:tracking-widest hover:bg-zinc-800 light:hover:bg-zinc-200 transition-all"
         >
           <span class="hidden lg:inline">Save & Add Another</span>
           <span class="lg:hidden">+ Another</span>

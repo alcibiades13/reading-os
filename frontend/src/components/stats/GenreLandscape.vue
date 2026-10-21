@@ -72,10 +72,10 @@ const maxCount = computed(() => Math.max(...props.data.map(g => g.count), 1))
     ref="elementRef"
     :class="['transition-all duration-700', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6']"
   >
-    <div class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6 h-full">
-      <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4">Genre Landscape</h3>
+    <div class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6 h-full">
+      <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4">Genre Landscape</h3>
 
-      <div v-if="!data.length" class="text-center py-10 text-sm text-slate-500">
+      <div v-if="!data.length" class="text-center py-10 text-sm text-zinc-500">
         Read some books to see your genre landscape.
       </div>
 
@@ -89,11 +89,11 @@ const maxCount = computed(() => Math.max(...props.data.map(g => g.count), 1))
         <div class="space-y-2">
           <div v-for="(genre, i) in data" :key="genre.name" class="flex items-center gap-2.5">
             <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: colors[i % colors.length] }" />
-            <span class="text-xs text-slate-300 flex-1 truncate">{{ genre.name }}</span>
-            <div class="w-16 h-1 bg-slate-800 rounded-full overflow-hidden flex-shrink-0">
+            <span class="text-xs text-zinc-300 flex-1 truncate">{{ genre.name }}</span>
+            <div class="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden flex-shrink-0">
               <div class="h-full rounded-full" :style="{ width: `${(genre.count / maxCount) * 100}%`, backgroundColor: colors[i % colors.length] }" />
             </div>
-            <span class="text-[10px] text-slate-500 font-bold w-6 text-right flex-shrink-0">{{ genre.count }}</span>
+            <span class="text-[10px] text-zinc-500 font-bold w-6 text-right flex-shrink-0">{{ genre.count }}</span>
           </div>
         </div>
       </template>

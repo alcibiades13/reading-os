@@ -112,7 +112,7 @@ const getStarColor = (fillPercentage) => {
   if (fillPercentage > 0) {
     return 'text-amber-400'
   }
-  return props.readonly ? 'text-slate-700' : 'text-slate-600 hover:text-amber-400'
+  return props.readonly ? 'text-zinc-700' : 'text-zinc-600 hover:text-amber-400'
 }
 </script>
 

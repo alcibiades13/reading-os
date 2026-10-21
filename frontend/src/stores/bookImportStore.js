@@ -94,6 +94,9 @@ export const useBookImportStore = defineStore('bookImport', () => {
       } else if (importSource.value === 'hardcover') {
         const result = await hardcoverAPI.searchByISBN(isbn)
         if (result) results = [result]
+      } else if (importSource.value === 'delfi_rs') {
+        const result = await delfiAPI.searchByISBN(isbn)
+        if (result) results = [result]
       } else if (importSource.value === 'both') {
         // Search both sources in parallel
         const [googleResult, openLibraryResult] = await Promise.all([

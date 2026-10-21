@@ -164,7 +164,7 @@ const handleStudyModeClick = async () => {
 
   <aside
     :class="[
-      'flex flex-col glass border-r border-slate-800/50 bg-slate-950/90 lg:bg-slate-950/50 backdrop-blur-3xl transition-transform duration-300 ease-in-out',
+      'flex flex-col glass border-r border-zinc-800/50 bg-zinc-950/90 lg:bg-zinc-950/50 backdrop-blur-3xl transition-transform duration-300 ease-in-out',
       // Desktop: static sidebar
       'max-lg:fixed max-lg:top-14 max-lg:bottom-0 max-lg:left-0 max-lg:z-[70] max-lg:w-60',
       'lg:flex lg:sticky lg:top-0 lg:h-screen lg:z-50 lg:transition-all',
@@ -189,7 +189,7 @@ const handleStudyModeClick = async () => {
           </div>
           <span
             v-show="!isCollapsed"
-            class="font-black text-lg tracking-tighter text-slate-50 whitespace-nowrap overflow-hidden transition-opacity duration-200"
+            class="font-black text-lg tracking-tighter text-zinc-50 whitespace-nowrap overflow-hidden transition-opacity duration-200"
             :class="isCollapsed ? 'opacity-0 w-0' : 'opacity-100'"
           >
             Marginalia
@@ -200,7 +200,7 @@ const handleStudyModeClick = async () => {
         <button
           v-if="!isCollapsed"
           @click="toggleSidebar"
-          class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-slate-800/50 transition-all duration-200 flex-shrink-0"
+          class="p-1.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-zinc-800/50 transition-all duration-200 flex-shrink-0"
           title="Collapse sidebar"
         >
           <PanelLeftClose :size="16" />
@@ -346,7 +346,7 @@ const handleStudyModeClick = async () => {
     </div>
 
     <!-- Profile Card with Dropdown -->
-    <div class="border-t border-slate-800/50 flex-shrink-0">
+    <div class="border-t border-zinc-800/50 flex-shrink-0">
       <div :class="[isCollapsed && !isMobileOpen ? 'p-2' : 'p-3']">
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -357,7 +357,7 @@ const handleStudyModeClick = async () => {
               ]"
             >
               <div class="p-0.5 rounded-lg bg-transparent group-hover:bg-gradient-to-tr group-hover:from-indigo-500 group-hover:to-purple-500 transition-all flex-shrink-0">
-                <div class="w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center text-xs font-bold text-white overflow-hidden">
+                <div class="w-8 h-8 rounded-md bg-zinc-800 flex items-center justify-center text-xs font-bold text-white overflow-hidden">
                   <img v-if="userAvatarUrl && !sidebarAvatarError" :src="userAvatarUrl" @error="sidebarAvatarError = true" class="w-full h-full object-cover" />
                   <span v-else>{{ userInitials }}</span>
                 </div>

@@ -22,7 +22,7 @@ const publishedYear = props.book.published_date?.split('-')[0] || null
     @click="emit('click', book)"
   >
     <!-- Cover Image Container -->
-    <div class="relative aspect-[2/3] w-full rounded-xl overflow-hidden shadow-2xl bg-slate-800 border border-slate-700/50">
+    <div class="relative aspect-[2/3] w-full rounded-xl overflow-hidden shadow-2xl bg-zinc-800 border border-zinc-700/50">
       <img
         v-if="hasCover"
         :src="coverUrl"
@@ -32,26 +32,26 @@ const publishedYear = props.book.published_date?.split('-')[0] || null
       />
 
       <!-- Beautiful placeholder for missing covers -->
-      <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 light:from-slate-200 light:via-slate-100 light:to-slate-50">
+      <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950 light:from-zinc-200 light:via-zinc-100 light:to-zinc-50">
         <div class="w-20 h-20 rounded-full bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center mb-4">
           <BookOpen :size="32" class="text-indigo-500/40" />
         </div>
-        <h3 class="text-slate-400 text-sm font-bold text-center line-clamp-3 leading-tight">
+        <h3 class="text-zinc-400 text-sm font-bold text-center line-clamp-3 leading-tight">
           {{ book.title }}
         </h3>
-        <p class="text-slate-600 text-xs mt-2 text-center">
+        <p class="text-zinc-600 text-xs mt-2 text-center">
           No cover available
         </p>
       </div>
 
       <!-- Hover Overlay -->
-      <div class="absolute inset-0 bg-slate-950/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center space-y-4">
+      <div class="absolute inset-0 bg-zinc-950/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center space-y-4">
         <div v-if="book.average_rating" class="flex items-center gap-1.5 text-amber-400">
           <Star :size="16" fill="currentColor" />
           <span class="font-semibold">{{ book.average_rating }}</span>
         </div>
 
-        <div class="flex flex-col items-center text-slate-300 text-sm space-y-1">
+        <div class="flex flex-col items-center text-zinc-300 text-sm space-y-1">
           <span v-if="book.page_count" class="flex items-center gap-1.5">
             <BookOpen :size="14" /> {{ book.page_count }} pages
           </span>
@@ -68,21 +68,21 @@ const publishedYear = props.book.published_date?.split('-')[0] || null
 
     <!-- Book Info -->
     <div class="mt-4 px-1">
-      <h3 class="text-slate-100 font-semibold line-clamp-2 leading-tight group-hover:text-indigo-400 transition-colors">
+      <h3 class="text-zinc-100 font-semibold line-clamp-2 leading-tight group-hover:text-indigo-400 transition-colors">
         {{ book.title }}
       </h3>
-      <p class="text-slate-400 text-sm mt-1 truncate">{{ authors }}</p>
+      <p class="text-zinc-400 text-sm mt-1 truncate">{{ authors }}</p>
 
       <div class="flex flex-wrap gap-2 mt-3">
         <span
           v-if="publishedYear"
-          class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+          class="px-2 py-0.5 rounded bg-zinc-800 text-[10px] font-bold text-zinc-400 uppercase tracking-wider"
         >
           {{ publishedYear }}
         </span>
         <span
           v-if="book.language"
-          class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1"
+          class="px-2 py-0.5 rounded bg-zinc-800 text-[10px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1"
         >
           <Globe :size="10" /> {{ book.language.toUpperCase() }}
         </span>

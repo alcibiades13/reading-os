@@ -445,7 +445,7 @@ const handleEditQuote = async () => {
 <template>
   <div class="animate-in fade-in duration-700 pb-20">
     <!-- Mobile Header (Sticky - minimal) -->
-    <div class="lg:hidden sticky top-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 safe-area-top">
+    <div class="lg:hidden sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 safe-area-top">
       <div class="flex items-center justify-between px-4 py-3">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
@@ -453,13 +453,13 @@ const handleEditQuote = async () => {
           </div>
           <div>
             <h1 class="text-base font-bold text-white">Quotes & Insights</h1>
-            <p class="text-xs text-slate-500">{{ stats.total }} collected</p>
+            <p class="text-xs text-zinc-500">{{ stats.total }} collected</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
           <button
             @click="showMobileFilters = true"
-            class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-slate-400 active:scale-95 transition-transform"
+            class="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/50 flex items-center justify-center text-zinc-400 active:scale-95 transition-transform"
           >
             <Filter :size="18" />
           </button>
@@ -496,7 +496,7 @@ const handleEditQuote = async () => {
 
       <!-- Active Filters -->
       <div v-if="selectedTag || showFavorites || searchQuery || quotesStore.filters.book" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0">Active:</span>
+        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex-shrink-0">Active:</span>
         <button
           v-if="quotesStore.filters.book"
           @click="clearBookFilter"
@@ -509,7 +509,7 @@ const handleEditQuote = async () => {
         <button
           v-if="searchQuery"
           @click="searchQuery = ''; handleSearch()"
-          class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-700/50 border border-slate-600 text-slate-300 text-xs font-bold"
+          class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-700/50 border border-zinc-600 text-zinc-300 text-xs font-bold"
         >
           <Search :size="12" />
           "{{ searchQuery.length > 12 ? searchQuery.slice(0, 12) + '...' : searchQuery }}"
@@ -549,14 +549,14 @@ const handleEditQuote = async () => {
           />
 
           <!-- Panel -->
-          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto safe-area-inset">
+          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-zinc-900 border-l border-zinc-800 overflow-y-auto safe-area-inset">
             <!-- Panel Header -->
-            <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 px-4 py-4">
+            <div class="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 px-4 py-4">
               <div class="flex items-center justify-between">
                 <h2 class="text-lg font-bold text-white">Filters & Tags</h2>
                 <button
                   @click="showMobileFilters = false"
-                  class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400"
+                  class="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400"
                 >
                   <X :size="20" />
                 </button>
@@ -566,26 +566,26 @@ const handleEditQuote = async () => {
             <div class="p-4 space-y-6">
               <!-- Search -->
               <div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Search</h3>
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Search</h3>
                 <div class="relative">
-                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="16" />
                   <input
                     type="text"
                     v-model="searchQuery"
                     @input="handleSearch"
                     placeholder="Search quotes..."
-                    class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                    class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <!-- Quick Filters -->
               <div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Filters</h3>
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Quick Filters</h3>
                 <div class="space-y-2">
                   <button
                     @click="toggleFavorites(); showMobileFilters = false"
-                    :class="showFavorites ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-400'"
+                    :class="showFavorites ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-zinc-700 text-zinc-400'"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
                   >
                     <Star :size="18" :fill="showFavorites ? 'currentColor' : 'none'" />
@@ -596,7 +596,7 @@ const handleEditQuote = async () => {
 
               <!-- Tags -->
               <div v-if="quotesStore.tags?.length > 0">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Tags</h3>
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Tags</h3>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="tag in quotesStore.tags"
@@ -604,7 +604,7 @@ const handleEditQuote = async () => {
                     @click="filterByTag(tag.id); showMobileFilters = false"
                     :class="selectedTag === tag.id
                       ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
-                      : 'border-slate-700 text-slate-400 hover:border-slate-600'"
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-600'"
                     class="px-3 py-2 rounded-xl border text-sm font-semibold transition-all"
                   >
                     #{{ tag.name }}
@@ -639,7 +639,7 @@ const handleEditQuote = async () => {
           <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
             The <span class="text-indigo-500">Collected</span> Mind
           </h1>
-          <p class="text-page-subtitle text-slate-400 max-w-2xl leading-relaxed">
+          <p class="text-page-subtitle text-zinc-400 max-w-2xl leading-relaxed">
             Your digital commonplace book. Revisit the ideas that shaped your perspective and preserve the beauty of language.
           </p>
         </header>
@@ -649,14 +649,14 @@ const handleEditQuote = async () => {
           <div class="relative">
             <button
               @click="showExportMenu = !showExportMenu"
-              class="flex items-center gap-2 px-4 py-3 sm:py-5 rounded-2xl bg-white/5 border border-white/5 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all text-sm font-bold"
+              class="flex items-center gap-2 px-4 py-3 sm:py-5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/20 transition-all text-sm font-bold"
             >
               <Download :size="16" />
               <span class="hidden sm:inline">Export</span>
             </button>
-            <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 p-2 rounded-xl bg-slate-800 border border-white/10 shadow-2xl z-50 min-w-[140px]">
-              <button @click="handleExportQuotes('json')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">JSON</button>
-              <button @click="handleExportQuotes('csv')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">CSV</button>
+            <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 p-2 rounded-xl bg-zinc-800 border border-white/10 shadow-2xl z-50 min-w-[140px]">
+              <button @click="handleExportQuotes('json')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-zinc-300 hover:bg-white/10 transition-colors">JSON</button>
+              <button @click="handleExportQuotes('csv')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-zinc-300 hover:bg-white/10 transition-colors">CSV</button>
             </div>
           </div>
 
@@ -668,8 +668,8 @@ const handleEditQuote = async () => {
               <span class="sm:hidden">Add Quote</span>
             </button>
           </DialogTrigger>
-          <DialogContent class="max-w-2xl glass border-slate-700 max-h-[85vh] overflow-y-auto">
-            <DialogHeader class="border-b border-slate-800 pb-3 mb-4">
+          <DialogContent class="max-w-2xl glass border-zinc-700 max-h-[85vh] overflow-y-auto">
+            <DialogHeader class="border-b border-zinc-800 pb-3 mb-4">
               <DialogTitle class="text-lg font-bold flex items-center gap-2">
                 <div class="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                   <Type :size="16" class="text-white" />
@@ -685,7 +685,7 @@ const handleEditQuote = async () => {
               <!-- Quote Content -->
               <div class="space-y-2">
                 <div class="flex items-center justify-between">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
                     <component :is="AlignLeft" :size="12" /> The Quote
                   </label>
                   <button
@@ -707,14 +707,14 @@ const handleEditQuote = async () => {
                     placeholder="Paste the brilliant words here, or scan a book page..."
                     rows="4"
                     required
-                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+                    class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 transition-all resize-none"
                   />
-                  <div v-if="isScanning" class="absolute inset-0 bg-slate-900/60 rounded-xl flex flex-col items-center justify-center gap-2">
+                  <div v-if="isScanning" class="absolute inset-0 bg-zinc-900/60 rounded-xl flex flex-col items-center justify-center gap-2">
                     <Loader2 :size="24" class="text-indigo-400 animate-spin" />
-                    <div class="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div class="w-32 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
                       <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" :style="{ width: scanProgress + '%' }"></div>
                     </div>
-                    <span class="text-xs text-slate-400">Recognizing text...</span>
+                    <span class="text-xs text-zinc-400">Recognizing text...</span>
                   </div>
                 </div>
                 <p v-if="scanError" class="text-xs text-red-400">Scan failed: {{ scanError }}</p>
@@ -723,7 +723,7 @@ const handleEditQuote = async () => {
               <!-- Book Info Grid -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-2 relative">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
                     <component :is="Bookmark" :size="12" /> Book Title
                   </label>
                   <input
@@ -732,46 +732,46 @@ const handleEditQuote = async () => {
                     @focus="showBookDropdown = bookSearchResults.length > 0"
                     placeholder="Start typing to search your books..."
                     required
-                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all outline-none"
+                    class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all outline-none"
                     autocomplete="off"
                   />
                   <!-- Autocomplete Dropdown -->
                   <div
                     v-if="showBookDropdown && bookSearchResults.length > 0"
-                    class="absolute z-50 w-full mt-1 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
+                    class="absolute z-50 w-full mt-1 bg-zinc-800 border-2 border-zinc-700 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
                   >
                     <button
                       v-for="userBook in bookSearchResults"
                       :key="userBook.id"
                       type="button"
                       @click="selectBook(userBook)"
-                      class="w-full flex items-start gap-3 p-3 hover:bg-slate-700 transition-colors text-left border-b border-slate-700/50 last:border-0"
+                      class="w-full flex items-start gap-3 p-3 hover:bg-zinc-700 transition-colors text-left border-b border-zinc-700/50 last:border-0"
                     >
-                      <div class="w-8 h-12 rounded overflow-hidden flex-shrink-0 bg-slate-700 flex items-center justify-center">
+                      <div class="w-8 h-12 rounded overflow-hidden flex-shrink-0 bg-zinc-700 flex items-center justify-center">
                         <img
                           v-if="userBook.book.cover_image"
                           :src="userBook.book.cover_image"
                           :alt="userBook.book.title"
                           class="w-full h-full object-cover"
                         />
-                        <BookOpen v-else :size="14" class="text-slate-500" />
+                        <BookOpen v-else :size="14" class="text-zinc-500" />
                       </div>
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-bold text-white truncate">{{ userBook.book.title }}</p>
-                        <p class="text-xs text-slate-400 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
+                        <p class="text-xs text-zinc-400 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
                       </div>
                     </button>
                   </div>
-                  <p v-if="isSearchingBooks" class="text-xs text-slate-500 mt-1">Searching...</p>
+                  <p v-if="isSearchingBooks" class="text-xs text-zinc-500 mt-1">Searching...</p>
                 </div>
                 <div class="space-y-2">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
                     <component :is="Hash" :size="12" /> Author
                   </label>
                   <Input
                     v-model="newQuote.book_author"
                     placeholder="The creative mind..."
-                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                    class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
                   />
                 </div>
               </div>
@@ -779,40 +779,40 @@ const handleEditQuote = async () => {
               <!-- Metadata Grid -->
               <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div class="space-y-2">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Page</label>
+                  <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Page</label>
                   <Input
                     v-model.number="newQuote.page_number"
                     type="number"
                     placeholder="e.g. 142"
-                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                    class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
                   />
                 </div>
                 <div class="space-y-2">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chapter</label>
+                  <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Chapter</label>
                   <Input
                     v-model="newQuote.chapter"
                     placeholder="e.g. Chapter IV"
-                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                    class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
                   />
                 </div>
                 <div class="space-y-2 md:col-span-1 col-span-2">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tags</label>
+                  <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tags</label>
                   <Input
                     v-model="newQuote.tags_input"
                     placeholder="philosophy, life, love"
-                    class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                    class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
                   />
                 </div>
               </div>
 
               <!-- Personal Notes -->
               <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Personal Notes</label>
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Personal Notes</label>
                 <Textarea
                   v-model="newQuote.note"
                   placeholder="Why did this resonate with you?"
                   rows="2"
-                  class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg p-3 text-sm text-slate-200 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+                  class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg p-3 text-sm text-zinc-200 placeholder-zinc-600 focus:border-indigo-500 transition-all resize-none"
                 />
               </div>
 
@@ -821,7 +821,7 @@ const handleEditQuote = async () => {
                 <button
                   type="button"
                   @click="newQuote.is_favorite = !newQuote.is_favorite"
-                  :class="newQuote.is_favorite ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-500'"
+                  :class="newQuote.is_favorite ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-zinc-700 text-zinc-500'"
                   class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm"
                 >
                   <component :is="Star" :size="16" :fill="newQuote.is_favorite ? 'currentColor' : 'none'" />
@@ -830,7 +830,7 @@ const handleEditQuote = async () => {
                 <button
                   type="button"
                   @click="newQuote.is_public = !newQuote.is_public"
-                  :class="newQuote.is_public ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-slate-700 text-slate-500'"
+                  :class="newQuote.is_public ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-zinc-700 text-zinc-500'"
                   class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm"
                 >
                   <component :is="newQuote.is_public ? Globe : Lock" :size="16" />
@@ -839,11 +839,11 @@ const handleEditQuote = async () => {
               </div>
 
               <!-- Footer Buttons -->
-              <div class="flex gap-3 pt-3 border-t border-slate-800">
+              <div class="flex gap-3 pt-3 border-t border-zinc-800">
                 <button
                   type="button"
                   @click="isCreateDialogOpen = false"
-                  class="flex-1 px-4 py-3 rounded-lg border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-all"
+                  class="flex-1 px-4 py-3 rounded-lg border border-zinc-700 text-zinc-300 text-sm font-semibold hover:bg-zinc-800 transition-all"
                 >
                   Discard
                 </button>
@@ -892,20 +892,20 @@ const handleEditQuote = async () => {
       <div class="hidden lg:block space-y-6">
         <div class="flex flex-col lg:flex-row gap-4">
           <div class="flex-1 relative group">
-            <Search class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" :size="20" />
+            <Search class="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-indigo-500 transition-colors" :size="20" />
             <input
               type="text"
               v-model="searchQuery"
               @input="handleSearch"
               placeholder="Search across content, books, or authors..."
-              class="w-full bg-slate-900/50 border-2 border-slate-800 rounded-2xl px-14 py-4 text-white focus:border-indigo-500 transition-all outline-none"
+              class="w-full bg-zinc-900/50 border-2 border-zinc-800 rounded-2xl px-14 py-4 text-white focus:border-indigo-500 transition-all outline-none"
             />
           </div>
 
           <div class="flex gap-4">
             <button
               @click="toggleFavorites"
-              :class="showFavorites ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-800 text-slate-400 hover:border-slate-700'"
+              :class="showFavorites ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-zinc-800 text-zinc-400 hover:border-zinc-700'"
               class="flex items-center gap-3 px-6 py-4 rounded-2xl border-2 transition-all"
             >
               <Star :size="18" :fill="showFavorites ? 'currentColor' : 'none'" />
@@ -915,7 +915,7 @@ const handleEditQuote = async () => {
         </div>
 
         <div v-if="selectedTag" class="flex items-center gap-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-widest mr-2">Filtered by:</span>
+          <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest mr-2">Filtered by:</span>
           <button
             @click="selectedTag = null"
             class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 text-sm font-bold"
@@ -932,12 +932,12 @@ const handleEditQuote = async () => {
       <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
         <div class="flex items-center gap-2 text-sm">
           <BookOpen :size="16" class="text-sky-400" />
-          <span class="text-slate-400">Showing quotes from</span>
+          <span class="text-zinc-400">Showing quotes from</span>
           <span class="font-bold text-sky-400">{{ filterBookTitle }}</span>
         </div>
         <button
           @click="clearBookFilter"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/50 text-slate-300 text-xs font-bold hover:bg-slate-700/50 transition-colors"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/50 text-zinc-300 text-xs font-bold hover:bg-zinc-700/50 transition-colors"
         >
           <X :size="14" />
           Clear Filter
@@ -956,11 +956,11 @@ const handleEditQuote = async () => {
 
       <!-- Empty State -->
       <div v-else-if="displayedQuotes.length === 0" class="flex flex-col items-center justify-center py-40 text-center animate-in fade-in duration-500">
-        <div class="w-20 h-20 rounded-full bg-slate-900/50 border border-slate-800 flex items-center justify-center mb-6">
-          <Sparkles :size="32" class="text-slate-700" />
+        <div class="w-20 h-20 rounded-full bg-zinc-900/50 border border-zinc-800 flex items-center justify-center mb-6">
+          <Sparkles :size="32" class="text-zinc-700" />
         </div>
         <h3 class="text-2xl font-bold text-white mb-2">No insights found</h3>
-        <p class="text-slate-500 max-w-sm">
+        <p class="text-zinc-500 max-w-sm">
           Adjust your filters or capture your first quote to start building your collection.
         </p>
         <button
@@ -977,19 +977,19 @@ const handleEditQuote = async () => {
         <div
           v-for="quote in displayedQuotes"
           :key="quote.id"
-          class="group relative glass bg-slate-900/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-800/50 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/5"
+          class="group relative glass bg-zinc-900/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-zinc-800/50 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/5"
         >
           <!-- Quote Mark -->
           <div class="absolute -top-4 -left-2 text-7xl text-indigo-500/10 font-serif pointer-events-none select-none">"</div>
 
           <div class="relative space-y-6">
             <!-- Quote Content -->
-            <p class="text-quote font-medium text-slate-100 leading-relaxed italic font-serif whitespace-pre-wrap">
+            <p class="text-quote font-medium text-zinc-100 leading-relaxed italic font-serif whitespace-pre-wrap">
               {{ quote.text }}
             </p>
 
             <!-- Book Info -->
-            <div class="flex items-start gap-2 sm:gap-3 pt-3 border-t border-slate-800/50">
+            <div class="flex items-start gap-2 sm:gap-3 pt-3 border-t border-zinc-800/50">
               <!-- Book Cover or Placeholder -->
               <div
                 v-if="quote.book_cover"
@@ -1002,10 +1002,10 @@ const handleEditQuote = async () => {
               <div
                 v-else
                 @click="handleBookClick(quote)"
-                :class="quote.book ? 'cursor-pointer hover:bg-slate-700 transition-colors' : ''"
-                class="w-8 h-12 sm:w-9 sm:h-13 bg-slate-800 rounded-md flex items-center justify-center flex-shrink-0"
+                :class="quote.book ? 'cursor-pointer hover:bg-zinc-700 transition-colors' : ''"
+                class="w-8 h-12 sm:w-9 sm:h-13 bg-zinc-800 rounded-md flex items-center justify-center flex-shrink-0"
               >
-                <Bookmark :size="14" class="text-slate-600" />
+                <Bookmark :size="14" class="text-zinc-600" />
               </div>
               <div class="flex-1 min-w-0 space-y-1.5">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0">
@@ -1017,28 +1017,28 @@ const handleEditQuote = async () => {
                     <span class="truncate">{{ quote.book_title || 'Unknown Book' }}</span>
                     <ExternalLink v-if="quote.book" :size="12" class="opacity-0 group-hover/title:opacity-100 transition-opacity flex-shrink-0" />
                   </h4>
-                  <span class="text-slate-600 hidden sm:inline flex-shrink-0">|</span>
+                  <span class="text-zinc-600 hidden sm:inline flex-shrink-0">|</span>
                   <p class="text-indigo-400 font-medium text-sm truncate">{{ quote.book_author || 'Unknown Author' }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 text-xs">
                   <!-- Chapter and Page -->
                   <template v-if="quote.chapter || quote.page_number">
-                    <span v-if="quote.chapter" class="flex items-center gap-1 text-slate-500 font-bold uppercase tracking-wider">
-                      <span class="text-slate-600">Ch.</span> {{ quote.chapter }}
+                    <span v-if="quote.chapter" class="flex items-center gap-1 text-zinc-500 font-bold uppercase tracking-wider">
+                      <span class="text-zinc-600">Ch.</span> {{ quote.chapter }}
                     </span>
-                    <span v-if="quote.page_number" class="flex items-center gap-1 text-slate-500 font-bold uppercase tracking-wider">
-                      <span class="text-slate-600">Pg.</span> {{ quote.page_number }}
+                    <span v-if="quote.page_number" class="flex items-center gap-1 text-zinc-500 font-bold uppercase tracking-wider">
+                      <span class="text-zinc-600">Pg.</span> {{ quote.page_number }}
                     </span>
                   </template>
 
                   <!-- Tags inline -->
                   <template v-if="quote.tags && quote.tags.length > 0">
-                    <span v-if="quote.chapter || quote.page_number" class="text-slate-700">|</span>
+                    <span v-if="quote.chapter || quote.page_number" class="text-zinc-700">|</span>
                     <button
                       v-for="(tag, i) in quote.tags"
                       :key="i"
                       @click="filterByTag(tag.id)"
-                      class="px-2 py-0.5 rounded-full bg-slate-800/50 border border-slate-700 text-xs font-semibold text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
+                      class="px-2 py-0.5 rounded-full bg-zinc-800/50 border border-zinc-700 text-xs font-semibold text-zinc-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
                     >
                       #{{ tag.name }}
                     </button>
@@ -1051,14 +1051,14 @@ const handleEditQuote = async () => {
             <div v-if="quote.note" class="pt-2">
               <button
                 @click="toggleNotes(quote.id)"
-                class="text-xs font-bold text-slate-500 flex items-center gap-1.5 hover:text-slate-300 transition-colors"
+                class="text-xs font-bold text-zinc-500 flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
               >
                 <MoreHorizontal :size="14" />
                 {{ expandedNotes.has(quote.id) ? 'Hide personal notes' : 'Read personal notes' }}
               </button>
               <p
                 v-if="expandedNotes.has(quote.id)"
-                class="mt-3 p-4 rounded-xl bg-slate-950/50 border border-slate-800 text-slate-400 text-sm leading-relaxed animate-in slide-in-from-top-2"
+                class="mt-3 p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 text-zinc-400 text-sm leading-relaxed animate-in slide-in-from-top-2"
               >
                 {{ quote.note }}
               </p>
@@ -1069,7 +1069,7 @@ const handleEditQuote = async () => {
               <div class="flex items-center gap-0.5 sm:gap-1">
                 <button
                   @click="toggleFavorite(quote)"
-                  :class="quote.is_favorite ? 'text-amber-400 bg-amber-400/10' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'"
+                  :class="quote.is_favorite ? 'text-amber-400 bg-amber-400/10' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'"
                   class="p-1.5 sm:p-2 rounded-full transition-all"
                 >
                   <Star :size="18" class="sm:hidden" :fill="quote.is_favorite ? 'currentColor' : 'none'" />
@@ -1077,14 +1077,14 @@ const handleEditQuote = async () => {
                 </button>
                 <button
                   @click="copyQuote(quote)"
-                  class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-slate-800 transition-all"
+                  class="p-1.5 sm:p-2 rounded-full text-zinc-500 hover:text-indigo-400 hover:bg-zinc-800 transition-all"
                 >
                   <Copy :size="18" class="sm:hidden" />
                   <Copy :size="20" class="hidden sm:block" />
                 </button>
                 <button
                   @click="openDesigner(quote)"
-                  class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-slate-800 transition-all"
+                  class="p-1.5 sm:p-2 rounded-full text-zinc-500 hover:text-indigo-400 hover:bg-zinc-800 transition-all"
                   title="Design card"
                 >
                   <Image :size="18" class="sm:hidden" />
@@ -1092,7 +1092,7 @@ const handleEditQuote = async () => {
                 </button>
                 <button
                   @click="shareQuoteTwitter(quote)"
-                  class="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-sky-400 hover:bg-slate-800 transition-all"
+                  class="p-1.5 sm:p-2 rounded-full text-zinc-500 hover:text-sky-400 hover:bg-zinc-800 transition-all"
                   title="Share on X"
                 >
                   <Share2 :size="18" class="sm:hidden" />
@@ -1103,7 +1103,7 @@ const handleEditQuote = async () => {
               <div class="flex items-center gap-1 sm:gap-2">
                 <button
                   @click="openEditDialog(quote)"
-                  class="p-1.5 sm:px-4 sm:py-2 rounded-full sm:rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2"
+                  class="p-1.5 sm:px-4 sm:py-2 rounded-full sm:rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2"
                 >
                   <Edit :size="16" class="sm:hidden" />
                   <Edit :size="14" class="hidden sm:block" />
@@ -1111,7 +1111,7 @@ const handleEditQuote = async () => {
                 </button>
                 <button
                   @click="deleteQuote(quote)"
-                  class="p-1.5 sm:px-4 sm:py-2 rounded-full sm:rounded-xl text-xs font-bold text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2"
+                  class="p-1.5 sm:px-4 sm:py-2 rounded-full sm:rounded-xl text-xs font-bold text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2"
                 >
                   <Trash2 :size="16" class="sm:hidden" />
                   <Trash2 :size="14" class="hidden sm:block" />
@@ -1133,8 +1133,8 @@ const handleEditQuote = async () => {
 
     <!-- Edit Quote Dialog -->
     <Dialog v-model:open="isEditDialogOpen">
-      <DialogContent class="max-w-2xl glass border-slate-700 max-h-[85vh] overflow-y-auto">
-        <DialogHeader class="border-b border-slate-800 pb-3 mb-4">
+      <DialogContent class="max-w-2xl glass border-zinc-700 max-h-[85vh] overflow-y-auto">
+        <DialogHeader class="border-b border-zinc-800 pb-3 mb-4">
           <DialogTitle class="text-lg font-bold flex items-center gap-2">
             <div class="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <Edit :size="16" class="text-white" />
@@ -1150,7 +1150,7 @@ const handleEditQuote = async () => {
           <!-- Quote Content -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
                 <component :is="AlignLeft" :size="12" /> The Quote
               </label>
               <button
@@ -1172,14 +1172,14 @@ const handleEditQuote = async () => {
                 placeholder="Paste the brilliant words here, or scan a book page..."
                 rows="4"
                 required
-                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+                class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 transition-all resize-none"
               />
-              <div v-if="isScanning" class="absolute inset-0 bg-slate-900/60 rounded-xl flex flex-col items-center justify-center gap-2">
+              <div v-if="isScanning" class="absolute inset-0 bg-zinc-900/60 rounded-xl flex flex-col items-center justify-center gap-2">
                 <Loader2 :size="24" class="text-indigo-400 animate-spin" />
-                <div class="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div class="w-32 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
                   <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" :style="{ width: scanProgress + '%' }"></div>
                 </div>
-                <span class="text-xs text-slate-400">Recognizing text...</span>
+                <span class="text-xs text-zinc-400">Recognizing text...</span>
               </div>
             </div>
             <p v-if="scanError" class="text-xs text-red-400">Scan failed: {{ scanError }}</p>
@@ -1188,7 +1188,7 @@ const handleEditQuote = async () => {
           <!-- Book Info Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-2 relative">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
                 <component :is="Bookmark" :size="12" /> Book Title
               </label>
               <input
@@ -1197,46 +1197,46 @@ const handleEditQuote = async () => {
                 @focus="showEditBookDropdown = editBookSearchResults.length > 0"
                 placeholder="Start typing to search your books..."
                 required
-                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all outline-none"
+                class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all outline-none"
                 autocomplete="off"
               />
               <!-- Autocomplete Dropdown -->
               <div
                 v-if="showEditBookDropdown && editBookSearchResults.length > 0"
-                class="absolute z-50 w-full mt-1 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
+                class="absolute z-50 w-full mt-1 bg-zinc-800 border-2 border-zinc-700 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
               >
                 <button
                   v-for="userBook in editBookSearchResults"
                   :key="userBook.id"
                   type="button"
                   @click="selectEditBook(userBook)"
-                  class="w-full flex items-start gap-3 p-3 hover:bg-slate-700 transition-colors text-left border-b border-slate-700/50 last:border-0"
+                  class="w-full flex items-start gap-3 p-3 hover:bg-zinc-700 transition-colors text-left border-b border-zinc-700/50 last:border-0"
                 >
-                  <div class="w-8 h-12 rounded overflow-hidden flex-shrink-0 bg-slate-700 flex items-center justify-center">
+                  <div class="w-8 h-12 rounded overflow-hidden flex-shrink-0 bg-zinc-700 flex items-center justify-center">
                     <img
                       v-if="userBook.book.cover_image"
                       :src="userBook.book.cover_image"
                       :alt="userBook.book.title"
                       class="w-full h-full object-cover"
                     />
-                    <BookOpen v-else :size="14" class="text-slate-500" />
+                    <BookOpen v-else :size="14" class="text-zinc-500" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-bold text-white truncate">{{ userBook.book.title }}</p>
-                    <p class="text-xs text-slate-400 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
+                    <p class="text-xs text-zinc-400 truncate">{{ userBook.book.authors?.[0]?.name || 'Unknown Author' }}</p>
                   </div>
                 </button>
               </div>
-              <p v-if="isSearchingEditBooks" class="text-xs text-slate-500 mt-1">Searching...</p>
+              <p v-if="isSearchingEditBooks" class="text-xs text-zinc-500 mt-1">Searching...</p>
             </div>
             <div class="space-y-2">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
                 <component :is="Hash" :size="12" /> Author
               </label>
               <Input
                 v-model="editQuote.book_author"
                 placeholder="The creative mind..."
-                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
               />
             </div>
           </div>
@@ -1244,40 +1244,40 @@ const handleEditQuote = async () => {
           <!-- Metadata Grid -->
           <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div class="space-y-2">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Page</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Page</label>
               <Input
                 v-model.number="editQuote.page_number"
                 type="number"
                 placeholder="e.g. 142"
-                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
               />
             </div>
             <div class="space-y-2">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chapter</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Chapter</label>
               <Input
                 v-model="editQuote.chapter"
                 placeholder="e.g. Chapter IV"
-                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
               />
             </div>
             <div class="space-y-2 md:col-span-1 col-span-2">
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tags</label>
+              <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tags</label>
               <Input
                 v-model="editQuote.tags_input"
                 placeholder="philosophy, life, love"
-                class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+                class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
               />
             </div>
           </div>
 
           <!-- Personal Notes -->
           <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Personal Notes</label>
+            <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Personal Notes</label>
             <Textarea
               v-model="editQuote.note"
               placeholder="Why did this resonate with you?"
               rows="2"
-              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg p-3 text-sm text-slate-200 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+              class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg p-3 text-sm text-zinc-200 placeholder-zinc-600 focus:border-indigo-500 transition-all resize-none"
             />
           </div>
 
@@ -1286,7 +1286,7 @@ const handleEditQuote = async () => {
             <button
               type="button"
               @click="editQuote.is_favorite = !editQuote.is_favorite"
-              :class="editQuote.is_favorite ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-500'"
+              :class="editQuote.is_favorite ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-zinc-700 text-zinc-500'"
               class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm"
             >
               <component :is="Star" :size="16" :fill="editQuote.is_favorite ? 'currentColor' : 'none'" />
@@ -1295,7 +1295,7 @@ const handleEditQuote = async () => {
             <button
               type="button"
               @click="editQuote.is_public = !editQuote.is_public"
-              :class="editQuote.is_public ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-slate-700 text-slate-500'"
+              :class="editQuote.is_public ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-zinc-700 text-zinc-500'"
               class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm"
             >
               <component :is="editQuote.is_public ? Globe : Lock" :size="16" />
@@ -1304,11 +1304,11 @@ const handleEditQuote = async () => {
           </div>
 
           <!-- Footer Buttons -->
-          <div class="flex gap-3 pt-3 border-t border-slate-800">
+          <div class="flex gap-3 pt-3 border-t border-zinc-800">
             <button
               type="button"
               @click="isEditDialogOpen = false"
-              class="flex-1 px-4 py-3 rounded-lg border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-all"
+              class="flex-1 px-4 py-3 rounded-lg border border-zinc-700 text-zinc-300 text-sm font-semibold hover:bg-zinc-800 transition-all"
             >
               Cancel
             </button>

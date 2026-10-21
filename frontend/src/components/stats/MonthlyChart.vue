@@ -83,15 +83,15 @@ const totalBooks = computed(() => props.data.reduce((sum, m) => sum + m.books, 0
     ref="elementRef"
     :class="['transition-all duration-700', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6']"
   >
-    <div class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+    <div class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Your Reading Year</h3>
-        <span class="text-xs text-slate-500">
-          <b class="text-slate-300">{{ totalBooks }}</b> books
+        <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Your Reading Year</h3>
+        <span class="text-xs text-zinc-500">
+          <b class="text-zinc-300">{{ totalBooks }}</b> books
         </span>
       </div>
 
-      <div v-if="totalBooks === 0" class="text-center py-10 text-sm text-slate-500">
+      <div v-if="totalBooks === 0" class="text-center py-10 text-sm text-zinc-500">
         Finish a book to see your monthly rhythm.
       </div>
 

@@ -252,10 +252,10 @@ const selectFilter = (value) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-slate-950 animate-in fade-in duration-500">
+  <div class="h-full flex flex-col bg-zinc-950 animate-in fade-in duration-500">
 
     <!-- ==================== MOBILE HEADER ==================== -->
-    <header class="lg:hidden px-4 py-3 border-b border-white/5 bg-slate-900/90 backdrop-blur-xl sticky top-0 z-30 safe-area-top">
+    <header class="lg:hidden px-4 py-3 border-b border-white/5 bg-zinc-900/90 backdrop-blur-xl sticky top-0 z-30 safe-area-top">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -263,7 +263,7 @@ const selectFilter = (value) => {
           </div>
           <div>
             <h1 class="text-lg font-black text-white">Activity</h1>
-            <p class="text-[10px] text-slate-500 uppercase tracking-wider">{{ filteredActivities.length }} updates</p>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-wider">{{ filteredActivities.length }} updates</p>
           </div>
         </div>
 
@@ -272,7 +272,7 @@ const selectFilter = (value) => {
           <button
             @click="handleRefresh"
             :disabled="refreshing"
-            class="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+            class="p-2.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
           >
             <RefreshCw :size="18" :class="refreshing ? 'animate-spin' : ''" />
           </button>
@@ -282,7 +282,7 @@ const selectFilter = (value) => {
             @click="showFilterMenu = !showFilterMenu"
             :class="[
               'p-2.5 rounded-xl transition-colors',
-              activeFilter !== 'all' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400'
+              activeFilter !== 'all' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-zinc-400'
             ]"
           >
             <Filter :size="18" />
@@ -298,7 +298,7 @@ const selectFilter = (value) => {
       />
       <div
         v-if="showFilterMenu"
-        class="absolute right-4 top-full mt-2 w-56 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
+        class="absolute right-4 top-full mt-2 w-56 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
       >
         <div class="p-2 space-y-1">
           <button
@@ -307,7 +307,7 @@ const selectFilter = (value) => {
             @click="selectFilter(option.value)"
             :class="[
               'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left',
-              activeFilter === option.value ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:bg-white/5'
+              activeFilter === option.value ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-400 hover:bg-white/5'
             ]"
           >
             <component :is="option.icon" :size="16" />
@@ -318,7 +318,7 @@ const selectFilter = (value) => {
     </header>
 
     <!-- ==================== DESKTOP HEADER ==================== -->
-    <header class="hidden lg:block border-b border-white/5 bg-slate-900/50">
+    <header class="hidden lg:block border-b border-white/5 bg-zinc-900/50">
       <div class="container mx-auto px-8 py-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
@@ -327,7 +327,7 @@ const selectFilter = (value) => {
             </div>
             <div>
               <h1 class="text-2xl font-black text-white">Activity Feed</h1>
-              <p class="text-sm text-slate-500">See what your friends are reading</p>
+              <p class="text-sm text-zinc-500">See what your friends are reading</p>
             </div>
           </div>
 
@@ -342,7 +342,7 @@ const selectFilter = (value) => {
                   'px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2',
                   activeFilter === option.value
                     ? 'bg-indigo-500 text-white shadow-lg'
-                    : 'text-slate-400 hover:text-white'
+                    : 'text-zinc-400 hover:text-white'
                 ]"
               >
                 <component :is="option.icon" :size="14" />
@@ -353,7 +353,7 @@ const selectFilter = (value) => {
             <button
               @click="handleRefresh"
               :disabled="refreshing"
-              class="p-3 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+              class="p-3 rounded-xl bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50"
             >
               <RefreshCw :size="18" :class="refreshing ? 'animate-spin' : ''" />
             </button>
@@ -369,7 +369,7 @@ const selectFilter = (value) => {
       <div v-if="loading" class="flex items-center justify-center py-20">
         <div class="flex flex-col items-center gap-4">
           <div class="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <p class="text-sm text-slate-500">Loading activity...</p>
+          <p class="text-sm text-zinc-500">Loading activity...</p>
         </div>
       </div>
 
@@ -379,7 +379,7 @@ const selectFilter = (value) => {
           <TrendingUp :size="28" class="text-rose-400" />
         </div>
         <p class="text-lg font-bold text-white mb-2">Something went wrong</p>
-        <p class="text-sm text-slate-500 mb-4">{{ error }}</p>
+        <p class="text-sm text-zinc-500 mb-4">{{ error }}</p>
         <button
           @click="loadFeed"
           class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white font-bold text-sm"
@@ -390,17 +390,17 @@ const selectFilter = (value) => {
 
       <!-- Empty State -->
       <div v-else-if="filteredActivities.length === 0" class="flex flex-col items-center justify-center py-20 px-4 text-center">
-        <div class="w-20 h-20 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center mb-6">
-          <Sparkles :size="36" class="text-slate-600" />
+        <div class="w-20 h-20 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center mb-6">
+          <Sparkles :size="36" class="text-zinc-600" />
         </div>
         <h3 class="text-xl font-black text-white mb-2">No activity yet</h3>
-        <p class="text-sm text-slate-500 max-w-xs">
+        <p class="text-sm text-zinc-500 max-w-xs">
           {{ activeFilter === 'all' ? 'Start following users to see their reading activity here!' : 'No activity of this type yet.' }}
         </p>
         <button
           v-if="activeFilter !== 'all'"
           @click="activeFilter = 'all'"
-          class="mt-4 px-5 py-2.5 rounded-xl bg-white/5 text-slate-400 font-bold text-sm hover:bg-white/10 transition-colors"
+          class="mt-4 px-5 py-2.5 rounded-xl bg-white/5 text-zinc-400 font-bold text-sm hover:bg-white/10 transition-colors"
         >
           Show All Activity
         </button>
@@ -436,13 +436,13 @@ const selectFilter = (value) => {
                   >
                     {{ activity.user.full_name }}
                   </button>
-                  <span class="text-sm text-slate-500">{{ getActivityTitle(activity) }}</span>
+                  <span class="text-sm text-zinc-500">{{ getActivityTitle(activity) }}</span>
                 </div>
                 <div class="flex items-center gap-2 mt-1">
                   <div :class="['w-5 h-5 rounded-md flex items-center justify-center', getActivityBgColor(activity.type)]">
                     <component :is="getActivityIcon(activity.type)" :size="12" :class="getActivityColor(activity.type)" />
                   </div>
-                  <span class="text-xs text-slate-600">{{ formatTimestamp(activity.timestamp) }}</span>
+                  <span class="text-xs text-zinc-600">{{ formatTimestamp(activity.timestamp) }}</span>
                 </div>
               </div>
             </div>
@@ -462,7 +462,7 @@ const selectFilter = (value) => {
                 </div>
                 <div class="flex-1 min-w-0">
                   <h3 class="font-bold text-white text-sm lg:text-base line-clamp-2">{{ activity.book.title }}</h3>
-                  <p v-if="activity.book?.authors?.length" class="text-xs text-slate-500 mt-1">
+                  <p v-if="activity.book?.authors?.length" class="text-xs text-zinc-500 mt-1">
                     {{ activity.book.authors.map(a => a.name).join(', ') }}
                   </p>
                   <div v-if="activity.rating" class="flex gap-0.5 mt-2">
@@ -470,12 +470,12 @@ const selectFilter = (value) => {
                       v-for="i in 5"
                       :key="i"
                       :size="14"
-                      :class="i <= activity.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-700'"
+                      :class="i <= activity.rating ? 'fill-yellow-400 text-yellow-400' : 'text-zinc-700'"
                     />
                   </div>
                 </div>
               </button>
-              <p v-if="activity.review" class="text-sm text-slate-400 leading-relaxed">
+              <p v-if="activity.review" class="text-sm text-zinc-400 leading-relaxed">
                 {{ activity.review }}
               </p>
             </div>
@@ -483,8 +483,8 @@ const selectFilter = (value) => {
             <!-- Quote Activity -->
             <div v-if="activity.type === 'quote_added'" class="space-y-3">
               <div class="relative pl-4 border-l-2 border-purple-500/50">
-                <Quote :size="14" class="absolute -left-[9px] top-0 text-purple-500 bg-slate-950" />
-                <blockquote class="text-sm lg:text-base text-slate-300 italic leading-relaxed font-serif">
+                <Quote :size="14" class="absolute -left-[9px] top-0 text-purple-500 bg-zinc-950" />
+                <blockquote class="text-sm lg:text-base text-zinc-300 italic leading-relaxed font-serif">
                   "{{ activity.quote?.text || activity.preview_text }}"
                 </blockquote>
               </div>
@@ -517,7 +517,7 @@ const selectFilter = (value) => {
 
             <!-- Progress Update / Reading Session -->
             <div v-if="activity.type === 'reading_session' || activity.type === 'progress_update'" class="space-y-2">
-              <div v-if="activity.preview_text" class="text-sm text-slate-400">
+              <div v-if="activity.preview_text" class="text-sm text-zinc-400">
                 {{ activity.preview_text }}
               </div>
               <button
@@ -542,7 +542,7 @@ const selectFilter = (value) => {
                 <div class="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
                     <h3 class="font-bold text-white text-sm lg:text-base line-clamp-2">{{ activity.book.title }}</h3>
-                    <p v-if="activity.book?.authors?.length" class="text-xs text-slate-500 mt-1">
+                    <p v-if="activity.book?.authors?.length" class="text-xs text-zinc-500 mt-1">
                       {{ activity.book.authors.map(a => a.name).join(', ') }}
                     </p>
                   </div>
@@ -569,7 +569,7 @@ const selectFilter = (value) => {
 
             <!-- Generic preview text -->
             <div v-if="!['book_finished', 'quote_added', 'challenge_completed', 'reading_session', 'progress_update', 'book_started', 'want_to_read'].includes(activity.type) && activity.preview_text">
-              <p class="text-sm text-slate-400">{{ activity.preview_text }}</p>
+              <p class="text-sm text-zinc-400">{{ activity.preview_text }}</p>
             </div>
           </div>
 
@@ -579,19 +579,19 @@ const selectFilter = (value) => {
               @click="handleLike(activity)"
               :class="[
                 'flex items-center gap-2 text-sm transition-colors active:scale-95',
-                activity.is_liked ? 'text-rose-400' : 'text-slate-500 hover:text-rose-400'
+                activity.is_liked ? 'text-rose-400' : 'text-zinc-500 hover:text-rose-400'
               ]"
             >
               <Heart :size="18" :class="activity.is_liked ? 'fill-current' : ''" />
               <span class="font-medium">{{ activity.likes_count || '' }}</span>
             </button>
 
-            <button class="flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-400 transition-colors">
+            <button class="flex items-center gap-2 text-sm text-zinc-500 hover:text-indigo-400 transition-colors">
               <MessageCircle :size="18" />
               <span class="font-medium">{{ activity.comments_count || '' }}</span>
             </button>
 
-            <button class="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-400 transition-colors ml-auto">
+            <button class="flex items-center gap-2 text-sm text-zinc-500 hover:text-emerald-400 transition-colors ml-auto">
               <Share2 :size="18" />
             </button>
           </div>

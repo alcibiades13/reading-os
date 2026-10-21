@@ -40,19 +40,19 @@ const stats = computed(() => {
       <div
         v-for="(stat, i) in stats"
         :key="stat.label"
-        class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-4 sm:p-5 text-center"
+        class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-4 sm:p-5 text-center"
         :style="{ transitionDelay: `${i * 80}ms` }"
       >
         <div :class="['w-10 h-10 rounded-xl border flex items-center justify-center mx-auto mb-3', stat.color]">
           <component :is="stat.icon" :size="18" />
         </div>
         <p class="text-2xl sm:text-3xl font-black text-white mb-1">{{ stat.value || 0 }}</p>
-        <p class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">{{ stat.label }}</p>
+        <p class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider">{{ stat.label }}</p>
       </div>
     </div>
 
     <!-- Secondary stats row -->
-    <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-4 text-xs text-slate-400">
+    <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-4 text-xs text-zinc-400">
       <div v-if="data?.current_streak > 0" class="flex items-center gap-1.5">
         <Flame :size="14" class="text-orange-400" />
         <span><b class="text-white">{{ data.current_streak }}</b> day streak</span>

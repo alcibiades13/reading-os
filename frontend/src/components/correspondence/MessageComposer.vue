@@ -114,7 +114,7 @@ const removeAttachment = (index) => {
     <div v-if="isMinimized" class="max-w-4xl mx-auto">
       <button
         @click="isMinimized = false"
-        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-500/30 transition-all"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-indigo-500/30 transition-all"
       >
         <PenLine :size="14" />
         <span class="text-[10px] font-bold uppercase tracking-wider">Compose</span>
@@ -147,14 +147,14 @@ const removeAttachment = (index) => {
           v-model="messageText"
           placeholder="Draft a thoughtful response..."
           :class="[
-            'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:border-indigo-500 transition-all outline-none resize-none',
+            'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-500 focus:border-indigo-500 transition-all outline-none resize-none',
             isExpanded ? 'h-full' : 'h-20'
           ]"
         />
         <div class="absolute bottom-2 right-3 flex items-center gap-2">
           <button
             @click="isExpanded = !isExpanded"
-            class="p-1.5 text-slate-600 hover:text-white transition-colors"
+            class="p-1.5 text-zinc-600 hover:text-white transition-colors"
           >
             <Minimize2 v-if="isExpanded" :size="14" />
             <Maximize2 v-else :size="14" />
@@ -167,7 +167,7 @@ const removeAttachment = (index) => {
         <!-- Minimize button -->
         <button
           @click="isMinimized = true"
-          class="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+          class="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
           title="Minimize composer"
         >
           <ChevronDown :size="16" />
@@ -177,7 +177,7 @@ const removeAttachment = (index) => {
           <!-- Attach Book -->
           <button
             @click="showPicker = 'book'"
-            class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+            class="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
             title="Attach book"
           >
             <Book :size="14" />
@@ -186,7 +186,7 @@ const removeAttachment = (index) => {
           <!-- Attach Quote -->
           <button
             @click="showPicker = 'quote'"
-            class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+            class="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
             title="Attach quote"
           >
             <QuoteIcon :size="14" />
@@ -195,7 +195,7 @@ const removeAttachment = (index) => {
           <!-- Attach Note -->
           <button
             @click="openNotePicker"
-            class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+            class="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
             title="Attach study note"
           >
             <Brain :size="14" />
@@ -208,7 +208,7 @@ const removeAttachment = (index) => {
             @click="isImportant = !isImportant"
             :class="[
               'p-2 rounded-lg transition-all',
-              isImportant ? 'text-amber-400 bg-amber-400/10' : 'text-slate-500 hover:text-slate-300'
+              isImportant ? 'text-amber-400 bg-amber-400/10' : 'text-zinc-500 hover:text-zinc-300'
             ]"
             title="Mark important"
           >
@@ -231,7 +231,7 @@ const removeAttachment = (index) => {
   <Teleport to="body">
     <div
       v-if="showPicker !== 'none'"
-      class="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-slate-950/90 backdrop-blur-xl"
+      class="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-zinc-950/90 backdrop-blur-xl"
     >
       <div class="w-full max-w-2xl glass rounded-[2.5rem] border-white/10 flex flex-col max-h-[80vh]">
         <div class="p-8 border-b border-white/5 flex items-center justify-between">
@@ -240,7 +240,7 @@ const removeAttachment = (index) => {
           </h3>
           <button
             @click="showPicker = 'none'"
-            class="p-2 text-slate-500 hover:text-white transition-colors"
+            class="p-2 text-zinc-500 hover:text-white transition-colors"
           >
             <X :size="24" />
           </button>
@@ -260,7 +260,7 @@ const removeAttachment = (index) => {
             />
             <div class="min-w-0">
               <p class="text-sm font-bold text-white truncate">{{ book.book.title }}</p>
-              <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">
+              <p class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">
                 {{ book.book.authors?.[0]?.name || 'Unknown' }}
               </p>
             </div>
@@ -272,7 +272,7 @@ const removeAttachment = (index) => {
             v-for="quote in quotesStore.quotes"
             :key="quote.id"
             @click="addQuoteAttachment(quote)"
-            class="p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-indigo-500 cursor-pointer transition-all italic font-serif text-slate-300"
+            class="p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-indigo-500 cursor-pointer transition-all italic font-serif text-zinc-300"
           >
             "{{ quote.text.substring(0, 60) }}..."
             <p class="text-[9px] font-black uppercase tracking-widest text-indigo-400 mt-4">
@@ -291,7 +291,7 @@ const removeAttachment = (index) => {
                     'px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all',
                     !noteBookFilter
                       ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-white/10'
+                      : 'bg-white/5 text-zinc-500 border border-white/5 hover:bg-white/10'
                   ]"
                 >
                   All Books
@@ -304,7 +304,7 @@ const removeAttachment = (index) => {
                     'px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all truncate max-w-[180px]',
                     noteBookFilter === book.id
                       ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-white/10'
+                      : 'bg-white/5 text-zinc-500 border border-white/5 hover:bg-white/10'
                   ]"
                 >
                   {{ book.title }}
@@ -312,10 +312,10 @@ const removeAttachment = (index) => {
               </div>
             </div>
 
-            <div v-if="studyNotesStore.loading" class="col-span-2 text-center py-8 text-slate-500 text-sm">
+            <div v-if="studyNotesStore.loading" class="col-span-2 text-center py-8 text-zinc-500 text-sm">
               Loading notes...
             </div>
-            <div v-else-if="!filteredNotes.length" class="col-span-2 text-center py-8 text-slate-500 text-sm">
+            <div v-else-if="!filteredNotes.length" class="col-span-2 text-center py-8 text-zinc-500 text-sm">
               {{ noteBookFilter ? 'No notes for this book' : 'No study notes yet' }}
             </div>
             <div
@@ -325,13 +325,13 @@ const removeAttachment = (index) => {
               @click="addNoteAttachment(note)"
               class="p-4 rounded-3xl bg-white/5 border border-white/10 hover:border-indigo-500 cursor-pointer transition-all"
             >
-              <p class="text-sm text-slate-300 line-clamp-3 mb-3">{{ note.content }}</p>
+              <p class="text-sm text-zinc-300 line-clamp-3 mb-3">{{ note.content }}</p>
               <div class="flex items-center gap-2">
                 <span class="text-[9px] font-black uppercase tracking-widest text-emerald-400">{{ note.note_type }}</span>
-                <span v-if="note.book_title" class="text-[9px] text-slate-600">|</span>
-                <span v-if="note.book_title" class="text-[9px] font-bold text-slate-500 truncate">{{ note.book_title }}</span>
+                <span v-if="note.book_title" class="text-[9px] text-zinc-600">|</span>
+                <span v-if="note.book_title" class="text-[9px] font-bold text-zinc-500 truncate">{{ note.book_title }}</span>
               </div>
-              <p v-if="note.reference" class="text-[9px] text-slate-600 mt-1">{{ note.reference }}</p>
+              <p v-if="note.reference" class="text-[9px] text-zinc-600 mt-1">{{ note.reference }}</p>
             </div>
           </template>
         </div>

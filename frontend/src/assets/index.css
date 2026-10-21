@@ -4,15 +4,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  ARCHIVE - original indigo/blue-tinted dark palette, replaced 2026-07-29
+  because it read as purple-blue instead of neutral gray. Kept here in case
+  we ever want to revert. All `slate-*` classes across the app were renamed
+  to `zinc-*` (real Tailwind zinc palette) at the same time.
+
+  Original stock Tailwind "slate" hex scale (what `slate-*` used to render as):
+    slate-50:  #f8fafc   slate-500: #64748b
+    slate-100: #f1f5f9   slate-600: #475569
+    slate-200: #e2e8f0   slate-700: #334155
+    slate-300: #cbd5e1   slate-800: #1e293b
+    slate-400: #94a3b8   slate-900: #0f172a
+                         slate-950: #020617
+
+  Original :root CSS vars (used by shadcn dialog/dropdown/popover/card):
+    --background: 222 47% 11%
+    --card: 222 47% 11%
+    --popover: 217 33% 17%
+    --muted: 215 28% 17%
+    --muted-foreground: 215 20% 65%
+    --border: 215 28% 17%
+    --input: 215 28% 17%
+
+  Original hardcoded rgba values:
+    .glass (dark) background: rgba(30, 41, 59, 0.7) -- old slate-800
+    body:not(.light) .dark:bg-slate-950/50 background: rgba(2, 6, 23, 0.6) -- old slate-950
+*/
+
 @layer base {
   :root {
-    /* Lumina Dark Mode Colors */
-    --background: 222 47% 11%;        /* slate-950: #0f172a */
-    --foreground: 210 40% 98%;        /* slate-50: #f8fafc */
-    --card: 222 47% 11%;              /* slate-950: #0f172a - DARK kao u Lumina */
-    --card-foreground: 210 40% 98%;
-    --popover: 217 33% 17%;           /* slate-900 */
-    --popover-foreground: 210 40% 98%;
+    /* Lumina Dark Mode Colors - neutral gray, no blue/purple hue */
+    --background: 240 6% 10%;
+    --foreground: 210 20% 98%;
+    --card: 240 6% 10%;
+    --card-foreground: 210 20% 98%;
+    --popover: 240 5% 15%;
+    --popover-foreground: 210 20% 98%;
 
     /* INDIGO/PURPLE Primary Color */
     --primary: 243 75% 59%;           /* indigo-500: #6366f1 - LJUBIČASTA */
@@ -23,8 +51,8 @@
     --secondary-foreground: 210 40% 98%;
 
     /* Muted colors */
-    --muted: 215 28% 17%;             /* slate-800: #1e293b */
-    --muted-foreground: 215 20% 65%;  /* slate-400: #94a3b8 */
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 4% 65%;
 
     /* Accent - Sky for highlights */
     --accent: 199 89% 48%;            /* sky-500 */
@@ -38,8 +66,8 @@
     --destructive-foreground: 210 40% 98%;
 
     /* Borders and inputs */
-    --border: 215 28% 17%;            /* slate-800 */
-    --input: 215 28% 17%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
     --ring: 243 75% 59%;              /* indigo-500 */
 
     --radius: 0.75rem;
@@ -48,7 +76,7 @@
   body.light {
     /* Light Mode Colors */
     --background: 0 0% 100%;              /* white */
-    --foreground: 222 47% 11%;            /* slate-950 */
+    --foreground: 222 47% 11%;            /* zinc-950 */
     --card: 0 0% 100%;                    /* pure white for modals */
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;                 /* pure white */
@@ -61,7 +89,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 0 0% 98%;                    /* almost white - f9fafb */
-    --muted-foreground: 215 16% 47%;      /* slate-600 */
+    --muted-foreground: 215 16% 47%;      /* zinc-600 */
 
     --accent: 199 89% 48%;
     --accent-foreground: 210 40% 98%;
@@ -69,7 +97,7 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;                /* slate-200 */
+    --border: 214 32% 91%;                /* zinc-200 */
     --input: 214 32% 91%;
     --ring: 243 75% 59%;
   }
@@ -81,7 +109,7 @@
   }
 
   body {
-    @apply bg-slate-950 text-slate-50;
+    @apply bg-zinc-950 text-zinc-50;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -90,112 +118,127 @@
 
   /* Light mode styles */
   body.light {
-    background-color: #f8fafc !important; /* slate-50 for overall background */
-    color: #0f172a !important; /* slate-950 */
+    background-color: #f8fafc !important; /* zinc-50 for overall background */
+    color: #0f172a !important; /* zinc-950 */
   }
 
   /* LIGHT MODE SPECIFIC OVERRIDES */
-  body.light .bg-slate-950 {
+  body.light .bg-zinc-950 {
     background-color: #ffffff !important; /* Pure white for containers like tab backgrounds */
   }
 
-  body.light .bg-slate-950\/50 {
+  body.light .bg-zinc-950\/50 {
     background-color: rgba(248, 250, 252, 0.8) !important;
   }
 
-  body.light .bg-slate-950\/20 {
-    background-color: #f1f5f9 !important; /* Lighter for study view - slate-100 */
+  body.light .bg-zinc-950\/20 {
+    background-color: #f1f5f9 !important; /* Lighter for study view - zinc-100 */
   }
 
-  body.light .bg-slate-950\/80 {
+  body.light .bg-zinc-950\/80 {
     background-color: rgba(255, 255, 255, 0.85) !important; /* Light overlay for hover */
   }
 
-  body.light .bg-slate-950\/40 {
+  body.light .bg-zinc-950\/40 {
     background-color: rgba(248, 250, 252, 0.92) !important;
   }
 
-  body.light .border-slate-950 {
+  body.light .border-zinc-950 {
     border-color: #ffffff !important;
   }
 
   /* Containers (Cards, Quotes, Library Items) */
-  body.light .bg-slate-900\/40,
-  body.light .bg-slate-900\/50,
-  body.light .bg-slate-900\/30,
-  body.light .bg-slate-900\/20,
-  body.light .bg-slate-900 {
+  body.light .bg-zinc-900\/40,
+  body.light .bg-zinc-900\/50,
+  body.light .bg-zinc-900\/30,
+  body.light .bg-zinc-900\/20,
+  body.light .bg-zinc-900\/60,
+  body.light .bg-zinc-900 {
     background-color: #ffffff !important;
     box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.08) !important;
   }
 
-  body.light .bg-slate-800\/50,
-  body.light .bg-slate-800\/60,
-  body.light .bg-slate-800\/70,
-  body.light .bg-slate-800\/80,
-  body.light .bg-slate-800\/90,
-  body.light .bg-slate-800\/40,
-  body.light .bg-slate-800\/20,
-  body.light .bg-slate-800 {
-    background-color: #f1f5f9 !important; /* slate-100 */
+  body.light .bg-zinc-800\/50,
+  body.light .bg-zinc-800\/60,
+  body.light .bg-zinc-800\/70,
+  body.light .bg-zinc-800\/80,
+  body.light .bg-zinc-800\/90,
+  body.light .bg-zinc-800\/40,
+  body.light .bg-zinc-800\/30,
+  body.light .bg-zinc-800\/20,
+  body.light .bg-zinc-800 {
+    background-color: #f1f5f9 !important; /* zinc-100 */
     border-color: rgba(0,0,0,0.05) !important;
   }
 
-  /* Input fields with bg-slate-800/20 - должны бити БЕЛИ */
-  body.light input.bg-slate-800\/20,
-  body.light textarea.bg-slate-800\/20,
-  body.light input.bg-slate-800\/40,
-  body.light textarea.bg-slate-800\/40 {
+  /* Input fields with bg-zinc-800/20 - должны бити БЕЛИ */
+  body.light input.bg-zinc-800\/20,
+  body.light textarea.bg-zinc-800\/20,
+  body.light input.bg-zinc-800\/40,
+  body.light textarea.bg-zinc-800\/40 {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
     color: #0f172a !important;
   }
 
-  body.light .bg-slate-700,
-  body.light .bg-slate-700\/50 {
-    background-color: #e2e8f0 !important; /* slate-200 */
+  body.light .bg-zinc-700,
+  body.light .bg-zinc-700\/50 {
+    background-color: #e2e8f0 !important; /* zinc-200 */
   }
 
-  body.light .bg-slate-600 {
-    background-color: #cbd5e1 !important; /* slate-300 */
+  body.light .bg-zinc-600 {
+    background-color: #cbd5e1 !important; /* zinc-300 */
   }
 
-  /* Ensure text on bg-slate-600 is dark in light mode */
-  body.light .bg-slate-600.text-slate-200 {
-    background-color: #cbd5e1 !important; /* slate-300 */
-    color: #475569 !important; /* slate-600 - dark text */
+  /* Ensure text on bg-zinc-600 is dark in light mode */
+  body.light .bg-zinc-600.text-zinc-200 {
+    background-color: #cbd5e1 !important; /* zinc-300 */
+    color: #475569 !important; /* zinc-600 - dark text */
   }
 
   /* Hover slate backgrounds */
-  body.light .hover\:bg-slate-800:hover {
-    background-color: #e2e8f0 !important; /* slate-200 */
+  body.light .hover\:bg-zinc-800:hover {
+    background-color: #e2e8f0 !important; /* zinc-200 */
   }
 
-  body.light .hover\:bg-slate-900:hover {
-    background-color: #f1f5f9 !important; /* slate-100 */
+  body.light .hover\:bg-zinc-900:hover {
+    background-color: #f1f5f9 !important; /* zinc-100 */
   }
 
-  body.light .hover\:bg-slate-700:hover {
-    background-color: #cbd5e1 !important; /* slate-300 */
+  body.light .hover\:bg-zinc-700:hover {
+    background-color: #cbd5e1 !important; /* zinc-300 */
   }
 
   /* Selected tabs - should have indigo background with white text */
-  body.light button.bg-slate-800.text-white,
-  body.light .bg-slate-800.text-white {
+  body.light button.bg-zinc-800.text-white,
+  body.light .bg-zinc-800.text-white {
     background-color: #6366f1 !important; /* indigo-500 */
     color: #ffffff !important;
   }
 
+  /* Colorful gradient CTA buttons (import sources etc) - keep white text, don't darken */
+  body.light .from-violet-500.to-purple-600.text-white,
+  body.light .from-emerald-500.to-teal-600.text-white {
+    color: #ffffff !important;
+  }
+
+  /* Colorful status badges (Reading/Finished/Want to Read) - keep white text, don't darken */
+  body.light .bg-indigo-500.text-white,
+  body.light .bg-emerald-500\/90.text-white,
+  body.light .bg-sky-500\/90.text-white {
+    color: #ffffff !important;
+  }
+
   /* Borders */
-  body.light .border-slate-800,
-  body.light .border-slate-700,
-  body.light .border-slate-900,
-  body.light .border-slate-600 {
+  body.light .border-zinc-800,
+  body.light .border-zinc-700,
+  body.light .border-zinc-900,
+  body.light .border-zinc-600 {
     border-color: rgba(0,0,0,0.08) !important;
   }
 
   /* Hover borders */
-  body.light .hover\:border-slate-700:hover,
+  body.light .hover\:border-zinc-700:hover,
   body.light .hover\:border-indigo-500\/50:hover {
     border-color: rgba(99, 102, 241, 0.3) !important; /* indigo-500/30 */
   }
@@ -210,37 +253,37 @@
     color: #0f172a !important;
   }
 
-  body.light .text-slate-50,
-  body.light .text-slate-100 {
+  body.light .text-zinc-50,
+  body.light .text-zinc-100 {
     color: #0f172a !important;
   }
 
-  body.light .text-slate-200 {
+  body.light .text-zinc-200 {
     color: #1e293b !important;
   }
 
-  body.light .text-slate-300 {
+  body.light .text-zinc-300 {
     color: #334155 !important;
   }
 
-  body.light .text-slate-400 {
+  body.light .text-zinc-400 {
     color: #475569 !important;
   }
 
-  body.light .text-slate-500 {
+  body.light .text-zinc-500 {
     color: #64748b !important;
   }
 
-  body.light .text-slate-600 {
+  body.light .text-zinc-600 {
     color: #475569 !important;
   }
 
-  body.light .text-slate-700 {
+  body.light .text-zinc-700 {
     color: #334155 !important;
   }
 
   /* Tags & Pills */
-  body.light .bg-slate-800\/50.text-slate-400 {
+  body.light .bg-zinc-800\/50.text-zinc-400 {
     background-color: #eef2ff !important; /* Indigo-50 */
     color: #4f46e5 !important; /* Indigo-600 */
     border-color: #e0e7ff !important;
@@ -313,15 +356,15 @@
   }
 
   /* Tab backgrounds in light mode */
-  body.light .bg-slate-900\/80 {
+  body.light .bg-zinc-900\/80 {
     background-color: #ffffff !important; /* Pure white for tab container */
     border: 1px solid rgba(0,0,0,0.08) !important;
   }
 
   /* Inactive tab text hover */
-  body.light .hover\:text-slate-300:hover,
+  body.light .hover\:text-zinc-300:hover,
   body.light .hover\:text-white:hover {
-    color: #1e293b !important; /* slate-800 for hover */
+    color: #1e293b !important; /* zinc-800 for hover */
   }
 
   /* Hover text for buttons/links */
@@ -334,18 +377,18 @@
   body.light textarea::placeholder,
   body.light input::-webkit-input-placeholder,
   body.light textarea::-webkit-input-placeholder {
-    color: #94a3b8 !important; /* slate-400 - darker for better visibility */
+    color: #94a3b8 !important; /* zinc-400 - darker for better visibility */
     opacity: 1 !important;
   }
 
-  body.light .placeholder-slate-600::placeholder,
-  body.light .placeholder-slate-600::-webkit-input-placeholder {
-    color: #94a3b8 !important; /* slate-400 */
+  body.light .placeholder-zinc-600::placeholder,
+  body.light .placeholder-zinc-600::-webkit-input-placeholder {
+    color: #94a3b8 !important; /* zinc-400 */
   }
 
-  body.light .placeholder-slate-500::placeholder,
-  body.light .placeholder-slate-500::-webkit-input-placeholder {
-    color: #94a3b8 !important; /* slate-400 */
+  body.light .placeholder-zinc-500::placeholder,
+  body.light .placeholder-zinc-500::-webkit-input-placeholder {
+    color: #94a3b8 !important; /* zinc-400 */
   }
 
   /* Gradients - fix for light mode */
@@ -356,33 +399,54 @@
   /* Removed global bg-gradient-to-t override - it was too aggressive */
 
   /* Specific gradient overrides for hover overlays in light mode */
-  body.light .bg-gradient-to-t.from-slate-950 {
+  body.light .bg-gradient-to-t.from-zinc-950 {
     background: linear-gradient(to top, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.6), transparent) !important;
   }
 
-  body.light .from-slate-950,
-  body.light .from-slate-900 {
+  body.light .from-zinc-950,
+  body.light .from-zinc-900 {
     --tw-gradient-from: rgba(255, 255, 255, 0.95) !important;
   }
 
-  body.light .from-slate-950\/10 {
+  body.light .from-zinc-950\/10 {
     --tw-gradient-from: rgba(0, 0, 0, 0.03) !important; /* Barely visible dark gradient in light mode */
   }
 
-  body.light .from-slate-950\/30 {
+  body.light .from-zinc-950\/30 {
     --tw-gradient-from: rgba(0, 0, 0, 0.08) !important; /* Very subtle dark gradient in light mode */
   }
 
-  body.light .from-slate-950\/60 {
+  body.light .from-zinc-950\/60 {
     --tw-gradient-from: rgba(0, 0, 0, 0.15) !important; /* Subtle dark gradient */
   }
 
-  body.light .via-slate-950\/80 {
+  body.light .via-zinc-950\/80 {
     --tw-gradient-via: rgba(255, 255, 255, 0.6) !important;
   }
 
-  body.light .to-slate-900,
-  body.light .to-slate-950 {
+  /* Completed challenge cards - dark green/emerald gradient */
+  body.light .from-green-950\/30 {
+    --tw-gradient-from: rgba(240, 253, 244, 1) !important; /* green-50 */
+  }
+
+  body.light .to-emerald-950\/30 {
+    --tw-gradient-to: rgba(236, 253, 245, 1) !important; /* emerald-50 */
+  }
+
+  body.light .border-green-500\/10 {
+    border-color: rgba(34, 197, 94, 0.2) !important;
+  }
+
+  body.light .hover\:border-green-500\/20:hover {
+    border-color: rgba(34, 197, 94, 0.35) !important;
+  }
+
+  body.light .text-green-400 {
+    color: #16a34a !important; /* green-600 */
+  }
+
+  body.light .to-zinc-900,
+  body.light .to-zinc-950 {
     --tw-gradient-to: #ffffff !important;
   }
 
@@ -464,12 +528,12 @@
 
   /* Muted/secondary text */
   body.light .text-muted-foreground {
-    color: #64748b !important; /* slate-500 */
+    color: #64748b !important; /* zinc-500 */
   }
 
   /* Dark Mode Header Restoration */
-  body:not(.light) .dark\:bg-slate-950\/50 {
-    background-color: rgba(2, 6, 23, 0.6) !important;
+  body:not(.light) .dark\:bg-zinc-950\/50 {
+    background-color: rgba(9, 9, 11, 0.6) !important;
   }
 
   ::selection {
@@ -491,40 +555,40 @@
   }
 
   /* Light mode modal input fields - COVER ALL VARIANTS */
-  body.light input[class*="bg-slate-8"],
-  body.light textarea[class*="bg-slate-8"],
-  body.light input[class*="bg-slate-7"],
-  body.light textarea[class*="bg-slate-7"],
-  body.light input[class*="bg-slate-9"],
-  body.light textarea[class*="bg-slate-9"] {
+  body.light input[class*="bg-zinc-8"],
+  body.light textarea[class*="bg-zinc-8"],
+  body.light input[class*="bg-zinc-7"],
+  body.light textarea[class*="bg-zinc-7"],
+  body.light input[class*="bg-zinc-9"],
+  body.light textarea[class*="bg-zinc-9"] {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
     color: #0f172a !important;
   }
 
-  /* Inputs with bg-slate-800 + text-white match the button→indigo rule (higher specificity).
+  /* Inputs with bg-zinc-800 + text-white match the button→indigo rule (higher specificity).
      Override with 3 classes + element to win the specificity battle. */
-  body.light input.bg-slate-800.text-white,
-  body.light input.bg-slate-800.text-slate-200,
-  body.light input.bg-slate-800.text-slate-100,
-  body.light input.bg-slate-800 {
+  body.light input.bg-zinc-800.text-white,
+  body.light input.bg-zinc-800.text-zinc-200,
+  body.light input.bg-zinc-800.text-zinc-100,
+  body.light input.bg-zinc-800 {
     background-color: #ffffff !important;
     color: #0f172a !important;
     border-color: #e2e8f0 !important;
   }
 
-  body.light input.bg-slate-800::placeholder,
-  body.light input.bg-slate-800.text-white::placeholder {
+  body.light input.bg-zinc-800::placeholder,
+  body.light input.bg-zinc-800.text-white::placeholder {
     color: #94a3b8 !important;
     opacity: 1 !important;
   }
 
-  body.light input[class*="bg-slate-8"]:focus,
-  body.light textarea[class*="bg-slate-8"]:focus,
-  body.light input[class*="bg-slate-7"]:focus,
-  body.light textarea[class*="bg-slate-7"]:focus,
-  body.light input[class*="bg-slate-9"]:focus,
-  body.light textarea[class*="bg-slate-9"]:focus {
+  body.light input[class*="bg-zinc-8"]:focus,
+  body.light textarea[class*="bg-zinc-8"]:focus,
+  body.light input[class*="bg-zinc-7"]:focus,
+  body.light textarea[class*="bg-zinc-7"]:focus,
+  body.light input[class*="bg-zinc-9"]:focus,
+  body.light textarea[class*="bg-zinc-9"]:focus {
     border-color: #6366f1 !important;
   }
 
@@ -539,8 +603,8 @@
   }
 
   /* Modal overlays - БЕЛИ СВЕТЛИ OVERLAY за све модале */
-  body.light .bg-slate-950\/90,
-  body.light [class*="bg-slate-950/"],
+  body.light .bg-zinc-950\/90,
+  body.light [class*="bg-zinc-950/"],
   body.light .bg-black\/80,
   body.light .bg-black\/40,
   body.light [class*="bg-black/"] {
@@ -556,37 +620,37 @@
   }
 
   /* Placeholder gradient za knjige БЕЗ COVERA - светли gradient */
-  body.light .bg-gradient-to-br.from-slate-800 {
+  body.light .bg-gradient-to-br.from-zinc-800 {
     background: linear-gradient(to bottom right, #e2e8f0, #f1f5f9, #f8fafc) !important;
   }
 
-  body.light .bg-gradient-to-br.from-slate-800.via-slate-900.to-slate-950 {
+  body.light .bg-gradient-to-br.from-zinc-800.via-zinc-900.to-zinc-950 {
     background: linear-gradient(to bottom right, #e2e8f0, #f1f5f9, #f8fafc) !important;
   }
 
   /* Buttons and text in "Add to Shelf" section u import modalu */
-  body.light .bg-slate-800\/40.border-slate-700\/50,
-  body.light section.bg-slate-800\/40 {
+  body.light .bg-zinc-800\/40.border-zinc-700\/50,
+  body.light section.bg-zinc-800\/40 {
     background-color: #f8fafc !important; /* светло као остатак */
     border-color: #e2e8f0 !important;
   }
 
-  body.light .bg-slate-800\/20.border-slate-700 {
+  body.light .bg-zinc-800\/20.border-zinc-700 {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
   }
 
-  body.light .text-slate-400.hover\:border-slate-500,
-  body.light button.text-slate-400 {
-    color: #64748b !important; /* slate-500 - čitljivo */
+  body.light .text-zinc-400.hover\:border-zinc-500,
+  body.light button.text-zinc-400 {
+    color: #64748b !important; /* zinc-500 - čitljivo */
   }
 
-  body.light .border-slate-700.bg-slate-800\/20 {
+  body.light .border-zinc-700.bg-zinc-800\/20 {
     background-color: #ffffff !important;
     border-color: #cbd5e1 !important;
   }
 
-  body.light .border-slate-700.hover\:border-slate-500:hover {
+  body.light .border-zinc-700.hover\:border-zinc-500:hover {
     border-color: #94a3b8 !important;
   }
 
@@ -598,20 +662,20 @@
   }
 
   /* Svi borders u modalima light mode */
-  body.light .border-slate-700\/50,
-  body.light .border-slate-700\/30 {
+  body.light .border-zinc-700\/50,
+  body.light .border-zinc-700\/30 {
     border-color: #e2e8f0 !important;
   }
 
-  /* Sve .text-slate-400 buttons i tekst u modalima */
-  body.light button.text-slate-400,
-  body.light .text-slate-400 {
+  /* Sve .text-zinc-400 buttons i tekst u modalima */
+  body.light button.text-zinc-400,
+  body.light .text-zinc-400 {
     color: #64748b !important;
   }
 
   /* Circles - discussions panel subtle background */
-  body.light .bg-slate-950\/20 {
-    background-color: #f1f5f9 !important; /* slate-100 */
+  body.light .bg-zinc-950\/20 {
+    background-color: #f1f5f9 !important; /* zinc-100 */
   }
 
   /* Circles - topic cards white background in light mode */
@@ -645,22 +709,22 @@
   }
 
   /* Header - border-bottom and element borders */
-  body.light .border-slate-800\/50 {
+  body.light .border-zinc-800\/50 {
     border-color: #e2e8f0 !important;
   }
 
   /* Mobile Circles - header and containers */
-  body.light .bg-slate-900\/80,
-  body.light .bg-slate-900\/90,
-  body.light .bg-slate-900\/95 {
+  body.light .bg-zinc-900\/80,
+  body.light .bg-zinc-900\/90,
+  body.light .bg-zinc-900\/95 {
     background-color: rgba(255, 255, 255, 0.95) !important;
   }
 
-  body.light .bg-slate-950\/50 {
+  body.light .bg-zinc-950\/50 {
     background-color: #f8fafc !important;
   }
 
-  body.light .bg-slate-950\/90 {
+  body.light .bg-zinc-950\/90 {
     background-color: rgba(255, 255, 255, 0.95) !important;
   }
 
@@ -675,7 +739,7 @@
   }
 
   /* Mobile dropdown panel */
-  body.light .bg-slate-900.border-white\/10 {
+  body.light .bg-zinc-900.border-white\/10 {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12) !important;
@@ -689,11 +753,11 @@
 
   /* Codex - custom dark backgrounds → light */
   body.light .bg-ink {
-    background-color: #f8fafc !important; /* slate-50 */
+    background-color: #f8fafc !important; /* zinc-50 */
   }
 
   body.light .bg-ink\/90 {
-    background-color: rgba(248, 250, 252, 0.95) !important; /* slate-50 with blur */
+    background-color: rgba(248, 250, 252, 0.95) !important; /* zinc-50 with blur */
   }
 
   body.light .bg-ink-light {
@@ -705,10 +769,10 @@
   }
 
   /* Codex - dark placeholder colors → visible in light mode */
-  body.light .placeholder-slate-700::placeholder,
-  body.light .placeholder-slate-800::placeholder,
-  body.light .placeholder-slate-900::placeholder {
-    color: #94a3b8 !important; /* slate-400 */
+  body.light .placeholder-zinc-700::placeholder,
+  body.light .placeholder-zinc-800::placeholder,
+  body.light .placeholder-zinc-900::placeholder {
+    color: #94a3b8 !important; /* zinc-400 */
   }
 
   /* Codex - indigo accent backgrounds in light mode */
@@ -755,7 +819,7 @@
 @layer components {
   /* Glassmorphism effect */
   .glass {
-    background: rgba(30, 41, 59, 0.7);
+    background: rgba(39, 39, 42, 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -807,7 +871,7 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-slate-900;
+    @apply bg-zinc-900;
   }
 
   body.light .custom-scrollbar::-webkit-scrollbar-track {
@@ -815,7 +879,7 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-slate-700 rounded-sm;
+    @apply bg-zinc-700 rounded-sm;
   }
 
   body.light .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -823,7 +887,7 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-600;
+    @apply bg-zinc-600;
   }
 
   body.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -1008,5 +1072,37 @@
       font-size: 0.6875rem; /* 11px */
       line-height: 1rem;
     }
+  }
+
+  /* Codex editor - force correct text color */
+  .codex-editor {
+    color: #cbd5e1; /* zinc-300 */
+  }
+
+  .codex-editor * {
+    color: inherit;
+  }
+
+  body.light .codex-editor {
+    color: #1e293b; /* zinc-800 */
+  }
+
+  /* Codex toolbar - light mode */
+  body.light .codex-toolbar {
+    background-color: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  body.light .codex-toolbar button {
+    color: #475569; /* zinc-600 */
+  }
+
+  body.light .codex-toolbar button:hover {
+    color: #1e293b; /* zinc-800 */
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+
+  body.light .codex-toolbar .w-px {
+    background-color: rgba(0, 0, 0, 0.15);
   }
 }

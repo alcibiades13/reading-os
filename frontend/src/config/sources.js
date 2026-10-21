@@ -15,5 +15,5 @@ export function sourceColor(source) {
   if (source === 'google_books') return 'bg-sky-500/10 text-sky-400'
   if (source?.includes('scrape')) return 'bg-amber-500/10 text-amber-400'
   if (source === 'manual') return 'bg-emerald-500/10 text-emerald-400'
-  return 'bg-slate-500/10 text-slate-400'
+  return 'bg-zinc-500/10 text-zinc-400'
 }

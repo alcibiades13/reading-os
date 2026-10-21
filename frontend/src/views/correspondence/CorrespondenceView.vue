@@ -264,15 +264,15 @@ const mentionedBooks = computed(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col lg:flex-row animate-in fade-in duration-700 bg-slate-950">
+  <div class="h-full flex flex-col lg:flex-row animate-in fade-in duration-700 bg-zinc-950">
 
     <!-- ==================== DESKTOP LAYOUT ==================== -->
     <div class="hidden lg:flex flex-1">
       <!-- DESKTOP: INBOX SIDEBAR (Secondary Sidebar) -->
-      <aside class="w-72 border-r border-slate-800/50 flex flex-col bg-slate-950/50 backdrop-blur-md">
-      <div class="p-6 border-b border-slate-800/50">
+      <aside class="w-72 border-r border-zinc-800/50 flex flex-col bg-zinc-950/50 backdrop-blur-md">
+      <div class="p-6 border-b border-zinc-800/50">
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xs font-black text-slate-50 uppercase tracking-[0.3em]">Correspondents</h2>
+          <h2 class="text-xs font-black text-zinc-50 uppercase tracking-[0.3em]">Correspondents</h2>
           <button
             @click="openNewConversationModal"
             class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all"
@@ -282,12 +282,12 @@ const mentionedBooks = computed(() => {
           </button>
         </div>
         <div class="relative group">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" :size="14" />
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-indigo-500 transition-colors" :size="14" />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Filter conversations..."
-            class="w-full bg-white/5 border border-slate-800/50 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-50 outline-none focus:border-indigo-500 transition-all"
+            class="w-full bg-white/5 border border-zinc-800/50 rounded-xl pl-10 pr-4 py-2 text-xs text-zinc-50 outline-none focus:border-indigo-500 transition-all"
           />
         </div>
       </div>
@@ -311,8 +311,8 @@ const mentionedBooks = computed(() => {
 
         <!-- Empty state -->
         <div v-else class="flex flex-col items-center justify-center py-12 px-6 text-center">
-          <MessageSquare :size="32" class="text-slate-600 mb-4" />
-          <p class="text-sm text-slate-500">No conversations yet</p>
+          <MessageSquare :size="32" class="text-zinc-600 mb-4" />
+          <p class="text-sm text-zinc-500">No conversations yet</p>
           <button
             @click="openNewConversationModal"
             class="mt-4 px-4 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 transition-all"
@@ -327,21 +327,21 @@ const mentionedBooks = computed(() => {
     <main class="flex-1 flex flex-col relative">
       <template v-if="activeConv">
         <!-- Thread Header -->
-        <header class="h-16 border-b border-slate-800/50 px-8 flex items-center justify-between bg-slate-950/50 backdrop-blur-md sticky top-0 z-20">
+        <header class="h-16 border-b border-zinc-800/50 px-8 flex items-center justify-between bg-zinc-950/50 backdrop-blur-md sticky top-0 z-20">
           <div class="flex items-center gap-4">
             <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-black text-white">
               {{ otherParticipant?.name?.charAt(0) || '?' }}
             </div>
             <div>
-              <h3 class="text-sm font-bold text-slate-50">{{ otherParticipant?.name }}</h3>
-              <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Deliberate Exchange</span>
+              <h3 class="text-sm font-bold text-zinc-50">{{ otherParticipant?.name }}</h3>
+              <span class="text-[9px] text-zinc-400 font-black uppercase tracking-widest">Deliberate Exchange</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button class="p-2 text-slate-400 hover:text-slate-50 transition-colors">
+            <button class="p-2 text-zinc-400 hover:text-zinc-50 transition-colors">
               <Star :size="18" />
             </button>
-            <button class="p-2 text-slate-400 hover:text-slate-50 transition-colors">
+            <button class="p-2 text-zinc-400 hover:text-zinc-50 transition-colors">
               <MoreHorizontal :size="18" />
             </button>
           </div>
@@ -360,8 +360,8 @@ const mentionedBooks = computed(() => {
 
           <!-- No messages yet -->
           <div v-else class="flex flex-col items-center justify-center py-12 text-center">
-            <MessageSquare :size="32" class="text-slate-600 mb-4" />
-            <p class="text-sm text-slate-500">Start the conversation</p>
+            <MessageSquare :size="32" class="text-zinc-600 mb-4" />
+            <p class="text-sm text-zinc-500">Start the conversation</p>
           </div>
 
           <div class="h-20" /> <!-- Spacer -->
@@ -373,9 +373,9 @@ const mentionedBooks = computed(() => {
 
       <!-- Empty State -->
       <div v-else class="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-40">
-        <Inbox :size="48" class="text-slate-400 mb-8" />
-        <h3 class="text-2xl font-black text-slate-50 mb-2 uppercase tracking-[0.3em]">Correspondence Chamber</h3>
-        <p class="max-w-xs text-slate-400 font-medium">Select a correspondent to begin a deliberate intellectual exchange.</p>
+        <Inbox :size="48" class="text-zinc-400 mb-8" />
+        <h3 class="text-2xl font-black text-zinc-50 mb-2 uppercase tracking-[0.3em]">Correspondence Chamber</h3>
+        <p class="max-w-xs text-zinc-400 font-medium">Select a correspondent to begin a deliberate intellectual exchange.</p>
       </div>
     </main>
     </div>
@@ -387,7 +387,7 @@ const mentionedBooks = computed(() => {
       <!-- MOBILE: Conversations List View -->
       <template v-if="mobileView === 'list'">
         <!-- Mobile Header -->
-        <header class="px-4 py-3 border-b border-slate-800/50 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-30">
+        <header class="px-4 py-3 border-b border-zinc-800/50 bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-30">
           <div class="flex items-center justify-between mb-3">
             <h1 class="text-lg font-black text-white">Messages</h1>
             <button
@@ -400,12 +400,12 @@ const mentionedBooks = computed(() => {
 
           <!-- Search -->
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="16" />
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search conversations..."
-              class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500 transition-all"
+              class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 outline-none focus:border-indigo-500 transition-all"
             />
           </div>
         </header>
@@ -439,11 +439,11 @@ const mentionedBooks = computed(() => {
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between mb-1">
                   <h3 class="text-sm font-bold text-white truncate">{{ getOtherParticipant(conv)?.name }}</h3>
-                  <span class="text-[10px] text-slate-500 shrink-0 ml-2">{{ formatTimeAgo(conv.lastMessage?.timestamp) }}</span>
+                  <span class="text-[10px] text-zinc-500 shrink-0 ml-2">{{ formatTimeAgo(conv.lastMessage?.timestamp) }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <Star v-if="conv.lastMessage?.isImportant" :size="10" class="text-amber-500 fill-current shrink-0" />
-                  <p class="text-xs text-slate-400 truncate">{{ conv.lastMessage?.content || 'No messages yet' }}</p>
+                  <p class="text-xs text-zinc-400 truncate">{{ conv.lastMessage?.content || 'No messages yet' }}</p>
                 </div>
               </div>
 
@@ -458,9 +458,9 @@ const mentionedBooks = computed(() => {
           <!-- Empty State -->
           <div v-else class="flex flex-col items-center justify-center py-16 px-6 text-center">
             <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-              <MessageSquare :size="28" class="text-slate-600" />
+              <MessageSquare :size="28" class="text-zinc-600" />
             </div>
-            <p class="text-sm text-slate-500 mb-4">No conversations yet</p>
+            <p class="text-sm text-zinc-500 mb-4">No conversations yet</p>
             <button
               @click="openNewConversationModal"
               class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold"
@@ -474,11 +474,11 @@ const mentionedBooks = computed(() => {
       <!-- MOBILE: Chat View -->
       <template v-if="mobileView === 'chat' && activeConv">
         <!-- Mobile Chat Header -->
-        <header class="px-4 py-3 border-b border-slate-800/50 bg-slate-900/90 backdrop-blur-xl sticky top-0 z-30 safe-area-top">
+        <header class="px-4 py-3 border-b border-zinc-800/50 bg-zinc-900/90 backdrop-blur-xl sticky top-0 z-30 safe-area-top">
           <div class="flex items-center gap-3">
             <button
               @click="closeMobileChat"
-              class="p-2 -ml-2 rounded-xl text-slate-400 hover:text-white transition-colors"
+              class="p-2 -ml-2 rounded-xl text-zinc-400 hover:text-white transition-colors"
             >
               <ArrowLeft :size="22" />
             </button>
@@ -495,13 +495,13 @@ const mentionedBooks = computed(() => {
 
             <div class="flex-1 min-w-0">
               <h1 class="text-base font-bold text-white truncate">{{ otherParticipant?.name }}</h1>
-              <p class="text-[10px] text-slate-500 uppercase tracking-wider">Correspondence</p>
+              <p class="text-[10px] text-zinc-500 uppercase tracking-wider">Correspondence</p>
             </div>
 
             <div class="relative">
               <button
                 @click="showMobileMenu = !showMobileMenu"
-                class="p-2 rounded-xl text-slate-400 hover:bg-white/5"
+                class="p-2 rounded-xl text-zinc-400 hover:bg-white/5"
               >
                 <MoreHorizontal :size="18" />
               </button>
@@ -514,20 +514,20 @@ const mentionedBooks = computed(() => {
               />
               <div
                 v-if="showMobileMenu"
-                class="absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                class="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
               >
                 <button
                   @click="showMobileMenu = false"
-                  class="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 flex items-center gap-3"
+                  class="w-full px-4 py-3 text-left text-sm text-zinc-300 hover:bg-white/5 flex items-center gap-3"
                 >
-                  <User :size="16" class="text-slate-500" />
+                  <User :size="16" class="text-zinc-500" />
                   View Profile
                 </button>
                 <button
                   @click="showMobileMenu = false"
-                  class="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 flex items-center gap-3"
+                  class="w-full px-4 py-3 text-left text-sm text-zinc-300 hover:bg-white/5 flex items-center gap-3"
                 >
-                  <Star :size="16" class="text-slate-500" />
+                  <Star :size="16" class="text-zinc-500" />
                   Mark Important
                 </button>
                 <div class="h-px bg-white/5" />
@@ -548,12 +548,12 @@ const mentionedBooks = computed(() => {
           <div class="p-4 space-y-4">
             <!-- Beginning indicator -->
             <div class="text-center py-6 opacity-40">
-              <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent mb-3" />
-              <span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">Beginning of Conversation</span>
+              <div class="h-px w-full bg-gradient-to-r from-transparent via-zinc-700 to-transparent mb-3" />
+              <span class="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Beginning of Conversation</span>
             </div>
 
             <!-- No messages -->
-            <div v-if="messages.length === 0" class="text-center py-10 text-slate-500 text-sm">
+            <div v-if="messages.length === 0" class="text-center py-10 text-zinc-500 text-sm">
               Start the conversation with {{ otherParticipant?.name }}
             </div>
 
@@ -565,8 +565,8 @@ const mentionedBooks = computed(() => {
             >
               <!-- Sender info -->
               <div :class="['flex items-center gap-2 mb-1', msg.isOwn ? 'flex-row-reverse' : '']">
-                <span class="text-[10px] font-bold text-slate-500">{{ msg.senderName }}</span>
-                <span class="text-[9px] text-slate-600">{{ formatTimeAgo(msg.timestamp) }}</span>
+                <span class="text-[10px] font-bold text-zinc-500">{{ msg.senderName }}</span>
+                <span class="text-[9px] text-zinc-600">{{ formatTimeAgo(msg.timestamp) }}</span>
               </div>
 
               <!-- Message bubble -->
@@ -585,7 +585,7 @@ const mentionedBooks = computed(() => {
                 </div>
 
                 <!-- Content -->
-                <p class="text-sm text-slate-200 leading-relaxed">{{ msg.content }}</p>
+                <p class="text-sm text-zinc-200 leading-relaxed">{{ msg.content }}</p>
 
                 <!-- Attachments -->
                 <div v-if="msg.attachments?.length > 0" class="mt-3 pt-3 border-t border-white/5 space-y-2">
@@ -598,7 +598,7 @@ const mentionedBooks = computed(() => {
                       {{ att.type === 'book' ? 'Book' : 'Quote' }}
                     </p>
                     <p class="text-xs text-white font-bold truncate">{{ att.title }}</p>
-                    <p v-if="att.subtitle" class="text-[10px] text-slate-500 truncate">{{ att.subtitle }}</p>
+                    <p v-if="att.subtitle" class="text-[10px] text-zinc-500 truncate">{{ att.subtitle }}</p>
                   </div>
                 </div>
               </div>
@@ -609,7 +609,7 @@ const mentionedBooks = computed(() => {
         </div>
 
         <!-- Mobile Composer -->
-        <div class="p-4 border-t border-slate-800/50 bg-slate-950/90 backdrop-blur-xl safe-area-bottom">
+        <div class="p-4 border-t border-zinc-800/50 bg-zinc-950/90 backdrop-blur-xl safe-area-bottom">
           <div class="flex items-end gap-3">
             <div class="flex-1">
               <textarea
@@ -617,7 +617,7 @@ const mentionedBooks = computed(() => {
                 @keydown.enter.exact.prevent="handleMobileSend"
                 placeholder="Write a message..."
                 rows="1"
-                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none transition-all resize-none text-sm max-h-32"
+                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 outline-none transition-all resize-none text-sm max-h-32"
                 style="field-sizing: content;"
               />
             </div>
@@ -636,8 +636,8 @@ const mentionedBooks = computed(() => {
 
     <!-- New Conversation Modal -->
     <Dialog v-model:open="showNewConversationModal">
-      <DialogContent class="max-w-md glass border-slate-700">
-        <DialogHeader class="border-b border-slate-800 pb-4">
+      <DialogContent class="max-w-md glass border-zinc-700">
+        <DialogHeader class="border-b border-zinc-800 pb-4">
           <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
             <MessageSquare :size="20" class="text-indigo-400" />
             New Conversation
@@ -645,18 +645,18 @@ const mentionedBooks = computed(() => {
         </DialogHeader>
 
         <div class="space-y-4 py-4">
-          <p class="text-sm text-slate-400">
+          <p class="text-sm text-zinc-400">
             Search for a friend to start a conversation with.
           </p>
 
           <!-- User search input -->
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="16" />
             <input
               v-model="userSearchQuery"
               type="text"
               placeholder="Search by name or email..."
-              class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-50 outline-none focus:border-indigo-500 transition-all placeholder-slate-500"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-50 outline-none focus:border-indigo-500 transition-all placeholder-zinc-500"
               autofocus
             />
           </div>
@@ -672,18 +672,18 @@ const mentionedBooks = computed(() => {
               v-for="user in userSearchResults"
               :key="user.id"
               @click="selectUserForConversation(user)"
-              class="w-full p-3 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/30 hover:bg-slate-800/50 transition-all flex items-center gap-3 text-left"
+              class="w-full p-3 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-indigo-500/30 hover:bg-zinc-800/50 transition-all flex items-center gap-3 text-left"
             >
               <div class="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-sm font-bold text-indigo-400">
                 {{ (user.first_name?.[0] || user.email?.[0] || '?').toUpperCase() }}
               </div>
               <div class="flex-1 min-w-0">
-                <p class="font-semibold text-slate-100 text-sm truncate">
+                <p class="font-semibold text-zinc-100 text-sm truncate">
                   {{ user.first_name }} {{ user.last_name }}
                 </p>
-                <p class="text-xs text-slate-500 truncate">{{ user.email }}</p>
+                <p class="text-xs text-zinc-500 truncate">{{ user.email }}</p>
               </div>
-              <div class="text-xs text-slate-600">
+              <div class="text-xs text-zinc-600">
                 {{ user.books_read_count || 0 }} books
               </div>
             </button>
@@ -691,23 +691,23 @@ const mentionedBooks = computed(() => {
 
           <!-- Empty state -->
           <div v-else-if="userSearchQuery.length >= 2" class="flex flex-col items-center justify-center py-8 text-center">
-            <User :size="32" class="text-slate-600 mb-4" />
-            <p class="text-sm text-slate-500">No users found</p>
-            <p class="text-xs text-slate-600 mt-1">Try a different search term</p>
+            <User :size="32" class="text-zinc-600 mb-4" />
+            <p class="text-sm text-zinc-500">No users found</p>
+            <p class="text-xs text-zinc-600 mt-1">Try a different search term</p>
           </div>
 
           <!-- Initial state -->
           <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-            <Search :size="32" class="text-slate-600 mb-4" />
-            <p class="text-sm text-slate-500">Type at least 2 characters to search</p>
+            <Search :size="32" class="text-zinc-600 mb-4" />
+            <p class="text-sm text-zinc-500">Type at least 2 characters to search</p>
           </div>
         </div>
 
         <!-- Footer -->
-        <div class="pt-4 border-t border-slate-800">
+        <div class="pt-4 border-t border-zinc-800">
           <button
             @click="showNewConversationModal = false"
-            class="w-full px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
+            class="w-full px-4 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all border border-zinc-700 hover:border-zinc-600"
           >
             Cancel
           </button>
@@ -763,23 +763,19 @@ const mentionedBooks = computed(() => {
 }
 
 /* Light mode adjustments */
-body.light .bg-slate-950 {
+body.light .bg-zinc-950 {
   background-color: #f8fafc !important;
 }
 
-body.light .bg-slate-900\/20 {
+body.light .bg-zinc-900\/20 {
   background-color: rgba(255, 255, 255, 0.9) !important;
 }
 
-body.light .text-white {
-  color: #0f172a !important;
-}
-
-body.light .text-slate-500 {
+body.light .text-zinc-500 {
   color: #64748b !important;
 }
 
-body.light .text-slate-200 {
+body.light .text-zinc-200 {
   color: #1e293b !important;
 }
 
@@ -809,12 +805,12 @@ body.light .bg-white\/5 {
 }
 
 /* Mobile-specific light mode */
-body.light .bg-slate-900\/80,
-body.light .bg-slate-900\/90 {
+body.light .bg-zinc-900\/80,
+body.light .bg-zinc-900\/90 {
   background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
-body.light .bg-slate-950\/90 {
+body.light .bg-zinc-950\/90 {
   background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
@@ -826,7 +822,7 @@ body.light .border-indigo-500\/30 {
   border-color: rgba(99, 102, 241, 0.3) !important;
 }
 
-body.light .border-slate-800\/50 {
+body.light .border-zinc-800\/50 {
   border-color: #e2e8f0 !important;
 }
 </style>

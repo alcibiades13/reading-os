@@ -94,10 +94,10 @@ const chartOptions = computed(() => ({
     ref="elementRef"
     :class="['transition-all duration-700', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6']"
   >
-    <div class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6 h-full">
-      <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4">How You Rate</h3>
+    <div class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6 h-full">
+      <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4">How You Rate</h3>
 
-      <div v-if="!hasRatings" class="text-center py-10 text-sm text-slate-500">
+      <div v-if="!hasRatings" class="text-center py-10 text-sm text-zinc-500">
         Rate your books to see your rating pattern.
       </div>
 

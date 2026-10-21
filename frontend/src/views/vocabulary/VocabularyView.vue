@@ -109,7 +109,7 @@ const handleExportVocabulary = async (format) => {
 <template>
   <div class="animate-in fade-in duration-700 pb-20 lg:pb-0">
     <!-- Mobile Header (Sticky - minimal) -->
-    <div class="lg:hidden sticky top-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 safe-area-top">
+    <div class="lg:hidden sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 safe-area-top">
       <div class="flex items-center justify-between px-4 py-3">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
@@ -117,14 +117,14 @@ const handleExportVocabulary = async (format) => {
           </div>
           <div>
             <h1 class="text-base font-bold text-white">Vocabulary</h1>
-            <p class="text-xs text-slate-500">{{ stats.total }} words</p>
+            <p class="text-xs text-zinc-500">{{ stats.total }} words</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
           <button
             v-if="activeView === 'library'"
             @click="showMobileFilters = true"
-            class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-slate-400 active:scale-95 transition-transform"
+            class="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/50 flex items-center justify-center text-zinc-400 active:scale-95 transition-transform"
           >
             <Filter :size="18" />
           </button>
@@ -144,7 +144,7 @@ const handleExportVocabulary = async (format) => {
       <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
         <button
           @click="activeView = 'library'"
-          :class="activeView === 'library' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+          :class="activeView === 'library' ? 'bg-indigo-500 text-white' : 'bg-zinc-800/50 text-zinc-400 border-zinc-700'"
           class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all"
         >
           <LayoutGrid :size="14" />
@@ -152,7 +152,7 @@ const handleExportVocabulary = async (format) => {
         </button>
         <button
           @click="activeView = 'practice'"
-          :class="activeView === 'practice' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+          :class="activeView === 'practice' ? 'bg-indigo-500 text-white' : 'bg-zinc-800/50 text-zinc-400 border-zinc-700'"
           class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all"
         >
           <Brain :size="14" />
@@ -160,7 +160,7 @@ const handleExportVocabulary = async (format) => {
         </button>
         <button
           @click="activeView = 'stats'"
-          :class="activeView === 'stats' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border-slate-700'"
+          :class="activeView === 'stats' ? 'bg-indigo-500 text-white' : 'bg-zinc-800/50 text-zinc-400 border-zinc-700'"
           class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all"
         >
           <BarChart3 :size="14" />
@@ -170,7 +170,7 @@ const handleExportVocabulary = async (format) => {
 
       <!-- Active Filter Indicator -->
       <div v-if="activeView === 'library' && (filterLevel !== 'all' || filterBookId)" class="flex items-center gap-2 mt-3">
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Filter:</span>
+        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Filter:</span>
         <button
           v-if="filterBookId"
           @click="clearBookFilter"
@@ -205,14 +205,14 @@ const handleExportVocabulary = async (format) => {
           />
 
           <!-- Panel -->
-          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto safe-area-inset">
+          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-zinc-900 border-l border-zinc-800 overflow-y-auto safe-area-inset">
             <!-- Panel Header -->
-            <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 px-4 py-4">
+            <div class="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 px-4 py-4">
               <div class="flex items-center justify-between">
                 <h2 class="text-lg font-bold text-white">Search & Filter</h2>
                 <button
                   @click="showMobileFilters = false"
-                  class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400"
+                  class="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400"
                 >
                   <X :size="20" />
                 </button>
@@ -222,25 +222,25 @@ const handleExportVocabulary = async (format) => {
             <div class="p-4 space-y-6">
               <!-- Search -->
               <div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Search</h3>
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Search</h3>
                 <div class="relative">
-                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="16" />
                   <input
                     type="text"
                     v-model="searchQuery"
                     placeholder="Search words..."
-                    class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
+                    class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <!-- Mastery Level -->
               <div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Mastery Level</h3>
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Mastery Level</h3>
                 <div class="space-y-2">
                   <button
                     @click="filterLevel = 'all'; showMobileFilters = false"
-                    :class="filterLevel === 'all' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 text-slate-400'"
+                    :class="filterLevel === 'all' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-zinc-700 text-zinc-400'"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
                   >
                     <Sparkles :size="18" />
@@ -249,7 +249,7 @@ const handleExportVocabulary = async (format) => {
                   </button>
                   <button
                     @click="filterLevel = 'new'; showMobileFilters = false"
-                    :class="filterLevel === 'new' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 text-slate-400'"
+                    :class="filterLevel === 'new' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-zinc-700 text-zinc-400'"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
                   >
                     <Clock :size="18" />
@@ -258,7 +258,7 @@ const handleExportVocabulary = async (format) => {
                   </button>
                   <button
                     @click="filterLevel = 'learning'; showMobileFilters = false"
-                    :class="filterLevel === 'learning' ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-400'"
+                    :class="filterLevel === 'learning' ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-zinc-700 text-zinc-400'"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
                   >
                     <Brain :size="18" />
@@ -267,7 +267,7 @@ const handleExportVocabulary = async (format) => {
                   </button>
                   <button
                     @click="filterLevel = 'mastered'; showMobileFilters = false"
-                    :class="filterLevel === 'mastered' ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-slate-700 text-slate-400'"
+                    :class="filterLevel === 'mastered' ? 'border-sky-500 bg-sky-500/10 text-sky-400' : 'border-zinc-700 text-zinc-400'"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all"
                   >
                     <CheckCircle :size="18" />
@@ -304,7 +304,7 @@ const handleExportVocabulary = async (format) => {
           <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
             The <span class="text-indigo-500">Vocabulary</span> Vault
           </h1>
-          <p class="text-page-subtitle text-slate-400 max-w-2xl leading-relaxed">
+          <p class="text-page-subtitle text-zinc-400 max-w-2xl leading-relaxed">
             Build and master a sophisticated vocabulary from your reading explorations. Practice with intelligent flashcards.
           </p>
         </header>
@@ -314,15 +314,15 @@ const handleExportVocabulary = async (format) => {
           <div class="relative">
             <button
               @click="showExportMenu = !showExportMenu"
-              class="flex items-center gap-2 px-4 py-3 sm:py-5 rounded-2xl bg-white/5 border border-white/5 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/20 transition-all text-sm font-bold"
+              class="flex items-center gap-2 px-4 py-3 sm:py-5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-indigo-400 hover:border-indigo-500/20 transition-all text-sm font-bold"
             >
               <Download :size="16" />
               <span class="hidden sm:inline">Export</span>
             </button>
-            <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 p-2 rounded-xl bg-slate-800 border border-white/10 shadow-2xl z-50 min-w-[140px]">
-              <button @click="handleExportVocabulary('json')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">JSON</button>
-              <button @click="handleExportVocabulary('csv')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">CSV</button>
-              <button @click="handleExportVocabulary('anki')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 transition-colors">Anki</button>
+            <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 p-2 rounded-xl bg-zinc-800 border border-white/10 shadow-2xl z-50 min-w-[140px]">
+              <button @click="handleExportVocabulary('json')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-zinc-300 hover:bg-white/10 transition-colors">JSON</button>
+              <button @click="handleExportVocabulary('csv')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-zinc-300 hover:bg-white/10 transition-colors">CSV</button>
+              <button @click="handleExportVocabulary('anki')" class="w-full text-left px-3 py-2 rounded-lg text-sm text-zinc-300 hover:bg-white/10 transition-colors">Anki</button>
             </div>
           </div>
 
@@ -338,12 +338,12 @@ const handleExportVocabulary = async (format) => {
       </div>
 
       <!-- Navigation Tabs (Desktop) -->
-      <div class="hidden lg:flex items-center gap-1.5 p-1.5 bg-slate-900/80 rounded-2xl border border-slate-800 w-fit mb-12 overflow-x-auto max-w-full">
+      <div class="hidden lg:flex items-center gap-1.5 p-1.5 bg-zinc-900/80 rounded-2xl border border-zinc-800 w-fit mb-12 overflow-x-auto max-w-full">
         <button
           @click="activeView = 'library'"
           :class="[
             'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
-            activeView === 'library' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
+            activeView === 'library' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
           ]"
         >
           <LayoutGrid :size="14" class="sm:w-4 sm:h-4" />
@@ -353,7 +353,7 @@ const handleExportVocabulary = async (format) => {
           @click="activeView = 'practice'"
           :class="[
             'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
-            activeView === 'practice' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
+            activeView === 'practice' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
           ]"
         >
           <Brain :size="14" class="sm:w-4 sm:h-4" />
@@ -363,7 +363,7 @@ const handleExportVocabulary = async (format) => {
           @click="activeView = 'stats'"
           :class="[
             'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
-            activeView === 'stats' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
+            activeView === 'stats' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
           ]"
         >
           <BarChart3 :size="14" class="sm:w-4 sm:h-4" />
@@ -379,21 +379,21 @@ const handleExportVocabulary = async (format) => {
         <!-- Filter Bar (Desktop) -->
         <div class="hidden lg:flex flex-col lg:flex-row gap-4">
           <div class="flex-1 relative group">
-            <Search class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" :size="20" />
+            <Search class="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-indigo-500 transition-colors" :size="20" />
             <input
               type="text"
               v-model="searchQuery"
               placeholder="Search your lexicon..."
-              class="w-full bg-slate-900/50 border-2 border-slate-800 rounded-2xl px-14 py-4 text-white focus:border-indigo-500 transition-all outline-none"
+              class="w-full bg-zinc-900/50 border-2 border-zinc-800 rounded-2xl px-14 py-4 text-white focus:border-indigo-500 transition-all outline-none"
             />
           </div>
 
-          <div class="flex items-center gap-1 p-1 bg-slate-900/50 rounded-2xl border border-slate-800">
+          <div class="flex items-center gap-1 p-1 bg-zinc-900/50 rounded-2xl border border-zinc-800">
             <button
               @click="filterLevel = 'all'"
               :class="[
                 'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                filterLevel === 'all' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400'
+                filterLevel === 'all' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400'
               ]"
             >
               All
@@ -402,7 +402,7 @@ const handleExportVocabulary = async (format) => {
               @click="filterLevel = 'new'"
               :class="[
                 'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                filterLevel === 'new' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400'
+                filterLevel === 'new' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400'
               ]"
             >
               New
@@ -411,7 +411,7 @@ const handleExportVocabulary = async (format) => {
               @click="filterLevel = 'learning'"
               :class="[
                 'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                filterLevel === 'learning' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400'
+                filterLevel === 'learning' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400'
               ]"
             >
               Learning
@@ -420,7 +420,7 @@ const handleExportVocabulary = async (format) => {
               @click="filterLevel = 'mastered'"
               :class="[
                 'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                filterLevel === 'mastered' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400'
+                filterLevel === 'mastered' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400'
               ]"
             >
               Mastered
@@ -432,12 +432,12 @@ const handleExportVocabulary = async (format) => {
         <div v-if="filterBookId" class="flex items-center justify-between px-4 py-3 rounded-xl bg-sky-500/10 border border-sky-500/20 mb-6">
           <div class="flex items-center gap-2 text-sm">
             <BookOpen :size="16" class="text-sky-400" />
-            <span class="text-slate-400">Showing words from</span>
+            <span class="text-zinc-400">Showing words from</span>
             <span class="font-bold text-sky-400">{{ filterBookTitle }}</span>
           </div>
           <button
             @click="clearBookFilter"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/50 text-slate-300 text-xs font-bold hover:bg-slate-700/50 transition-colors"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/50 text-zinc-300 text-xs font-bold hover:bg-zinc-700/50 transition-colors"
           >
             <X :size="14" />
             Clear Filter
@@ -455,17 +455,17 @@ const handleExportVocabulary = async (format) => {
             @update-mastery="handleUpdateMastery"
           />
         </div>
-        <div v-else class="py-16 lg:py-32 text-center glass border-slate-800 rounded-2xl lg:rounded-[2.5rem]">
-          <div class="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-4 lg:mb-6 text-slate-600">
+        <div v-else class="py-16 lg:py-32 text-center glass border-zinc-800 rounded-2xl lg:rounded-[2.5rem]">
+          <div class="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4 lg:mb-6 text-zinc-600">
             <BookOpen :size="24" class="lg:w-7 lg:h-7" />
           </div>
           <template v-if="searchQuery || filterLevel !== 'all' || filterBookId">
             <h3 class="text-lg lg:text-xl font-bold text-white mb-2">No matching words</h3>
-            <p class="text-slate-500 text-sm lg:text-base px-4">No words match your current filters. Try adjusting your search or filter criteria.</p>
+            <p class="text-zinc-500 text-sm lg:text-base px-4">No words match your current filters. Try adjusting your search or filter criteria.</p>
           </template>
           <template v-else>
             <h3 class="text-lg lg:text-xl font-bold text-white mb-2">Lexicon empty</h3>
-            <p class="text-slate-500 text-sm lg:text-base px-4">Capture your first word from a reading session to get started.</p>
+            <p class="text-zinc-500 text-sm lg:text-base px-4">Capture your first word from a reading session to get started.</p>
           </template>
         </div>
       </div>
@@ -483,7 +483,7 @@ const handleExportVocabulary = async (format) => {
             <CheckCircle :size="32" class="lg:w-10 lg:h-10" />
           </div>
           <h3 class="text-xl lg:text-2xl font-black text-white mb-3 lg:mb-4">You're all caught up!</h3>
-          <p class="text-slate-400 leading-relaxed mb-6 lg:mb-8 text-sm lg:text-base px-4">
+          <p class="text-zinc-400 leading-relaxed mb-6 lg:mb-8 text-sm lg:text-base px-4">
             All your collected words are mastered. Collect more insights from your reading to continue learning.
           </p>
           <button
@@ -533,7 +533,7 @@ const handleExportVocabulary = async (format) => {
         </div>
 
         <!-- Top Sources -->
-        <div class="p-5 lg:p-10 rounded-2xl lg:rounded-[2.5rem] glass border-slate-800">
+        <div class="p-5 lg:p-10 rounded-2xl lg:rounded-[2.5rem] glass border-zinc-800">
           <h3 class="text-sm lg:text-lg font-black text-white mb-4 lg:mb-8 uppercase tracking-wider lg:tracking-widest flex items-center gap-2 lg:gap-3">
             <BookOpen :size="16" class="lg:w-5 lg:h-5 text-indigo-400" /> Top Sources
           </h3>
@@ -543,9 +543,9 @@ const handleExportVocabulary = async (format) => {
               :key="book"
               class="flex items-center justify-between gap-3"
             >
-              <span class="text-slate-400 font-bold truncate text-sm lg:text-base flex-1 min-w-0">{{ book }}</span>
+              <span class="text-zinc-400 font-bold truncate text-sm lg:text-base flex-1 min-w-0">{{ book }}</span>
               <div class="flex items-center gap-2 lg:gap-4 flex-shrink-0">
-                <div class="w-16 lg:w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="w-16 lg:w-32 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                   <div class="h-full bg-indigo-500" :style="{ width: `${(count / stats.total) * 100}%` }" />
                 </div>
                 <span class="text-white font-black w-6 lg:w-8 text-right text-sm lg:text-base">{{ count }}</span>

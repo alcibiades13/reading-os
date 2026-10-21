@@ -104,18 +104,18 @@ function getUserInitial(user) {
             :src="circlesStore.activeCircle.current_book_data.cover_image"
             class="w-full h-full object-cover"
           />
-          <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center">
-            <BookOpen :size="24" class="text-slate-600" />
+          <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center">
+            <BookOpen :size="24" class="text-zinc-600" />
           </div>
         </div>
         <div class="flex-1 min-w-0">
           <h3 class="text-xl font-black text-white mb-1">{{ circlesStore.activeCircle.current_book_data.title }}</h3>
-          <p class="text-sm text-slate-400 mb-4">
+          <p class="text-sm text-zinc-400 mb-4">
             {{ circlesStore.activeCircle.current_book_data.authors?.map(a => a.name).join(', ') }}
           </p>
           <div class="mb-2">
             <div class="flex items-center justify-between mb-1">
-              <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Circle Progress</span>
+              <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Circle Progress</span>
               <span class="text-sm font-black text-indigo-400">{{ averageProgress }}%</span>
             </div>
             <div class="h-2 bg-white/10 rounded-full overflow-hidden">
@@ -131,7 +131,7 @@ function getUserInitial(user) {
 
     <!-- Member Progress Leaderboard -->
     <div v-if="circlesStore.memberProgress.length > 0">
-      <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+      <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
         <Trophy :size="14" class="text-amber-400" /> Member Progress
       </h3>
       <div class="space-y-2">
@@ -140,7 +140,7 @@ function getUserInitial(user) {
           :key="member.user?.id"
           class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5"
         >
-          <span class="text-[10px] font-black text-slate-600 w-5 text-center">{{ idx + 1 }}</span>
+          <span class="text-[10px] font-black text-zinc-600 w-5 text-center">{{ idx + 1 }}</span>
           <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs shrink-0 overflow-hidden">
             <img v-if="member.user?.avatar" :src="member.user.avatar" class="w-full h-full object-cover" />
             <span v-else>{{ getUserInitial(member.user) }}</span>
@@ -154,7 +154,7 @@ function getUserInitial(user) {
                   :style="{ width: `${member.reading_progress}%` }"
                 />
               </div>
-              <span class="text-[10px] font-black text-indigo-400 shrink-0">{{ Number(member.reading_progress).toFixed(1) }}%<span v-if="member.total_pages" class="text-slate-500 font-bold"> ({{ member.current_page }}/{{ member.total_pages }})</span></span>
+              <span class="text-[10px] font-black text-indigo-400 shrink-0">{{ Number(member.reading_progress).toFixed(1) }}%<span v-if="member.total_pages" class="text-zinc-500 font-bold"> ({{ member.current_page }}/{{ member.total_pages }})</span></span>
             </div>
           </div>
         </div>
@@ -163,7 +163,7 @@ function getUserInitial(user) {
 
     <!-- Upcoming Queue -->
     <div v-if="circlesStore.upcomingReadings.length > 0">
-      <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+      <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
         <Clock :size="14" class="text-cyan-400" /> Up Next
       </h3>
       <div class="space-y-2">
@@ -174,11 +174,11 @@ function getUserInitial(user) {
         >
           <div class="w-10 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
             <img v-if="reading.book_data?.cover_image" :src="reading.book_data.cover_image" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen :size="12" class="text-slate-600" /></div>
+            <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center"><BookOpen :size="12" class="text-zinc-600" /></div>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-bold text-white truncate">{{ reading.book_data?.title }}</p>
-            <p class="text-xs text-slate-500 truncate">{{ reading.book_data?.authors?.map(a => a.name).join(', ') }}</p>
+            <p class="text-xs text-zinc-500 truncate">{{ reading.book_data?.authors?.map(a => a.name).join(', ') }}</p>
           </div>
           <div v-if="circlesStore.isCircleAdmin" class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
@@ -189,7 +189,7 @@ function getUserInitial(user) {
             </button>
             <button
               @click="handleDeleteReading(reading.id)"
-              class="p-1 rounded-lg text-slate-600 hover:text-rose-400 transition-colors"
+              class="p-1 rounded-lg text-zinc-600 hover:text-rose-400 transition-colors"
             >
               <X :size="12" />
             </button>
@@ -200,7 +200,7 @@ function getUserInitial(user) {
 
     <!-- Past Reads -->
     <div v-if="circlesStore.completedReadings.length > 0">
-      <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+      <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
         <Check :size="14" class="text-emerald-400" /> Previously Read
       </h3>
       <div class="flex flex-wrap gap-3">
@@ -211,9 +211,9 @@ function getUserInitial(user) {
         >
           <div class="w-16 h-24 rounded-lg overflow-hidden shadow-lg">
             <img v-if="reading.book_data?.cover_image" :src="reading.book_data.cover_image" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen :size="14" class="text-slate-600" /></div>
+            <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center"><BookOpen :size="14" class="text-zinc-600" /></div>
           </div>
-          <p class="text-[9px] text-slate-500 text-center mt-1 truncate">{{ reading.book_data?.title }}</p>
+          <p class="text-[9px] text-zinc-500 text-center mt-1 truncate">{{ reading.book_data?.title }}</p>
         </div>
       </div>
     </div>
@@ -222,7 +222,7 @@ function getUserInitial(user) {
     <div v-if="circlesStore.isCircleAdmin">
       <button
         @click="showAddBookModal = true"
-        class="w-full p-4 rounded-2xl border-2 border-dashed border-white/10 text-slate-500 hover:border-indigo-500/40 hover:text-indigo-400 transition-all flex items-center justify-center gap-2"
+        class="w-full p-4 rounded-2xl border-2 border-dashed border-white/10 text-zinc-500 hover:border-indigo-500/40 hover:text-indigo-400 transition-all flex items-center justify-center gap-2"
       >
         <Plus :size="18" />
         <span class="text-sm font-bold">Add Book to Reading List</span>
@@ -231,9 +231,9 @@ function getUserInitial(user) {
 
     <!-- No readings state -->
     <div v-if="!circlesStore.activeCircle?.current_book_data && !circlesStore.upcomingReadings.length && !circlesStore.completedReadings.length" class="text-center py-16">
-      <BookOpen :size="48" class="text-slate-700 mx-auto mb-4" />
-      <h3 class="text-lg font-black text-slate-400 mb-2">No Books Yet</h3>
-      <p class="text-sm text-slate-600 mb-4">Start your reading journey by adding a book to the club.</p>
+      <BookOpen :size="48" class="text-zinc-700 mx-auto mb-4" />
+      <h3 class="text-lg font-black text-zinc-400 mb-2">No Books Yet</h3>
+      <p class="text-sm text-zinc-600 mb-4">Start your reading journey by adding a book to the club.</p>
       <button
         v-if="circlesStore.isCircleAdmin"
         @click="showAddBookModal = true"
@@ -248,41 +248,41 @@ function getUserInitial(user) {
   <Teleport to="body">
     <div v-if="showAddBookModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="showAddBookModal = false" />
-      <div class="relative w-full max-w-lg bg-slate-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div class="relative w-full max-w-lg bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         <div class="p-6 border-b border-white/5 flex items-center justify-between">
           <h2 class="text-xl font-black text-white">Add Book to Club</h2>
-          <button @click="showAddBookModal = false" class="p-2 text-slate-500 hover:text-white transition-colors">
+          <button @click="showAddBookModal = false" class="p-2 text-zinc-500 hover:text-white transition-colors">
             <X :size="20" />
           </button>
         </div>
         <div class="p-6 space-y-6">
           <div>
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Search Books</label>
+            <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Search Books</label>
             <div class="relative">
-              <Search :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 ref="bookSearchInput"
                 v-model="bookSearch"
                 @input="searchBooks"
                 type="text"
                 placeholder="Search by title or author..."
-                class="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-slate-600 focus:border-indigo-500 outline-none transition-colors"
+                class="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-zinc-600 focus:border-indigo-500 outline-none transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Add as</label>
+            <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Add as</label>
             <div class="flex gap-2">
               <button
                 @click="bookStatus = 'upcoming'"
-                :class="['px-3 py-1.5 rounded-lg text-xs font-bold transition-colors', bookStatus === 'upcoming' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-slate-400']"
+                :class="['px-3 py-1.5 rounded-lg text-xs font-bold transition-colors', bookStatus === 'upcoming' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-zinc-400']"
               >
                 Upcoming
               </button>
               <button
                 @click="bookStatus = 'current'"
-                :class="['px-3 py-1.5 rounded-lg text-xs font-bold transition-colors', bookStatus === 'current' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400']"
+                :class="['px-3 py-1.5 rounded-lg text-xs font-bold transition-colors', bookStatus === 'current' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-zinc-400']"
               >
                 Current
               </button>
@@ -303,17 +303,17 @@ function getUserInitial(user) {
             >
               <div class="w-10 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
                 <img v-if="book.cover_image" :src="book.cover_image" class="w-full h-full object-cover" />
-                <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen :size="12" class="text-slate-600" /></div>
+                <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center"><BookOpen :size="12" class="text-zinc-600" /></div>
               </div>
               <div class="min-w-0">
                 <p class="text-sm font-bold text-white truncate">{{ book.title }}</p>
-                <p class="text-xs text-slate-500 truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
+                <p class="text-xs text-zinc-500 truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
               </div>
-              <ChevronRight :size="16" class="text-slate-600 shrink-0 ml-auto" />
+              <ChevronRight :size="16" class="text-zinc-600 shrink-0 ml-auto" />
             </button>
           </div>
 
-          <div v-else-if="bookSearch.length >= 2" class="text-center py-8 text-slate-500 text-sm">
+          <div v-else-if="bookSearch.length >= 2" class="text-center py-8 text-zinc-500 text-sm">
             No books found
           </div>
         </div>

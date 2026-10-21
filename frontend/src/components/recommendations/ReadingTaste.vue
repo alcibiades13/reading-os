@@ -114,7 +114,7 @@ const accentClasses = computed(() => {
       </div>
       <div>
         <h3 class="text-lg font-black text-white">{{ title }}</h3>
-        <p class="text-xs text-slate-500">Based on {{ taste.books_count || 0 }} books</p>
+        <p class="text-xs text-zinc-500">Based on {{ taste.books_count || 0 }} books</p>
       </div>
     </div>
 
@@ -125,19 +125,19 @@ const accentClasses = computed(() => {
       <div v-if="hasAuthors" class="space-y-5">
         <div>
           <div class="flex items-center justify-between mb-2">
-            <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">
+            <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
               <Users :size="10" class="inline mr-1 -mt-0.5" />Top Authors
             </span>
             <div class="flex gap-0.5 bg-white/5 rounded-lg p-0.5">
               <button
                 @click="authorSortMode = 'books'"
                 :class="['px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-colors',
-                  authorSortMode === 'books' ? 'bg-white/10 text-slate-300' : 'text-slate-500 hover:text-slate-400']"
+                  authorSortMode === 'books' ? 'bg-white/10 text-zinc-300' : 'text-zinc-500 hover:text-zinc-400']"
               >Books</button>
               <button
                 @click="authorSortMode = 'pages'"
                 :class="['px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-colors',
-                  authorSortMode === 'pages' ? 'bg-white/10 text-slate-300' : 'text-slate-500 hover:text-slate-400']"
+                  authorSortMode === 'pages' ? 'bg-white/10 text-zinc-300' : 'text-zinc-500 hover:text-zinc-400']"
               >Pages</button>
             </div>
           </div>
@@ -145,8 +145,8 @@ const accentClasses = computed(() => {
             <div v-for="(author, i) in displayAuthors" :key="author.id" class="flex items-center gap-2">
               <div :class="['w-1.5 h-1.5 rounded-full shrink-0', accentClasses.authorDot]" :style="{ opacity: 1 - i * 0.05 }" />
               <div class="min-w-0">
-                <span class="text-sm text-slate-300 font-medium truncate block">{{ author.name }}</span>
-                <span class="text-[10px] text-slate-500">
+                <span class="text-sm text-zinc-300 font-medium truncate block">{{ author.name }}</span>
+                <span class="text-[10px] text-zinc-500">
                   <template v-if="authorSortMode === 'pages' && author.total_pages">{{ formatPages(author.total_pages) }} pg · {{ author.books_count }} {{ author.books_count === 1 ? 'book' : 'books' }}</template>
                   <template v-else>{{ author.books_count }} {{ author.books_count === 1 ? 'book' : 'books' }}<template v-if="author.total_pages"> · {{ formatPages(author.total_pages) }} pg</template></template>
                 </span>
@@ -160,7 +160,7 @@ const accentClasses = computed(() => {
       <div v-if="hasGenreTags || hasGenres || hasThemes" class="space-y-5">
         <!-- Genre Tags from BookDNA (primary source) -->
         <div v-if="hasGenreTags">
-          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-2">
+          <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest block mb-2">
             <BookOpen :size="10" class="inline mr-1 -mt-0.5" />Top Genres
           </span>
           <div class="flex flex-wrap gap-1.5">
@@ -176,7 +176,7 @@ const accentClasses = computed(() => {
 
         <!-- Book genres (fallback if no DNA genre tags) -->
         <div v-else-if="hasGenres">
-          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-2">
+          <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest block mb-2">
             <BookOpen :size="10" class="inline mr-1 -mt-0.5" />Top Genres
           </span>
           <div class="flex flex-wrap gap-1.5">
@@ -193,14 +193,14 @@ const accentClasses = computed(() => {
 
         <!-- Themes & Motifs -->
         <div v-if="hasThemes">
-          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-2">
+          <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest block mb-2">
             <Sparkles :size="10" class="inline mr-1 -mt-0.5" />Themes & Motifs
           </span>
           <div class="flex flex-wrap gap-1.5">
             <span
               v-for="theme in displayThemes"
               :key="theme"
-              class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 capitalize"
+              class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-400 capitalize"
             >
               {{ humanizeSlug(theme) }}
             </span>
@@ -210,17 +210,17 @@ const accentClasses = computed(() => {
 
       <!-- Column 3: DNA Vector -->
       <div v-if="hasDna">
-        <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-2">
+        <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest block mb-2">
           Reading Profile
         </span>
         <div class="grid gap-2.5 grid-cols-1">
           <div v-for="attr in dnaAttributes" :key="attr.key" class="space-y-0.5">
-            <div class="flex justify-between text-[9px] text-slate-500 uppercase tracking-wider font-bold">
+            <div class="flex justify-between text-[9px] text-zinc-500 uppercase tracking-wider font-bold">
               <span>{{ attr.left }}</span>
-              <span class="text-slate-400">{{ attr.label }}</span>
+              <span class="text-zinc-400">{{ attr.label }}</span>
               <span>{{ attr.right }}</span>
             </div>
-            <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
               <div
                 :class="['h-full bg-gradient-to-r rounded-full transition-all duration-500', accentClasses.bar]"
                 :style="{ width: getDnaWidth(attr.key) }"
@@ -237,10 +237,10 @@ const accentClasses = computed(() => {
 :global(body.light) .text-white {
   color: #0f172a !important;
 }
-:global(body.light) .bg-slate-800 {
+:global(body.light) .bg-zinc-800 {
   background-color: #e2e8f0 !important;
 }
-:global(body.light) .text-slate-300 {
+:global(body.light) .text-zinc-300 {
   color: #334155 !important;
 }
 :global(body.light) .bg-white\/5 {

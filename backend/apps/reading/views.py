@@ -2,6 +2,7 @@ import csv
 import json
 import io
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes as drf_permission_classes
 from rest_framework.response import Response
@@ -89,13 +90,21 @@ class UserBookViewSet(viewsets.ModelViewSet):
             # Default to current user's books
             queryset = queryset.filter(user=self.request.user)
 
+        # Filter by specific book edition — used by the book detail page, which needs to
+        # see (and toggle owned/wishlisted on) that exact edition's UserBook even if it
+        # was superseded by another edition via switch_edition.
+        book_id_filter = self.request.query_params.get('book', None)
+        if book_id_filter:
+            queryset = queryset.filter(book_id=book_id_filter)
+
         # Filter by owned — when viewing physical shelf, include replaced editions
         # (user still physically owns the old edition even if they switched to a new one for reading)
         is_owned = self.request.query_params.get('owned', None)
         if is_owned == 'true':
             queryset = queryset.filter(is_owned=True)
-        else:
-            # Only return ACTIVE UserBooks (not replaced by another edition) for non-shelf views
+        elif not book_id_filter:
+            # Only return ACTIVE UserBooks (not replaced by another edition) for the
+            # default (non-shelf, non-book-specific) list views
             queryset = queryset.filter(replaced_by__isnull=True)
 
         # Filter by status
@@ -137,6 +146,12 @@ class UserBookViewSet(viewsets.ModelViewSet):
             if 'is_wishlisted' in request.data and request.data['is_wishlisted'] != existing.is_wishlisted:
                 existing.is_wishlisted = request.data['is_wishlisted']
                 updated = True
+            # Owned and wishlisted are mutually exclusive (mirrors toggle_owned/toggle_wishlisted)
+            if existing.is_owned and existing.is_wishlisted:
+                if request.data.get('is_owned'):
+                    existing.is_wishlisted = False
+                else:
+                    existing.is_owned = False
             if updated:
                 existing.save(update_fields=['is_owned', 'is_wishlisted'])
             serializer = self.get_serializer(existing)
@@ -260,7 +275,10 @@ class UserBookViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def toggle_owned(self, request, pk=None):
         """Toggle ownership status of a book"""
-        user_book = self.get_object()
+        # Look up directly by pk+user rather than self.get_object(), which goes through
+        # get_queryset()'s default replaced_by__isnull=True filter and 404s for editions
+        # the user has since switched away from (they can still own that physical copy).
+        user_book = get_object_or_404(UserBook, pk=pk, user=request.user)
         user_book.is_owned = not user_book.is_owned
         user_book.save(update_fields=['is_owned'])
         serializer = UserBookListSerializer(user_book)
@@ -269,7 +287,7 @@ class UserBookViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def toggle_wishlisted(self, request, pk=None):
         """Toggle wishlist status of a book"""
-        user_book = self.get_object()
+        user_book = get_object_or_404(UserBook, pk=pk, user=request.user)
         user_book.is_wishlisted = not user_book.is_wishlisted
         # If wishlisting, remove owned flag (and vice versa)
         if user_book.is_wishlisted and user_book.is_owned:

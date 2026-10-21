@@ -106,13 +106,13 @@ const masteryCards = computed(() => {
     ref="elementRef"
     :class="['transition-all duration-700', isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6']"
   >
-    <div class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+    <div class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
       <div class="flex items-center gap-2 mb-4">
         <Brain :size="15" class="text-indigo-400" />
-        <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Vocabulary Growth</h3>
+        <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Vocabulary Growth</h3>
       </div>
 
-      <div v-if="!data || data.total === 0" class="text-center py-8 text-sm text-slate-500">
+      <div v-if="!data || data.total === 0" class="text-center py-8 text-sm text-zinc-500">
         Save vocabulary words from your reading to track growth.
       </div>
 
@@ -122,7 +122,7 @@ const masteryCards = computed(() => {
           <div
             v-for="card in masteryCards"
             :key="card.label"
-            class="rounded-xl bg-slate-800/30 border border-slate-700/30 p-3 text-center"
+            class="rounded-xl bg-zinc-800/30 border border-zinc-700/30 p-3 text-center"
           >
             <p class="text-xl font-black text-white">{{ card.count }}</p>
             <p :class="['text-[10px] font-bold uppercase tracking-wider', card.color.split(' ')[0]]">{{ card.label }}</p>

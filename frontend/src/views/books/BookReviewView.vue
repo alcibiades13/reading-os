@@ -504,24 +504,24 @@ const saveQuoteMetadata = () => {
 </script>
 
 <template>
-  <div v-if="book" class="min-h-screen bg-slate-950 animate-in fade-in duration-700">
+  <div v-if="book" class="min-h-screen bg-zinc-950 animate-in fade-in duration-700">
     <!-- Header -->
-    <nav class="sticky top-0 z-50 glass border-b border-slate-800 px-6 h-20 flex items-center justify-between">
+    <nav class="sticky top-0 z-50 glass border-b border-zinc-800 px-6 h-20 flex items-center justify-between">
       <div class="flex items-center gap-6">
         <button
           @click="handleBack"
-          class="p-2 rounded-full hover:bg-slate-800 text-slate-400 transition-colors"
+          class="p-2 rounded-full hover:bg-zinc-800 text-zinc-400 transition-colors"
         >
           <ArrowLeft :size="24" />
         </button>
-        <div class="hidden sm:block h-8 w-px bg-slate-800" />
+        <div class="hidden sm:block h-8 w-px bg-zinc-800" />
         <div>
           <h1 class="text-lg font-bold text-white flex items-center gap-2">
-            <span class="text-slate-500 font-medium">Review:</span> {{ book.title }}
+            <span class="text-zinc-500 font-medium">Review:</span> {{ book.title }}
           </h1>
           <div class="flex items-center gap-2">
             <span :class="['w-2 h-2 rounded-full', isDraft ? 'bg-amber-500' : 'bg-emerald-500']" />
-            <span class="text-[10px] uppercase font-black tracking-widest text-slate-500">
+            <span class="text-[10px] uppercase font-black tracking-widest text-zinc-500">
               {{ isDraft ? 'Draft Mode' : 'Published' }}
             </span>
           </div>
@@ -529,7 +529,7 @@ const saveQuoteMetadata = () => {
       </div>
 
       <div class="flex items-center gap-4">
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-bold text-slate-400">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-zinc-400">
           <Sparkles :size="12" class="text-indigo-400" />
           Auto-saving active
         </div>
@@ -551,13 +551,13 @@ const saveQuoteMetadata = () => {
         <!-- Main Writing Surface -->
         <div class="lg:col-span-8 space-y-6">
           <!-- Toolbar -->
-          <div class="flex items-center flex-wrap gap-1 p-2 rounded-2xl glass border-slate-800 sticky top-24 z-40">
+          <div class="flex items-center flex-wrap gap-1 p-2 rounded-2xl glass border-zinc-800 sticky top-24 z-40">
             <ToolbarButton :icon="Bold" @command="handleCommand('bold')" label="Bold" />
             <ToolbarButton :icon="Italic" @command="handleCommand('italic')" label="Italic" />
-            <div class="w-px h-6 bg-slate-800 mx-1" />
+            <div class="w-px h-6 bg-zinc-800 mx-1" />
             <ToolbarButton :icon="Heading1" @command="handleCommand('formatBlock', 'H1')" label="H1" />
             <ToolbarButton :icon="Heading2" @command="handleCommand('formatBlock', 'H2')" label="H2" />
-            <div class="w-px h-6 bg-slate-800 mx-1" />
+            <div class="w-px h-6 bg-zinc-800 mx-1" />
             <ToolbarButton :icon="List" @command="handleCommand('insertUnorderedList')" label="List" />
             <ToolbarButton :icon="Quote" @command="handleCommand('formatBlock', '<blockquote>')" label="Quote" />
             <ToolbarButton
@@ -570,7 +570,7 @@ const saveQuoteMetadata = () => {
             />
 
             <div class="ml-auto pr-4 flex items-center gap-6">
-               <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+               <div class="flex items-center gap-2 text-zinc-500 text-xs font-bold">
                  <Eye :size="14" />
                  <span>{{ wordCount }} words</span>
                </div>
@@ -578,68 +578,68 @@ const saveQuoteMetadata = () => {
           </div>
 
           <!-- Content Area -->
-          <div class="min-h-[60vh] p-10 rounded-3xl glass border-slate-800 bg-slate-900/30 group relative">
+          <div class="min-h-[60vh] p-10 rounded-3xl glass border-zinc-800 bg-zinc-900/30 group relative">
             <div
               ref="editorRef"
               contenteditable="true"
               @input="handleEditorInput"
               @keydown="handleEditorKeydown"
               @paste="handlePaste"
-              class="editor-surface text-sm text-slate-200 leading-relaxed min-h-[50vh] focus:outline-none"
+              class="editor-surface text-sm text-zinc-200 leading-relaxed min-h-[50vh] focus:outline-none"
             />
             <div
               v-if="content === ''"
-              class="absolute top-10 left-10 text-slate-500 text-sm pointer-events-none"
+              class="absolute top-10 left-10 text-zinc-500 text-sm pointer-events-none"
             >
               What moved you about this book? Share your thoughts...
             </div>
           </div>
 
           <!-- Visibility Toggle -->
-          <div class="flex items-center justify-between p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
+          <div class="flex items-center justify-between p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
             <div class="flex items-center gap-4">
-              <div :class="['p-3 rounded-xl', isPublic ? 'bg-sky-500/10 text-sky-400' : 'bg-slate-800 text-slate-500']">
+              <div :class="['p-3 rounded-xl', isPublic ? 'bg-sky-500/10 text-sky-400' : 'bg-zinc-800 text-zinc-500']">
                 <Globe v-if="isPublic" :size="20" />
                 <Lock v-else :size="20" />
               </div>
               <div>
                 <h4 class="text-sm font-bold text-white">{{ isPublic ? 'Public Review' : 'Private Journal' }}</h4>
-                <p class="text-xs text-slate-500">
+                <p class="text-xs text-zinc-500">
                   {{ isPublic ? 'Visible to the Lumina community' : 'Only you can see this reflection' }}
                 </p>
               </div>
             </div>
             <button
               @click="isPublic = !isPublic"
-              :class="['relative w-12 h-6 rounded-full transition-colors', isPublic ? 'bg-indigo-500' : 'bg-slate-800']"
+              :class="['relative w-12 h-6 rounded-full transition-colors', isPublic ? 'bg-indigo-500' : 'bg-zinc-800']"
             >
               <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-all', isPublic ? 'left-7' : 'left-1']" />
             </button>
           </div>
 
           <!-- Save Quotes Toggle -->
-          <div class="flex items-center justify-between p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
+          <div class="flex items-center justify-between p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
             <div class="flex items-center gap-4">
-              <div :class="['p-3 rounded-xl', saveQuotesToCollection ? 'bg-indigo-500/10 text-indigo-400' : 'bg-slate-800 text-slate-500']">
+              <div :class="['p-3 rounded-xl', saveQuotesToCollection ? 'bg-indigo-500/10 text-indigo-400' : 'bg-zinc-800 text-zinc-500']">
                 <BookmarkPlus :size="20" />
               </div>
               <div>
                 <h4 class="text-sm font-bold text-white">Save Quotes to Collection</h4>
-                <p class="text-xs text-slate-500">
+                <p class="text-xs text-zinc-500">
                   {{ saveQuotesToCollection ? 'Blockquotes will be saved as separate quotes' : 'Quotes stay only in the review text' }}
                 </p>
               </div>
             </div>
             <button
               @click="saveQuotesToCollection = !saveQuotesToCollection"
-              :class="['relative w-12 h-6 rounded-full transition-colors', saveQuotesToCollection ? 'bg-indigo-500' : 'bg-slate-800']"
+              :class="['relative w-12 h-6 rounded-full transition-colors', saveQuotesToCollection ? 'bg-indigo-500' : 'bg-zinc-800']"
             >
               <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-all', saveQuotesToCollection ? 'left-7' : 'left-1']" />
             </button>
           </div>
 
           <!-- Reading Dates -->
-          <div class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-4">
+          <div class="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 space-y-4">
             <div class="flex items-center gap-2 mb-4">
               <Calendar :size="18" class="text-indigo-400" />
               <h4 class="text-sm font-bold text-white">Reading Journey</h4>
@@ -647,21 +647,21 @@ const saveQuoteMetadata = () => {
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">
                   Date Started
                 </label>
                 <DatePicker v-model="startedAt" placeholder="Select start date" />
               </div>
 
               <div>
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">
                   Date Finished
                 </label>
                 <DatePicker v-model="finishedAt" placeholder="Select finish date" />
               </div>
             </div>
 
-            <p class="text-xs text-slate-500 italic">
+            <p class="text-xs text-zinc-500 italic">
               Track when you started and finished reading this book
             </p>
           </div>
@@ -669,7 +669,7 @@ const saveQuoteMetadata = () => {
 
         <!-- Sidebar - Book Info -->
         <div class="lg:col-span-4 sticky top-24 space-y-6">
-          <div class="rounded-3xl glass border-slate-800 overflow-hidden shadow-2xl bg-slate-900/40 max-w-full">
+          <div class="rounded-3xl glass border-zinc-800 overflow-hidden shadow-2xl bg-zinc-900/40 max-w-full">
             <div class="aspect-[2/3] w-52 mx-auto overflow-hidden">
               <img :src="coverUrl" :alt="book.title" class="w-full h-full object-cover" />
             </div>
@@ -679,9 +679,9 @@ const saveQuoteMetadata = () => {
                 <p class="text-indigo-400 font-bold">{{ authorsString }}</p>
               </div>
 
-              <div class="space-y-4 pt-6 border-t border-slate-800">
+              <div class="space-y-4 pt-6 border-t border-zinc-800">
                 <div>
-                  <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">My Rating</span>
+                  <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500 block mb-2">My Rating</span>
                   <StarRating
                     :key="`rating-${userBook?.id}-${userBook?.rating}`"
                     :model-value="personalRating"
@@ -693,22 +693,22 @@ const saveQuoteMetadata = () => {
 
                 <div class="flex items-center justify-between">
                   <div>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-1">Status</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Status</span>
                     <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
                       <Check :size="14" />
                       {{ getStatusLabel(currentStatus) }}
                     </div>
                   </div>
                   <div class="text-right">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-1">Finished</span>
-                    <span class="text-slate-300 font-bold text-xs">Today</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Finished</span>
+                    <span class="text-zinc-300 font-bold text-xs">Today</span>
                   </div>
                 </div>
               </div>
 
               <div class="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-3">
                 <Info :size="16" class="text-indigo-400 shrink-0 mt-0.5" />
-                <p class="text-[11px] text-slate-400 leading-relaxed italic">
+                <p class="text-[11px] text-zinc-400 leading-relaxed italic">
                   Your review helps other readers discover hidden gems and deep insights. Be honest, be detailed.
                 </p>
               </div>
@@ -717,7 +717,7 @@ const saveQuoteMetadata = () => {
 
           <button
             @click="isDraft = true"
-            class="w-full py-4 rounded-2xl border border-slate-800 text-slate-400 font-bold hover:bg-slate-800 hover:text-white transition-all flex items-center justify-center gap-3"
+            class="w-full py-4 rounded-2xl border border-zinc-800 text-zinc-400 font-bold hover:bg-zinc-800 hover:text-white transition-all flex items-center justify-center gap-3"
           >
             <Save :size="18" />
             Save Draft
@@ -735,54 +735,54 @@ const saveQuoteMetadata = () => {
     >
       <div
         @click.stop
-        class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+        class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full shadow-2xl"
       >
         <h3 class="text-lg font-bold text-white mb-4">Quote Details</h3>
-        <p class="text-sm text-slate-400 mb-6">Add page number and chapter (optional) to help organize this quote</p>
+        <p class="text-sm text-zinc-400 mb-6">Add page number and chapter (optional) to help organize this quote</p>
 
         <div class="space-y-4 mb-6">
           <div>
-            <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">
+            <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">
               Page Number
             </label>
             <input
               v-model="quotePageNumber"
               type="number"
               placeholder="e.g. 42"
-              class="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              class="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">
+            <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">
               Chapter
             </label>
             <input
               v-model="quoteChapter"
               type="text"
               placeholder="e.g. Chapter 3 or Introduction"
-              class="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              class="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">
+            <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">
               Tags
             </label>
             <input
               v-model="quoteTags"
               type="text"
               placeholder="e.g. philosophy, key-insight, favorite"
-              class="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              class="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
             />
-            <p class="text-xs text-slate-500 mt-1.5">Separate multiple tags with commas</p>
+            <p class="text-xs text-zinc-500 mt-1.5">Separate multiple tags with commas</p>
           </div>
         </div>
 
         <div class="flex gap-3">
           <button
             @click="showQuoteMetadata = false"
-            class="flex-1 px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 font-bold hover:border-slate-600 transition-all"
+            class="flex-1 px-4 py-2.5 rounded-lg border border-zinc-700 text-zinc-400 font-bold hover:border-zinc-600 transition-all"
           >
             Cancel
           </button>
@@ -816,12 +816,12 @@ const ToolbarButton = defineComponent({
         e.preventDefault()
         emit('command')
       },
-      class: 'p-3 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all group relative',
+      class: 'p-3 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all group relative',
       title: props.label
     }, [
       h(props.icon, { size: 18 }),
       h('span', {
-        class: 'absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50'
+        class: 'absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50'
       }, props.label)
     ])
   }
@@ -883,7 +883,7 @@ const ToolbarButton = defineComponent({
 }
 
 body.light .editor-surface blockquote {
-  color: rgb(30 41 59); /* slate-800 for light mode */
+  color: rgb(30 41 59); /* zinc-800 for light mode */
   background: rgba(99, 102, 241, 0.08);
 }
 

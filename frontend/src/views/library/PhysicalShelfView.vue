@@ -122,9 +122,9 @@ const getStatusBadge = (status) => {
     currently_reading: { label: 'Reading', class: 'bg-emerald-500/80' },
     read: { label: 'Read', class: 'bg-sky-500/80' },
     want_to_read: { label: 'Unread', class: 'bg-amber-500/80' },
-    abandoned: { label: 'Abandoned', class: 'bg-slate-500/80' },
+    abandoned: { label: 'Abandoned', class: 'bg-zinc-500/80' },
   }
-  return map[status] || { label: status, class: 'bg-slate-500/80' }
+  return map[status] || { label: status, class: 'bg-zinc-500/80' }
 }
 </script>
 
@@ -140,18 +140,18 @@ const getStatusBadge = (status) => {
       <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">
         My Collection
       </h1>
-      <p class="text-sm text-slate-400 mt-1">Books you physically own and wish to own</p>
+      <p class="text-sm text-zinc-400 mt-1">Books you physically own and wish to own</p>
     </div>
 
     <!-- Tab switcher: Owned / Wishlist -->
-    <div class="flex items-center gap-1 mb-6 bg-slate-800/40 rounded-xl p-1 w-fit">
+    <div class="flex items-center gap-1 mb-6 bg-zinc-800/40 rounded-xl p-1 w-fit">
       <button
         @click="switchTab('owned')"
         :class="[
           'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all',
           activeTab === 'owned'
             ? 'bg-amber-500/20 text-amber-400 shadow-sm'
-            : 'text-slate-400 hover:text-slate-200'
+            : 'text-zinc-400 hover:text-zinc-200'
         ]"
       >
         <Home :size="14" />
@@ -164,7 +164,7 @@ const getStatusBadge = (status) => {
           'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all',
           activeTab === 'wishlist'
             ? 'bg-rose-500/20 text-rose-400 shadow-sm'
-            : 'text-slate-400 hover:text-slate-200'
+            : 'text-zinc-400 hover:text-zinc-200'
         ]"
       >
         <Gift :size="14" />
@@ -179,9 +179,9 @@ const getStatusBadge = (status) => {
         <p class="text-2xl font-black text-amber-100">{{ stats.total }}</p>
         <p class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Books Owned</p>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/30">
-        <p class="text-2xl font-black text-slate-100">{{ stats.totalPages.toLocaleString() }}</p>
-        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Pages</p>
+      <div class="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/30">
+        <p class="text-2xl font-black text-zinc-100">{{ stats.totalPages.toLocaleString() }}</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Pages</p>
       </div>
       <div class="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20">
         <p class="text-2xl font-black text-sky-100">{{ stats.readCount }}</p>
@@ -206,17 +206,17 @@ const getStatusBadge = (status) => {
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
       <!-- Search -->
       <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="16" />
         <input
           v-model="searchQuery"
           type="text"
           :placeholder="activeTab === 'wishlist' ? 'Search wishlist...' : 'Search your collection...'"
-          class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50"
+          class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/50 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50"
         />
       </div>
 
       <!-- Status filters -->
-      <div v-if="activeTab === 'owned'" class="flex items-center gap-1 bg-slate-800/40 rounded-xl p-1">
+      <div v-if="activeTab === 'owned'" class="flex items-center gap-1 bg-zinc-800/40 rounded-xl p-1">
         <button
           v-for="f in statusFilters"
           :key="f.key"
@@ -225,7 +225,7 @@ const getStatusBadge = (status) => {
             'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
             statusFilter === f.key
               ? 'bg-white/10 text-white shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              : 'text-zinc-400 hover:text-zinc-200'
           ]"
         >
           {{ f.label }}
@@ -240,7 +240,7 @@ const getStatusBadge = (status) => {
           'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border',
           bulkMode
             ? 'bg-amber-500 text-white border-amber-500'
-            : 'bg-slate-800/40 text-slate-400 border-slate-700/50 hover:border-amber-500/50 hover:text-slate-200'
+            : 'bg-zinc-800/40 text-zinc-400 border-zinc-700/50 hover:border-amber-500/50 hover:text-zinc-200'
         ]"
       >
         <CheckSquare :size="14" />
@@ -259,7 +259,7 @@ const getStatusBadge = (status) => {
         <Home class="text-amber-400" :size="32" />
       </div>
       <h3 class="text-xl font-bold text-white mb-2">Your home library is empty</h3>
-      <p class="text-sm text-slate-400 mb-6 max-w-md mx-auto">
+      <p class="text-sm text-zinc-400 mb-6 max-w-md mx-auto">
         Start by marking books you own from your library. Open any book and toggle "I Own This" to add it here.
       </p>
       <button
@@ -277,7 +277,7 @@ const getStatusBadge = (status) => {
         <Gift class="text-rose-400" :size="32" />
       </div>
       <h3 class="text-xl font-bold text-white mb-2">Your wishlist is empty</h3>
-      <p class="text-sm text-slate-400 mb-6 max-w-md mx-auto">
+      <p class="text-sm text-zinc-400 mb-6 max-w-md mx-auto">
         Browse books and add ones you'd love to own. Your friends can see your wishlist for gift ideas!
       </p>
       <button
@@ -291,7 +291,7 @@ const getStatusBadge = (status) => {
 
     <!-- Empty state: filter returns nothing -->
     <div v-else-if="displayedBooks.length === 0" class="text-center py-24">
-      <p class="text-slate-400">No books match your filters.</p>
+      <p class="text-zinc-400">No books match your filters.</p>
     </div>
 
     <!-- Book grid -->
@@ -384,7 +384,7 @@ const getStatusBadge = (status) => {
 
         <!-- Title below cover (mobile) -->
         <div class="mt-1.5 sm:hidden">
-          <p class="text-[11px] font-semibold text-slate-200 line-clamp-2 leading-tight">{{ getTitle(book) }}</p>
+          <p class="text-[11px] font-semibold text-zinc-200 line-clamp-2 leading-tight">{{ getTitle(book) }}</p>
         </div>
       </component>
     </div>
@@ -400,17 +400,17 @@ const getStatusBadge = (status) => {
     >
       <div
         v-if="bulkMode && selectedIds.size > 0"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-2xl bg-zinc-800/90 backdrop-blur-xl border border-zinc-700/50 shadow-2xl"
       >
         <button
           @click="selectAll"
-          class="text-xs font-bold text-slate-300 hover:text-white transition-colors"
+          class="text-xs font-bold text-zinc-300 hover:text-white transition-colors"
         >
           {{ selectedIds.size === displayedBooks.length ? 'Deselect All' : 'Select All' }}
         </button>
-        <div class="w-px h-5 bg-slate-600"></div>
+        <div class="w-px h-5 bg-zinc-600"></div>
         <span class="text-xs font-bold text-white">{{ selectedIds.size }} selected</span>
-        <div class="w-px h-5 bg-slate-600"></div>
+        <div class="w-px h-5 bg-zinc-600"></div>
         <button
           @click="handleBulkRemove"
           class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-bold transition-all"
@@ -426,34 +426,31 @@ const getStatusBadge = (status) => {
 
 <style scoped>
 /* Light mode overrides */
-body.light .text-white {
-  color: #0f172a !important;
-}
-body.light .text-slate-400,
-body.light .text-slate-500 {
+body.light .text-zinc-400,
+body.light .text-zinc-500 {
   color: #64748b !important;
 }
-body.light .text-slate-200 {
+body.light .text-zinc-200 {
   color: #334155 !important;
 }
-body.light .text-slate-300 {
+body.light .text-zinc-300 {
   color: #475569 !important;
 }
 body.light .text-amber-100,
 body.light .text-sky-100,
 body.light .text-emerald-100,
-body.light .text-slate-100 {
+body.light .text-zinc-100 {
   color: #1e293b !important;
 }
-body.light .bg-slate-800\/40 {
+body.light .bg-zinc-800\/40 {
   background-color: rgba(255, 255, 255, 0.8) !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
-body.light .bg-slate-800\/50 {
+body.light .bg-zinc-800\/50 {
   background-color: rgba(241, 245, 249, 0.8) !important;
 }
-body.light .border-slate-700\/50,
-body.light .border-slate-700\/30 {
+body.light .border-zinc-700\/50,
+body.light .border-zinc-700\/30 {
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
 </style>

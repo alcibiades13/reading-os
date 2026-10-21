@@ -25,7 +25,7 @@ const handleAction = () => {
 </script>
 
 <template>
-  <div class="pointer-events-auto bg-slate-900 border border-slate-800 rounded-xl px-5 py-4 shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-full duration-300">
+  <div class="pointer-events-auto bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-full duration-300">
     <!-- Icon -->
     <div
       :class="{
@@ -41,7 +41,7 @@ const handleAction = () => {
     </div>
 
     <!-- Message -->
-    <p class="text-sm font-medium text-slate-200 flex-1">{{ message }}</p>
+    <p class="text-sm font-medium text-zinc-200 flex-1">{{ message }}</p>
 
     <!-- Action button (e.g. Undo) -->
     <button

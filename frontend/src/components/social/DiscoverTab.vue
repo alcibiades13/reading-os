@@ -104,13 +104,13 @@ const goToUserProfile = (userId) => {
         </div>
       </div>
       <h1 class="text-4xl font-black text-white tracking-tighter">Discover <span class="text-indigo-500">Kindred Spirits</span></h1>
-      <p class="text-slate-400 font-medium max-w-md mx-auto">
+      <p class="text-zinc-400 font-medium max-w-md mx-auto">
         Connect with readers who share your literary taste and intellectual curiosity
       </p>
 
       <!-- Search Bar -->
       <div class="max-w-md mx-auto mt-6 relative group">
-        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors" :size="18" />
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-500 transition-colors" :size="18" />
         <input
           v-model="searchQuery"
           type="text"
@@ -135,7 +135,7 @@ const goToUserProfile = (userId) => {
         <h2 class="text-xl font-black text-white uppercase tracking-wider">
           {{ activeView === 'search' ? `Search Results (${displayedUsers.length})` : 'Readers Like You' }}
         </h2>
-        <div class="flex-1 h-px bg-slate-800" />
+        <div class="flex-1 h-px bg-zinc-800" />
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -167,17 +167,17 @@ const goToUserProfile = (userId) => {
               >
                 {{ user.first_name }} {{ user.last_name }}
               </h3>
-              <p class="text-xs text-slate-500 font-bold">@{{ user.username }}</p>
+              <p class="text-xs text-zinc-500 font-bold">@{{ user.username }}</p>
               <div class="flex items-center gap-3 mt-2">
                 <div class="flex items-center gap-1.5">
                   <BookOpen :size="12" class="text-indigo-400" />
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                     {{ user.books_read_count }} books
                   </span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <Users :size="12" class="text-purple-400" />
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                     {{ user.followers_count }} followers
                   </span>
                 </div>
@@ -186,7 +186,7 @@ const goToUserProfile = (userId) => {
           </div>
 
           <!-- Bio -->
-          <p v-if="user.bio" class="text-sm text-slate-400 mb-6 line-clamp-2">
+          <p v-if="user.bio" class="text-sm text-zinc-400 mb-6 line-clamp-2">
             {{ user.bio }}
           </p>
 
@@ -196,20 +196,20 @@ const goToUserProfile = (userId) => {
               <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Compatibility</span>
               <span class="text-2xl font-black text-indigo-400">{{ user.match_score }}%</span>
             </div>
-            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div class="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
               <div
                 class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000"
                 :style="{ width: `${user.match_score}%` }"
               />
             </div>
-            <div class="mt-3 flex items-center gap-2 text-[10px] text-slate-500 font-bold">
+            <div class="mt-3 flex items-center gap-2 text-[10px] text-zinc-500 font-bold">
               <span>📚 {{ user.shared_books_count }} books in common</span>
             </div>
           </div>
 
           <!-- Top Genres -->
           <div class="mb-6">
-            <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-3">Top Interests</span>
+            <span class="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-3">Top Interests</span>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="genre in user.top_genres"
@@ -245,12 +245,12 @@ const goToUserProfile = (userId) => {
     <!-- Empty State -->
     <div v-if="!loading && displayedUsers.length === 0" class="text-center py-20">
       <div class="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
-        <Users :size="40" class="text-slate-700" />
+        <Users :size="40" class="text-zinc-700" />
       </div>
       <h3 class="text-2xl font-black text-white mb-2 uppercase tracking-wider">
         {{ activeView === 'search' ? 'No Users Found' : 'No Suggestions Yet' }}
       </h3>
-      <p class="text-slate-500 font-medium max-w-sm mx-auto">
+      <p class="text-zinc-500 font-medium max-w-sm mx-auto">
         {{ activeView === 'search' ? 'Try a different search term' : 'Add more books to your library to get personalized reader recommendations' }}
       </p>
     </div>
@@ -259,12 +259,8 @@ const goToUserProfile = (userId) => {
 
 <style scoped>
 /* Light mode adjustments */
-body.light .text-white {
-  color: #0f172a !important;
-}
-
-body.light .text-slate-400,
-body.light .text-slate-500 {
+body.light .text-zinc-400,
+body.light .text-zinc-500 {
   color: #64748b !important;
 }
 

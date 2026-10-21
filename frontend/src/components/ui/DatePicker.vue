@@ -69,18 +69,18 @@ const formattedDate = computed(() => {
           'w-full justify-start text-left font-normal',
           !date && 'text-muted-foreground'
         )"
-        class="bg-slate-950/50 border-slate-700 text-slate-200 hover:bg-slate-900 hover:border-indigo-600 hover:text-slate-100"
+        class="bg-zinc-950/50 border-zinc-700 text-zinc-200 hover:bg-zinc-900 hover:border-indigo-600 hover:text-zinc-100"
       >
-        <CalendarIcon class="mr-2 h-4 w-4 text-slate-500" />
+        <CalendarIcon class="mr-2 h-4 w-4 text-zinc-500" />
         <span>{{ formattedDate }}</span>
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-auto p-0 bg-slate-900 border-slate-700" align="start">
+    <PopoverContent class="w-auto p-0 bg-zinc-900 border-zinc-700" align="start">
       <Calendar
         v-model="date"
         initial-focus
         :fixed-weeks="true"
-        class="bg-slate-900 rounded-md"
+        class="bg-zinc-900 rounded-md"
       />
     </PopoverContent>
   </Popover>

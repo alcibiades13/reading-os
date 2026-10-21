@@ -1,5 +1,5 @@
 <template>
-  <div class="group glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-4 lg:p-6 hover:border-slate-700 transition-all duration-300">
+  <div class="group glass bg-zinc-900/40 rounded-2xl border border-zinc-800/50 p-4 lg:p-6 hover:border-zinc-700 transition-all duration-300">
     <div class="flex items-start justify-between mb-4">
       <div class="flex items-center gap-3 flex-wrap">
         <div :class="['flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border', typeConfig.color]">
@@ -10,21 +10,21 @@
           <span
             v-for="(ref, idx) in referencesList"
             :key="idx"
-            class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1"
+            class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1"
           >
             <Hash :size="10" /> {{ ref }}
           </span>
         </template>
-        <span v-else class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+        <span v-else class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1">
           <Hash :size="10" /> {{ note.reference }}
         </span>
-        <span v-if="note.page_number" class="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+        <span v-if="note.page_number" class="text-[10px] font-bold text-zinc-600 flex items-center gap-1">
           p. {{ note.page_number }}
         </span>
-        <span v-if="note.chapter" class="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+        <span v-if="note.chapter" class="text-[10px] font-bold text-zinc-600 flex items-center gap-1">
           Ch. {{ note.chapter }}
         </span>
-        <span class="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+        <span class="text-[10px] font-bold text-zinc-600 flex items-center gap-1">
           <Clock :size="10" />
           {{ formatDate(note.created_at) }}
         </span>
@@ -35,19 +35,19 @@
           v-if="note.note_type === 'quote' && !note.is_promoted_to_quote"
           @click="$emit('promote', note)"
           title="Promote to Main Quote"
-          class="p-2 rounded-lg hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-400 transition-colors"
+          class="p-2 rounded-lg hover:bg-indigo-500/10 text-zinc-500 hover:text-indigo-400 transition-colors"
         >
           <ArrowUpRight :size="14" />
         </button>
         <button
           @click="$emit('edit', note)"
-          class="p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-white transition-colors"
+          class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors"
         >
           <Edit3 :size="14" />
         </button>
         <button
           @click="$emit('delete', note.id)"
-          class="p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-colors"
+          class="p-2 rounded-lg hover:bg-red-500/10 text-zinc-500 hover:text-red-400 transition-colors"
         >
           <Trash2 :size="14" />
         </button>
@@ -58,7 +58,7 @@
       <div
         @mouseup="handleTextSelection"
         @click="handleClickOnContent"
-        class="font-serif text-sm lg:text-lg text-slate-200 leading-relaxed mb-4 lg:mb-6 whitespace-pre-wrap select-text"
+        class="font-serif text-sm lg:text-lg text-zinc-200 leading-relaxed mb-4 lg:mb-6 whitespace-pre-wrap select-text"
         v-html="contentWithHighlights"
       />
 
@@ -76,7 +76,7 @@
             transform: 'translateX(-50%)',
             zIndex: 9999
           }"
-          class="px-3 py-1.5 rounded-lg bg-yellow-500 text-slate-900 font-bold text-xs shadow-2xl hover:bg-yellow-400 transition-all flex items-center gap-1.5"
+          class="px-3 py-1.5 rounded-lg bg-yellow-500 text-zinc-900 font-bold text-xs shadow-2xl hover:bg-yellow-400 transition-all flex items-center gap-1.5"
         >
           <Highlighter :size="14" />
           Highlight
@@ -88,13 +88,13 @@
       <span
         v-for="tag in note.tags"
         :key="tag.id"
-        class="text-[10px] font-bold text-slate-500 hover:text-indigo-400 cursor-pointer transition-colors"
+        class="text-[10px] font-bold text-zinc-500 hover:text-indigo-400 cursor-pointer transition-colors"
       >
         #{{ tag.name }}
       </span>
     </div>
 
-    <div v-if="note.is_promoted_to_quote" class="pt-4 border-t border-slate-800/50 flex items-center gap-1.5 text-[10px] text-indigo-400 font-bold uppercase tracking-widest">
+    <div v-if="note.is_promoted_to_quote" class="pt-4 border-t border-zinc-800/50 flex items-center gap-1.5 text-[10px] text-indigo-400 font-bold uppercase tracking-widest">
       <ArrowUpRight :size="12" />
       Promoted to Quote
     </div>
@@ -148,7 +148,7 @@ const typeConfig = computed(() => {
     },
     note: {
       icon: MessageSquare,
-      color: 'text-slate-400 bg-slate-500/10 border-slate-500/20',
+      color: 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20',
       label: 'Note'
     },
     question: {

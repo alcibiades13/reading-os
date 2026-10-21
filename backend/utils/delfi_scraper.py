@@ -703,8 +703,6 @@ class DelfiScraper:
         """
         Search for books on Delfi.rs
 
-        Note: Implementation depends on actual Delfi.rs search page structure
-
         Args:
             query: Search query (title, author, ISBN)
             limit: Maximum number of results
@@ -712,14 +710,35 @@ class DelfiScraper:
         Returns:
             List of book dictionaries
         """
-        # TODO: Implement based on actual search page structure
-        # This would require analyzing the search results page
-        print("Search functionality not yet implemented - requires search page analysis")
-        return []
+        search_url = f"{self.BASE_URL}/search?q={query}"
+        html_data = self._fetch_page_with_playwright(search_url, wait_for_selector='.product-item, .search-results, .no-results')
+        if not html_data:
+            return []
+
+        html = html_data['main'] if isinstance(html_data, dict) else html_data
+        soup = BeautifulSoup(html, 'html.parser')
+
+        book_links = []
+        for link in soup.select('a[href*="/knjige/"]'):
+            href = link.get('href', '')
+            if re.search(r'/knjige/\d+-', href):
+                full_url = href if href.startswith('http') else urljoin(self.BASE_URL, href)
+                if full_url not in book_links:
+                    book_links.append(full_url)
+                    if len(book_links) >= limit:
+                        break
+
+        results = []
+        for link in book_links[:limit]:
+            book = self.scrape_book_by_url(link)
+            if book:
+                results.append(book)
+
+        return results
 
     def scrape_book_by_isbn(self, isbn: str) -> Optional[Dict]:
         """
-        Search and scrape book by ISBN
+        Search and scrape book by ISBN on Delfi.rs
 
         Args:
             isbn: ISBN-10 or ISBN-13
@@ -727,9 +746,22 @@ class DelfiScraper:
         Returns:
             Book dictionary or None
         """
-        results = self.search_books(isbn, limit=1)
-        if results:
-            return results[0]
+        search_url = f"{self.BASE_URL}/search?q={isbn}"
+        html_data = self._fetch_page_with_playwright(search_url, wait_for_selector='.product-item, .search-results, .no-results')
+        if not html_data:
+            return None
+
+        html = html_data['main'] if isinstance(html_data, dict) else html_data
+        soup = BeautifulSoup(html, 'html.parser')
+
+        for link in soup.select('a[href*="/knjige/"]'):
+            href = link.get('href', '')
+            if re.search(r'/knjige/\d+-', href):
+                full_url = href if href.startswith('http') else urljoin(self.BASE_URL, href)
+                book = self.scrape_book_by_url(full_url)
+                if book:
+                    return book
+
         return None
 
 

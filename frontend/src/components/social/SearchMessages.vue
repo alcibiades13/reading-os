@@ -65,23 +65,23 @@ function getUserInitial(user) {
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="$emit('update:show', false)" />
-      <div class="relative w-full max-w-xl bg-slate-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+      <div class="relative w-full max-w-xl bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
         <!-- Search input -->
         <div class="p-4 border-b border-white/5">
           <div class="relative">
-            <Search :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
               v-model="query"
               @input="handleInput"
               type="text"
               autofocus
               placeholder="Search messages in this circle..."
-              class="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-10 py-3 text-white placeholder-slate-600 focus:border-indigo-500 outline-none transition-colors"
+              class="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-10 py-3 text-white placeholder-zinc-600 focus:border-indigo-500 outline-none transition-colors"
             />
             <button
               v-if="query"
               @click="query = ''; results = []"
-              class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-white transition-colors"
+              class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-white transition-colors"
             >
               <X :size="16" />
             </button>
@@ -109,10 +109,10 @@ function getUserInitial(user) {
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5">
                     <span class="text-xs font-bold text-white">{{ msg.author?.first_name }} {{ msg.author?.last_name }}</span>
-                    <span class="text-[9px] text-slate-600">{{ formatTimeAgo(msg.created_at) }}</span>
+                    <span class="text-[9px] text-zinc-600">{{ formatTimeAgo(msg.created_at) }}</span>
                   </div>
-                  <p class="text-sm text-slate-400 line-clamp-2">{{ msg.content }}</p>
-                  <p v-if="msg.topic_title" class="text-[10px] text-slate-600 mt-1 flex items-center gap-1">
+                  <p class="text-sm text-zinc-400 line-clamp-2">{{ msg.content }}</p>
+                  <p v-if="msg.topic_title" class="text-[10px] text-zinc-600 mt-1 flex items-center gap-1">
                     <MessageSquare :size="10" /> {{ msg.topic_title }}
                   </p>
                 </div>
@@ -120,11 +120,11 @@ function getUserInitial(user) {
             </button>
           </div>
 
-          <div v-else-if="query.length >= 2 && !searching" class="text-center py-10 text-slate-500 text-sm">
+          <div v-else-if="query.length >= 2 && !searching" class="text-center py-10 text-zinc-500 text-sm">
             No messages found
           </div>
 
-          <div v-else class="text-center py-10 text-slate-600 text-sm">
+          <div v-else class="text-center py-10 text-zinc-600 text-sm">
             Type to search messages...
           </div>
         </div>

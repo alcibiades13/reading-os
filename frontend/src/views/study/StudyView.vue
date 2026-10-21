@@ -1,12 +1,12 @@
 <template>
-  <div class="fixed inset-0 z-[100] bg-slate-950 flex flex-col animate-in fade-in duration-500">
+  <div class="fixed inset-0 z-[100] bg-zinc-950 flex flex-col animate-in fade-in duration-500">
 
     <!-- ==================== MOBILE HEADER ==================== -->
-    <header class="lg:hidden sticky top-0 z-20 bg-slate-950/95 backdrop-blur-xl border-b border-white/5 safe-area-top">
+    <header class="lg:hidden sticky top-0 z-20 bg-zinc-950/95 backdrop-blur-xl border-b border-white/5 safe-area-top">
       <div class="px-4 py-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3 min-w-0 flex-1">
-            <button @click="handleBack" class="p-2 -ml-2 rounded-xl text-slate-400 active:bg-slate-800 transition-colors">
+            <button @click="handleBack" class="p-2 -ml-2 rounded-xl text-zinc-400 active:bg-zinc-800 transition-colors">
               <ArrowLeft :size="22" />
             </button>
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
@@ -15,20 +15,20 @@
               </div>
               <div class="min-w-0 flex-1">
                 <h1 class="text-sm font-bold text-white truncate">{{ bookTitle }}</h1>
-                <p class="text-[10px] text-slate-500">{{ notes.length }} notes</p>
+                <p class="text-[10px] text-zinc-500">{{ notes.length }} notes</p>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-1">
             <button
               @click="showBookSelector = true"
-              class="p-2 rounded-xl text-slate-400 active:bg-slate-800 transition-colors"
+              class="p-2 rounded-xl text-zinc-400 active:bg-zinc-800 transition-colors"
             >
               <BookOpen :size="18" />
             </button>
             <button
               @click="showMobileSearch = !showMobileSearch"
-              :class="['p-2 rounded-xl transition-colors', showMobileSearch ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 active:bg-slate-800']"
+              :class="['p-2 rounded-xl transition-colors', showMobileSearch ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-400 active:bg-zinc-800']"
             >
               <Search :size="18" />
             </button>
@@ -45,12 +45,12 @@
         <!-- Mobile Search (expandable) -->
         <div v-if="showMobileSearch" class="mt-3">
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="16" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="16" />
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search notes..."
-              class="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 transition-all"
+              class="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 outline-none focus:border-indigo-500/50 transition-all"
               autofocus
             />
           </div>
@@ -61,35 +61,35 @@
       <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar px-4 pb-3">
         <button
           @click="activeType = 'all'"
-          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'all' ? 'bg-indigo-500 text-white' : 'bg-slate-800/50 text-slate-400 border border-slate-700/50']"
+          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'all' ? 'bg-indigo-500 text-white' : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50']"
         >
           <LayoutGrid :size="12" />
           All {{ notes.length }}
         </button>
         <button
           @click="activeType = 'quote'"
-          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'quote' ? 'bg-purple-500 text-white' : 'bg-slate-800/50 text-slate-400 border border-slate-700/50']"
+          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'quote' ? 'bg-purple-500 text-white' : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50']"
         >
           <QuoteIcon :size="12" />
           {{ noteCountByType.quote }}
         </button>
         <button
           @click="activeType = 'insight'"
-          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'insight' ? 'bg-amber-500 text-white' : 'bg-slate-800/50 text-slate-400 border border-slate-700/50']"
+          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'insight' ? 'bg-amber-500 text-white' : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50']"
         >
           <Lightbulb :size="12" />
           {{ noteCountByType.insight }}
         </button>
         <button
           @click="activeType = 'question'"
-          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'question' ? 'bg-sky-500 text-white' : 'bg-slate-800/50 text-slate-400 border border-slate-700/50']"
+          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'question' ? 'bg-sky-500 text-white' : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50']"
         >
           <HelpCircle :size="12" />
           {{ noteCountByType.question }}
         </button>
         <button
           @click="activeType = 'note'"
-          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'note' ? 'bg-slate-600 text-white' : 'bg-slate-800/50 text-slate-400 border border-slate-700/50']"
+          :class="['shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all', activeType === 'note' ? 'bg-zinc-600 text-white' : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50']"
         >
           <MessageSquare :size="12" />
           {{ noteCountByType.note }}
@@ -98,12 +98,12 @@
     </header>
 
     <!-- ==================== DESKTOP HEADER ==================== -->
-    <header class="hidden lg:flex h-20 border-b border-slate-900 items-center justify-between px-8 glass sticky top-0 z-20">
+    <header class="hidden lg:flex h-20 border-b border-zinc-900 items-center justify-between px-8 glass sticky top-0 z-20">
       <div class="flex items-center gap-6 min-w-0 flex-1">
-        <button @click="handleBack" class="p-2 rounded-full hover:bg-slate-800 text-slate-400 transition-colors flex-shrink-0">
+        <button @click="handleBack" class="p-2 rounded-full hover:bg-zinc-800 text-zinc-400 transition-colors flex-shrink-0">
           <ArrowLeft :size="24" />
         </button>
-        <div class="h-8 w-px bg-slate-800 flex-shrink-0" />
+        <div class="h-8 w-px bg-zinc-800 flex-shrink-0" />
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
             <Brain class="text-indigo-400" :size="16" />
@@ -113,7 +113,7 @@
               <h1 class="text-sm font-black text-white uppercase tracking-widest truncate">{{ bookTitle }}</h1>
               <button
                 @click="showBookSelector = true"
-                class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition-colors flex-shrink-0"
+                class="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-indigo-400 transition-colors flex-shrink-0"
                 title="Change book"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -122,7 +122,7 @@
                 </svg>
               </button>
             </div>
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Study Mode Active</p>
+            <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Study Mode Active</p>
           </div>
         </div>
       </div>
@@ -138,12 +138,12 @@
           Export PDF
         </button>
         <div class="relative group">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-400 transition-colors" :size="16" />
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" :size="16" />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Search notes..."
-            class="bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all w-48"
+            class="bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all w-48"
           />
         </div>
       </div>
@@ -154,7 +154,7 @@
       <!-- Sidebar: References List - Hidden on mobile, shown as drawer -->
       <aside
         :class="[
-          'border-r border-slate-900 flex flex-col bg-slate-950 z-10 transition-all duration-300 ease-in-out',
+          'border-r border-zinc-900 flex flex-col bg-zinc-950 z-10 transition-all duration-300 ease-in-out',
           showReferences ? 'fixed inset-y-0 left-0 w-72 shadow-2xl' : 'hidden lg:flex',
           !showReferences && isSidebarCollapsed ? 'lg:w-12' : 'lg:w-72'
         ]"
@@ -163,7 +163,7 @@
         <div v-if="isSidebarCollapsed && !showReferences" class="hidden lg:flex flex-col items-center py-4">
           <button
             @click="isSidebarCollapsed = false"
-            class="p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-indigo-400 transition-colors"
+            class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-indigo-400 transition-colors"
             title="Expand references"
           >
             <PanelLeft :size="18" />
@@ -173,18 +173,18 @@
         <!-- Expanded state -->
         <div v-else class="p-6 flex-1 overflow-hidden flex flex-col">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">References</h3>
+            <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">References</h3>
             <div class="flex items-center gap-1">
               <!-- Desktop collapse button -->
               <button
                 @click="isSidebarCollapsed = true"
-                class="hidden lg:block p-1 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-indigo-400 transition-colors"
+                class="hidden lg:block p-1 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-indigo-400 transition-colors"
                 title="Collapse sidebar"
               >
                 <PanelLeftClose :size="16" />
               </button>
               <!-- Mobile close button -->
-              <button @click="showReferences = false" class="lg:hidden p-1 rounded-lg hover:bg-slate-800 text-slate-500">
+              <button @click="showReferences = false" class="lg:hidden p-1 rounded-lg hover:bg-zinc-800 text-zinc-500">
                 <X :size="16" />
               </button>
             </div>
@@ -210,10 +210,10 @@
               v-for="ref in references"
               :key="ref"
               @click="selectedRef = ref; showReferences = false"
-              :class="['w-full text-left px-4 py-1.5 rounded-xl text-xs transition-all flex justify-between items-center', selectedRef === ref ? 'bg-slate-800 text-white font-bold' : 'text-slate-500 hover:bg-slate-900']"
+              :class="['w-full text-left px-4 py-1.5 rounded-xl text-xs transition-all flex justify-between items-center', selectedRef === ref ? 'bg-zinc-800 text-white font-bold' : 'text-zinc-500 hover:bg-zinc-900']"
             >
               <span class="truncate">{{ ref }}</span>
-              <span class="text-[8px] bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+              <span class="text-[8px] bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">
                 {{ notes.filter(n => (n.references_list || (n.reference ? n.reference.split(',').map(r => r.trim()) : [])).some(r => r.toUpperCase() === ref)).length }}
               </span>
             </button>
@@ -225,24 +225,24 @@
       <div v-if="showReferences" @click="showReferences = false" class="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[5]"></div>
 
       <!-- Notes Surface -->
-      <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20 p-4 lg:p-12">
+      <main class="flex-1 overflow-y-auto custom-scrollbar bg-zinc-950/20 p-4 lg:p-12">
         <div class="max-w-[1800px] mx-auto space-y-4 lg:space-y-8">
 
           <!-- Mobile Reference Toggle -->
           <div class="lg:hidden flex items-center gap-2">
             <button
               @click="showReferences = true"
-              class="flex-1 flex items-center justify-between px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-800 text-sm font-bold text-white active:bg-slate-800 transition-all"
+              class="flex-1 flex items-center justify-between px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-sm font-bold text-white active:bg-zinc-800 transition-all"
             >
               <div class="flex items-center gap-2">
                 <Filter :size="16" class="text-indigo-400" />
                 <span>{{ selectedRef || 'All References' }}</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-[10px] bg-slate-800 px-2 py-1 rounded-lg border border-slate-700 text-slate-400">
+                <span class="text-[10px] bg-zinc-800 px-2 py-1 rounded-lg border border-zinc-700 text-zinc-400">
                   {{ filteredNotes.length }}
                 </span>
-                <ChevronRight :size="16" class="text-slate-500" />
+                <ChevronRight :size="16" class="text-zinc-500" />
               </div>
             </button>
             <button
@@ -258,47 +258,47 @@
           <div class="hidden lg:flex items-center gap-2 flex-wrap">
             <button
               @click="activeType = 'all'"
-              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-zinc-500 hover:text-zinc-300']"
             >
               <LayoutGrid :size="14" />
               All
             </button>
             <button
               @click="activeType = 'quote'"
-              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'quote' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'quote' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-zinc-500 hover:text-zinc-300']"
             >
               <QuoteIcon :size="14" />
               Quotes
             </button>
             <button
               @click="activeType = 'insight'"
-              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'insight' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'insight' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-zinc-500 hover:text-zinc-300']"
             >
               <Lightbulb :size="14" />
               Insights
             </button>
             <button
               @click="activeType = 'question'"
-              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'question' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'question' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-zinc-500 hover:text-zinc-300']"
             >
               <HelpCircle :size="14" />
               Questions
             </button>
             <button
               @click="activeType = 'note'"
-              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'note' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-slate-500 hover:text-slate-300']"
+              :class="['flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all', activeType === 'note' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/10' : 'text-zinc-500 hover:text-zinc-300']"
             >
               <MessageSquare :size="14" />
               Notes
             </button>
 
             <!-- Divider -->
-            <div class="h-6 w-px bg-slate-800 mx-2" />
+            <div class="h-6 w-px bg-zinc-800 mx-2" />
 
             <!-- Sort Order Toggle -->
             <button
               @click="sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest'"
-              class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-500 hover:text-slate-300 hover:bg-slate-800/50"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
               :title="sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'"
             >
               <ArrowDownUp :size="14" />
@@ -308,10 +308,10 @@
 
           <!-- Mobile Sort Toggle -->
           <div class="lg:hidden flex items-center justify-between">
-            <span class="text-xs text-slate-500">{{ filteredNotes.length }} notes</span>
+            <span class="text-xs text-zinc-500">{{ filteredNotes.length }} notes</span>
             <button
               @click="sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest'"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 bg-slate-800/50 border border-slate-700/50 active:bg-slate-700 transition-all"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 bg-zinc-800/50 border border-zinc-700/50 active:bg-zinc-700 transition-all"
             >
               <ArrowDownUp :size="12" />
               {{ sortOrder === 'newest' ? 'Newest' : 'Oldest' }}
@@ -335,11 +335,11 @@
 
           <!-- Empty State -->
           <div v-else class="py-20 lg:py-40 text-center">
-            <div class="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-4 lg:mb-6 text-slate-700">
+            <div class="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4 lg:mb-6 text-zinc-700">
               <BookOpen :size="24" class="lg:w-7 lg:h-7" />
             </div>
             <h3 class="text-lg lg:text-xl font-bold text-white mb-2">No notes here yet</h3>
-            <p class="text-slate-500 text-sm px-8">Start your study session using the capture bar below.</p>
+            <p class="text-zinc-500 text-sm px-8">Start your study session using the capture bar below.</p>
           </div>
 
           <!-- Mobile bottom spacer for footer -->
@@ -349,11 +349,11 @@
     </div>
 
     <!-- Quick Add Footer - Responsive -->
-    <footer class="relative bg-slate-900/80 backdrop-blur-xl border-t border-slate-800 transition-all duration-300 safe-area-bottom">
+    <footer class="relative bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-800 transition-all duration-300 safe-area-bottom">
       <!-- Toggle Button -->
       <button
         @click="isFooterCollapsed = !isFooterCollapsed"
-        class="absolute -top-10 right-4 lg:right-6 p-2.5 lg:p-2 rounded-t-xl lg:rounded-t-lg bg-slate-800 lg:bg-slate-900/80 border border-slate-700 lg:border-slate-800 border-b-0 text-slate-400 active:bg-slate-700 lg:hover:text-indigo-400 transition-all z-10"
+        class="absolute -top-10 right-4 lg:right-6 p-2.5 lg:p-2 rounded-t-xl lg:rounded-t-lg bg-zinc-800 lg:bg-zinc-900/80 border border-zinc-700 lg:border-zinc-800 border-b-0 text-zinc-400 active:bg-zinc-700 lg:hover:text-indigo-400 transition-all z-10"
         :aria-label="isFooterCollapsed ? 'Expand footer' : 'Collapse footer'"
       >
         <ChevronUp v-if="isFooterCollapsed" :size="18" class="lg:w-4 lg:h-4" />
@@ -365,31 +365,31 @@
         <!-- Desktop Layout: Type selector + Reference + Page + Chapter + Capture -->
         <div class="hidden lg:flex items-center gap-4">
           <!-- Type selector -->
-          <div class="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="flex items-center gap-1 p-1 bg-zinc-950 rounded-xl border border-zinc-800">
             <button
               @click="newNoteType = 'note'"
-              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'note' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'note' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
             >
               <MessageSquare :size="12" />
               Note
             </button>
             <button
               @click="newNoteType = 'quote'"
-              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'quote' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'quote' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
             >
               <QuoteIcon :size="12" />
               Quote
             </button>
             <button
               @click="newNoteType = 'insight'"
-              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'insight' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'insight' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
             >
               <Lightbulb :size="12" />
               Insight
             </button>
             <button
               @click="newNoteType = 'question'"
-              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'question' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+              :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', newNoteType === 'question' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
             >
               <HelpCircle :size="12" />
               Query
@@ -401,7 +401,7 @@
             v-model="newNoteRef"
             type="text"
             placeholder="Reference (e.g. John 3:16, Romans 8:28)"
-            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+            class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
           />
 
           <!-- Page Number input -->
@@ -409,7 +409,7 @@
             v-model="newNotePageNumber"
             type="number"
             placeholder="Page"
-            class="w-20 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+            class="w-20 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
           />
 
           <!-- Chapter input -->
@@ -417,7 +417,7 @@
             v-model="newNoteChapter"
             type="text"
             placeholder="Chapter"
-            class="w-28 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
+            class="w-28 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 transition-all"
           />
 
           <!-- Capture button -->
@@ -436,28 +436,28 @@
           <div class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar -mx-1 px-1">
             <button
               @click="newNoteType = 'note'"
-              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'note' ? 'bg-slate-700 text-white' : 'text-slate-400 bg-slate-800/50 border border-slate-700/50']"
+              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'note' ? 'bg-zinc-700 text-white' : 'text-zinc-400 bg-zinc-800/50 border border-zinc-700/50']"
             >
               <MessageSquare :size="12" />
               Note
             </button>
             <button
               @click="newNoteType = 'quote'"
-              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'quote' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-slate-400 bg-slate-800/50 border border-slate-700/50']"
+              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'quote' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-zinc-400 bg-zinc-800/50 border border-zinc-700/50']"
             >
               <QuoteIcon :size="12" />
               Quote
             </button>
             <button
               @click="newNoteType = 'insight'"
-              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'insight' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-slate-400 bg-slate-800/50 border border-slate-700/50']"
+              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'insight' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-zinc-400 bg-zinc-800/50 border border-zinc-700/50']"
             >
               <Lightbulb :size="12" />
               Insight
             </button>
             <button
               @click="newNoteType = 'question'"
-              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'question' ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 bg-slate-800/50 border border-slate-700/50']"
+              :class="['shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all', newNoteType === 'question' ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-zinc-400 bg-zinc-800/50 border border-zinc-700/50']"
             >
               <HelpCircle :size="12" />
               Query
@@ -470,7 +470,7 @@
             @keydown.meta.enter="handleSave"
             @keydown.ctrl.enter="handleSave"
             placeholder="What are you learning?"
-            class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 transition-all resize-none"
+            class="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-indigo-500/50 transition-all resize-none"
             :rows="3"
           />
 
@@ -480,19 +480,19 @@
               v-model="newNoteRef"
               type="text"
               placeholder="Reference"
-              class="flex-1 bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 transition-all"
+              class="flex-1 bg-zinc-800/50 border border-zinc-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-indigo-500/50 transition-all"
             />
             <input
               v-model="newNotePageNumber"
               type="number"
               placeholder="Pg"
-              class="w-16 bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 transition-all"
+              class="w-16 bg-zinc-800/50 border border-zinc-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-indigo-500/50 transition-all"
             />
             <input
               v-model="newNoteChapter"
               type="text"
               placeholder="Ch"
-              class="w-16 bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 transition-all"
+              class="w-16 bg-zinc-800/50 border border-zinc-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-indigo-500/50 transition-all"
             />
           </div>
 
@@ -512,7 +512,7 @@
           @keydown.meta.enter="handleSave"
           @keydown.ctrl.enter="handleSave"
           placeholder="What are you learning?"
-          class="hidden lg:block w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
+          class="hidden lg:block w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
           :rows="5"
         />
         </div>
@@ -526,13 +526,13 @@
         class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
         @click.self="handleCancelEdit"
       >
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           <!-- Modal Header -->
-          <div class="p-6 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+          <div class="p-6 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-zinc-900 z-10">
             <h2 class="text-xl font-bold text-white">Edit Study Note</h2>
             <button
               @click="handleCancelEdit"
-              class="p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-white transition-colors"
+              class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors"
             >
               <X :size="20" />
             </button>
@@ -542,32 +542,32 @@
           <div class="p-6 space-y-4">
             <!-- Type selector -->
             <div>
-              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Type</label>
-              <div class="flex items-center gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+              <label class="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Type</label>
+              <div class="flex items-center gap-2 p-1 bg-zinc-950 rounded-xl border border-zinc-800">
                 <button
                   @click="editNoteType = 'note'"
-                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'note' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'note' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
                 >
                   <MessageSquare :size="12" />
                   Note
                 </button>
                 <button
                   @click="editNoteType = 'quote'"
-                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'quote' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'quote' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
                 >
                   <QuoteIcon :size="12" />
                   Quote
                 </button>
                 <button
                   @click="editNoteType = 'insight'"
-                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'insight' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'insight' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
                 >
                   <Lightbulb :size="12" />
                   Insight
                 </button>
                 <button
                   @click="editNoteType = 'question'"
-                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'question' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-400']"
+                  :class="['flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all', editNoteType === 'question' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-400']"
                 >
                   <HelpCircle :size="12" />
                   Query
@@ -577,54 +577,54 @@
 
             <!-- Reference input -->
             <div>
-              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Reference</label>
+              <label class="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Reference</label>
               <input
                 v-model="editNoteRef"
                 type="text"
                 placeholder="Reference (e.g. John 3:16, Romans 8:28)"
-                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
               />
             </div>
 
             <!-- Page and Chapter -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Page</label>
+                <label class="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Page</label>
                 <input
                   v-model="editNotePageNumber"
                   type="number"
                   placeholder="Page number"
-                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
                 />
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Chapter</label>
+                <label class="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Chapter</label>
                 <input
                   v-model="editNoteChapter"
                   type="text"
                   placeholder="Chapter"
-                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-all"
                 />
               </div>
             </div>
 
             <!-- Content textarea -->
             <div>
-              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Content</label>
+              <label class="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Content</label>
               <textarea
                 v-model="editNoteContent"
                 placeholder="What are you learning?"
-                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none"
                 :rows="8"
               />
             </div>
           </div>
 
           <!-- Modal Footer -->
-          <div class="p-6 border-t border-slate-800 flex items-center justify-end gap-3">
+          <div class="p-6 border-t border-zinc-800 flex items-center justify-end gap-3">
             <button
               @click="handleCancelEdit"
-              class="px-6 py-2 rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-700 transition-all"
+              class="px-6 py-2 rounded-xl bg-zinc-800 text-white font-bold text-sm hover:bg-zinc-700 transition-all"
             >
               Cancel
             </button>
@@ -642,23 +642,23 @@
     <!-- Book Selector Modal -->
     <Teleport to="body">
       <div v-if="showBookSelector" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-200" @click.self="showBookSelector = false">
-        <div class="w-full max-w-2xl bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 animate-in zoom-in-95 duration-200">
+        <div class="w-full max-w-2xl bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-800 animate-in zoom-in-95 duration-200">
           <!-- Modal Header -->
-          <div class="p-6 border-b border-slate-800">
+          <div class="p-6 border-b border-zinc-800">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-black text-white uppercase tracking-widest">Select Book</h2>
-              <button @click="showBookSelector = false" class="p-2 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors">
+              <button @click="showBookSelector = false" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 transition-colors">
                 <X :size="20" />
               </button>
             </div>
             <!-- Search -->
             <div class="relative">
-              <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="18" />
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" :size="18" />
               <input
                 v-model="bookSearchQuery"
                 type="text"
                 placeholder="Search by title or author..."
-                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-11 pr-4 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all"
                 autofocus
               />
             </div>
@@ -667,25 +667,25 @@
           <!-- Books List -->
           <div class="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
             <div v-if="filteredBooks.length === 0" class="py-12 text-center">
-              <BookOpen :size="48" class="mx-auto mb-4 text-slate-700" />
-              <p class="text-slate-500 text-sm">No books found</p>
+              <BookOpen :size="48" class="mx-auto mb-4 text-zinc-700" />
+              <p class="text-zinc-500 text-sm">No books found</p>
             </div>
             <div v-else class="space-y-2">
               <button
                 v-for="userBook in filteredBooks"
                 :key="userBook.id"
                 @click="selectBook(userBook)"
-                class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-slate-800 transition-all group text-left"
+                class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-zinc-800 transition-all group text-left"
               >
                 <!-- Book Cover -->
-                <div class="w-12 h-16 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0 flex items-center justify-center">
+                <div class="w-12 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0 flex items-center justify-center">
                   <img
                     v-if="userBook.book?.cover_image"
                     :src="userBook.book.cover_image"
                     :alt="userBook.book.title"
                     class="w-full h-full object-cover"
                   />
-                  <BookOpen v-else :size="20" class="text-slate-600" />
+                  <BookOpen v-else :size="20" class="text-zinc-600" />
                 </div>
 
                 <!-- Book Info -->
@@ -693,14 +693,14 @@
                   <h3 class="font-bold text-white text-sm truncate group-hover:text-indigo-400 transition-colors">
                     {{ userBook.book?.title }}
                   </h3>
-                  <p class="text-slate-500 text-xs truncate">
+                  <p class="text-zinc-500 text-xs truncate">
                     {{ userBook.book?.authors?.map(a => a.name).join(', ') || 'Unknown Author' }}
                   </p>
                 </div>
 
                 <!-- Note count + Active indicator -->
                 <div class="flex items-center gap-2 flex-shrink-0">
-                  <span v-if="booksWithNotesMap.get(userBook.book?.id)" class="text-[10px] font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-lg">
+                  <span v-if="booksWithNotesMap.get(userBook.book?.id)" class="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-lg">
                     {{ booksWithNotesMap.get(userBook.book?.id) }} notes
                   </span>
                   <div v-if="userBook.book?.id == bookId" class="w-2 h-2 rounded-full bg-indigo-500"></div>

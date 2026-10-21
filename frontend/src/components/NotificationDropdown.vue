@@ -126,13 +126,13 @@ onUnmounted(() => {
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <button
-        class="relative p-1.5 lg:p-2.5 rounded-lg lg:rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-white/5 transition-all"
+        class="relative p-1.5 lg:p-2.5 rounded-lg lg:rounded-xl text-zinc-400 hover:text-indigo-500 hover:bg-white/5 transition-all"
         aria-label="Notifications"
       >
         <Bell :size="16" class="lg:!w-5 lg:!h-5" />
         <div
           v-if="unreadCount > 0"
-          class="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] lg:min-w-[18px] lg:h-[18px] px-0.5 lg:px-1 rounded-full bg-indigo-500 border-2 border-slate-950 flex items-center justify-center text-[8px] lg:text-[9px] font-black text-white"
+          class="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] lg:min-w-[18px] lg:h-[18px] px-0.5 lg:px-1 rounded-full bg-indigo-500 border-2 border-zinc-950 flex items-center justify-center text-[8px] lg:text-[9px] font-black text-white"
         >
           {{ unreadCount > 9 ? '9+' : unreadCount }}
         </div>
@@ -157,7 +157,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="notifications.length === 0" class="p-8 text-center text-slate-500 text-sm">
+      <div v-else-if="notifications.length === 0" class="p-8 text-center text-zinc-500 text-sm">
         No notifications yet
       </div>
 
@@ -186,10 +186,10 @@ onUnmounted(() => {
 
           <!-- Notification Content -->
           <div class="flex-1 min-w-0">
-            <p class="text-sm text-slate-200 leading-snug mb-1">
+            <p class="text-sm text-zinc-200 leading-snug mb-1">
               {{ notification.message }}
             </p>
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-zinc-500">
               {{ formatTimeAgo(notification.created_at) }}
             </p>
           </div>

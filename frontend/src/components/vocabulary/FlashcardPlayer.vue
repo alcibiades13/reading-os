@@ -122,7 +122,7 @@ onUnmounted(() => {
         </div>
         <div>
           <h3 class="text-white font-bold text-xs sm:text-sm">Lexicon Practice</h3>
-          <p class="text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-wider sm:tracking-widest">Mastery Session</p>
+          <p class="text-[9px] sm:text-[10px] text-zinc-500 font-black uppercase tracking-wider sm:tracking-widest">Mastery Session</p>
         </div>
       </div>
 
@@ -130,8 +130,8 @@ onUnmounted(() => {
         <button
           @click="toggleShuffle"
           :class="[
-            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all',
-            isShuffled ? 'bg-indigo-500 text-white border-indigo-500' : 'text-slate-500 hover:text-white'
+            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-zinc-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all',
+            isShuffled ? 'bg-indigo-500 text-white border-indigo-500' : 'text-zinc-500 hover:text-white'
           ]"
         >
           <Shuffle :size="12" class="sm:w-3.5 sm:h-3.5" />
@@ -140,8 +140,8 @@ onUnmounted(() => {
         <button
           @click="toggleAutoPlay"
           :class="[
-            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all',
-            isAutoPlay ? 'bg-indigo-500 text-white border-indigo-500' : 'text-slate-500 hover:text-white'
+            'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-zinc-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all',
+            isAutoPlay ? 'bg-indigo-500 text-white border-indigo-500' : 'text-zinc-500 hover:text-white'
           ]"
         >
           <Pause v-if="isAutoPlay" :size="12" class="sm:w-3.5 sm:h-3.5" />
@@ -149,8 +149,8 @@ onUnmounted(() => {
           <span class="hidden sm:inline">{{ isAutoPlay ? 'Auto' : 'Auto' }}</span>
         </button>
         <div class="flex-1 sm:flex-none sm:text-right">
-          <p class="text-xs font-black text-white">{{ currentIndex + 1 }} <span class="text-slate-600">/ {{ words.length }}</span></p>
-          <div class="w-full sm:w-32 h-1 bg-slate-900 rounded-full mt-1">
+          <p class="text-xs font-black text-white">{{ currentIndex + 1 }} <span class="text-zinc-600">/ {{ words.length }}</span></p>
+          <div class="w-full sm:w-32 h-1 bg-zinc-900 rounded-full mt-1">
             <div class="h-full bg-indigo-500 transition-all duration-500" :style="{ width: progressPercent + '%' }" />
           </div>
         </div>
@@ -164,7 +164,7 @@ onUnmounted(() => {
     >
       <div class="flip-card-inner">
         <!-- Front -->
-        <div class="flip-card-front glass bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/20 flex flex-col items-center justify-center p-6 sm:p-12 border border-slate-800 shadow-2xl">
+        <div class="flip-card-front glass bg-gradient-to-br from-zinc-900 via-zinc-900 to-indigo-950/20 flex flex-col items-center justify-center p-6 sm:p-12 border border-zinc-800 shadow-2xl">
           <span class="text-3xl sm:text-5xl md:text-6xl font-serif text-white tracking-tight text-center selection:bg-indigo-500/30">
             {{ currentWord.word }}
           </span>
@@ -174,7 +174,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Back -->
-        <div class="flip-card-back glass bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/20 p-4 sm:p-10 flex flex-col border border-indigo-500/20 shadow-2xl">
+        <div class="flip-card-back glass bg-gradient-to-br from-zinc-900 via-zinc-900 to-indigo-950/20 p-4 sm:p-10 flex flex-col border border-indigo-500/20 shadow-2xl">
           <!-- Scrollable content area -->
           <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0">
             <div class="mb-3 sm:mb-6">
@@ -184,24 +184,24 @@ onUnmounted(() => {
               </p>
             </div>
 
-            <div v-if="currentWord.context" class="mb-3 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-indigo-500/5 border-l-4 border-indigo-500/30 italic text-slate-300 font-serif text-xs sm:text-base">
+            <div v-if="currentWord.context" class="mb-3 sm:mb-6 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-indigo-500/5 border-l-4 border-indigo-500/30 italic text-zinc-300 font-serif text-xs sm:text-base">
               "{{ currentWord.context }}"
             </div>
           </div>
 
           <!-- Fixed footer -->
-          <div class="flex-shrink-0 flex items-center justify-between pt-3 sm:pt-6 border-t border-slate-800 mt-2">
+          <div class="flex-shrink-0 flex items-center justify-between pt-3 sm:pt-6 border-t border-zinc-800 mt-2">
             <div class="flex items-center gap-2 sm:gap-3">
-              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
+              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-500">
                 <RotateCcw :size="12" class="sm:w-3.5 sm:h-3.5" />
               </div>
               <div>
-                <p class="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase">Source</p>
+                <p class="text-[9px] sm:text-[10px] font-black text-zinc-500 uppercase">Source</p>
                 <p class="text-[10px] sm:text-xs font-bold text-white truncate max-w-[100px] sm:max-w-none">{{ currentWord.bookTitle || "Manual" }}</p>
               </div>
             </div>
             <div v-if="currentWord.pageNumber" class="text-right">
-              <p class="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase">Page</p>
+              <p class="text-[9px] sm:text-[10px] font-black text-zinc-500 uppercase">Page</p>
               <p class="text-[10px] sm:text-xs font-bold text-white">{{ currentWord.pageNumber }}</p>
             </div>
           </div>
@@ -213,32 +213,32 @@ onUnmounted(() => {
     <div class="grid grid-cols-3 gap-3 sm:gap-6">
       <button
         @click.stop="emit('update-mastery', currentWord.id, 'learning'); handleNext()"
-        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
+        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-zinc-800 bg-zinc-900/50 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
       >
-        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-amber-500/20 flex items-center justify-center text-slate-500 group-hover:text-amber-400 transition-colors">
+        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-zinc-800 group-hover:bg-amber-500/20 flex items-center justify-center text-zinc-500 group-hover:text-amber-400 transition-colors">
           <RotateCcw :size="16" class="sm:w-6 sm:h-6" />
         </div>
-        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-amber-400 text-center leading-tight">Still Learning</span>
+        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-zinc-500 group-hover:text-amber-400 text-center leading-tight">Still Learning</span>
       </button>
 
       <button
         @click.stop="emit('update-mastery', currentWord.id, 'mastered'); handleNext()"
-        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
+        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-zinc-800 bg-zinc-900/50 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
       >
-        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-sky-500/20 flex items-center justify-center text-slate-500 group-hover:text-sky-400 transition-colors">
+        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-zinc-800 group-hover:bg-sky-500/20 flex items-center justify-center text-zinc-500 group-hover:text-sky-400 transition-colors">
           <Check :size="16" class="sm:w-6 sm:h-6" />
         </div>
-        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-sky-400 text-center">Got it!</span>
+        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-zinc-500 group-hover:text-sky-400 text-center">Got it!</span>
       </button>
 
       <button
         @click.stop="handleNext()"
-        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
+        class="p-3 sm:p-6 rounded-xl sm:rounded-2xl glass border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 transition-all flex flex-col items-center gap-2 sm:gap-3 group"
       >
-        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-zinc-800 group-hover:bg-zinc-700 flex items-center justify-center text-zinc-500 group-hover:text-white transition-colors">
           <SkipForward :size="16" class="sm:w-6 sm:h-6" />
         </div>
-        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-slate-500 group-hover:text-white text-center">Skip</span>
+        <span class="text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-zinc-500 group-hover:text-white text-center">Skip</span>
       </button>
     </div>
 
@@ -247,13 +247,13 @@ onUnmounted(() => {
       <button
         @click="handlePrev"
         :disabled="currentIndex === 0"
-        class="p-4 rounded-full border border-slate-800 text-slate-500 hover:text-white hover:bg-slate-900 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+        class="p-4 rounded-full border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-900 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
       >
         <ChevronLeft :size="24" />
       </button>
       <button
         @click="handleNext"
-        class="p-4 rounded-full border border-slate-800 text-slate-500 hover:text-white hover:bg-slate-900 transition-all"
+        class="p-4 rounded-full border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-900 transition-all"
       >
         <ChevronRight :size="24" />
       </button>

@@ -43,6 +43,20 @@ const showMembersModal = ref(false)
 const showSearch = ref(false)
 const showEditTopicModal = ref(false)
 const editingTopic = ref(null)
+const circleIdForModal = ref(null)
+
+function openCreateTopicModal() {
+  // Capture the circle ID at open time so submit doesn't rely on store state
+  circleIdForModal.value = circlesStore.activeCircleId
+    || circlesStore.activeCircle?.id
+    || (route.params.circleId ? Number(route.params.circleId) : null)
+    || circlesStore.circles[0]?.id
+    || null
+  if (circleIdForModal.value && !circlesStore.activeCircleId) {
+    circlesStore.activeCircleId = circleIdForModal.value
+  }
+  showCreateTopicModal.value = true
+}
 
 function handleEditTopic(topic) {
   editingTopic.value = { ...topic }
@@ -128,7 +142,7 @@ function formatTimeAgo(date) {
 }
 
 function getCategoryClass(category) {
-  return bookClubService.getCategoryInfo(category)?.color || 'bg-slate-500/20 text-slate-400'
+  return bookClubService.getCategoryInfo(category)?.color || 'bg-zinc-500/20 text-zinc-400'
 }
 
 function isRecentActivity(dateString) {
@@ -138,7 +152,7 @@ function isRecentActivity(dateString) {
 </script>
 
 <template>
-  <div class="h-full flex bg-slate-950 animate-in fade-in duration-500">
+  <div class="h-full flex bg-zinc-950 animate-in fade-in duration-500">
 
     <!-- Loading State -->
     <div v-if="circlesStore.loading" class="flex-1 flex items-center justify-center">
@@ -166,14 +180,14 @@ function isRecentActivity(dateString) {
             </div>
             <div class="flex-1 min-w-0 text-left">
               <p class="text-white font-bold truncate">{{ invitation.circle?.name }}</p>
-              <p class="text-xs text-slate-500">
+              <p class="text-xs text-zinc-500">
                 Invited by {{ invitation.from_user?.first_name }} {{ invitation.from_user?.last_name }}
               </p>
             </div>
             <div class="flex items-center gap-2">
               <button
                 @click="circlesStore.declineInvitation(invitation.id)"
-                class="p-2 rounded-lg bg-slate-500/10 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
+                class="p-2 rounded-lg bg-zinc-500/10 text-zinc-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
               >
                 <X :size="16" />
               </button>
@@ -188,11 +202,11 @@ function isRecentActivity(dateString) {
         </div>
       </div>
 
-      <div class="w-24 h-24 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center mb-8">
-        <Users :size="48" class="text-slate-600" />
+      <div class="w-24 h-24 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center mb-8">
+        <Users :size="48" class="text-zinc-600" />
       </div>
       <h2 class="text-2xl font-black text-white uppercase tracking-widest mb-4">No Circles Yet</h2>
-      <p class="text-slate-500 max-w-md mb-8">
+      <p class="text-zinc-500 max-w-md mb-8">
         Join or create a reading circle to discuss books with fellow readers.
       </p>
       <button
@@ -218,7 +232,7 @@ function isRecentActivity(dateString) {
         <!-- DESKTOP: Main Content -->
         <main v-else-if="circlesStore.activeCircle" class="flex-1 flex flex-col overflow-hidden bg-transparent">
           <!-- Desktop Header -->
-          <header class="px-4 py-2 border-b border-white/5 shrink-0 bg-slate-900/50">
+          <header class="px-4 py-2 border-b border-white/5 shrink-0 bg-zinc-900/50">
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2 min-w-0">
                 <h1 class="text-base font-black text-white tracking-tight truncate">{{ circlesStore.activeCircle.name }}</h1>
@@ -231,10 +245,10 @@ function isRecentActivity(dateString) {
                 <div v-if="circlesStore.activeCircle.current_book_data" class="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 border border-white/5">
                   <div class="w-6 h-8 rounded overflow-hidden shrink-0">
                     <img v-if="circlesStore.activeCircle.current_book_data.cover_image" :src="circlesStore.activeCircle.current_book_data.cover_image" class="w-full h-full object-cover" />
-                    <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen :size="10" class="text-slate-600" /></div>
+                    <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center"><BookOpen :size="10" class="text-zinc-600" /></div>
                   </div>
                   <div class="text-[10px]">
-                    <p class="text-slate-400 truncate max-w-[120px]">{{ circlesStore.activeCircle.current_book_data.title }}</p>
+                    <p class="text-zinc-400 truncate max-w-[120px]">{{ circlesStore.activeCircle.current_book_data.title }}</p>
                     <div class="flex items-center gap-1.5">
                       <div class="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
                         <div class="h-full bg-indigo-500 rounded-full" :style="{ width: `${circlesStore.activeCircle.average_progress || 0}%` }" />
@@ -249,29 +263,29 @@ function isRecentActivity(dateString) {
                   <button
                     @click="circlesStore.activeTab = 'topics'"
                     :class="['px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all',
-                      circlesStore.activeTab === 'topics' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-500 hover:text-slate-300']"
+                      circlesStore.activeTab === 'topics' ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300']"
                   >
                     Discussions
                   </button>
                   <button
                     @click="circlesStore.activeTab = 'bookshelf'"
                     :class="['px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all',
-                      circlesStore.activeTab === 'bookshelf' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-500 hover:text-slate-300']"
+                      circlesStore.activeTab === 'bookshelf' ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300']"
                   >
                     Bookshelf
                   </button>
                 </div>
 
-                <button @click="showSearch = true" class="p-1.5 rounded-lg bg-slate-500/10 text-slate-400 hover:bg-slate-500/20 transition-colors" title="Search Messages">
+                <button @click="showSearch = true" class="p-1.5 rounded-lg bg-zinc-500/10 text-zinc-400 hover:bg-zinc-500/20 transition-colors" title="Search Messages">
                   <Search :size="14" />
                 </button>
                 <button v-if="circlesStore.isCircleAdmin" @click="showInviteModal = true" class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors" title="Invite Members">
                   <UserPlus :size="14" />
                 </button>
-                <button @click="showSettingsModal = true" class="p-1.5 rounded-lg bg-slate-500/10 text-slate-400 hover:bg-slate-500/20 transition-colors" title="Settings">
+                <button @click="showSettingsModal = true" class="p-1.5 rounded-lg bg-zinc-500/10 text-zinc-400 hover:bg-zinc-500/20 transition-colors" title="Settings">
                   <Settings :size="14" />
                 </button>
-                <button @click="showMembersModal = true" class="px-2 py-1.5 rounded-lg bg-slate-500/10 text-slate-400 hover:bg-slate-500/20 transition-colors flex items-center gap-1.5" title="View Members">
+                <button @click="showMembersModal = true" class="px-2 py-1.5 rounded-lg bg-zinc-500/10 text-zinc-400 hover:bg-zinc-500/20 transition-colors flex items-center gap-1.5" title="View Members">
                   <Users :size="14" />
                   <span class="text-xs font-bold">{{ circlesStore.activeCircle.members_count }}</span>
                 </button>
@@ -283,7 +297,7 @@ function isRecentActivity(dateString) {
           <div class="flex-1 flex overflow-hidden">
             <!-- Topics Tab -->
             <template v-if="circlesStore.activeTab === 'topics'">
-              <TopicList @openCreateTopic="showCreateTopicModal = true" @editTopic="handleEditTopic" />
+              <TopicList @openCreateTopic="openCreateTopicModal()" @editTopic="handleEditTopic" />
               <div class="flex-1 flex flex-col">
                 <MessageThread @replyTo="handleReplyTo" />
                 <MessageComposer ref="composerRef" />
@@ -305,7 +319,7 @@ function isRecentActivity(dateString) {
         <!-- MOBILE: Topics View -->
         <template v-if="circlesStore.mobileView === 'topics'">
           <!-- Mobile Header with Circle Selector -->
-          <header class="px-4 py-3 border-b border-white/5 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-30">
+          <header class="px-4 py-3 border-b border-white/5 bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-30">
             <!-- Circle Dropdown -->
             <button
               @click="showCircleSelector = !showCircleSelector"
@@ -321,10 +335,10 @@ function isRecentActivity(dateString) {
                 </div>
                 <div class="text-left min-w-0">
                   <p class="text-sm font-bold text-white truncate">{{ circlesStore.activeCircle?.name || 'Select Circle' }}</p>
-                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">{{ circlesStore.activeCircle?.members_count || 0 }} members</p>
+                  <p class="text-[10px] text-zinc-500 uppercase tracking-wider">{{ circlesStore.activeCircle?.members_count || 0 }} members</p>
                 </div>
               </div>
-              <ChevronDown :size="20" :class="['text-slate-400 transition-transform', showCircleSelector ? 'rotate-180' : '']" />
+              <ChevronDown :size="20" :class="['text-zinc-400 transition-transform', showCircleSelector ? 'rotate-180' : '']" />
             </button>
 
             <!-- Circle Dropdown Overlay -->
@@ -333,7 +347,7 @@ function isRecentActivity(dateString) {
             <!-- Circle Dropdown Panel -->
             <div
               v-if="showCircleSelector"
-              class="absolute left-4 right-4 top-full mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-40 max-h-80 overflow-y-auto"
+              class="absolute left-4 right-4 top-full mt-2 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-40 max-h-80 overflow-y-auto"
             >
               <div class="p-2 space-y-1">
                 <button
@@ -350,10 +364,10 @@ function isRecentActivity(dateString) {
                     {{ circle.name?.charAt(0) }}
                   </div>
                   <div class="text-left min-w-0">
-                    <p :class="['text-sm font-bold truncate', circlesStore.activeCircleId === circle.id ? 'text-white' : 'text-slate-300']">
+                    <p :class="['text-sm font-bold truncate', circlesStore.activeCircleId === circle.id ? 'text-white' : 'text-zinc-300']">
                       {{ circle.name }}
                     </p>
-                    <p class="text-[10px] text-slate-500">{{ circle.members_count }} members</p>
+                    <p class="text-[10px] text-zinc-500">{{ circle.members_count }} members</p>
                   </div>
                   <Check v-if="circlesStore.activeCircleId === circle.id" :size="16" class="text-indigo-400 ml-auto shrink-0" />
                 </button>
@@ -392,34 +406,34 @@ function isRecentActivity(dateString) {
           <!-- Mobile Topics List -->
           <div v-if="circlesStore.activeCircle" class="flex-1 overflow-y-auto custom-scrollbar">
             <!-- Circle Actions Bar -->
-            <div class="px-4 py-3 flex items-center justify-between border-b border-white/5 bg-slate-950/50 sticky top-0 z-10">
+            <div class="px-4 py-3 flex items-center justify-between border-b border-white/5 bg-zinc-950/50 sticky top-0 z-10">
               <div class="flex items-center bg-white/5 rounded-xl p-0.5">
                 <button
                   @click="circlesStore.activeTab = 'topics'"
                   :class="['px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all',
-                    circlesStore.activeTab === 'topics' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-500']"
+                    circlesStore.activeTab === 'topics' ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-500']"
                 >
                   Discussions
                 </button>
                 <button
                   @click="circlesStore.activeTab = 'bookshelf'"
                   :class="['px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all',
-                    circlesStore.activeTab === 'bookshelf' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-500']"
+                    circlesStore.activeTab === 'bookshelf' ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-500']"
                 >
                   Bookshelf
                 </button>
               </div>
               <div class="flex items-center gap-2">
-                <button @click="showMembersModal = true" class="p-2 rounded-lg bg-white/5 text-slate-400">
+                <button @click="showMembersModal = true" class="p-2 rounded-lg bg-white/5 text-zinc-400">
                   <Users :size="16" />
                 </button>
                 <button v-if="circlesStore.isCircleAdmin" @click="showInviteModal = true" class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
                   <UserPlus :size="16" />
                 </button>
-                <button @click="showSettingsModal = true" class="p-2 rounded-lg bg-white/5 text-slate-400">
+                <button @click="showSettingsModal = true" class="p-2 rounded-lg bg-white/5 text-zinc-400">
                   <Settings :size="16" />
                 </button>
-                <button v-if="circlesStore.activeTab === 'topics'" @click="showCreateTopicModal = true" class="p-2 rounded-lg bg-indigo-500 text-white">
+                <button v-if="circlesStore.activeTab === 'topics'" @click="openCreateTopicModal()" class="p-2 rounded-lg bg-indigo-500 text-white">
                   <Plus :size="16" />
                 </button>
               </div>
@@ -434,11 +448,11 @@ function isRecentActivity(dateString) {
                   <div class="flex items-center gap-3">
                     <div class="w-12 h-16 rounded-lg overflow-hidden shrink-0 shadow-lg">
                       <img v-if="circlesStore.activeCircle.current_book_data.cover_image" :src="circlesStore.activeCircle.current_book_data.cover_image" class="w-full h-full object-cover" />
-                      <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen :size="16" class="text-slate-600" /></div>
+                      <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center"><BookOpen :size="16" class="text-zinc-600" /></div>
                     </div>
                     <div class="min-w-0 flex-1">
                       <p class="text-sm font-bold text-white truncate">{{ circlesStore.activeCircle.current_book_data.title }}</p>
-                      <p class="text-xs text-slate-500 truncate">{{ circlesStore.activeCircle.current_book_data.author }}</p>
+                      <p class="text-xs text-zinc-500 truncate">{{ circlesStore.activeCircle.current_book_data.author }}</p>
                       <div class="flex items-center gap-2 mt-2">
                         <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                           <div class="h-full bg-indigo-500 rounded-full transition-all" :style="{ width: `${circlesStore.activeCircle.average_progress || 0}%` }" />
@@ -454,10 +468,10 @@ function isRecentActivity(dateString) {
               <div class="p-4 space-y-3">
                 <div v-if="!circlesStore.activeCircle.topics?.length" class="text-center py-16">
                   <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare :size="28" class="text-slate-600" />
+                    <MessageSquare :size="28" class="text-zinc-600" />
                   </div>
-                  <p class="text-slate-500 text-sm mb-4">No discussions yet</p>
-                  <button @click="showCreateTopicModal = true" class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold">
+                  <p class="text-zinc-500 text-sm mb-4">No discussions yet</p>
+                  <button @click="openCreateTopicModal()" class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold">
                     Start First Discussion
                   </button>
                 </div>
@@ -468,8 +482,8 @@ function isRecentActivity(dateString) {
                   @click="circlesStore.openMobileChat(topic.id)"
                   class="w-full text-left p-4 rounded-2xl bg-white/5 border border-white/5 active:scale-[0.98] transition-all relative overflow-hidden"
                 >
-                  <div v-if="topic.is_locked && !topic.can_access" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-10 flex items-center justify-center">
-                    <Lock :size="20" class="text-slate-500" />
+                  <div v-if="topic.is_locked && !topic.can_access" class="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm z-10 flex items-center justify-center">
+                    <Lock :size="20" class="text-zinc-500" />
                   </div>
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
@@ -486,13 +500,13 @@ function isRecentActivity(dateString) {
                         <div v-else-if="isRecentActivity(topic.last_activity)" class="w-2 h-2 rounded-full bg-indigo-500" />
                       </div>
                       <h4 class="text-base font-bold text-white mb-1 line-clamp-2">{{ topic.title }}</h4>
-                      <p v-if="topic.description" class="text-xs text-slate-500 line-clamp-1 mb-2">{{ topic.description }}</p>
-                      <div class="flex items-center gap-3 text-[10px] text-slate-600">
+                      <p v-if="topic.description" class="text-xs text-zinc-500 line-clamp-1 mb-2">{{ topic.description }}</p>
+                      <div class="flex items-center gap-3 text-[10px] text-zinc-600">
                         <span class="flex items-center gap-1"><MessageSquare :size="10" /> {{ topic.message_count || 0 }}</span>
                         <span>{{ formatTimeAgo(topic.last_activity) }}</span>
                       </div>
                     </div>
-                    <ChevronRight :size="18" class="text-slate-600 shrink-0 mt-1" />
+                    <ChevronRight :size="18" class="text-zinc-600 shrink-0 mt-1" />
                   </div>
                 </button>
               </div>
@@ -508,24 +522,24 @@ function isRecentActivity(dateString) {
         <!-- MOBILE: Chat View -->
         <template v-if="circlesStore.mobileView === 'chat' && circlesStore.activeTopic">
           <!-- Mobile Chat Header -->
-          <header class="px-4 py-3 border-b border-white/5 bg-slate-900/90 backdrop-blur-xl sticky top-0 z-30 safe-area-top">
+          <header class="px-4 py-3 border-b border-white/5 bg-zinc-900/90 backdrop-blur-xl sticky top-0 z-30 safe-area-top">
             <div class="flex items-center gap-3">
               <button
                 @click="circlesStore.closeMobileChat()"
-                class="p-2 -ml-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                class="p-2 -ml-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
               >
                 <ArrowLeft :size="22" />
               </button>
               <div class="flex-1 min-w-0">
                 <h1 class="text-base font-bold text-white truncate">{{ circlesStore.activeTopic.title }}</h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-wider">
+                <p class="text-[10px] text-zinc-500 uppercase tracking-wider">
                   {{ circlesStore.activeCircle?.name }} · {{ circlesStore.activeTopic.message_count || 0 }} posts
                 </p>
               </div>
               <div class="relative">
                 <button
                   @click="showMobileTopicMenu = !showMobileTopicMenu"
-                  class="p-2 rounded-xl text-slate-400 hover:bg-white/5"
+                  class="p-2 rounded-xl text-zinc-400 hover:bg-white/5"
                 >
                   <MoreVertical :size="18" />
                 </button>
@@ -533,24 +547,24 @@ function isRecentActivity(dateString) {
                 <div v-if="showMobileTopicMenu" class="fixed inset-0 z-40" @click="showMobileTopicMenu = false" />
                 <div
                   v-if="showMobileTopicMenu"
-                  class="absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                  class="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
                 >
-                  <button @click="showMobileTopicMenu = false" class="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 flex items-center gap-3">
-                    <Info :size="16" class="text-slate-500" /> Topic Info
+                  <button @click="showMobileTopicMenu = false" class="w-full px-4 py-3 text-left text-sm text-zinc-300 hover:bg-white/5 flex items-center gap-3">
+                    <Info :size="16" class="text-zinc-500" /> Topic Info
                   </button>
-                  <button @click="showMobileTopicMenu = false" class="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 flex items-center gap-3">
-                    <Share2 :size="16" class="text-slate-500" /> Share Topic
+                  <button @click="showMobileTopicMenu = false" class="w-full px-4 py-3 text-left text-sm text-zinc-300 hover:bg-white/5 flex items-center gap-3">
+                    <Share2 :size="16" class="text-zinc-500" /> Share Topic
                   </button>
-                  <button @click="showMobileTopicMenu = false; showMembersModal = true" class="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 flex items-center gap-3">
-                    <Users :size="16" class="text-slate-500" /> View Members
+                  <button @click="showMobileTopicMenu = false; showMembersModal = true" class="w-full px-4 py-3 text-left text-sm text-zinc-300 hover:bg-white/5 flex items-center gap-3">
+                    <Users :size="16" class="text-zinc-500" /> View Members
                   </button>
                   <div v-if="circlesStore.isCircleAdmin" class="h-px bg-white/5" />
                   <button
                     v-if="circlesStore.isCircleAdmin"
                     @click="showMobileTopicMenu = false; handleEditTopic(circlesStore.activeTopic)"
-                    class="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 flex items-center gap-3"
+                    class="w-full px-4 py-3 text-left text-sm text-zinc-300 hover:bg-white/5 flex items-center gap-3"
                   >
-                    <Settings :size="16" class="text-slate-500" /> Edit Topic
+                    <Settings :size="16" class="text-zinc-500" /> Edit Topic
                   </button>
                   <button
                     v-if="circlesStore.isCircleAdmin"

@@ -75,25 +75,25 @@ const hasCover = ref(true)
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6 pt-20 bg-slate-950/90 light:bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
-    <div class="relative w-full max-w-5xl h-[85vh] glass light:bg-white light:border light:border-slate-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300 ring-2 ring-indigo-500">
+  <div class="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6 pt-20 bg-zinc-950/90 light:bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
+    <div class="relative w-full max-w-5xl h-[85vh] glass light:bg-white light:border light:border-zinc-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300 ring-2 ring-indigo-500">
 
       <!-- Close Button -->
       <button
         @click="handleClose"
-        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700 transition-colors"
+        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-zinc-900/50 light:bg-zinc-200 hover:bg-zinc-800 light:hover:bg-zinc-300 text-zinc-300 light:text-zinc-700 transition-colors"
       >
         <X :size="20" />
       </button>
 
       <!-- Left Column - Cover Preview -->
-      <div class="w-full md:w-[40%] bg-slate-900/50 light:bg-slate-50 p-8 flex flex-col items-center overflow-y-auto border-r border-slate-700/30 light:border-slate-200">
+      <div class="w-full md:w-[40%] bg-zinc-900/50 light:bg-zinc-50 p-8 flex flex-col items-center overflow-y-auto border-r border-zinc-700/30 light:border-zinc-200">
         <div class="mb-4 w-full">
-          <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-2 block">Cover Image URL</label>
+          <label class="text-xs text-zinc-400 light:text-zinc-600 font-bold uppercase tracking-wider mb-2 block">Cover Image URL</label>
           <input
             v-model="editableData.cover_image"
             type="text"
-            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none"
+            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:border-indigo-500 focus:outline-none"
             placeholder="https://..."
           />
         </div>
@@ -106,11 +106,11 @@ const hasCover = ref(true)
             class="w-full h-full object-cover"
             @error="hasCover = false"
           />
-          <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
+          <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950">
             <div class="w-24 h-24 rounded-full bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center mb-6">
               <BookOpen :size="40" class="text-indigo-500/40" />
             </div>
-            <p class="text-slate-500 text-sm text-center">
+            <p class="text-zinc-500 text-sm text-center">
               No cover available
             </p>
           </div>
@@ -119,51 +119,51 @@ const hasCover = ref(true)
 
         <div class="w-full mt-8 space-y-4">
           <div>
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Pages</label>
+            <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1 block">Pages</label>
             <input
               v-model="editableData.page_count"
               type="number"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
               placeholder="Pages"
             />
           </div>
 
           <div>
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Language</label>
+            <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1 block">Language</label>
             <input
               v-model="editableData.language"
               type="text"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none uppercase"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none uppercase"
               placeholder="EN"
             />
           </div>
 
           <div>
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Published Date</label>
+            <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1 block">Published Date</label>
             <input
               v-model="editableData.published_date"
               type="text"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
               placeholder="YYYY or YYYY-MM-DD"
             />
           </div>
 
           <div>
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Publisher</label>
+            <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1 block">Publisher</label>
             <input
               v-model="editableData.publisher"
               type="text"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
               placeholder="Publisher"
             />
           </div>
 
           <div>
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">ISBN</label>
+            <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1 block">ISBN</label>
             <input
               v-model="editableData.isbn"
               type="text"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
               placeholder="ISBN-13 or ISBN-10"
             />
           </div>
@@ -171,25 +171,25 @@ const hasCover = ref(true)
       </div>
 
       <!-- Right Column - Details -->
-      <div class="w-full md:w-[60%] flex flex-col h-full bg-slate-900/20 light:bg-white">
+      <div class="w-full md:w-[60%] flex flex-col h-full bg-zinc-900/20 light:bg-white">
         <div class="flex-1 overflow-y-auto p-8 custom-scrollbar pt-24">
           <header class="mb-6">
             <div class="space-y-3">
               <div>
-                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Title</label>
+                <label class="text-xs text-zinc-400 light:text-zinc-600 font-bold uppercase tracking-wider mb-1 block">Title</label>
                 <input
                   v-model="editableData.title"
                   type="text"
-                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-lg md:text-xl font-bold text-white light:text-slate-900 focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-zinc-900 light:bg-white border border-zinc-700 light:border-zinc-200 rounded-lg px-3 py-2 text-lg md:text-xl font-bold text-white light:text-zinc-900 focus:border-indigo-500 focus:outline-none"
                   placeholder="Book Title"
                 />
               </div>
               <div>
-                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Authors (comma-separated)</label>
+                <label class="text-xs text-zinc-400 light:text-zinc-600 font-bold uppercase tracking-wider mb-1 block">Authors (comma-separated)</label>
                 <input
                   v-model="editableData.authors"
                   type="text"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-lg text-indigo-400/80 font-medium focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-lg text-indigo-400/80 font-medium focus:border-indigo-500 focus:outline-none"
                   placeholder="Author 1, Author 2"
                 />
               </div>
@@ -197,12 +197,12 @@ const hasCover = ref(true)
           </header>
 
           <section class="mb-6">
-            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-3">Description</h2>
+            <h2 class="text-xs font-bold text-zinc-500 light:text-zinc-600 uppercase tracking-[0.2em] mb-3">Description</h2>
             <div>
               <textarea
                 v-model="editableData.description"
                 rows="8"
-                class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-slate-300 light:text-slate-900 text-sm leading-relaxed focus:border-indigo-500 focus:outline-none resize-none"
+                class="w-full bg-zinc-900 light:bg-white border border-zinc-700 light:border-zinc-200 rounded-lg px-3 py-2 text-zinc-300 light:text-zinc-900 text-sm leading-relaxed focus:border-indigo-500 focus:outline-none resize-none"
                 placeholder="Book description..."
               />
             </div>
@@ -210,10 +210,10 @@ const hasCover = ref(true)
         </div>
 
         <!-- Footer Actions -->
-        <div class="p-6 border-t border-slate-700/30 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex flex-col sm:flex-row gap-3">
+        <div class="p-6 border-t border-zinc-700/30 light:border-zinc-200 bg-zinc-900/50 light:bg-zinc-50 flex flex-col sm:flex-row gap-3">
           <button
             @click="handleClose"
-            class="px-5 py-3 rounded-xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 text-sm font-semibold hover:bg-slate-800 light:hover:bg-slate-200 transition-colors"
+            class="px-5 py-3 rounded-xl border border-zinc-700 light:border-zinc-300 text-zinc-300 light:text-zinc-700 text-sm font-semibold hover:bg-zinc-800 light:hover:bg-zinc-200 transition-colors"
           >
             Cancel
           </button>

@@ -70,7 +70,7 @@ function resetState() {
 
 <template>
   <Dialog v-model:open="open" @update:open="resetState">
-    <DialogContent class="glass border-slate-700 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto">
+    <DialogContent class="glass border-zinc-700 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle class="text-lg sm:text-xl font-bold flex items-center gap-2">
           <FileUp :size="20" class="text-violet-400" />
@@ -79,22 +79,22 @@ function resetState() {
       </DialogHeader>
 
       <div class="space-y-4 py-3">
-        <p class="text-sm text-slate-300 leading-relaxed">
+        <p class="text-sm text-zinc-300 leading-relaxed">
           Import your reading history from The StoryGraph by uploading your library export CSV file.
         </p>
 
         <div class="bg-violet-500/10 border border-violet-500/20 rounded-lg p-3">
           <p class="text-xs text-violet-300 font-medium">📚 How to export from StoryGraph:</p>
-          <ol class="text-xs text-slate-400 mt-2 space-y-1 list-decimal list-inside">
+          <ol class="text-xs text-zinc-400 mt-2 space-y-1 list-decimal list-inside">
             <li>Go to StoryGraph → Browse Books → Import/Export</li>
             <li>Click "Export your library" button</li>
             <li>Download the CSV file from your email</li>
           </ol>
         </div>
 
-        <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
-          <p class="text-xs text-slate-400">
-            <span class="text-slate-300 font-medium">What gets imported:</span> Read status, star ratings, reviews, read dates, and owned status. New books are created automatically from your library.
+        <div class="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3">
+          <p class="text-xs text-zinc-400">
+            <span class="text-zinc-300 font-medium">What gets imported:</span> Read status, star ratings, reviews, read dates, and owned status. New books are created automatically from your library.
           </p>
         </div>
 
@@ -109,7 +109,7 @@ function resetState() {
           <button
             @click="triggerFileInput"
             :disabled="importing"
-            class="w-full px-6 py-4 rounded-xl border-2 border-dashed border-slate-700 hover:border-violet-500/50 bg-slate-900/50 hover:bg-slate-900 transition-all text-slate-400 hover:text-white flex flex-col items-center justify-center gap-2"
+            class="w-full px-6 py-4 rounded-xl border-2 border-dashed border-zinc-700 hover:border-violet-500/50 bg-zinc-900/50 hover:bg-zinc-900 transition-all text-zinc-400 hover:text-white flex flex-col items-center justify-center gap-2"
           >
             <Upload :size="32" />
             <span class="text-sm font-medium">
@@ -120,12 +120,12 @@ function resetState() {
 
         <div v-if="importProgress" class="space-y-2">
           <div class="flex items-center justify-between text-sm">
-            <span class="text-slate-400">{{ importProgress.status }}</span>
+            <span class="text-zinc-400">{{ importProgress.status }}</span>
             <span v-if="importProgress.total > 0" class="text-violet-400 font-medium">
               {{ importProgress.current }} / {{ importProgress.total }}
             </span>
           </div>
-          <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+          <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
             <div
               v-if="importProgress.total > 0"
               class="bg-gradient-to-r from-violet-500 to-purple-500 h-full transition-all duration-500"
@@ -139,7 +139,7 @@ function resetState() {
           <button
             @click="open = false"
             :disabled="importing"
-            class="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50"
+            class="px-5 py-2.5 rounded-xl border border-zinc-700 text-zinc-300 text-sm font-semibold hover:bg-zinc-800 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>

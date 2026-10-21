@@ -25,7 +25,7 @@ defineProps({
         {{ title }}
       </template>
     </h1>
-    <p v-if="subtitle" class="text-page-subtitle text-slate-400 max-w-3xl leading-relaxed">
+    <p v-if="subtitle" class="text-page-subtitle text-zinc-400 max-w-3xl leading-relaxed">
       {{ subtitle }}
     </p>
   </header>

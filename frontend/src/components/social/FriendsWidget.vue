@@ -46,7 +46,7 @@ const getDisplayName = (user) => {
 </script>
 
 <template>
-  <div class="p-5 rounded-[2rem] glass border-slate-800">
+  <div class="p-5 rounded-[2rem] glass border-zinc-800">
     <!-- Header -->
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center gap-3">
@@ -55,7 +55,7 @@ const getDisplayName = (user) => {
         </div>
         <div>
           <h3 class="text-sm font-black text-white uppercase tracking-wider">Friends</h3>
-          <p class="text-[10px] text-slate-500 font-bold">
+          <p class="text-[10px] text-zinc-500 font-bold">
             {{ friends.length }} connected
           </p>
         </div>
@@ -69,7 +69,7 @@ const getDisplayName = (user) => {
 
     <!-- No friends -->
     <div v-else-if="friends.length === 0" class="text-center py-4">
-      <p class="text-xs text-slate-600 mb-3">No friends yet. Discover readers who share your taste.</p>
+      <p class="text-xs text-zinc-600 mb-3">No friends yet. Discover readers who share your taste.</p>
       <button
         @click="router.push('/friends')"
         class="px-4 py-2 rounded-xl bg-indigo-500 text-white text-[10px] font-black uppercase tracking-wider hover:bg-indigo-400 transition-all"
@@ -95,7 +95,7 @@ const getDisplayName = (user) => {
           <h4 class="text-xs font-bold text-white truncate group-hover:text-indigo-400 transition-colors">
             {{ getDisplayName(friend) }}
           </h4>
-          <p class="text-[10px] text-slate-600 truncate">
+          <p class="text-[10px] text-zinc-600 truncate">
             {{ friend.books_count || 0 }} books
           </p>
         </div>

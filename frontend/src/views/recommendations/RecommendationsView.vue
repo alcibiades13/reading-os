@@ -100,7 +100,7 @@ const refreshRecommendations = async () => {
       <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">
         Book Recommendations
       </h1>
-      <p class="text-sm text-slate-400 mt-1">Personalized picks based on your taste and reading history</p>
+      <p class="text-sm text-zinc-400 mt-1">Personalized picks based on your taste and reading history</p>
     </div>
 
     <!-- Reading Taste Card -->
@@ -116,11 +116,11 @@ const refreshRecommendations = async () => {
         <div class="flex items-center gap-3">
           <Sparkles :size="20" class="text-indigo-400" />
           <h2 class="text-2xl font-black text-white">For You</h2>
-          <span class="text-sm text-slate-500">based on your taste</span>
+          <span class="text-sm text-zinc-500">based on your taste</span>
         </div>
         <button
           @click="refreshRecommendations"
-          class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+          class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all"
           :disabled="loading"
         >
           <RefreshCw :size="18" :class="{ 'animate-spin': loading }" />
@@ -135,10 +135,10 @@ const refreshRecommendations = async () => {
       <!-- Empty State -->
       <div v-else-if="forYouBooks.length === 0" class="text-center py-12 rounded-3xl bg-white/[0.02] border border-white/5">
         <div class="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4">
-          <BookOpen :size="32" class="text-slate-600" />
+          <BookOpen :size="32" class="text-zinc-600" />
         </div>
         <h3 class="text-lg font-bold text-white mb-2">Not enough data yet</h3>
-        <p class="text-slate-500 text-sm max-w-sm mx-auto">
+        <p class="text-zinc-500 text-sm max-w-sm mx-auto">
           Read more books and complete surveys to get personalized recommendations
         </p>
       </div>
@@ -241,7 +241,7 @@ const refreshRecommendations = async () => {
           :class="`text-${contextColors[section.id] || 'indigo'}-400`"
         />
         <h2 class="text-xl font-black text-white">{{ section.label }}</h2>
-        <span class="text-xs text-slate-500">{{ section.description }}</span>
+        <span class="text-xs text-zinc-500">{{ section.description }}</span>
       </div>
 
       <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -259,10 +259,10 @@ const refreshRecommendations = async () => {
     <!-- Empty State -->
     <div v-if="!loading && contextualSections.length === 0 && forYouBooks.length === 0" class="text-center py-20">
       <div class="w-20 h-20 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-6">
-        <BookOpen :size="40" class="text-slate-700" />
+        <BookOpen :size="40" class="text-zinc-700" />
       </div>
       <h3 class="text-2xl font-black text-white mb-2">Start reading</h3>
-      <p class="text-slate-500 max-w-md mx-auto mb-6">
+      <p class="text-zinc-500 max-w-md mx-auto mb-6">
         Add books to your library and rate them to get personalized recommendations
       </p>
       <router-link
@@ -291,8 +291,8 @@ const refreshRecommendations = async () => {
   color: #0f172a !important;
 }
 
-:global(body.light) .text-slate-400,
-:global(body.light) .text-slate-500 {
+:global(body.light) .text-zinc-400,
+:global(body.light) .text-zinc-500 {
   color: #64748b !important;
 }
 

@@ -33,13 +33,19 @@ export async function searchBooks(query, maxResults = 20) {
 }
 
 /**
- * Search book by ISBN on Delfi.rs
+ * Search book by ISBN on Delfi.rs (backend scrapes their search page)
  * @param {string} isbn - ISBN-10 or ISBN-13
  * @returns {Promise<Object|null>} - Formatted book object or null
  */
 export async function searchByISBN(isbn) {
-  // Delfi.rs ISBN search not yet available
-  return null
+  try {
+    const response = await api.get('/books/search_delfi_isbn/', {
+      params: { isbn }
+    })
+    return formatBookData(response.data)
+  } catch {
+    return null
+  }
 }
 
 /**

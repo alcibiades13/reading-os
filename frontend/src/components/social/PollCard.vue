@@ -27,7 +27,7 @@ function getVotePercentage(option) {
       <h4 class="text-sm font-black text-white">{{ poll.question }}</h4>
       <span
         v-if="poll.is_closed"
-        class="px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-400 text-[9px] font-black uppercase"
+        class="px-2 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 text-[9px] font-black uppercase"
       >
         Closed
       </span>
@@ -58,27 +58,27 @@ function getVotePercentage(option) {
           <!-- Book cover (for book_vote) -->
           <div v-if="option.book_data" class="w-8 h-12 rounded-md overflow-hidden shrink-0 shadow">
             <img v-if="option.book_data.cover_image" :src="option.book_data.cover_image" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen :size="10" class="text-slate-600" /></div>
+            <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center"><BookOpen :size="10" class="text-zinc-600" /></div>
           </div>
 
           <div class="flex-1 min-w-0">
-            <p :class="['text-sm font-bold truncate', option.user_voted ? 'text-white' : 'text-slate-300']">
+            <p :class="['text-sm font-bold truncate', option.user_voted ? 'text-white' : 'text-zinc-300']">
               {{ option.text }}
             </p>
-            <p v-if="option.book_data" class="text-[10px] text-slate-500 truncate">
+            <p v-if="option.book_data" class="text-[10px] text-zinc-500 truncate">
               {{ option.book_data.authors?.map(a => a.name).join(', ') }}
             </p>
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
-            <span class="text-xs font-black text-slate-400">{{ option.vote_count || 0 }}</span>
-            <span class="text-[10px] text-slate-600">{{ getVotePercentage(option) }}%</span>
+            <span class="text-xs font-black text-zinc-400">{{ option.vote_count || 0 }}</span>
+            <span class="text-[10px] text-zinc-600">{{ getVotePercentage(option) }}%</span>
           </div>
         </div>
       </button>
     </div>
 
-    <div class="flex items-center justify-between text-[10px] text-slate-600">
+    <div class="flex items-center justify-between text-[10px] text-zinc-600">
       <span>{{ poll.total_votes }} vote{{ poll.total_votes !== 1 ? 's' : '' }}</span>
       <span v-if="poll.allows_multiple">Multiple selections allowed</span>
     </div>

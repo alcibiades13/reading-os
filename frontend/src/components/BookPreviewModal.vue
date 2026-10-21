@@ -106,13 +106,13 @@ const truncatedDescription = computed(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[70] flex items-end md:items-center justify-center md:p-6 bg-slate-950/90 light:bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
-    <div :class="['relative w-full max-w-5xl max-h-[95vh] md:max-h-[85vh] glass light:bg-white light:border light:border-slate-200 rounded-t-2xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in slide-in-from-bottom-4 md:zoom-in-95 duration-300', isEditMode ? 'ring-2 ring-indigo-500' : '']">
+  <div class="fixed inset-0 z-[70] flex items-end md:items-center justify-center md:p-6 bg-zinc-950/90 light:bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
+    <div :class="['relative w-full max-w-5xl max-h-[95vh] md:max-h-[85vh] glass light:bg-white light:border light:border-zinc-200 rounded-t-2xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in slide-in-from-bottom-4 md:zoom-in-95 duration-300', isEditMode ? 'ring-2 ring-indigo-500' : '']">
 
       <!-- Close Button -->
       <button
         @click="handleClose"
-        class="absolute top-3 right-3 md:top-6 md:right-6 z-20 p-2 rounded-full bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700 transition-colors"
+        class="absolute top-3 right-3 md:top-6 md:right-6 z-20 p-2 rounded-full bg-zinc-900/50 light:bg-zinc-200 hover:bg-zinc-800 light:hover:bg-zinc-300 text-zinc-300 light:text-zinc-700 transition-colors"
       >
         <X :size="18" />
       </button>
@@ -122,7 +122,7 @@ const truncatedDescription = computed(() => {
         @click="isEditMode = !isEditMode"
         :class="[
           'absolute top-3 right-14 md:top-6 md:right-20 z-20 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg text-[10px] md:text-xs font-bold flex items-center gap-1.5 transition-all',
-          isEditMode ? 'bg-indigo-500 text-white' : 'bg-slate-900/50 light:bg-slate-200 hover:bg-slate-800 light:hover:bg-slate-300 text-slate-300 light:text-slate-700'
+          isEditMode ? 'bg-indigo-500 text-white' : 'bg-zinc-900/50 light:bg-zinc-200 hover:bg-zinc-800 light:hover:bg-zinc-300 text-zinc-300 light:text-zinc-700'
         ]"
       >
         <Edit3 :size="12" />
@@ -131,7 +131,7 @@ const truncatedDescription = computed(() => {
       </button>
 
       <!-- ===== MOBILE: Compact Cover Header ===== -->
-      <div class="md:hidden flex items-start gap-3 p-4 pt-12 bg-slate-900/50 light:bg-slate-50 border-b border-slate-700/30 light:border-slate-200 shrink-0">
+      <div class="md:hidden flex items-start gap-3 p-4 pt-12 bg-zinc-900/50 light:bg-zinc-50 border-b border-zinc-700/30 light:border-zinc-200 shrink-0">
         <div class="shrink-0 w-16 h-24 rounded-xl overflow-hidden shadow-lg ring-1 ring-white/10">
           <img
             v-if="hasCover"
@@ -140,14 +140,14 @@ const truncatedDescription = computed(() => {
             class="w-full h-full object-cover"
             @error="editableData.cover_image_url = ''"
           />
-          <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950">
+          <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-950">
             <BookOpen :size="20" class="text-indigo-500/40" />
           </div>
         </div>
         <div class="flex-1 min-w-0">
-          <h1 class="text-sm font-bold text-white light:text-slate-900 leading-tight line-clamp-2">{{ editableData.title }}</h1>
+          <h1 class="text-sm font-bold text-white light:text-zinc-900 leading-tight line-clamp-2">{{ editableData.title }}</h1>
           <p v-if="editableData.authors" class="text-xs text-indigo-400/80 light:text-indigo-600 mt-0.5 truncate">{{ editableData.authors }}</p>
-          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] text-slate-500 font-medium">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] text-zinc-500 font-medium">
             <span v-if="editableData.page_count" class="flex items-center gap-1"><BookOpen :size="10" /> {{ editableData.page_count }} pg</span>
             <span v-if="book.language">{{ languageName }}</span>
             <span v-if="book.published_date">{{ formattedDate }}</span>
@@ -157,7 +157,7 @@ const truncatedDescription = computed(() => {
       </div>
 
       <!-- ===== DESKTOP: Left Column - Cover & Quick Stats ===== -->
-      <div class="hidden md:flex w-[40%] bg-slate-900/50 light:bg-slate-50 p-8 flex-col items-center overflow-y-auto border-r border-slate-700/30 light:border-slate-200">
+      <div class="hidden md:flex w-[40%] bg-zinc-900/50 light:bg-zinc-50 p-8 flex-col items-center overflow-y-auto border-r border-zinc-700/30 light:border-zinc-200">
         <div class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
           <img
             v-if="hasCover"
@@ -166,11 +166,11 @@ const truncatedDescription = computed(() => {
             class="w-full h-full object-cover"
             @error="editableData.cover_image_url = ''"
           />
-          <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
+          <div v-else class="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950">
             <div class="w-24 h-24 rounded-full bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center mb-6">
               <BookOpen :size="40" class="text-indigo-500/40" />
             </div>
-            <p class="text-slate-500 text-sm text-center">
+            <p class="text-zinc-500 text-sm text-center">
               No cover available
             </p>
           </div>
@@ -178,17 +178,17 @@ const truncatedDescription = computed(() => {
         </div>
 
         <div class="w-full mt-8 space-y-4">
-          <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
             <Star class="text-amber-400" :size="20" fill="currentColor" />
             <div>
-              <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Average Rating</p>
-              <p class="text-slate-100 font-semibold">{{ book.average_rating ? `${book.average_rating}/5` : 'N/A' }}</p>
+              <p class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Average Rating</p>
+              <p class="text-zinc-100 font-semibold">{{ book.average_rating ? `${book.average_rating}/5` : 'N/A' }}</p>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <div class="flex items-center gap-2 text-slate-500 mb-1">
+            <div class="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div class="flex items-center gap-2 text-zinc-500 mb-1">
                 <BookOpen :size="16" />
                 <span class="text-[10px] font-bold uppercase tracking-wider">Pages</span>
               </div>
@@ -196,14 +196,14 @@ const truncatedDescription = computed(() => {
                 v-if="isEditMode"
                 v-model="editableData.page_count"
                 type="number"
-                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+                class="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
                 placeholder="Pages"
               />
-              <p v-else class="text-slate-200 font-semibold truncate text-sm">{{ editableData.page_count || 'N/A' }}</p>
+              <p v-else class="text-zinc-200 font-semibold truncate text-sm">{{ editableData.page_count || 'N/A' }}</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <div class="flex items-center gap-2 text-slate-500 mb-1">
+            <div class="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div class="flex items-center gap-2 text-zinc-500 mb-1">
                 <Globe :size="16" />
                 <span class="text-[10px] font-bold uppercase tracking-wider">Language</span>
               </div>
@@ -211,14 +211,14 @@ const truncatedDescription = computed(() => {
                 v-if="isEditMode"
                 v-model="editableData.language"
                 type="text"
-                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none uppercase"
+                class="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none uppercase"
                 placeholder="EN"
               />
-              <p v-else class="text-slate-200 font-semibold truncate text-sm">{{ languageName }}</p>
+              <p v-else class="text-zinc-200 font-semibold truncate text-sm">{{ languageName }}</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <div class="flex items-center gap-2 text-slate-500 mb-1">
+            <div class="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div class="flex items-center gap-2 text-zinc-500 mb-1">
                 <Calendar :size="16" />
                 <span class="text-[10px] font-bold uppercase tracking-wider">Published</span>
               </div>
@@ -226,14 +226,14 @@ const truncatedDescription = computed(() => {
                 v-if="isEditMode"
                 v-model="editableData.published_date"
                 type="text"
-                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+                class="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
                 placeholder="YYYY or YYYY-MM-DD"
               />
-              <p v-else class="text-slate-200 font-semibold truncate text-sm">{{ formattedDate }}</p>
+              <p v-else class="text-zinc-200 font-semibold truncate text-sm">{{ formattedDate }}</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <div class="flex items-center gap-2 text-slate-500 mb-1">
+            <div class="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div class="flex items-center gap-2 text-zinc-500 mb-1">
                 <Building2 :size="16" />
                 <span class="text-[10px] font-bold uppercase tracking-wider">Publisher</span>
               </div>
@@ -241,66 +241,66 @@ const truncatedDescription = computed(() => {
                 v-if="isEditMode"
                 v-model="editableData.publisher"
                 type="text"
-                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+                class="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
                 placeholder="Publisher"
               />
-              <p v-else class="text-slate-200 font-semibold truncate text-sm">{{ editableData.publisher || 'N/A' }}</p>
+              <p v-else class="text-zinc-200 font-semibold truncate text-sm">{{ editableData.publisher || 'N/A' }}</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 overflow-hidden">
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 overflow-hidden">
             <Hash class="text-indigo-400 shrink-0" :size="16" />
             <div class="flex-1 min-w-0">
-              <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">ISBN</p>
+              <p class="text-xs text-zinc-400 font-medium uppercase tracking-wider">ISBN</p>
               <input
                 v-if="isEditMode"
                 v-model="editableData.isbn_13"
                 type="text"
-                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
+                class="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-zinc-200 text-sm font-semibold focus:border-indigo-500 focus:outline-none"
                 placeholder="ISBN-13"
               />
-              <p v-else class="text-slate-100 font-semibold truncate text-sm">{{ editableData.isbn_13 || 'N/A' }}</p>
+              <p v-else class="text-zinc-100 font-semibold truncate text-sm">{{ editableData.isbn_13 || 'N/A' }}</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Right Column - Details & Actions -->
-      <div class="w-full md:w-[60%] flex flex-col flex-1 min-h-0 bg-slate-900/20 light:bg-white">
+      <div class="w-full md:w-[60%] flex flex-col flex-1 min-h-0 bg-zinc-900/20 light:bg-white">
         <div :class="['flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar', isEditMode ? 'md:pt-24' : '']">
           <!-- Title/Author (desktop only, mobile has it in compact header) -->
           <header class="mb-4 md:mb-6">
             <div v-if="isEditMode" class="space-y-3">
               <div>
-                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Title</label>
+                <label class="text-xs text-zinc-400 light:text-zinc-600 font-bold uppercase tracking-wider mb-1 block">Title</label>
                 <input
                   v-model="editableData.title"
                   type="text"
-                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-xl md:text-3xl font-bold text-white light:text-slate-900 focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-zinc-900 light:bg-white border border-zinc-700 light:border-zinc-200 rounded-lg px-3 py-2 text-xl md:text-3xl font-bold text-white light:text-zinc-900 focus:border-indigo-500 focus:outline-none"
                   placeholder="Book Title"
                 />
               </div>
               <div>
-                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Authors (comma-separated)</label>
+                <label class="text-xs text-zinc-400 light:text-zinc-600 font-bold uppercase tracking-wider mb-1 block">Authors (comma-separated)</label>
                 <input
                   v-model="editableData.authors"
                   type="text"
-                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-base md:text-lg text-indigo-400/80 light:text-indigo-600 font-medium focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-zinc-900 light:bg-white border border-zinc-700 light:border-zinc-200 rounded-lg px-3 py-2 text-base md:text-lg text-indigo-400/80 light:text-indigo-600 font-medium focus:border-indigo-500 focus:outline-none"
                   placeholder="Author 1, Author 2"
                 />
               </div>
               <div>
-                <label class="text-xs text-slate-400 light:text-slate-600 font-bold uppercase tracking-wider mb-1 block">Cover Image URL</label>
+                <label class="text-xs text-zinc-400 light:text-zinc-600 font-bold uppercase tracking-wider mb-1 block">Cover Image URL</label>
                 <input
                   v-model="editableData.cover_image_url"
                   type="text"
-                  class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-300 light:text-slate-900 focus:border-indigo-500 focus:outline-none"
+                  class="w-full bg-zinc-900 light:bg-white border border-zinc-700 light:border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-300 light:text-zinc-900 focus:border-indigo-500 focus:outline-none"
                   placeholder="https://..."
                 />
               </div>
             </div>
             <div v-else class="hidden md:block">
-              <h1 class="text-2xl md:text-3xl font-bold text-white light:text-slate-900 leading-tight">{{ editableData.title }}</h1>
+              <h1 class="text-2xl md:text-3xl font-bold text-white light:text-zinc-900 leading-tight">{{ editableData.title }}</h1>
               <p v-if="editableData.authors" class="text-lg text-indigo-400/80 light:text-indigo-600 mt-2 font-medium">
                 {{ editableData.authors }}
               </p>
@@ -308,19 +308,19 @@ const truncatedDescription = computed(() => {
           </header>
 
           <section class="mb-4 md:mb-6">
-            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-2 md:mb-3">Description</h2>
+            <h2 class="text-xs font-bold text-zinc-500 light:text-zinc-600 uppercase tracking-[0.2em] mb-2 md:mb-3">Description</h2>
             <div v-if="isEditMode">
               <textarea
                 v-model="editableData.description"
                 rows="6"
-                class="w-full bg-slate-900 light:bg-white border border-slate-700 light:border-slate-200 rounded-lg px-3 py-2 text-slate-300 light:text-slate-900 text-sm leading-relaxed focus:border-indigo-500 focus:outline-none resize-none"
+                class="w-full bg-zinc-900 light:bg-white border border-zinc-700 light:border-zinc-200 rounded-lg px-3 py-2 text-zinc-300 light:text-zinc-900 text-sm leading-relaxed focus:border-indigo-500 focus:outline-none resize-none"
                 placeholder="Book description..."
               />
             </div>
             <div v-else-if="editableData.description">
               <div
                 :class="showFullDescription ? '' : 'line-clamp-4 md:line-clamp-6'"
-                class="text-slate-300 light:text-slate-700 text-sm leading-relaxed"
+                class="text-zinc-300 light:text-zinc-700 text-sm leading-relaxed"
                 v-html="showFullDescription ? editableData.description : truncatedDescription"
               />
               <button
@@ -331,13 +331,13 @@ const truncatedDescription = computed(() => {
                 {{ showFullDescription ? 'Show Less' : 'Read More' }}
               </button>
             </div>
-            <p v-else class="text-slate-300 light:text-slate-700 text-sm leading-relaxed">
+            <p v-else class="text-zinc-300 light:text-zinc-700 text-sm leading-relaxed">
               No description available for this title.
             </p>
           </section>
 
           <section class="mb-4 md:mb-8">
-            <h2 class="text-xs font-bold text-slate-500 light:text-slate-600 uppercase tracking-[0.2em] mb-2 md:mb-3">Categories</h2>
+            <h2 class="text-xs font-bold text-zinc-500 light:text-zinc-600 uppercase tracking-[0.2em] mb-2 md:mb-3">Categories</h2>
             <div class="flex flex-wrap gap-1.5 md:gap-2">
               <span
                 v-for="category in (book.categories || [])"
@@ -346,14 +346,14 @@ const truncatedDescription = computed(() => {
               >
                 {{ category }}
               </span>
-              <p v-if="!book.categories || book.categories.length === 0" class="text-slate-500 text-sm italic">
+              <p v-if="!book.categories || book.categories.length === 0" class="text-zinc-500 text-sm italic">
                 General
               </p>
             </div>
           </section>
 
           <!-- Import Logic -->
-          <section class="p-4 md:p-5 rounded-xl md:rounded-2xl bg-slate-800/40 border border-slate-700/50">
+          <section class="p-4 md:p-5 rounded-xl md:rounded-2xl bg-zinc-800/40 border border-zinc-700/50">
             <h3 class="text-sm md:text-base font-semibold text-white mb-3 md:mb-5 flex items-center gap-2">
               Add to Shelf (Optional)
             </h3>
@@ -363,7 +363,7 @@ const truncatedDescription = computed(() => {
                 @click="handleStatusToggle('want_to_read')"
                 :class="selectedAction === 'want_to_read'
                   ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
-                  : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
+                  : 'border-zinc-700 bg-zinc-800/20 text-zinc-400 hover:border-zinc-500'"
                 class="p-2.5 md:p-3 rounded-xl flex flex-col md:flex-row items-center gap-1.5 md:gap-3 border-2 transition-all duration-300"
               >
                 <span :class="selectedAction === 'want_to_read' ? 'scale-110' : ''" class="transition-transform duration-300">
@@ -377,7 +377,7 @@ const truncatedDescription = computed(() => {
                 @click="handleStatusToggle('currently_reading')"
                 :class="selectedAction === 'currently_reading'
                   ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
-                  : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
+                  : 'border-zinc-700 bg-zinc-800/20 text-zinc-400 hover:border-zinc-500'"
                 class="p-2.5 md:p-3 rounded-xl flex flex-col md:flex-row items-center gap-1.5 md:gap-3 border-2 transition-all duration-300"
               >
                 <span :class="selectedAction === 'currently_reading' ? 'scale-110' : ''" class="transition-transform duration-300">
@@ -391,7 +391,7 @@ const truncatedDescription = computed(() => {
                 @click="handleStatusToggle('read')"
                 :class="selectedAction === 'read'
                   ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
-                  : 'border-slate-700 bg-slate-800/20 text-slate-400 hover:border-slate-500'"
+                  : 'border-zinc-700 bg-zinc-800/20 text-zinc-400 hover:border-zinc-500'"
                 class="p-2.5 md:p-3 rounded-xl flex flex-col md:flex-row items-center gap-1.5 md:gap-3 border-2 transition-all duration-300"
               >
                 <span :class="selectedAction === 'read' ? 'scale-110' : ''" class="transition-transform duration-300">
@@ -402,8 +402,8 @@ const truncatedDescription = computed(() => {
               </button>
             </div>
 
-            <div v-if="selectedAction === 'read'" class="mt-4 md:mt-8 pt-4 md:pt-8 border-t border-slate-700/50 animate-in slide-in-from-top-4 duration-300">
-              <p class="text-xs md:text-sm font-medium text-slate-300 mb-3 md:mb-4">
+            <div v-if="selectedAction === 'read'" class="mt-4 md:mt-8 pt-4 md:pt-8 border-t border-zinc-700/50 animate-in slide-in-from-top-4 duration-300">
+              <p class="text-xs md:text-sm font-medium text-zinc-300 mb-3 md:mb-4">
                 Your Rating (Optional)
               </p>
               <div class="flex items-center gap-2">
@@ -415,7 +415,7 @@ const truncatedDescription = computed(() => {
                 <button
                   v-if="rating"
                   @click="rating = null"
-                  class="ml-4 text-xs text-slate-500 hover:text-slate-300 underline underline-offset-4"
+                  class="ml-4 text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-4"
                 >
                   Clear
                 </button>
@@ -425,10 +425,10 @@ const truncatedDescription = computed(() => {
         </div>
 
         <!-- Footer Actions -->
-        <div class="p-3 md:p-6 border-t border-slate-700/30 light:border-slate-200 bg-slate-900/50 light:bg-slate-50 flex gap-2 md:gap-3 shrink-0">
+        <div class="p-3 md:p-6 border-t border-zinc-700/30 light:border-zinc-200 bg-zinc-900/50 light:bg-zinc-50 flex gap-2 md:gap-3 shrink-0">
           <button
             @click="handleClose"
-            class="px-4 py-2.5 md:px-5 md:py-3 rounded-xl border border-slate-700 light:border-slate-300 text-slate-300 light:text-slate-700 text-xs md:text-sm font-semibold hover:bg-slate-800 light:hover:bg-slate-200 transition-colors"
+            class="px-4 py-2.5 md:px-5 md:py-3 rounded-xl border border-zinc-700 light:border-zinc-300 text-zinc-300 light:text-zinc-700 text-xs md:text-sm font-semibold hover:bg-zinc-800 light:hover:bg-zinc-200 transition-colors"
           >
             Cancel
           </button>

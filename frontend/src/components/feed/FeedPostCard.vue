@@ -224,10 +224,10 @@ const formatCommentTime = (dateStr) => {
 </script>
 
 <template>
-  <div class="group border-b border-slate-800 py-3 lg:glass lg:bg-slate-900/50 lg:rounded-2xl lg:border lg:border-slate-800 lg:p-5 lg:hover:border-indigo-500/50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 lg:shadow-xl lg:shadow-slate-950/20">
+  <div class="group border-b border-zinc-800 py-3 lg:glass lg:bg-zinc-900/50 lg:rounded-2xl lg:border lg:border-zinc-800 lg:p-5 lg:hover:border-indigo-500/50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 lg:shadow-xl lg:shadow-zinc-950/20">
     <!-- Header -->
     <div class="flex items-center gap-2.5 mb-2 lg:mb-4">
-      <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[9px] lg:text-xs font-bold ring-1 lg:ring-2 ring-slate-800 shrink-0 overflow-hidden">
+      <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[9px] lg:text-xs font-bold ring-1 lg:ring-2 ring-zinc-800 shrink-0 overflow-hidden">
         <img v-if="post.user.avatar && !avatarError" :src="getMediaUrl(post.user.avatar)" @error="avatarError = true" class="w-full h-full object-cover" />
         <span v-else>{{ getInitials(post.user.name) }}</span>
       </div>
@@ -238,7 +238,7 @@ const formatCommentTime = (dateStr) => {
           {{ config.label }}
         </div>
       </div>
-      <span class="text-[10px] lg:text-xs text-slate-600 shrink-0 self-start">{{ post.timestamp }}</span>
+      <span class="text-[10px] lg:text-xs text-zinc-600 shrink-0 self-start">{{ post.timestamp }}</span>
     </div>
 
     <!-- Content Area -->
@@ -256,11 +256,11 @@ const formatCommentTime = (dateStr) => {
         <div class="mb-1.5 lg:mb-3">
           <h3
             @click="handleBookClick"
-            class="text-xs lg:text-base font-bold text-slate-100 group-hover:text-indigo-400 transition-colors cursor-pointer truncate"
+            class="text-xs lg:text-base font-bold text-zinc-100 group-hover:text-indigo-400 transition-colors cursor-pointer truncate"
           >
             {{ post.book.title }}
           </h3>
-          <p class="text-[11px] lg:text-sm text-slate-500">{{ post.book.author }}</p>
+          <p class="text-[11px] lg:text-sm text-zinc-500">{{ post.book.author }}</p>
 
           <!-- Status Dropdown for want_to_read and started types -->
           <div v-if="post.type === 'want_to_read' || post.type === 'started'" class="mt-2 lg:mt-3">
@@ -273,12 +273,12 @@ const formatCommentTime = (dateStr) => {
                   <ChevronDown :size="12" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" class="bg-slate-900 border-slate-800">
+              <DropdownMenuContent align="start" class="bg-zinc-900 border-zinc-800">
                 <DropdownMenuItem
                   v-for="option in statusOptions"
                   :key="option.value"
                   @click="getUserBookStatus(post.bookId) ? updateBookStatus(post.bookId, option.value) : addToLibrary(post.bookId, option.value)"
-                  class="text-xs cursor-pointer hover:bg-slate-800 text-slate-200 flex items-center gap-2"
+                  class="text-xs cursor-pointer hover:bg-zinc-800 text-zinc-200 flex items-center gap-2"
                 >
                   <component :is="option.icon" :size="14" />
                   {{ option.label }}
@@ -290,12 +290,12 @@ const formatCommentTime = (dateStr) => {
 
         <!-- Activity Specific Content -->
         <div class="space-y-1.5 lg:space-y-3">
-          <blockquote v-if="post.type === 'quote' && post.content.quote" class="relative p-2.5 lg:p-4 rounded-lg lg:rounded-xl bg-indigo-500/5 border-l-2 lg:border-l-4 border-indigo-500 italic text-slate-200 font-serif text-xs lg:text-base leading-relaxed">
+          <blockquote v-if="post.type === 'quote' && post.content.quote" class="relative p-2.5 lg:p-4 rounded-lg lg:rounded-xl bg-indigo-500/5 border-l-2 lg:border-l-4 border-indigo-500 italic text-zinc-200 font-serif text-xs lg:text-base leading-relaxed">
             "{{ post.content.quote }}"
           </blockquote>
 
           <div v-if="post.content.review">
-            <p class="text-xs lg:text-sm text-slate-300 leading-relaxed italic line-clamp-2 lg:line-clamp-3">
+            <p class="text-xs lg:text-sm text-zinc-300 leading-relaxed italic line-clamp-2 lg:line-clamp-3">
               "{{ stripHtml(post.content.review) }}"
             </p>
             <button
@@ -309,7 +309,7 @@ const formatCommentTime = (dateStr) => {
           </div>
 
           <div v-if="post.type === 'progress' && post.content.progress" class="flex items-center gap-2">
-            <div class="flex-1 bg-slate-800 rounded-full h-1.5 lg:h-2 overflow-hidden">
+            <div class="flex-1 bg-zinc-800 rounded-full h-1.5 lg:h-2 overflow-hidden">
               <div
                 class="bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out"
                 :style="{ width: `${post.content.progress}%` }"
@@ -326,7 +326,7 @@ const formatCommentTime = (dateStr) => {
             :show-value="true"
           />
 
-          <p v-if="post.content.note" class="text-[11px] lg:text-sm text-slate-400 line-clamp-2">
+          <p v-if="post.content.note" class="text-[11px] lg:text-sm text-zinc-400 line-clamp-2">
             {{ post.content.note }}
           </p>
 
@@ -338,13 +338,13 @@ const formatCommentTime = (dateStr) => {
     </div>
 
     <!-- Footer Actions -->
-    <div class="pt-2 lg:pt-3 border-t border-slate-800/50 lg:border-slate-800 flex items-center justify-between">
+    <div class="pt-2 lg:pt-3 border-t border-zinc-800/50 lg:border-zinc-800 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <button
           @click="toggleLike"
           :class="[
             'flex items-center gap-1 transition-colors',
-            liked ? 'text-indigo-400' : 'text-slate-500 hover:text-indigo-400'
+            liked ? 'text-indigo-400' : 'text-zinc-500 hover:text-indigo-400'
           ]"
         >
           <Heart :size="14" :fill="liked ? 'currentColor' : 'none'" :class="liked ? 'animate-in zoom-in-50 duration-300' : ''" />
@@ -355,7 +355,7 @@ const formatCommentTime = (dateStr) => {
           @click="toggleComments"
           :class="[
             'flex items-center gap-1 transition-colors',
-            showComments ? 'text-sky-400' : 'text-slate-500 hover:text-sky-400'
+            showComments ? 'text-sky-400' : 'text-zinc-500 hover:text-sky-400'
           ]"
         >
           <MessageCircle :size="14" />
@@ -363,58 +363,58 @@ const formatCommentTime = (dateStr) => {
         </button>
       </div>
 
-      <button class="flex items-center gap-1 text-slate-500 hover:text-emerald-400 transition-colors">
+      <button class="flex items-center gap-1 text-zinc-500 hover:text-emerald-400 transition-colors">
         <Share2 :size="14" />
       </button>
     </div>
 
     <!-- Comments Section -->
-    <div v-if="showComments" class="mt-3 pt-3 border-t border-slate-800/50 space-y-3">
+    <div v-if="showComments" class="mt-3 pt-3 border-t border-zinc-800/50 space-y-3">
       <!-- Loading -->
       <div v-if="commentsLoading" class="flex justify-center py-2">
-        <div class="w-4 h-4 rounded-full border-2 border-slate-700 border-t-indigo-500 animate-spin" />
+        <div class="w-4 h-4 rounded-full border-2 border-zinc-700 border-t-indigo-500 animate-spin" />
       </div>
 
       <!-- Comment List -->
       <div v-else-if="comments.length > 0" class="space-y-2.5">
         <div v-for="comment in comments" :key="comment.id" class="flex gap-2">
-          <div class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-[7px] lg:text-[8px] font-bold shrink-0 overflow-hidden">
+          <div class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gradient-to-br from-zinc-600 to-zinc-700 flex items-center justify-center text-white text-[7px] lg:text-[8px] font-bold shrink-0 overflow-hidden">
             <img v-if="comment.author.avatar" :src="getMediaUrl(comment.author.avatar)" class="w-full h-full object-cover" />
             <span v-else>{{ getCommentAuthorInitials(comment.author) }}</span>
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5">
-              <span class="text-[10px] lg:text-xs font-bold text-slate-300">{{ comment.author.first_name }} {{ comment.author.last_name }}</span>
-              <span class="text-[9px] text-slate-600">{{ formatCommentTime(comment.created_at) }}</span>
+              <span class="text-[10px] lg:text-xs font-bold text-zinc-300">{{ comment.author.first_name }} {{ comment.author.last_name }}</span>
+              <span class="text-[9px] text-zinc-600">{{ formatCommentTime(comment.created_at) }}</span>
             </div>
-            <p class="text-[11px] lg:text-xs text-slate-400 leading-relaxed">{{ comment.content }}</p>
+            <p class="text-[11px] lg:text-xs text-zinc-400 leading-relaxed">{{ comment.content }}</p>
           </div>
         </div>
       </div>
 
       <!-- No comments yet -->
-      <p v-else-if="!commentsLoading" class="text-[10px] text-slate-600 text-center py-1">No comments yet</p>
+      <p v-else-if="!commentsLoading" class="text-[10px] text-zinc-600 text-center py-1">No comments yet</p>
 
       <!-- Comment Input -->
       <div class="flex items-center gap-2">
         <div class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[7px] lg:text-[8px] font-bold shrink-0">
           {{ getInitials(authStore.user?.first_name && authStore.user?.last_name ? `${authStore.user.first_name} ${authStore.user.last_name}` : authStore.user?.username || 'U') }}
         </div>
-        <div class="flex-1 flex items-center gap-1.5 bg-slate-800/50 rounded-lg border border-slate-700/50 px-2.5 py-1.5">
+        <div class="flex-1 flex items-center gap-1.5 bg-zinc-800/50 rounded-lg border border-zinc-700/50 px-2.5 py-1.5">
           <input
             ref="commentInputRef"
             v-model="commentText"
             @keydown.enter="submitComment"
             type="text"
             placeholder="Write a comment..."
-            class="flex-1 bg-transparent text-[11px] lg:text-xs text-slate-200 placeholder-slate-600 outline-none"
+            class="flex-1 bg-transparent text-[11px] lg:text-xs text-zinc-200 placeholder-zinc-600 outline-none"
           />
           <button
             @click="submitComment"
             :disabled="!commentText.trim() || commentSending"
             :class="[
               'transition-colors shrink-0',
-              commentText.trim() ? 'text-indigo-400 hover:text-indigo-300' : 'text-slate-700'
+              commentText.trim() ? 'text-indigo-400 hover:text-indigo-300' : 'text-zinc-700'
             ]"
           >
             <Send :size="12" />

@@ -76,7 +76,7 @@ defineExpose({ setReplyTo })
 </script>
 
 <template>
-  <div v-if="circlesStore.activeTopic" class="px-3 lg:px-4 py-2 lg:py-3 border-t border-white/5 bg-slate-950/80 backdrop-blur-xl sticky bottom-0 safe-area-bottom">
+  <div v-if="circlesStore.activeTopic" class="px-3 lg:px-4 py-2 lg:py-3 border-t border-white/5 bg-zinc-950/80 backdrop-blur-xl sticky bottom-0 safe-area-bottom">
     <!-- Reply preview bar -->
     <div
       v-if="replyingTo"
@@ -85,9 +85,9 @@ defineExpose({ setReplyTo })
       <Reply :size="12" class="text-indigo-400 shrink-0" />
       <div class="flex-1 min-w-0">
         <span class="text-[11px] text-indigo-400 font-bold">{{ replyingTo.author?.first_name }}</span>
-        <span class="text-[11px] text-slate-500 ml-1 truncate">{{ replyingTo.content?.substring(0, 60) }}{{ replyingTo.content?.length > 60 ? '...' : '' }}</span>
+        <span class="text-[11px] text-zinc-500 ml-1 truncate">{{ replyingTo.content?.substring(0, 60) }}{{ replyingTo.content?.length > 60 ? '...' : '' }}</span>
       </div>
-      <button @click="cancelReply" class="p-1 rounded text-slate-500 hover:text-white transition-colors">
+      <button @click="cancelReply" class="p-1 rounded text-zinc-500 hover:text-white transition-colors">
         <X :size="14" />
       </button>
     </div>
@@ -98,7 +98,7 @@ defineExpose({ setReplyTo })
           v-model="messageInput"
           @keydown.ctrl.enter="handleSendMessage"
           :placeholder="'Message ' + circlesStore.activeTopic.title + '...'"
-          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none transition-all min-h-[40px] max-h-32 resize-none"
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 outline-none transition-all min-h-[40px] max-h-32 resize-none"
         />
         <div class="absolute right-2 bottom-2 flex items-center gap-1">
           <input
@@ -110,7 +110,7 @@ defineExpose({ setReplyTo })
           />
           <button
             @click="handleFileClick"
-            class="p-1.5 text-slate-500 hover:text-indigo-400 transition-colors"
+            class="p-1.5 text-zinc-500 hover:text-indigo-400 transition-colors"
             title="Attach image"
           >
             <Paperclip :size="16" />

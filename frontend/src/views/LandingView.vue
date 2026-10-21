@@ -117,10 +117,10 @@ const currentTab = computed(() => tabContent[activeTab.value])
 </script>
 
 <template>
-  <div class="landing-page min-h-screen bg-slate-950 text-slate-50 overflow-x-hidden">
+  <div class="landing-page min-h-screen bg-zinc-950 text-zinc-50 overflow-x-hidden">
 
     <!-- ===== NAVBAR ===== -->
-    <nav class="fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 lg:px-16 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/[0.04]">
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 lg:px-16 py-4 bg-zinc-950/80 backdrop-blur-xl border-b border-white/[0.04]">
       <div class="max-w-7xl mx-auto flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -131,7 +131,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
         <div class="flex items-center gap-2">
           <button
             @click="router.push('/login')"
-            class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            class="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
           >
             Sign in
           </button>
@@ -170,7 +170,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
             <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-sky-400 bg-clip-text text-transparent">reading lives.</span>
           </h1>
 
-          <p class="text-base sm:text-lg text-slate-400 leading-relaxed max-w-md mb-8">
+          <p class="text-base sm:text-lg text-zinc-400 leading-relaxed max-w-md mb-8">
             Save the passages that move you. Track the words you discover.
             Discuss ideas with others who care. Let every book leave a trace.
           </p>
@@ -185,7 +185,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
             </button>
             <button
               @click="scrollToContent"
-              class="group px-7 py-3 text-slate-300 font-medium rounded-lg border border-slate-700 hover:border-slate-500 transition-all flex items-center gap-2 text-sm hover:bg-white/[0.03]"
+              class="group px-7 py-3 text-zinc-300 font-medium rounded-lg border border-zinc-700 hover:border-zinc-500 transition-all flex items-center gap-2 text-sm hover:bg-white/[0.03]"
             >
               <Play :size="14" class="text-indigo-400" />
               See how it works
@@ -193,7 +193,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
           </div>
 
           <!-- Mini stats -->
-          <div class="flex items-center gap-6 text-xs text-slate-500">
+          <div class="flex items-center gap-6 text-xs text-zinc-500">
             <div class="flex items-center gap-1.5">
               <Check :size="13" class="text-emerald-400" />
               Free to use
@@ -216,16 +216,16 @@ const currentTab = computed(() => tabContent[activeTab.value])
             <div class="absolute -inset-8 bg-indigo-500/10 blur-[60px] rounded-3xl" />
 
             <!-- Main mockup card -->
-            <div class="relative rounded-2xl border border-slate-700/50 bg-slate-900/80 backdrop-blur-sm shadow-2xl overflow-hidden">
+            <div class="relative rounded-2xl border border-zinc-700/50 bg-zinc-900/80 backdrop-blur-sm shadow-2xl overflow-hidden">
               <!-- Mockup header -->
-              <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-800/60">
+              <div class="flex items-center gap-2 px-4 py-3 border-b border-zinc-800/60">
                 <div class="flex gap-1.5">
                   <div class="w-2.5 h-2.5 rounded-full bg-red-500/60" />
                   <div class="w-2.5 h-2.5 rounded-full bg-amber-500/60" />
                   <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
                 </div>
                 <div class="flex-1 flex justify-center">
-                  <div class="px-3 py-0.5 rounded bg-slate-800/60 text-[10px] text-slate-500">marginalia.app</div>
+                  <div class="px-3 py-0.5 rounded bg-zinc-800/60 text-[10px] text-zinc-500">marginalia.app</div>
                 </div>
               </div>
 
@@ -239,17 +239,17 @@ const currentTab = computed(() => tabContent[activeTab.value])
                       <BookOpen :size="12" class="text-white" />
                     </div>
                     <div class="space-y-2 flex flex-col items-center">
-                      <div class="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
+                      <div class="w-5 h-5 rounded bg-zinc-800 flex items-center justify-center">
                         <Library :size="10" class="text-indigo-400" />
                       </div>
-                      <div class="w-5 h-5 rounded bg-slate-800/50 flex items-center justify-center">
-                        <Quote :size="10" class="text-slate-500" />
+                      <div class="w-5 h-5 rounded bg-zinc-800/50 flex items-center justify-center">
+                        <Quote :size="10" class="text-zinc-500" />
                       </div>
-                      <div class="w-5 h-5 rounded bg-slate-800/50 flex items-center justify-center">
-                        <Brain :size="10" class="text-slate-500" />
+                      <div class="w-5 h-5 rounded bg-zinc-800/50 flex items-center justify-center">
+                        <Brain :size="10" class="text-zinc-500" />
                       </div>
-                      <div class="w-5 h-5 rounded bg-slate-800/50 flex items-center justify-center">
-                        <CircleDot :size="10" class="text-slate-500" />
+                      <div class="w-5 h-5 rounded bg-zinc-800/50 flex items-center justify-center">
+                        <CircleDot :size="10" class="text-zinc-500" />
                       </div>
                     </div>
                   </div>
@@ -258,11 +258,11 @@ const currentTab = computed(() => tabContent[activeTab.value])
                   <div class="flex-1 space-y-3">
                     <!-- Header row -->
                     <div class="flex items-center justify-between">
-                      <div class="text-xs font-bold text-slate-200">My Library</div>
+                      <div class="text-xs font-bold text-zinc-200">My Library</div>
                       <div class="flex gap-1">
                         <div class="px-2 py-0.5 rounded text-[9px] bg-indigo-500/20 text-indigo-400 font-semibold">All</div>
-                        <div class="px-2 py-0.5 rounded text-[9px] text-slate-500">Reading</div>
-                        <div class="px-2 py-0.5 rounded text-[9px] text-slate-500">Finished</div>
+                        <div class="px-2 py-0.5 rounded text-[9px] text-zinc-500">Reading</div>
+                        <div class="px-2 py-0.5 rounded text-[9px] text-zinc-500">Finished</div>
                       </div>
                     </div>
 
@@ -302,17 +302,17 @@ const currentTab = computed(() => tabContent[activeTab.value])
             </div>
 
             <!-- Floating quote card -->
-            <div class="absolute -bottom-6 -left-8 w-56 rounded-xl border border-indigo-500/30 bg-slate-900/95 backdrop-blur-md p-4 shadow-2xl shadow-indigo-500/10 rotate-[-2deg]">
+            <div class="absolute -bottom-6 -left-8 w-56 rounded-xl border border-indigo-500/30 bg-zinc-900/95 backdrop-blur-md p-4 shadow-2xl shadow-indigo-500/10 rotate-[-2deg]">
               <div class="flex items-center gap-1.5 mb-2">
                 <Quote :size="10" class="text-indigo-400" />
                 <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-wider">Saved Quote</span>
               </div>
-              <p class="text-[11px] text-slate-300 italic leading-relaxed mb-2">"One must still have chaos in oneself to give birth to a dancing star."</p>
-              <p class="text-[9px] text-slate-500">— Nietzsche, <span class="text-slate-400">Thus Spoke Zarathustra</span></p>
+              <p class="text-[11px] text-zinc-300 italic leading-relaxed mb-2">"One must still have chaos in oneself to give birth to a dancing star."</p>
+              <p class="text-[9px] text-zinc-500">— Nietzsche, <span class="text-zinc-400">Thus Spoke Zarathustra</span></p>
             </div>
 
             <!-- Floating DNA card -->
-            <div class="absolute -top-4 -right-6 w-48 rounded-xl border border-purple-500/30 bg-slate-900/95 backdrop-blur-md p-3 shadow-2xl shadow-purple-500/10 rotate-[3deg]">
+            <div class="absolute -top-4 -right-6 w-48 rounded-xl border border-purple-500/30 bg-zinc-900/95 backdrop-blur-md p-3 shadow-2xl shadow-purple-500/10 rotate-[3deg]">
               <div class="flex items-center gap-1.5 mb-2.5">
                 <Dna :size="10" class="text-purple-400" />
                 <span class="text-[9px] font-bold text-purple-400 uppercase tracking-wider">Book DNA</span>
@@ -323,8 +323,8 @@ const currentTab = computed(() => tabContent[activeTab.value])
                   { label: 'Complexity', value: 72, color: 'from-purple-500 to-pink-500' },
                   { label: 'Emotional', value: 85, color: 'from-pink-500 to-rose-500' },
                 ]" :key="bar.label" class="space-y-0.5">
-                  <div class="text-[8px] text-slate-500 font-medium">{{ bar.label }}</div>
-                  <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                  <div class="text-[8px] text-zinc-500 font-medium">{{ bar.label }}</div>
+                  <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
                     <div class="h-full rounded-full bg-gradient-to-r transition-all duration-1000" :class="bar.color" :style="{ width: bar.value + '%' }" />
                   </div>
                 </div>
@@ -336,7 +336,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
 
       <!-- Scroll indicator -->
       <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce opacity-30">
-        <span class="text-[10px] uppercase tracking-widest text-slate-500">Scroll</span>
+        <span class="text-[10px] uppercase tracking-widest text-zinc-500">Scroll</span>
         <ChevronDown :size="16" />
       </div>
     </section>
@@ -364,7 +364,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
           <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4">
             Built for deep readers
           </h2>
-          <p class="text-slate-500 max-w-lg mx-auto text-sm sm:text-base">
+          <p class="text-zinc-500 max-w-lg mx-auto text-sm sm:text-base">
             Not just tracking — understanding, preserving, and sharing what you read.
           </p>
         </div>
@@ -379,7 +379,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
               'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300',
               activeTab === tab.id
                 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
-                : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-slate-700'
+                : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-zinc-700'
             ]"
           >
             <component :is="tab.icon" :size="15" />
@@ -394,7 +394,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
             <h3 class="text-2xl sm:text-3xl font-bold mb-4 tracking-tight">
               {{ currentTab.title }}
             </h3>
-            <p class="text-slate-400 leading-relaxed mb-8">
+            <p class="text-zinc-400 leading-relaxed mb-8">
               {{ currentTab.description }}
             </p>
             <div class="space-y-3">
@@ -406,7 +406,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
                 <div class="w-5 h-5 rounded-md bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
                   <Check :size="11" class="text-indigo-400" />
                 </div>
-                <span class="text-sm text-slate-300">{{ feature }}</span>
+                <span class="text-sm text-zinc-300">{{ feature }}</span>
               </div>
             </div>
           </div>
@@ -414,7 +414,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
           <!-- Right: Mockup -->
           <div :key="activeTab + '-mock'" class="tab-content-enter">
             <!-- Vault mockup -->
-            <div v-if="activeTab === 'vault'" class="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-6 space-y-4">
+            <div v-if="activeTab === 'vault'" class="rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 space-y-4">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <Library :size="16" class="text-indigo-400" />
@@ -422,8 +422,8 @@ const currentTab = computed(() => tabContent[activeTab.value])
                 </div>
                 <div class="flex gap-1">
                   <div class="px-2.5 py-1 rounded-md text-[10px] bg-indigo-500 text-white font-bold">All · 47</div>
-                  <div class="px-2.5 py-1 rounded-md text-[10px] text-slate-400 bg-slate-800/60 font-medium">Reading · 3</div>
-                  <div class="px-2.5 py-1 rounded-md text-[10px] text-slate-400 bg-slate-800/60 font-medium">Read · 31</div>
+                  <div class="px-2.5 py-1 rounded-md text-[10px] text-zinc-400 bg-zinc-800/60 font-medium">Reading · 3</div>
+                  <div class="px-2.5 py-1 rounded-md text-[10px] text-zinc-400 bg-zinc-800/60 font-medium">Read · 31</div>
                 </div>
               </div>
               <div class="grid grid-cols-5 gap-3">
@@ -437,24 +437,24 @@ const currentTab = computed(() => tabContent[activeTab.value])
                   <div :class="'aspect-[2/3] rounded-lg bg-gradient-to-br ' + book.color + ' shadow-lg'" />
                   <div class="flex items-center gap-0.5 justify-center">
                     <Star :size="8" class="text-amber-400 fill-amber-400" />
-                    <span class="text-[10px] text-slate-400 font-bold">{{ book.rating }}</span>
+                    <span class="text-[10px] text-zinc-400 font-bold">{{ book.rating }}</span>
                   </div>
                 </div>
               </div>
-              <div class="flex items-center gap-4 pt-2 border-t border-slate-800/60">
-                <div class="flex items-center gap-1.5 text-[10px] text-slate-500">
+              <div class="flex items-center gap-4 pt-2 border-t border-zinc-800/60">
+                <div class="flex items-center gap-1.5 text-[10px] text-zinc-500">
                   <BookMarked :size="11" class="text-emerald-400" />
-                  <span><b class="text-slate-300">31</b> finished</span>
+                  <span><b class="text-zinc-300">31</b> finished</span>
                 </div>
-                <div class="flex items-center gap-1.5 text-[10px] text-slate-500">
+                <div class="flex items-center gap-1.5 text-[10px] text-zinc-500">
                   <TrendingUp :size="11" class="text-sky-400" />
-                  <span><b class="text-slate-300">8,420</b> pages this year</span>
+                  <span><b class="text-zinc-300">8,420</b> pages this year</span>
                 </div>
               </div>
             </div>
 
             <!-- Quotes mockup -->
-            <div v-else-if="activeTab === 'quotes'" class="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-6 space-y-4">
+            <div v-else-if="activeTab === 'quotes'" class="rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 space-y-4">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <Quote :size="16" class="text-indigo-400" />
@@ -471,23 +471,23 @@ const currentTab = computed(() => tabContent[activeTab.value])
                   { text: 'The only true wisdom is in knowing you know nothing.', author: 'Socrates', book: 'Apology', page: 42 },
                   { text: 'Until you make the unconscious conscious, it will direct your life and you will call it fate.', author: 'Carl Jung', book: 'Aion', page: 167 },
                   { text: 'He who has a why to live can bear almost any how.', author: 'Nietzsche', book: 'Twilight of the Idols', page: 33 },
-                ]" :key="qi" class="rounded-xl bg-slate-800/40 p-4 border border-slate-700/30 hover:border-indigo-500/20 transition-colors">
-                  <p class="text-xs text-slate-200 italic leading-relaxed mb-2">"{{ q.text }}"</p>
+                ]" :key="qi" class="rounded-xl bg-zinc-800/40 p-4 border border-zinc-700/30 hover:border-indigo-500/20 transition-colors">
+                  <p class="text-xs text-zinc-200 italic leading-relaxed mb-2">"{{ q.text }}"</p>
                   <div class="flex items-center justify-between">
                     <span class="text-[10px] text-indigo-400 font-semibold">— {{ q.author }}</span>
-                    <span class="text-[9px] text-slate-600">p. {{ q.page }}</span>
+                    <span class="text-[9px] text-zinc-600">p. {{ q.page }}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Lexicon mockup -->
-            <div v-else-if="activeTab === 'lexicon'" class="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-6 space-y-4">
+            <div v-else-if="activeTab === 'lexicon'" class="rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 space-y-4">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <Brain :size="16" class="text-emerald-400" />
                   <span class="text-sm font-bold">Lexicon</span>
-                  <span class="text-[10px] text-slate-500">142 words</span>
+                  <span class="text-[10px] text-zinc-500">142 words</span>
                 </div>
               </div>
               <div class="space-y-2.5">
@@ -495,25 +495,25 @@ const currentTab = computed(() => tabContent[activeTab.value])
                   { term: 'Saudade', def: 'A deep emotional state of melancholic longing for something absent', stage: 'Mastered', stageColor: 'text-emerald-400 bg-emerald-500/15', book: 'The Book of Disquiet' },
                   { term: 'Eudaimonia', def: 'Human flourishing or well-being; the highest human good', stage: 'Learning', stageColor: 'text-amber-400 bg-amber-500/15', book: 'Nicomachean Ethics' },
                   { term: 'Apophenia', def: 'The tendency to perceive meaningful connections between unrelated things', stage: 'New', stageColor: 'text-sky-400 bg-sky-500/15', book: 'The Unbearable Lightness of Being' },
-                ]" :key="wi" class="rounded-xl bg-slate-800/40 p-4 border border-slate-700/30">
+                ]" :key="wi" class="rounded-xl bg-zinc-800/40 p-4 border border-zinc-700/30">
                   <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-sm font-bold text-slate-200">{{ word.term }}</span>
+                    <span class="text-sm font-bold text-zinc-200">{{ word.term }}</span>
                     <span :class="'text-[9px] font-bold px-2 py-0.5 rounded-full ' + word.stageColor">{{ word.stage }}</span>
                   </div>
-                  <p class="text-[11px] text-slate-400 leading-relaxed mb-1.5">{{ word.def }}</p>
-                  <span class="text-[9px] text-slate-600">from <span class="text-slate-500">{{ word.book }}</span></span>
+                  <p class="text-[11px] text-zinc-400 leading-relaxed mb-1.5">{{ word.def }}</p>
+                  <span class="text-[9px] text-zinc-600">from <span class="text-zinc-500">{{ word.book }}</span></span>
                 </div>
               </div>
             </div>
 
             <!-- DNA mockup -->
-            <div v-else-if="activeTab === 'dna'" class="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-6 space-y-5">
+            <div v-else-if="activeTab === 'dna'" class="rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 space-y-5">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <Dna :size="16" class="text-purple-400" />
                   <span class="text-sm font-bold">Book DNA</span>
                 </div>
-                <span class="text-[10px] text-slate-500">Based on 24 votes</span>
+                <span class="text-[10px] text-zinc-500">Based on 24 votes</span>
               </div>
               <div class="space-y-4">
                 <div v-for="attr in [
@@ -525,10 +525,10 @@ const currentTab = computed(() => tabContent[activeTab.value])
                   { left: 'Action', right: 'Introspective', value: 90 },
                 ]" :key="attr.left" class="space-y-1">
                   <div class="flex justify-between text-[10px]">
-                    <span class="text-slate-500">{{ attr.left }}</span>
-                    <span class="text-slate-500">{{ attr.right }}</span>
+                    <span class="text-zinc-500">{{ attr.left }}</span>
+                    <span class="text-zinc-500">{{ attr.right }}</span>
                   </div>
-                  <div class="relative h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div class="relative h-2 bg-zinc-800 rounded-full overflow-hidden">
                     <div
                       class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-1000 ease-out"
                       :style="{ width: isRevealed('showcase') ? attr.value + '%' : '0%' }"
@@ -543,25 +543,25 @@ const currentTab = computed(() => tabContent[activeTab.value])
             </div>
 
             <!-- Circles mockup -->
-            <div v-else-if="activeTab === 'circles'" class="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-6 space-y-4">
+            <div v-else-if="activeTab === 'circles'" class="rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 space-y-4">
               <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black">PC</div>
                 <div>
                   <div class="text-sm font-bold">Philosophy Circle</div>
-                  <div class="text-[10px] text-slate-500">6 members · Reading: <span class="text-indigo-400">Meditations</span></div>
+                  <div class="text-[10px] text-zinc-500">6 members · Reading: <span class="text-indigo-400">Meditations</span></div>
                 </div>
               </div>
               <div class="space-y-2.5">
-                <div class="rounded-xl bg-slate-800/40 p-3 border border-slate-700/30">
+                <div class="rounded-xl bg-zinc-800/40 p-3 border border-zinc-700/30">
                   <div class="flex items-center gap-2 mb-2">
                     <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-[8px] text-emerald-400 font-bold">AK</div>
-                    <span class="text-[10px] font-semibold text-slate-300">Ana K.</span>
-                    <span class="text-[9px] text-slate-600">2h ago</span>
+                    <span class="text-[10px] font-semibold text-zinc-300">Ana K.</span>
+                    <span class="text-[9px] text-zinc-600">2h ago</span>
                   </div>
-                  <p class="text-[11px] text-slate-400 leading-relaxed">Book IV is where Marcus really shifts from self-discipline to acceptance. The "river of time" metaphor changed how I see impermanence.</p>
+                  <p class="text-[11px] text-zinc-400 leading-relaxed">Book IV is where Marcus really shifts from self-discipline to acceptance. The "river of time" metaphor changed how I see impermanence.</p>
                   <div class="flex items-center gap-2 mt-2">
-                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-500">❤️ 3</span>
-                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-500">💡 1</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-zinc-700/50 text-zinc-500">❤️ 3</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-zinc-700/50 text-zinc-500">💡 1</span>
                   </div>
                 </div>
                 <div class="rounded-xl bg-amber-500/5 border border-amber-500/20 p-3 flex items-center gap-2">
@@ -572,7 +572,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
             </div>
 
             <!-- Codex mockup -->
-            <div v-else-if="activeTab === 'codex'" class="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-6 space-y-4">
+            <div v-else-if="activeTab === 'codex'" class="rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 space-y-4">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <PenTool :size="16" class="text-indigo-400" />
@@ -580,34 +580,34 @@ const currentTab = computed(() => tabContent[activeTab.value])
                 </div>
                 <div class="flex gap-1.5">
                   <span class="px-2.5 py-1 rounded-md text-[10px] bg-indigo-500 text-white font-bold">Journal</span>
-                  <span class="px-2.5 py-1 rounded-md text-[10px] text-slate-400 bg-slate-800/60 font-medium">Manuscripts</span>
+                  <span class="px-2.5 py-1 rounded-md text-[10px] text-zinc-400 bg-zinc-800/60 font-medium">Manuscripts</span>
                 </div>
               </div>
-              <div class="rounded-xl bg-slate-800/40 border border-slate-700/30 p-4 space-y-3">
+              <div class="rounded-xl bg-zinc-800/40 border border-zinc-700/30 p-4 space-y-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-slate-200">February 28, 2026</span>
+                  <span class="text-xs font-bold text-zinc-200">February 28, 2026</span>
                   <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-medium">contemplative</span>
                 </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed">
+                <p class="text-[11px] text-zinc-400 leading-relaxed">
                   Finished rereading Stoner today. What strikes me this time is not the sadness — it's the quiet dignity.
                   Williams makes an argument that a life fully felt, even if small, carries meaning that outlasts everything...
                 </p>
-                <div class="flex items-center gap-3 pt-2 border-t border-slate-700/20">
-                  <div class="flex items-center gap-1 text-[9px] text-slate-500">
+                <div class="flex items-center gap-3 pt-2 border-t border-zinc-700/20">
+                  <div class="flex items-center gap-1 text-[9px] text-zinc-500">
                     <Bookmark :size="9" class="text-indigo-400" />
-                    <span>Linked: <span class="text-slate-400">Stoner</span></span>
+                    <span>Linked: <span class="text-zinc-400">Stoner</span></span>
                   </div>
                 </div>
               </div>
-              <div class="rounded-xl bg-slate-800/20 border border-slate-700/20 p-3 flex items-center gap-3">
+              <div class="rounded-xl bg-zinc-800/20 border border-zinc-700/20 p-3 flex items-center gap-3">
                 <div class="w-8 h-10 rounded bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center">
                   <Feather :size="12" class="text-indigo-400" />
                 </div>
                 <div class="flex-1">
-                  <div class="text-[11px] font-bold text-slate-300">Reflections on Solitude</div>
-                  <div class="text-[9px] text-slate-500">Manuscript · 12,400 / 30,000 words</div>
+                  <div class="text-[11px] font-bold text-zinc-300">Reflections on Solitude</div>
+                  <div class="text-[9px] text-zinc-500">Manuscript · 12,400 / 30,000 words</div>
                 </div>
-                <div class="w-12 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                <div class="w-12 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
                   <div class="h-full w-[41%] rounded-full bg-indigo-500" />
                 </div>
               </div>
@@ -635,21 +635,21 @@ const currentTab = computed(() => tabContent[activeTab.value])
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
           <div class="order-2 lg:order-1">
             <!-- Mini mockup -->
-            <div class="rounded-2xl border border-slate-700/40 bg-slate-900/40 p-5 space-y-3">
+            <div class="rounded-2xl border border-zinc-700/40 bg-zinc-900/40 p-5 space-y-3">
               <div class="flex items-center gap-2 mb-1">
                 <div class="w-3 h-3 rounded bg-indigo-500" />
-                <div class="h-1.5 w-20 rounded bg-slate-700" />
+                <div class="h-1.5 w-20 rounded bg-zinc-700" />
               </div>
-              <div v-for="n in 3" :key="n" class="rounded-lg bg-slate-800/50 p-3 border-l-2 border-indigo-500/40">
-                <div class="h-1.5 w-full rounded bg-slate-700/60 mb-2" />
-                <div class="h-1.5 w-4/5 rounded bg-slate-700/40 mb-2" />
-                <div class="h-1.5 w-2/3 rounded bg-slate-700/30" />
+              <div v-for="n in 3" :key="n" class="rounded-lg bg-zinc-800/50 p-3 border-l-2 border-indigo-500/40">
+                <div class="h-1.5 w-full rounded bg-zinc-700/60 mb-2" />
+                <div class="h-1.5 w-4/5 rounded bg-zinc-700/40 mb-2" />
+                <div class="h-1.5 w-2/3 rounded bg-zinc-700/30" />
                 <div class="flex items-center gap-2 mt-3">
                   <div class="h-1 w-8 rounded bg-indigo-500/30" />
                   <div class="h-1 w-12 rounded bg-purple-500/30" />
                 </div>
               </div>
-              <p class="text-[11px] text-slate-600 italic text-center pt-2">"The ink flow of the digital age..."</p>
+              <p class="text-[11px] text-zinc-600 italic text-center pt-2">"The ink flow of the digital age..."</p>
             </div>
           </div>
           <div class="order-1 lg:order-2">
@@ -657,19 +657,19 @@ const currentTab = computed(() => tabContent[activeTab.value])
               <span class="text-5xl font-black text-indigo-500/20">01</span>
               <h3 class="text-2xl sm:text-3xl font-black tracking-tight">Commonplace Book</h3>
             </div>
-            <p class="text-slate-400 leading-relaxed mb-6">
+            <p class="text-zinc-400 leading-relaxed mb-6">
               The ancient practice, digitally reborn. Save passages from every book you read.
               Tag them by theme, mood, or whatever system makes sense to you.
               Design beautiful quote cards. Build your personal anthology.
             </p>
             <div class="flex flex-wrap gap-2">
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <Quote :size="12" class="text-indigo-400" /> Quotes
               </span>
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <Hash :size="12" class="text-indigo-400" /> Tags
               </span>
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <Sparkles :size="12" class="text-indigo-400" /> Card Designer
               </span>
             </div>
@@ -683,42 +683,42 @@ const currentTab = computed(() => tabContent[activeTab.value])
               <span class="text-5xl font-black text-purple-500/20">02</span>
               <h3 class="text-2xl sm:text-3xl font-black tracking-tight">Reading Circles</h3>
             </div>
-            <p class="text-slate-400 leading-relaxed mb-6">
+            <p class="text-zinc-400 leading-relaxed mb-6">
               Create intimate reading groups. Discuss chapters without spoilers — topics unlock
               based on each member's reading progress. Share reactions, run polls, set milestones.
               A book club that actually works.
             </p>
             <div class="flex flex-wrap gap-2">
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <Shield :size="12" class="text-purple-400" /> Spoiler Protection
               </span>
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <MessageSquare :size="12" class="text-purple-400" /> Discussions
               </span>
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <BarChart3 :size="12" class="text-purple-400" /> Polls
               </span>
             </div>
           </div>
           <div>
             <!-- Circle mockup -->
-            <div class="rounded-2xl border border-slate-700/40 bg-slate-900/40 p-5 space-y-3">
+            <div class="rounded-2xl border border-zinc-700/40 bg-zinc-900/40 p-5 space-y-3">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-[10px] text-white font-black">LC</div>
                 <div>
                   <div class="text-xs font-bold">Literary Conversations</div>
-                  <div class="text-[9px] text-slate-500">8 members · 3 unread</div>
+                  <div class="text-[9px] text-zinc-500">8 members · 3 unread</div>
                 </div>
               </div>
               <div class="space-y-2">
                 <div class="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
-                  <MessageSquare :size="12" class="text-slate-500" />
-                  <span class="text-[10px] text-slate-400 flex-1">Chapter 5 — The turning point</span>
+                  <MessageSquare :size="12" class="text-zinc-500" />
+                  <span class="text-[10px] text-zinc-400 flex-1">Chapter 5 — The turning point</span>
                   <span class="text-[9px] text-indigo-400 font-bold">12 replies</span>
                 </div>
                 <div class="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
-                  <MessageSquare :size="12" class="text-slate-500" />
-                  <span class="text-[10px] text-slate-400 flex-1">Favourite quotes so far?</span>
+                  <MessageSquare :size="12" class="text-zinc-500" />
+                  <span class="text-[10px] text-zinc-400 flex-1">Favourite quotes so far?</span>
                   <span class="text-[9px] text-indigo-400 font-bold">8 replies</span>
                 </div>
                 <div class="flex items-center gap-2 p-2 rounded-lg bg-amber-500/5 border border-amber-500/15">
@@ -735,7 +735,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
           <div class="order-2 lg:order-1">
             <!-- Discovery mockup -->
-            <div class="rounded-2xl border border-slate-700/40 bg-slate-900/40 p-5 space-y-4">
+            <div class="rounded-2xl border border-zinc-700/40 bg-zinc-900/40 p-5 space-y-4">
               <div class="flex items-center gap-2">
                 <Compass :size="14" class="text-sky-400" />
                 <span class="text-xs font-bold">Discover</span>
@@ -753,8 +753,8 @@ const currentTab = computed(() => tabContent[activeTab.value])
                   </div>
                 </div>
               </div>
-              <div class="rounded-lg bg-slate-800/30 p-3 border border-slate-700/20">
-                <div class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Why this matches</div>
+              <div class="rounded-lg bg-zinc-800/30 p-3 border border-zinc-700/20">
+                <div class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Why this matches</div>
                 <div class="flex flex-wrap gap-1">
                   <span class="px-1.5 py-0.5 rounded text-[8px] bg-indigo-500/15 text-indigo-400">High introspection</span>
                   <span class="px-1.5 py-0.5 rounded text-[8px] bg-purple-500/15 text-purple-400">Dense complexity</span>
@@ -768,19 +768,19 @@ const currentTab = computed(() => tabContent[activeTab.value])
               <span class="text-5xl font-black text-sky-500/20">03</span>
               <h3 class="text-2xl sm:text-3xl font-black tracking-tight">Intelligence & Discovery</h3>
             </div>
-            <p class="text-slate-400 leading-relaxed mb-6">
+            <p class="text-zinc-400 leading-relaxed mb-6">
               AI that connects themes across your reading. DNA-based recommendations
               that understand <em>why</em> you loved a book, not just that you rated it highly.
               Discover by feeling — contemplative, intense, philosophical — not by genre alone.
             </p>
             <div class="flex flex-wrap gap-2">
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <Cpu :size="12" class="text-sky-400" /> AI Insights
               </span>
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <Dna :size="12" class="text-sky-400" /> DNA Matching
               </span>
-              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-400 border border-slate-700/40 flex items-center gap-1.5">
+              <span class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 flex items-center gap-1.5">
                 <TrendingUp :size="12" class="text-sky-400" /> Taste Evolution
               </span>
             </div>
@@ -792,7 +792,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
 
     <!-- ===== VISUAL DIVIDER ===== -->
     <div class="relative h-px max-w-5xl mx-auto">
-      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/50 to-transparent" />
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-zinc-700/50 to-transparent" />
     </div>
 
 
@@ -813,12 +813,12 @@ const currentTab = computed(() => tabContent[activeTab.value])
             { icon: Star, label: 'Reviews', desc: 'Write and read community reviews', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
             { icon: Search, label: 'Book Search', desc: 'Multi-source: Google, OpenLibrary, Hardcover', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
             { icon: Heart, label: 'Contributions', desc: 'Earn reputation, badges, and tiers', color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
-          ]" :key="item.label" class="group rounded-xl border border-slate-800/50 bg-slate-900/30 p-4 hover:border-slate-700 transition-all hover:bg-slate-900/50">
+          ]" :key="item.label" class="group rounded-xl border border-zinc-800/50 bg-zinc-900/30 p-4 hover:border-zinc-700 transition-all hover:bg-zinc-900/50">
             <div :class="'w-9 h-9 rounded-lg border flex items-center justify-center mb-3 ' + item.color">
               <component :is="item.icon" :size="16" />
             </div>
             <h4 class="text-xs font-bold mb-1">{{ item.label }}</h4>
-            <p class="text-[10px] text-slate-500 leading-relaxed">{{ item.desc }}</p>
+            <p class="text-[10px] text-zinc-500 leading-relaxed">{{ item.desc }}</p>
           </div>
         </div>
       </div>
@@ -842,7 +842,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
           Your reading deserves
           <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">a place to live.</span>
         </h2>
-        <p class="text-slate-400 leading-relaxed max-w-md mx-auto mb-8">
+        <p class="text-zinc-400 leading-relaxed max-w-md mx-auto mb-8">
           Join Marginalia and start building your personal reading archive.
           Free. No ads. No tracking. Just you and your books.
         </p>
@@ -856,7 +856,7 @@ const currentTab = computed(() => tabContent[activeTab.value])
           </button>
           <button
             @click="router.push('/login')"
-            class="px-8 py-3.5 text-slate-400 hover:text-white font-medium rounded-lg border border-slate-700 hover:border-slate-500 transition-all"
+            class="px-8 py-3.5 text-zinc-400 hover:text-white font-medium rounded-lg border border-zinc-700 hover:border-zinc-500 transition-all"
           >
             I have an account
           </button>
@@ -866,17 +866,17 @@ const currentTab = computed(() => tabContent[activeTab.value])
 
 
     <!-- ===== FOOTER ===== -->
-    <footer class="border-t border-slate-800/40 py-10 px-6">
+    <footer class="border-t border-zinc-800/40 py-10 px-6">
       <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-2.5">
           <div class="w-6 h-6 rounded bg-indigo-500/20 flex items-center justify-center">
             <BookOpen :size="12" class="text-indigo-400" />
           </div>
-          <span class="font-bold text-xs text-slate-500">Marginalia</span>
+          <span class="font-bold text-xs text-zinc-500">Marginalia</span>
         </div>
-        <p class="text-slate-600 text-[11px]">A place where your reading lives.</p>
-        <div class="flex items-center gap-4 text-xs text-slate-500">
-          <button @click="router.push('/login')" class="hover:text-slate-300 transition-colors">Sign in</button>
+        <p class="text-zinc-600 text-[11px]">A place where your reading lives.</p>
+        <div class="flex items-center gap-4 text-xs text-zinc-500">
+          <button @click="router.push('/login')" class="hover:text-zinc-300 transition-colors">Sign in</button>
           <button @click="router.push('/register')" class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Get started</button>
         </div>
       </div>

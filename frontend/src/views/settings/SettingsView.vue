@@ -199,8 +199,8 @@ const handleDeleteAccount = async () => {
     <!-- Page Header -->
     <div class="mb-8">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-9 h-9 rounded-xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center">
-          <Settings :size="18" class="text-slate-400" />
+        <div class="w-9 h-9 rounded-xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center">
+          <Settings :size="18" class="text-zinc-400" />
         </div>
         <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Settings</h1>
       </div>
@@ -209,10 +209,10 @@ const handleDeleteAccount = async () => {
     <div class="space-y-6">
 
       <!-- ===== PROFILE ===== -->
-      <section class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+      <section class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
         <div class="flex items-center gap-2.5 mb-5">
           <User :size="16" class="text-indigo-400" />
-          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Profile</h2>
+          <h2 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Profile</h2>
         </div>
 
         <!-- Avatar -->
@@ -238,66 +238,66 @@ const handleDeleteAccount = async () => {
           </div>
           <div>
             <p class="text-sm font-semibold text-white">Profile photo</p>
-            <p class="text-xs text-slate-500">Click the camera icon to change</p>
+            <p class="text-xs text-zinc-500">Click the camera icon to change</p>
           </div>
         </div>
 
         <!-- Name fields -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
-            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">First Name</label>
+            <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 block">First Name</label>
             <input
               v-model="profileForm.first_name"
               type="text"
               placeholder="First name"
-              class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
+              class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
             />
           </div>
           <div>
-            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Last Name</label>
+            <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 block">Last Name</label>
             <input
               v-model="profileForm.last_name"
               type="text"
               placeholder="Last name"
-              class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
+              class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
             />
           </div>
         </div>
 
         <!-- Bio -->
         <div class="mb-4">
-          <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Bio</label>
+          <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 block">Bio</label>
           <textarea
             v-model="profileForm.bio"
             rows="3"
             placeholder="Tell us about yourself..."
-            class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all resize-none"
+            class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all resize-none"
           />
         </div>
 
         <!-- Location & Website -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
-            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Location</label>
+            <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 block">Location</label>
             <div class="relative">
-              <MapPin class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="14" />
+              <MapPin class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" :size="14" />
               <input
                 v-model="profileForm.location"
                 type="text"
                 placeholder="City, Country"
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
               />
             </div>
           </div>
           <div>
-            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Website</label>
+            <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 block">Website</label>
             <div class="relative">
-              <Globe class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="14" />
+              <Globe class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" :size="14" />
               <input
                 v-model="profileForm.website"
                 type="url"
                 placeholder="https://..."
-                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
+                class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all"
               />
             </div>
           </div>
@@ -305,41 +305,41 @@ const handleDeleteAccount = async () => {
 
         <!-- Birth Date -->
         <div>
-          <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Birth Date</label>
+          <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 block">Birth Date</label>
           <div class="relative max-w-xs">
-            <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="14" />
+            <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" :size="14" />
             <input
               v-model="profileForm.birth_date"
               type="date"
-              class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+              class="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
         </div>
       </section>
 
       <!-- ===== APPEARANCE ===== -->
-      <section class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+      <section class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
         <div class="flex items-center gap-2.5 mb-4">
           <Palette :size="16" class="text-indigo-400" />
-          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Appearance</h2>
+          <h2 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Appearance</h2>
         </div>
 
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-semibold text-white">Theme</p>
-            <p class="text-xs text-slate-500 mt-0.5">Choose your preferred color scheme</p>
+            <p class="text-xs text-zinc-500 mt-0.5">Choose your preferred color scheme</p>
           </div>
-          <div class="flex items-center gap-1 p-1 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <div class="flex items-center gap-1 p-1 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
             <button
               @click="themeStore.setTheme('dark')"
-              :class="isDark ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-300'"
+              :class="isDark ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-300'"
               class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"
             >
               <Moon :size="13" /> Dark
             </button>
             <button
               @click="themeStore.setTheme('light')"
-              :class="!isDark ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-300'"
+              :class="!isDark ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-300'"
               class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"
             >
               <Sun :size="13" /> Light
@@ -349,121 +349,121 @@ const handleDeleteAccount = async () => {
       </section>
 
       <!-- ===== PRIVACY ===== -->
-      <section class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+      <section class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
         <div class="flex items-center gap-2.5 mb-4">
           <Shield :size="16" class="text-emerald-400" />
-          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Privacy</h2>
+          <h2 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Privacy</h2>
         </div>
 
         <div class="space-y-4">
           <label class="flex items-center justify-between cursor-pointer group">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center">
                 <Eye v-if="settingsForm.is_public" :size="14" class="text-emerald-400" />
-                <EyeOff v-else :size="14" class="text-slate-500" />
+                <EyeOff v-else :size="14" class="text-zinc-500" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-white">Public profile</p>
-                <p class="text-xs text-slate-500">Other users can find and view your profile</p>
+                <p class="text-xs text-zinc-500">Other users can find and view your profile</p>
               </div>
             </div>
             <input type="checkbox" v-model="settingsForm.is_public" class="sr-only peer" />
-            <div class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+            <div class="w-10 h-5 rounded-full bg-zinc-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
           </label>
 
           <label class="flex items-center justify-between cursor-pointer group">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center">
                 <BarChart3 :size="14" class="text-sky-400" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-white">Show reading stats</p>
-                <p class="text-xs text-slate-500">Display your reading statistics on your profile</p>
+                <p class="text-xs text-zinc-500">Display your reading statistics on your profile</p>
               </div>
             </div>
             <input type="checkbox" v-model="settingsForm.show_reading_stats" class="sr-only peer" />
-            <div class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+            <div class="w-10 h-5 rounded-full bg-zinc-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
           </label>
 
           <label class="flex items-center justify-between cursor-pointer group">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center">
                 <Quote :size="14" class="text-amber-400" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-white">Show quotes</p>
-                <p class="text-xs text-slate-500">Display your public quotes on your profile</p>
+                <p class="text-xs text-zinc-500">Display your public quotes on your profile</p>
               </div>
             </div>
             <input type="checkbox" v-model="settingsForm.show_quotes" class="sr-only peer" />
-            <div class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+            <div class="w-10 h-5 rounded-full bg-zinc-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
           </label>
         </div>
       </section>
 
       <!-- ===== NOTIFICATIONS ===== -->
-      <section class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+      <section class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
         <div class="flex items-center gap-2.5 mb-4">
           <Bell :size="16" class="text-amber-400" />
-          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Notifications</h2>
+          <h2 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Notifications</h2>
         </div>
 
         <div class="space-y-4">
           <label class="flex items-center justify-between cursor-pointer">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center">
                 <Users :size="14" class="text-indigo-400" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-white">Friend requests</p>
-                <p class="text-xs text-slate-500">Email when someone sends you a friend request</p>
+                <p class="text-xs text-zinc-500">Email when someone sends you a friend request</p>
               </div>
             </div>
             <input type="checkbox" v-model="settingsForm.email_on_friend_request" class="sr-only peer" />
-            <div class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+            <div class="w-10 h-5 rounded-full bg-zinc-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
           </label>
 
           <label class="flex items-center justify-between cursor-pointer">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center">
                 <MessageCircle :size="14" class="text-purple-400" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-white">Circle invitations</p>
-                <p class="text-xs text-slate-500">Email when you're invited to a reading circle</p>
+                <p class="text-xs text-zinc-500">Email when you're invited to a reading circle</p>
               </div>
             </div>
             <input type="checkbox" v-model="settingsForm.email_on_circle_invite" class="sr-only peer" />
-            <div class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+            <div class="w-10 h-5 rounded-full bg-zinc-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
           </label>
 
           <label class="flex items-center justify-between cursor-pointer">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center">
                 <Mail :size="14" class="text-rose-400" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-white">Quote comments</p>
-                <p class="text-xs text-slate-500">Email when someone comments on your quote</p>
+                <p class="text-xs text-zinc-500">Email when someone comments on your quote</p>
               </div>
             </div>
             <input type="checkbox" v-model="settingsForm.email_on_quote_comment" class="sr-only peer" />
-            <div class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+            <div class="w-10 h-5 rounded-full bg-zinc-700 peer-checked:bg-indigo-500 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
           </label>
         </div>
       </section>
 
       <!-- ===== READING GOAL ===== -->
-      <section class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+      <section class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
         <div class="flex items-center gap-2.5 mb-4">
           <BookOpen :size="16" class="text-sky-400" />
-          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Reading Goal</h2>
+          <h2 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Reading Goal</h2>
         </div>
 
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-semibold text-white">Yearly reading goal</p>
-            <p class="text-xs text-slate-500">Number of books you'd like to read this year</p>
+            <p class="text-xs text-zinc-500">Number of books you'd like to read this year</p>
           </div>
           <div class="flex items-center gap-2">
             <input
@@ -472,29 +472,29 @@ const handleDeleteAccount = async () => {
               min="1"
               max="365"
               placeholder="—"
-              class="w-20 text-center px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50 text-sm text-white font-bold outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              class="w-20 text-center px-3 py-2 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-sm text-white font-bold outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
-            <span class="text-xs text-slate-500">books</span>
+            <span class="text-xs text-zinc-500">books</span>
           </div>
         </div>
       </section>
 
       <!-- ===== DATA ===== -->
-      <section class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-5 sm:p-6">
+      <section class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-5 sm:p-6">
         <div class="flex items-center gap-2.5 mb-4">
-          <Download :size="16" class="text-slate-400" />
-          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Data</h2>
+          <Download :size="16" class="text-zinc-400" />
+          <h2 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Data</h2>
         </div>
 
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-semibold text-white">Export all data</p>
-            <p class="text-xs text-slate-500">Download your books, quotes, journals, and notes as a ZIP file</p>
+            <p class="text-xs text-zinc-500">Download your books, quotes, journals, and notes as a ZIP file</p>
           </div>
           <button
             @click="handleExportData"
             :disabled="exportingData"
-            class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 hover:border-slate-500 hover:text-white transition-all disabled:opacity-50 flex items-center gap-1.5"
+            class="px-4 py-2 rounded-xl border border-zinc-700 text-xs font-bold text-zinc-300 hover:border-zinc-500 hover:text-white transition-all disabled:opacity-50 flex items-center gap-1.5"
           >
             <Loader2 v-if="exportingData" :size="14" class="animate-spin" />
             <Download v-else :size="14" />
@@ -526,7 +526,7 @@ const handleDeleteAccount = async () => {
         <div v-if="!showDeleteDialog" class="flex items-center justify-between">
           <div>
             <p class="text-sm font-semibold text-white">Delete account</p>
-            <p class="text-xs text-slate-500">Permanently delete your account and all data. This cannot be undone.</p>
+            <p class="text-xs text-zinc-500">Permanently delete your account and all data. This cannot be undone.</p>
           </div>
           <button
             @click="showDeleteDialog = true"
@@ -549,7 +549,7 @@ const handleDeleteAccount = async () => {
           <button
             @click="handleExportData"
             :disabled="exportingData"
-            class="w-full px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 hover:border-slate-500 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+            class="w-full px-4 py-2.5 rounded-xl border border-zinc-700 text-xs font-bold text-zinc-300 hover:border-zinc-500 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
             <Loader2 v-if="exportingData" :size="14" class="animate-spin" />
             <Download v-else :size="14" />
@@ -557,12 +557,12 @@ const handleDeleteAccount = async () => {
           </button>
 
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1.5">Confirm with your password</label>
+            <label class="block text-xs font-medium text-zinc-400 mb-1.5">Confirm with your password</label>
             <input
               v-model="deletePassword"
               type="password"
               placeholder="Your password"
-              class="w-full bg-slate-800/80 border border-slate-700/60 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500/50 transition-all"
+              class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 transition-all"
             />
             <p v-if="deleteError" class="text-xs text-red-400 mt-1.5">{{ deleteError }}</p>
           </div>
@@ -570,7 +570,7 @@ const handleDeleteAccount = async () => {
           <div class="flex gap-2">
             <button
               @click="showDeleteDialog = false; deletePassword = ''; deleteError = ''"
-              class="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-400 hover:text-white hover:border-slate-500 transition-all"
+              class="flex-1 px-4 py-2.5 rounded-xl border border-zinc-700 text-xs font-bold text-zinc-400 hover:text-white hover:border-zinc-500 transition-all"
             >
               Cancel
             </button>

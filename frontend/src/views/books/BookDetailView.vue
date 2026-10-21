@@ -15,7 +15,7 @@ import SimilarBooksList from '@/components/books/SimilarBooksList.vue'
 import BookDNACard from '@/components/books/BookDNACard.vue'
 import BookEditionsList from '@/components/books/BookEditionsList.vue'
 import { recommendationsService } from '@/services/recommendationsService'
-import { booksAPI } from '@/services/api'
+import { booksAPI, userBooksAPI } from '@/services/api'
 import { getBookUrl, getBookUrlWithSuffix } from '@/utils/bookUrl'
 import { getAuthorUrl } from '@/utils/authorUrl'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -230,6 +230,26 @@ const formattedFinishedAt = computed(() => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 })
 
+// Ensure this exact edition's UserBook is visible even if it was superseded by
+// another edition via switch_edition — the default library fetch excludes those,
+// so owned/wishlist state for a "replaced" edition would otherwise look empty.
+const ensureEditionUserBookLoaded = async () => {
+  const numericId = parseInt(bookId.value)
+  if (userBooksStore.books.some(ub => ub.book?.id === numericId)) return
+
+  try {
+    const response = await userBooksAPI.list({ book: numericId })
+    const results = Array.isArray(response.data) ? response.data : (response.data?.results || [])
+    for (const ub of results) {
+      if (!userBooksStore.books.some(existing => existing.id === ub.id)) {
+        userBooksStore.books.push(ub)
+      }
+    }
+  } catch (error) {
+    // Non-critical - owned/wishlist icons just won't reflect a replaced edition's state
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   coverLoaded.value = false
@@ -244,6 +264,7 @@ onMounted(async () => {
   }
 
   await Promise.all(promises)
+  await ensureEditionUserBookLoaded()
 
   // After loading book and user books, fetch quotes for the user's edition (if they have one in this group)
   await nextTick()
@@ -360,6 +381,7 @@ watch(bookId, async (newId, oldId) => {
   await nextTick()
 
   await booksStore.fetchBook(newId)
+  await ensureEditionUserBookLoaded()
 
   // After loading the new book, fetch quotes for user's edition if they have one
   await nextTick()
@@ -636,7 +658,7 @@ const handleShareProgress = async () => {
 const getStatusBadgeClass = (status) => {
   if (status === 'read') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
   if (status === 'currently_reading') return 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-  return 'bg-slate-800 text-slate-400 border-slate-700'
+  return 'bg-zinc-800 text-zinc-400 border-zinc-700'
 }
 
 const getStatusLabel = (status) => {
@@ -811,12 +833,12 @@ export const MetaBox = defineComponent({
     value: String
   },
   setup(props) {
-    return () => h('div', { class: 'p-4 rounded-2xl glass border-slate-800/50' }, [
-      h('div', { class: 'flex items-center gap-2 text-slate-500 mb-1' }, [
+    return () => h('div', { class: 'p-4 rounded-2xl glass border-zinc-800/50' }, [
+      h('div', { class: 'flex items-center gap-2 text-zinc-500 mb-1' }, [
         h(props.icon, { size: 18 }),
         h('span', { class: 'text-[10px] font-bold uppercase tracking-widest' }, props.label)
       ]),
-      h('p', { class: 'text-slate-100 font-bold truncate' }, props.value)
+      h('p', { class: 'text-zinc-100 font-bold truncate' }, props.value)
     ])
   }
 })
@@ -830,18 +852,18 @@ export const FriendActivity = defineComponent({
   },
   setup(props) {
     const initials = props.user.split(' ').map(n => n[0]).join('')
-    return () => h('div', { class: 'flex gap-4 p-4 rounded-2xl hover:bg-slate-900/50 transition-colors border border-transparent hover:border-slate-800' }, [
-      h('div', { class: 'w-10 h-10 rounded-full bg-slate-800 flex-shrink-0 border border-slate-700 flex items-center justify-center font-bold text-slate-400 text-xs' }, initials),
+    return () => h('div', { class: 'flex gap-4 p-4 rounded-2xl hover:bg-zinc-900/50 transition-colors border border-transparent hover:border-zinc-800' }, [
+      h('div', { class: 'w-10 h-10 rounded-full bg-zinc-800 flex-shrink-0 border border-zinc-700 flex items-center justify-center font-bold text-zinc-400 text-xs' }, initials),
       h('div', { class: 'flex-1 min-w-0' }, [
         h('div', { class: 'flex items-center justify-between mb-1' }, [
           h('span', { class: 'font-bold text-white text-sm' }, props.user),
-          h('span', { class: 'text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-500 font-bold uppercase' }, props.status)
+          h('span', { class: 'text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-500 font-bold uppercase' }, props.status)
         ]),
         props.rating > 0 ? h('div', { class: 'flex items-center gap-1 mb-2' }, [
           h(Star, { size: 10, class: 'text-amber-400 fill-current' }),
           h('span', { class: 'text-[10px] font-bold text-amber-400' }, props.rating.toFixed(1))
         ]) : null,
-        h('p', { class: 'text-xs text-slate-400 line-clamp-2 italic' }, `"${props.review}"`)
+        h('p', { class: 'text-xs text-zinc-400 line-clamp-2 italic' }, `"${props.review}"`)
       ])
     ])
   }
@@ -859,25 +881,25 @@ export const QuoteCard = defineComponent({
       navigator.clipboard.writeText(text)
     }
 
-    return () => h('div', { class: 'p-6 rounded-2xl glass border-slate-800/50 hover:border-indigo-500/30 transition-all space-y-4' }, [
-      h('blockquote', { class: 'text-quote font-serif text-slate-200 italic leading-relaxed border-l-4 border-indigo-500 pl-4' }, `"${props.quote.text}"`),
-      props.quote.note ? h('div', { class: 'text-sm text-slate-400 pl-4' }, [
-        h('span', { class: 'font-bold text-slate-500' }, 'Note:'),
+    return () => h('div', { class: 'p-6 rounded-2xl glass border-zinc-800/50 hover:border-indigo-500/30 transition-all space-y-4' }, [
+      h('blockquote', { class: 'text-quote font-serif text-zinc-200 italic leading-relaxed border-l-4 border-indigo-500 pl-4' }, `"${props.quote.text}"`),
+      props.quote.note ? h('div', { class: 'text-sm text-zinc-400 pl-4' }, [
+        h('span', { class: 'font-bold text-zinc-500' }, 'Note:'),
         ` ${props.quote.note}`
       ]) : null,
-      h('div', { class: 'flex items-center justify-between pt-4 border-t border-slate-800/50' }, [
+      h('div', { class: 'flex items-center justify-between pt-4 border-t border-zinc-800/50' }, [
         h('div', { class: 'flex items-center gap-2' }, [
-          h(Bookmark, { size: 14, class: 'text-slate-500' }),
-          h('span', { class: 'text-xs text-slate-500' }, `Page ${props.quote.page_number || 'N/A'}`)
+          h(Bookmark, { size: 14, class: 'text-zinc-500' }),
+          h('span', { class: 'text-xs text-zinc-500' }, `Page ${props.quote.page_number || 'N/A'}`)
         ]),
         h('div', { class: 'flex gap-2' }, [
           h('button', {
-            class: `p-2 rounded-lg hover:bg-slate-800 transition-colors ${props.quote.is_favorite ? 'text-rose-400' : 'text-slate-500'}`
+            class: `p-2 rounded-lg hover:bg-zinc-800 transition-colors ${props.quote.is_favorite ? 'text-rose-400' : 'text-zinc-500'}`
           }, [
             h(Heart, { size: 16, fill: props.quote.is_favorite ? 'currentColor' : 'none' })
           ]),
           h('button', {
-            class: 'p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-500 hover:text-indigo-400',
+            class: 'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-indigo-400',
             onClick: handleCopy
           }, [
             h(Copy, { size: 16 })
@@ -893,24 +915,24 @@ export const QuoteCard = defineComponent({
   <div v-if="book" class="w-full max-w-[1600px] mx-auto lg:px-6 lg:py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
     <!-- MOBILE HEADER -->
-    <header class="lg:hidden sticky top-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-white/5">
+    <header class="lg:hidden sticky top-0 z-40 bg-zinc-900/95 backdrop-blur-xl border-b border-white/5">
       <div class="flex items-center justify-between px-4 py-3">
         <button
           @click="handleBack"
-          class="p-2 -ml-2 rounded-xl text-slate-400 active:bg-slate-800"
+          class="p-2 -ml-2 rounded-xl text-zinc-400 active:bg-zinc-800"
         >
           <ArrowLeft :size="22" />
         </button>
         <div class="flex-1 min-w-0 mx-3">
           <h1 class="text-sm font-bold text-white truncate">{{ book.title }}</h1>
-          <p class="text-[10px] text-slate-500 truncate">{{ authorsString }}</p>
+          <p class="text-[10px] text-zinc-500 truncate">{{ authorsString }}</p>
         </div>
         <div class="flex items-center gap-1">
           <button
             @click="handleToggleOwned"
             :class="[
               'p-2 rounded-xl transition-colors',
-              isOwned ? 'text-amber-400' : 'text-slate-400'
+              isOwned ? 'text-amber-400' : 'text-zinc-400'
             ]"
           >
             <Home :size="20" />
@@ -919,7 +941,7 @@ export const QuoteCard = defineComponent({
             @click="handleToggleWishlisted"
             :class="[
               'p-2 rounded-xl transition-colors',
-              isWishlisted ? 'text-rose-400' : 'text-slate-400'
+              isWishlisted ? 'text-rose-400' : 'text-zinc-400'
             ]"
             title="Wishlist"
           >
@@ -929,14 +951,14 @@ export const QuoteCard = defineComponent({
             @click="handleToggleFavorite"
             :class="[
               'p-2 rounded-xl transition-colors',
-              isFavorite ? 'text-rose-400' : 'text-slate-400'
+              isFavorite ? 'text-rose-400' : 'text-zinc-400'
             ]"
           >
             <Heart :size="20" :fill="isFavorite ? 'currentColor' : 'none'" />
           </button>
           <button
             @click="showMobileSidebar = true"
-            class="p-2 rounded-xl text-slate-400 active:bg-slate-800"
+            class="p-2 rounded-xl text-zinc-400 active:bg-zinc-800"
           >
             <MoreHorizontal :size="20" />
           </button>
@@ -947,7 +969,7 @@ export const QuoteCard = defineComponent({
     <!-- Desktop Back Button -->
     <button
       @click="handleBack"
-      class="hidden lg:flex items-center gap-2 text-slate-400 hover:text-indigo-400 mb-4 transition-colors font-bold group"
+      class="hidden lg:flex items-center gap-2 text-zinc-400 hover:text-indigo-400 mb-4 transition-colors font-bold group"
     >
       <ArrowLeft :size="20" class="group-hover:-translate-x-1 transition-transform" />
       Back to Results
@@ -960,7 +982,7 @@ export const QuoteCard = defineComponent({
         <div class="flex gap-4">
           <!-- Cover -->
           <div class="relative shrink-0 w-28 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-            <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 animate-pulse" />
+            <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-700 to-zinc-800 animate-pulse" />
             <img
               :key="coverUrl"
               :src="coverUrl"
@@ -992,7 +1014,7 @@ export const QuoteCard = defineComponent({
               </span>
             </div>
             <h1 class="text-lg font-black text-white leading-tight mb-1 line-clamp-2">{{ book.title }}</h1>
-            <p class="text-sm text-slate-400 mb-2">
+            <p class="text-sm text-zinc-400 mb-2">
               by <span v-for="(author, idx) in (book.authors || [])" :key="author.id"><router-link :to="getAuthorUrl(author)" class="text-indigo-400 hover:underline">{{ author.name }}</router-link><span v-if="idx < book.authors.length - 1">, </span></span><span v-if="!book.authors?.length">Unknown Author</span>
             </p>
 
@@ -1003,23 +1025,23 @@ export const QuoteCard = defineComponent({
 
             <!-- Quick Stats 2x2 Grid -->
             <div class="grid grid-cols-2 gap-1.5">
-              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                <BookOpen :size="12" class="text-slate-400" />
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+                <BookOpen :size="12" class="text-zinc-400" />
                 <span class="text-[11px] font-bold text-white">{{ book.pages || '---' }}</span>
-                <span class="text-[9px] text-slate-500">pg</span>
+                <span class="text-[9px] text-zinc-500">pg</span>
               </div>
-              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                <Globe :size="12" class="text-slate-400" />
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+                <Globe :size="12" class="text-zinc-400" />
                 <span class="text-[11px] font-bold text-white">{{ book.language?.toUpperCase() || '---' }}</span>
               </div>
-              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                <Calendar :size="12" class="text-slate-400" />
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+                <Calendar :size="12" class="text-zinc-400" />
                 <span class="text-[11px] font-bold text-white">{{ publishedYear }}</span>
               </div>
-              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
+              <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
                 <Bookmark :size="12" class="text-indigo-400" />
                 <span class="text-[11px] font-bold text-white">{{ bookQuotes.length }}</span>
-                <span class="text-[9px] text-slate-500">quotes</span>
+                <span class="text-[9px] text-zinc-500">quotes</span>
               </div>
             </div>
           </div>
@@ -1044,18 +1066,18 @@ export const QuoteCard = defineComponent({
                 'absolute left-0 top-0 bottom-0 w-1 rounded-l-xl z-10',
                 currentStatus === 'read' ? 'bg-emerald-500' :
                 currentStatus === 'currently_reading' ? 'bg-sky-500' :
-                currentStatus === 'abandoned' ? 'bg-red-500' : 'bg-slate-600'
+                currentStatus === 'abandoned' ? 'bg-red-500' : 'bg-zinc-600'
               ]"
             />
             <Select :model-value="currentStatus" @update:model-value="handleStatusChange">
-              <SelectTrigger class="w-full bg-slate-800 border-slate-700 rounded-xl pl-4 pr-3 py-3 h-auto text-sm font-bold text-slate-200">
+              <SelectTrigger class="w-full bg-zinc-800 border-zinc-700 rounded-xl pl-4 pr-3 py-3 h-auto text-sm font-bold text-zinc-200">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
-              <SelectContent class="bg-slate-800 border-slate-700">
-                <SelectItem value="want_to_read" class="text-slate-200 focus:bg-slate-700 focus:text-white">Want to Read</SelectItem>
-                <SelectItem value="currently_reading" class="text-slate-200 focus:bg-slate-700 focus:text-white">Currently Reading</SelectItem>
-                <SelectItem value="read" class="text-slate-200 focus:bg-slate-700 focus:text-white">Finished</SelectItem>
-                <SelectItem value="abandoned" class="text-slate-200 focus:bg-slate-700 focus:text-white">Abandoned</SelectItem>
+              <SelectContent class="bg-zinc-800 border-zinc-700">
+                <SelectItem value="want_to_read" class="text-zinc-200 focus:bg-zinc-700 focus:text-white">Want to Read</SelectItem>
+                <SelectItem value="currently_reading" class="text-zinc-200 focus:bg-zinc-700 focus:text-white">Currently Reading</SelectItem>
+                <SelectItem value="read" class="text-zinc-200 focus:bg-zinc-700 focus:text-white">Finished</SelectItem>
+                <SelectItem value="abandoned" class="text-zinc-200 focus:bg-zinc-700 focus:text-white">Abandoned</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1075,7 +1097,7 @@ export const QuoteCard = defineComponent({
       <div class="hidden lg:block lg:col-span-3 min-w-0 space-y-8">
         <div class="relative aspect-[2/3] w-full max-w-[200px] sm:max-w-xs mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
           <!-- Skeleton loader -->
-          <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 animate-pulse z-10" />
+          <div v-if="!coverLoaded" class="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-700 to-zinc-800 animate-pulse z-10" />
 
           <img
             :key="coverUrl"
@@ -1085,7 +1107,7 @@ export const QuoteCard = defineComponent({
             v-show="coverLoaded"
             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/10 to-transparent pointer-events-none" />
+          <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/10 to-transparent pointer-events-none" />
 
           <button
             @click="handleToggleFavorite"
@@ -1106,7 +1128,7 @@ export const QuoteCard = defineComponent({
                 'p-2 sm:p-2.5 rounded-full glass transition-all duration-200 active:scale-75 hover:scale-110',
                 isOwned
                   ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                  : 'text-white/50 hover:text-amber-400'
+                  : 'text-white/50 light:text-zinc-900/40 hover:text-amber-400'
               ]"
               :title="isOwned ? 'In your home library' : 'Mark as owned'"
             >
@@ -1118,7 +1140,7 @@ export const QuoteCard = defineComponent({
                 'p-2 sm:p-2.5 rounded-full glass transition-all duration-200 active:scale-75 hover:scale-110',
                 isWishlisted
                   ? 'text-rose-400 bg-rose-500/10 border-rose-500/30'
-                  : 'text-white/50 hover:text-rose-400'
+                  : 'text-white/50 light:text-zinc-900/40 hover:text-rose-400'
               ]"
               :title="isWishlisted ? 'On your wishlist' : 'Add to wishlist'"
             >
@@ -1136,14 +1158,14 @@ export const QuoteCard = defineComponent({
         </div>
 
         <!-- Publisher Info -->
-        <div class="p-6 rounded-2xl glass border-slate-800/50 space-y-4">
-          <div class="flex items-center gap-3 text-slate-400">
+        <div class="p-6 rounded-2xl glass border-zinc-800/50 space-y-4">
+          <div class="flex items-center gap-3 text-zinc-400">
             <Building2 :size="18" />
             <span class="text-xs font-bold uppercase tracking-widest">Publisher</span>
           </div>
-          <p class="text-slate-100 font-semibold">{{ book.publisher?.name || 'Unknown Publisher' }}</p>
-          <div class="pt-4 border-t border-slate-800/50">
-            <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">ISBN-13</span>
+          <p class="text-zinc-100 font-semibold">{{ book.publisher?.name || 'Unknown Publisher' }}</p>
+          <div class="pt-4 border-t border-zinc-800/50">
+            <span class="text-[10px] text-zinc-500 font-bold uppercase block mb-1">ISBN-13</span>
             <code class="text-xs text-indigo-400">{{ book.isbn || 'N/A' }}</code>
           </div>
         </div>
@@ -1182,22 +1204,22 @@ export const QuoteCard = defineComponent({
             </span>
           </div>
           <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-4">{{ book.title }}</h1>
-          <p class="text-base sm:text-lg lg:text-xl text-slate-400 font-medium">
+          <p class="text-base sm:text-lg lg:text-xl text-zinc-400 font-medium">
             by <span v-for="(author, idx) in (book.authors || [])" :key="author.id"><router-link :to="getAuthorUrl(author)" class="text-indigo-400 hover:underline">{{ author.name }}</router-link><span v-if="idx < book.authors.length - 1">, </span></span><span v-if="!book.authors?.length">Unknown Author</span>
           </p>
 
           <div class="flex items-center gap-4 mt-6">
             <StarRating :model-value="averageRating" :readonly="true" :size="24" :show-value="true" />
-            <span class="text-slate-500 text-sm">({{ ratingsCount }} ratings on Google Books)</span>
+            <span class="text-zinc-500 text-sm">({{ ratingsCount }} ratings on Google Books)</span>
           </div>
         </section>
 
         <!-- Description -->
         <section class="space-y-4">
-          <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em]">About the Book</h2>
-          <div :class="['text-slate-300 text-sm lg:text-base leading-relaxed space-y-4 relative', !showFullDesc ? 'max-h-48 overflow-hidden' : '']">
+          <h2 class="text-sm font-bold text-zinc-500 uppercase tracking-[0.2em]">About the Book</h2>
+          <div :class="['text-zinc-300 text-sm lg:text-base leading-relaxed space-y-4 relative', !showFullDesc ? 'max-h-48 overflow-hidden' : '']">
             <div v-html="descriptionHtml" />
-            <div v-if="!showFullDesc && descriptionHtml.length > 300" class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-950 to-transparent" />
+            <div v-if="!showFullDesc && descriptionHtml.length > 300" class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-zinc-950 to-transparent" />
           </div>
           <button
             v-if="descriptionHtml.length > 300"
@@ -1219,7 +1241,7 @@ export const QuoteCard = defineComponent({
             <div class="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 class="text-xl font-bold text-white mb-1">My Reading</h2>
-                <p class="text-slate-400 text-sm">Track your progress and thoughts</p>
+                <p class="text-zinc-400 text-sm">Track your progress and thoughts</p>
               </div>
 
               <!-- Status Control -->
@@ -1240,13 +1262,13 @@ export const QuoteCard = defineComponent({
                       'absolute left-0 top-0 bottom-0 w-1 rounded-l-lg',
                       currentStatus === 'read' ? 'bg-emerald-500' :
                       currentStatus === 'currently_reading' ? 'bg-sky-500' :
-                      currentStatus === 'abandoned' ? 'bg-red-500' : 'bg-slate-600'
+                      currentStatus === 'abandoned' ? 'bg-red-500' : 'bg-zinc-600'
                     ]"
                   />
                   <select
                     :value="currentStatus"
                     @change="handleStatusChange($event.target.value)"
-                    class="bg-slate-900 border border-slate-700 rounded-lg pl-4 pr-8 py-2.5 text-sm font-bold text-slate-200 outline-none focus:border-indigo-500 transition-all cursor-pointer appearance-none"
+                    class="bg-zinc-900 border border-zinc-700 rounded-lg pl-4 pr-8 py-2.5 text-sm font-bold text-zinc-200 outline-none focus:border-indigo-500 transition-all cursor-pointer appearance-none"
                     style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center;"
                   >
                     <option value="want_to_read">Want to Read</option>
@@ -1267,13 +1289,13 @@ export const QuoteCard = defineComponent({
             </div>
 
             <!-- Content for In-Library books -->
-            <div v-if="isInLibrary" :key="`library-${userBook?.id || 'new'}`" class="pt-6 border-t border-slate-800/50 space-y-6">
+            <div v-if="isInLibrary" :key="`library-${userBook?.id || 'new'}`" class="pt-6 border-t border-zinc-800/50 space-y-6">
 
               <!-- Study Mode Button (always visible for in-library books) -->
               <div class="hidden lg:flex">
                 <button
                   @click="handleStudyMode"
-                  class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                  class="px-4 py-2.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
                 >
                   <Brain :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
                   <span class="transition-colors group-hover/btn:text-indigo-400">Study Mode</span>
@@ -1284,7 +1306,7 @@ export const QuoteCard = defineComponent({
               <div v-if="currentStatus === 'read' || currentStatus === 'abandoned'" class="space-y-6">
                 <!-- Rating -->
                 <div>
-                  <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-3">My Rating</label>
+                  <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-3">My Rating</label>
                   <div class="flex flex-wrap items-center gap-4">
                     <StarRating
                       v-if="userBook"
@@ -1295,24 +1317,24 @@ export const QuoteCard = defineComponent({
                       :show-value="true"
                     />
                   </div>
-                  <p class="text-[10px] text-slate-500 mt-2">Click once for full star, double-click for half star</p>
+                  <p class="text-[10px] text-zinc-500 mt-2">Click once for full star, double-click for half star</p>
                 </div>
 
                 <!-- Reading Dates -->
-                <div v-if="formattedStartedAt || formattedFinishedAt" class="p-3 lg:p-4 rounded-xl bg-slate-950/50 border border-slate-800 flex flex-col sm:flex-row sm:inline-flex items-start sm:items-center gap-3 sm:gap-6">
+                <div v-if="formattedStartedAt || formattedFinishedAt" class="p-3 lg:p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 flex flex-col sm:flex-row sm:inline-flex items-start sm:items-center gap-3 sm:gap-6">
                   <div class="flex items-center gap-2">
-                    <Calendar :size="14" class="text-slate-500" />
-                    <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">Reading Journey</span>
+                    <Calendar :size="14" class="text-zinc-500" />
+                    <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Reading Journey</span>
                   </div>
 
                   <div class="flex flex-wrap items-center gap-3 sm:gap-6">
                     <div v-if="formattedStartedAt" class="flex items-center gap-2">
-                      <span class="text-[10px] sm:text-xs text-slate-500">Started</span>
-                      <span class="text-xs sm:text-sm font-semibold text-slate-300">{{ formattedStartedAt }}</span>
+                      <span class="text-[10px] sm:text-xs text-zinc-500">Started</span>
+                      <span class="text-xs sm:text-sm font-semibold text-zinc-300">{{ formattedStartedAt }}</span>
                     </div>
 
                     <div v-if="formattedFinishedAt" class="flex items-center gap-2">
-                      <span class="text-[10px] sm:text-xs text-slate-500">Finished</span>
+                      <span class="text-[10px] sm:text-xs text-zinc-500">Finished</span>
                       <span class="text-xs sm:text-sm font-semibold text-emerald-400">{{ formattedFinishedAt }}</span>
                     </div>
                   </div>
@@ -1322,7 +1344,7 @@ export const QuoteCard = defineComponent({
                 <div class="flex flex-wrap gap-3">
                   <button
                     @click="router.push(getBookUrlWithSuffix(book, 'review'))"
-                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                    class="px-4 py-2.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
                   >
                     <SquarePen :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
                     <span class="transition-colors group-hover/btn:text-indigo-400">Edit My Activity</span>
@@ -1339,7 +1361,7 @@ export const QuoteCard = defineComponent({
                   <button
                     v-else
                     @click="openDNASurvey"
-                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-500 text-xs font-bold hover:border-indigo-500/30 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                    class="px-4 py-2.5 rounded-lg border border-zinc-700 text-zinc-500 text-xs font-bold hover:border-indigo-500/30 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
                   >
                     <Sparkles :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
                     <span class="transition-colors group-hover/btn:text-indigo-400">Update DNA</span>
@@ -1347,7 +1369,7 @@ export const QuoteCard = defineComponent({
 
                   <button
                     @click="handleAddQuote"
-                    class="px-4 py-2.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
+                    class="px-4 py-2.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group/btn"
                   >
                     <Plus :size="14" class="transition-colors group-hover/btn:text-indigo-400" />
                     <span class="transition-colors group-hover/btn:text-indigo-400">Add Quote</span>
@@ -1356,8 +1378,8 @@ export const QuoteCard = defineComponent({
               </div>
 
               <!-- Progress Tracking (for currently_reading) -->
-              <div v-if="currentStatus === 'currently_reading'" class="p-6 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-4">
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block">Reading Progress</label>
+              <div v-if="currentStatus === 'currently_reading'" class="p-6 rounded-2xl bg-zinc-950/50 border border-zinc-800 space-y-4">
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block">Reading Progress</label>
 
                 <div class="flex flex-wrap items-center gap-3">
                   <input
@@ -1366,9 +1388,9 @@ export const QuoteCard = defineComponent({
                     @keyup.enter="handleProgressUpdate"
                     :min="0"
                     :max="totalPages"
-                    class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-center font-bold text-indigo-400 outline-none focus:border-indigo-500 transition-colors"
+                    class="w-24 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-center font-bold text-indigo-400 outline-none focus:border-indigo-500 transition-colors"
                   />
-                  <span class="text-slate-500 text-sm">/ {{ totalPages }} pages</span>
+                  <span class="text-zinc-500 text-sm">/ {{ totalPages }} pages</span>
                   <button
                     @click="handleProgressUpdate"
                     class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition-colors"
@@ -1377,7 +1399,7 @@ export const QuoteCard = defineComponent({
                   </button>
                 </div>
 
-                <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                <div class="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000"
                     :style="{ width: `${progressPercent}%` }"
@@ -1394,20 +1416,20 @@ export const QuoteCard = defineComponent({
                   </button>
                   <div class="text-right">
                     <span class="text-indigo-400 font-black text-xl">{{ progressPercent }}%</span>
-                    <p class="text-[10px] text-slate-500 font-medium">{{ currentPage }} / {{ totalPages }} pages</p>
+                    <p class="text-[10px] text-zinc-500 font-medium">{{ currentPage }} / {{ totalPages }} pages</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- My Review Section (full width, only for finished/abandoned) -->
-            <div v-if="isInLibrary && (currentStatus === 'read' || currentStatus === 'abandoned')" class="pt-8 border-t border-slate-800/50">
-              <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-4">My Review</label>
+            <div v-if="isInLibrary && (currentStatus === 'read' || currentStatus === 'abandoned')" class="pt-8 border-t border-zinc-800/50">
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-4">My Review</label>
 
               <!-- Show review preview if it exists -->
               <div v-if="reviewInput" class="space-y-4">
-                <div class="p-6 rounded-2xl bg-slate-950/50 border border-slate-800">
-                  <p class="text-sm text-slate-300 leading-relaxed italic">
+                <div class="p-6 rounded-2xl bg-zinc-950/50 border border-zinc-800">
+                  <p class="text-sm text-zinc-300 leading-relaxed italic">
                     "{{ getReviewPreview(reviewInput, 300) }}"
                   </p>
                 </div>
@@ -1421,7 +1443,7 @@ export const QuoteCard = defineComponent({
                   </button>
                   <button
                     @click="router.push(getBookUrlWithSuffix(book, 'review'))"
-                    class="flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-700 text-slate-400 text-xs sm:text-sm font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-1.5 sm:gap-2"
+                    class="flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-zinc-700 text-zinc-400 text-xs sm:text-sm font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-1.5 sm:gap-2"
                   >
                     <SquarePen :size="14" class="sm:hidden" /><SquarePen :size="16" class="hidden sm:block" />
                     <span class="whitespace-nowrap">Edit Review</span>
@@ -1433,7 +1455,7 @@ export const QuoteCard = defineComponent({
               <button
                 v-else
                 @click="router.push(getBookUrlWithSuffix(book, 'review'))"
-                class="w-full py-4 rounded-xl border-2 border-dashed border-slate-700 text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-3"
+                class="w-full py-4 rounded-xl border-2 border-dashed border-zinc-700 text-zinc-400 font-bold hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-3"
               >
                 <SquarePen :size="18" />
                 Write a Review
@@ -1459,7 +1481,7 @@ export const QuoteCard = defineComponent({
         <!-- Mobile Similar Books -->
         <section v-if="similarBooks.length > 0" class="lg:hidden">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2">
+            <h2 class="text-sm font-bold text-zinc-500 uppercase tracking-[0.15em] flex items-center gap-2">
               <Sparkles :size="14" class="text-indigo-400" />
               Similar Books
             </h2>
@@ -1478,7 +1500,7 @@ export const QuoteCard = defineComponent({
               :to="getBookUrl(simBook)"
               class="shrink-0 w-24 group"
             >
-              <div class="aspect-[2/3] rounded-lg overflow-hidden bg-slate-800 shadow-lg mb-2">
+              <div class="aspect-[2/3] rounded-lg overflow-hidden bg-zinc-800 shadow-lg mb-2">
                 <img
                   v-if="simBook.cover_image"
                   :src="simBook.cover_image"
@@ -1486,11 +1508,11 @@ export const QuoteCard = defineComponent({
                   class="w-full h-full object-cover group-active:scale-105 transition-transform"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center">
-                  <BookOpen :size="20" class="text-slate-600" />
+                  <BookOpen :size="20" class="text-zinc-600" />
                 </div>
               </div>
               <h4 class="text-xs font-bold text-white line-clamp-2 leading-tight">{{ simBook.title }}</h4>
-              <p class="text-[10px] text-slate-500 truncate">{{ simBook.authors?.map(a => a.name).join(', ') }}</p>
+              <p class="text-[10px] text-zinc-500 truncate">{{ simBook.authors?.map(a => a.name).join(', ') }}</p>
               <span v-if="simBook.similarity_score" class="text-[10px] font-bold text-indigo-400">
                 {{ Math.round(simBook.similarity_score) }}% match
               </span>
@@ -1506,24 +1528,24 @@ export const QuoteCard = defineComponent({
       <div class="hidden lg:block lg:col-span-3 min-w-0 space-y-6">
 
         <!-- Similar Books -->
-        <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+        <div class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40">
           <SimilarBooksList :books="similarBooks" :loading="loadingSimilar" />
         </div>
 
         <!-- Book DNA -->
-        <div v-if="bookDNA" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+        <div v-if="bookDNA" class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40">
           <BookDNACard :dna="bookDNA" />
         </div>
 
         <!-- Potential Editions Section (only show if no existing editions) -->
-        <div v-if="!book.has_other_editions && potentialEditions.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40 border-amber-500/20">
+        <div v-if="!book.has_other_editions && potentialEditions.length > 0" class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40 border-amber-500/20">
           <div class="flex items-center gap-3 mb-5">
             <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
               <BookOpen :size="16" class="text-amber-400" />
             </div>
             <div>
-              <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Potential Editions</h3>
-              <p class="text-slate-600 text-[9px]">{{ potentialEditions.length }} potential match{{ potentialEditions.length !== 1 ? 'es' : '' }} found</p>
+              <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">Potential Editions</h3>
+              <p class="text-zinc-600 text-[9px]">{{ potentialEditions.length }} potential match{{ potentialEditions.length !== 1 ? 'es' : '' }} found</p>
             </div>
           </div>
 
@@ -1538,11 +1560,11 @@ export const QuoteCard = defineComponent({
             <div
               v-for="edition in potentialEditions"
               :key="edition.id"
-              class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-amber-500/30 transition-all space-y-3"
+              class="p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 hover:border-amber-500/30 transition-all space-y-3"
             >
               <!-- Edition info -->
               <div class="flex gap-3">
-                <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 shadow-md flex items-center justify-center">
                   <img
                     v-if="edition.cover_image"
                     :src="edition.cover_image"
@@ -1550,30 +1572,30 @@ export const QuoteCard = defineComponent({
                     class="w-full h-full object-cover"
                     @error="(e) => e.target.style.display = 'none'"
                   />
-                  <BookOpen v-else :size="16" class="text-slate-600" />
+                  <BookOpen v-else :size="16" class="text-zinc-600" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start gap-2 mb-1">
-                    <h4 class="flex-1 font-semibold text-slate-100 text-sm line-clamp-2">{{ edition.title }}</h4>
+                    <h4 class="flex-1 font-semibold text-zinc-100 text-sm line-clamp-2">{{ edition.title }}</h4>
                     <span class="shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold">
                       {{ Math.round(edition.similarity * 100) }}% match
                     </span>
                   </div>
                   <div class="space-y-1">
-                    <div v-if="edition.authors?.length > 0" class="text-[10px] text-slate-500 truncate">
+                    <div v-if="edition.authors?.length > 0" class="text-[10px] text-zinc-500 truncate">
                       {{ edition.authors.map(a => a.name).join(', ') }}
                     </div>
                     <div class="flex items-center gap-2 text-[10px]">
-                      <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">
+                      <span class="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-bold uppercase">
                         {{ edition.language?.toUpperCase() || 'N/A' }}
                       </span>
-                      <span class="text-slate-500">•</span>
-                      <span class="text-slate-500">{{ edition.pages || 'N/A' }} pages</span>
+                      <span class="text-zinc-500">•</span>
+                      <span class="text-zinc-500">{{ edition.pages || 'N/A' }} pages</span>
                     </div>
-                    <div v-if="edition.publisher" class="text-[10px] text-slate-500 truncate">
+                    <div v-if="edition.publisher" class="text-[10px] text-zinc-500 truncate">
                       {{ edition.publisher }}
                     </div>
-                    <div v-if="edition.isbn" class="text-[10px] text-slate-600">
+                    <div v-if="edition.isbn" class="text-[10px] text-zinc-600">
                       ISBN: {{ edition.isbn }}
                     </div>
                   </div>
@@ -1581,7 +1603,7 @@ export const QuoteCard = defineComponent({
               </div>
 
               <!-- Actions -->
-              <div class="pt-3 border-t border-slate-800/50 flex gap-2">
+              <div class="pt-3 border-t border-zinc-800/50 flex gap-2">
                 <button
                   @click="linkPotentialEdition(edition.id)"
                   class="flex-1 px-3 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all"
@@ -1590,7 +1612,7 @@ export const QuoteCard = defineComponent({
                 </button>
                 <router-link
                   :to="getBookUrl(edition)"
-                  class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all"
+                  class="px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 text-xs font-bold transition-all"
                 >
                   View
                 </router-link>
@@ -1600,7 +1622,7 @@ export const QuoteCard = defineComponent({
         </div>
 
         <!-- Editions Section -->
-        <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+        <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40">
           <BookEditionsList
             :editions="book.other_editions"
             :user-book-id="userBook?.book?.id"
@@ -1610,7 +1632,7 @@ export const QuoteCard = defineComponent({
         </div>
 
         <!-- Manual Link Edition Button -->
-        <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40 border-dashed">
+        <div class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40 border-dashed">
           <button
             @click="openLinkEditionModal"
             class="w-full px-4 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-2 group"
@@ -1618,7 +1640,7 @@ export const QuoteCard = defineComponent({
             <Plus :size="16" class="group-hover:rotate-90 transition-transform" />
             Link another edition
           </button>
-          <p class="text-[10px] text-slate-500 text-center mt-2">
+          <p class="text-[10px] text-zinc-500 text-center mt-2">
             Manually link different language versions or editions
           </p>
         </div>
@@ -1630,19 +1652,19 @@ export const QuoteCard = defineComponent({
   <!-- Loading State -->
   <div v-else class="w-full max-w-[1600px] mx-auto px-6 py-12">
     <div class="animate-pulse space-y-8">
-      <div class="h-8 bg-slate-800 rounded w-48"></div>
+      <div class="h-8 bg-zinc-800 rounded w-48"></div>
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div class="lg:col-span-3">
-          <div class="aspect-[2/3] bg-slate-800 rounded-3xl"></div>
+          <div class="aspect-[2/3] bg-zinc-800 rounded-3xl"></div>
         </div>
         <div class="lg:col-span-6 space-y-6">
-          <div class="h-12 bg-slate-800 rounded w-3/4"></div>
-          <div class="h-6 bg-slate-800 rounded w-1/2"></div>
-          <div class="h-32 bg-slate-800 rounded"></div>
+          <div class="h-12 bg-zinc-800 rounded w-3/4"></div>
+          <div class="h-6 bg-zinc-800 rounded w-1/2"></div>
+          <div class="h-32 bg-zinc-800 rounded"></div>
         </div>
         <div class="lg:col-span-3 space-y-6">
-          <div class="h-64 bg-slate-800 rounded-[2rem]"></div>
-          <div class="h-48 bg-slate-800 rounded-[2rem]"></div>
+          <div class="h-64 bg-zinc-800 rounded-[2rem]"></div>
+          <div class="h-48 bg-zinc-800 rounded-[2rem]"></div>
         </div>
       </div>
     </div>
@@ -1650,8 +1672,8 @@ export const QuoteCard = defineComponent({
 
   <!-- Add Quote Modal -->
   <Dialog v-model:open="isQuoteModalOpen">
-    <DialogContent class="max-w-2xl glass border-slate-700 max-h-[85vh] overflow-y-auto">
-      <DialogHeader class="border-b border-slate-800 pb-3 mb-4">
+    <DialogContent class="max-w-2xl glass border-zinc-700 max-h-[85vh] overflow-y-auto">
+      <DialogHeader class="border-b border-zinc-800 pb-3 mb-4">
         <DialogTitle class="text-lg font-bold flex items-center gap-2">
           <Sparkles :size="20" class="text-indigo-400" />
           Capture a Quote from {{ book?.title }}
@@ -1661,7 +1683,7 @@ export const QuoteCard = defineComponent({
       <form @submit.prevent="handleCreateQuote" class="space-y-5">
         <!-- Quote Text -->
         <div class="space-y-2">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+          <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
             <component :is="AlignLeft" :size="12" /> The Quote
           </label>
           <Textarea
@@ -1669,87 +1691,87 @@ export const QuoteCard = defineComponent({
             placeholder="Paste the brilliant words here..."
             rows="4"
             required
-            class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+            class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 transition-all resize-none"
           />
         </div>
 
         <!-- Metadata Grid -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Page</label>
+            <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Page</label>
             <Input
               v-model.number="newQuote.page_number"
               type="number"
               placeholder="e.g. 142"
-              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+              class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
             />
           </div>
           <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chapter</label>
+            <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Chapter</label>
             <Input
               v-model="newQuote.chapter"
               placeholder="Chapter name/number"
-              class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+              class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
             />
           </div>
         </div>
 
         <!-- Personal Note -->
         <div class="space-y-2">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+          <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
             <component :is="Brain" :size="12" /> Personal Note (Optional)
           </label>
           <Textarea
             v-model="newQuote.note"
             placeholder="What does this mean to you? Why does it resonate?"
             rows="3"
-            class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 transition-all resize-none"
+            class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 transition-all resize-none"
           />
         </div>
 
         <!-- Tags -->
         <div class="space-y-2">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+          <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
             <component :is="Hash" :size="12" /> Tags (comma-separated)
           </label>
           <Input
             v-model="newQuote.tags_input"
             placeholder="philosophy, wisdom, inspiration..."
-            class="w-full bg-slate-800/30 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 transition-all"
+            class="w-full bg-zinc-800/30 border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 transition-all"
           />
         </div>
 
         <!-- Toggles -->
-        <div class="flex items-center gap-6 pt-3 border-t border-slate-800">
+        <div class="flex items-center gap-6 pt-3 border-t border-zinc-800">
           <label class="flex items-center gap-2 cursor-pointer group">
             <input
               type="checkbox"
               v-model="newQuote.is_favorite"
-              class="w-4 h-4 rounded border-2 border-slate-700 bg-slate-800/50 checked:bg-amber-500 checked:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all cursor-pointer"
+              class="w-4 h-4 rounded border-2 border-zinc-700 bg-zinc-800/50 checked:bg-amber-500 checked:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all cursor-pointer"
             />
             <Star :size="16" class="text-amber-400" />
-            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">Add to Favorites</span>
+            <span class="text-sm text-zinc-300 group-hover:text-white transition-colors">Add to Favorites</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer group">
             <input
               type="checkbox"
               v-model="newQuote.is_public"
-              class="w-4 h-4 rounded border-2 border-slate-700 bg-slate-800/50 checked:bg-indigo-500 checked:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+              class="w-4 h-4 rounded border-2 border-zinc-700 bg-zinc-800/50 checked:bg-indigo-500 checked:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
             />
             <Globe v-if="newQuote.is_public" :size="16" class="text-indigo-400" />
-            <Lock v-else :size="16" class="text-slate-500" />
-            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">
+            <Lock v-else :size="16" class="text-zinc-500" />
+            <span class="text-sm text-zinc-300 group-hover:text-white transition-colors">
               {{ newQuote.is_public ? 'Public' : 'Private' }}
             </span>
           </label>
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-3 pt-4 border-t border-slate-800">
+        <div class="flex gap-3 pt-4 border-t border-zinc-800">
           <button
             type="button"
             @click="isQuoteModalOpen = false"
-            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
           >
             Cancel
           </button>
@@ -1786,8 +1808,8 @@ export const QuoteCard = defineComponent({
 
   <!-- Switch Edition Confirmation Modal -->
   <Dialog :open="isSwitchEditionModalOpen" @update:open="isSwitchEditionModalOpen = $event">
-    <DialogContent class="max-w-md glass border-slate-700">
-      <DialogHeader class="border-b border-slate-800 pb-4 mb-4">
+    <DialogContent class="max-w-md glass border-zinc-700">
+      <DialogHeader class="border-b border-zinc-800 pb-4 mb-4">
         <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
           <BookOpen :size="20" class="text-indigo-400" />
           Switch to Different Edition?
@@ -1795,25 +1817,25 @@ export const QuoteCard = defineComponent({
       </DialogHeader>
 
       <div class="space-y-4">
-        <p class="text-sm text-slate-300 leading-relaxed">
+        <p class="text-sm text-zinc-300 leading-relaxed">
           Your reading progress, quotes, and review will be transferred to the new edition.
         </p>
 
         <div class="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 space-y-2">
           <div class="flex items-start gap-2">
             <ArrowRight :size="16" class="text-indigo-400 mt-0.5 flex-shrink-0" />
-            <p class="text-xs text-slate-300">Page numbers will be adjusted proportionally based on the new edition's length</p>
+            <p class="text-xs text-zinc-300">Page numbers will be adjusted proportionally based on the new edition's length</p>
           </div>
           <div class="flex items-start gap-2">
             <ArrowRight :size="16" class="text-indigo-400 mt-0.5 flex-shrink-0" />
-            <p class="text-xs text-slate-300">Your original edition data will be preserved in your reading history</p>
+            <p class="text-xs text-zinc-300">Your original edition data will be preserved in your reading history</p>
           </div>
         </div>
 
         <div class="flex gap-3 pt-4">
           <button
             @click="isSwitchEditionModalOpen = false"
-            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all border border-zinc-700 hover:border-zinc-600"
           >
             Cancel
           </button>
@@ -1843,13 +1865,13 @@ export const QuoteCard = defineComponent({
         />
 
         <!-- Panel -->
-        <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto">
+        <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-zinc-900 border-l border-zinc-800 overflow-y-auto">
           <!-- Header -->
-          <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
+          <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-zinc-800 bg-zinc-900">
             <h2 class="text-lg font-bold text-white">More Info</h2>
             <button
               @click="showMobileSidebar = false"
-              class="p-2 rounded-xl bg-slate-800 text-slate-400"
+              class="p-2 rounded-xl bg-zinc-800 text-zinc-400"
             >
               <X :size="18" />
             </button>
@@ -1858,17 +1880,17 @@ export const QuoteCard = defineComponent({
           <!-- Content -->
           <div class="p-4 space-y-4">
             <!-- Similar Books -->
-            <div v-if="similarBooks.length > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+            <div v-if="similarBooks.length > 0" class="p-4 rounded-2xl glass border-zinc-800 bg-zinc-900/40">
               <SimilarBooksList :books="similarBooks" compact @click-book="showMobileSidebar = false" />
             </div>
 
             <!-- Book DNA -->
-            <div v-if="bookDNA" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+            <div v-if="bookDNA" class="p-4 rounded-2xl glass border-zinc-800 bg-zinc-900/40">
               <BookDNACard :dna="bookDNA" compact />
             </div>
 
             <!-- Other Editions -->
-            <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+            <div v-if="book.has_other_editions && book.other_editions?.length > 0" class="p-4 rounded-2xl glass border-zinc-800 bg-zinc-900/40">
               <BookEditionsList
                 :editions="book.other_editions"
                 :user-book-id="userBook?.book?.id"
@@ -1880,14 +1902,14 @@ export const QuoteCard = defineComponent({
             </div>
 
             <!-- Publisher Info -->
-            <div class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40 space-y-3">
+            <div class="p-4 rounded-2xl glass border-zinc-800 bg-zinc-900/40 space-y-3">
               <div class="flex items-center gap-2">
-                <Building2 :size="16" class="text-slate-400" />
-                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Publisher</h3>
+                <Building2 :size="16" class="text-zinc-400" />
+                <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">Publisher</h3>
               </div>
-              <p class="text-slate-100 font-semibold text-sm">{{ book.publisher?.name || 'Unknown Publisher' }}</p>
-              <div class="pt-3 border-t border-slate-800/50">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">ISBN-13</span>
+              <p class="text-zinc-100 font-semibold text-sm">{{ book.publisher?.name || 'Unknown Publisher' }}</p>
+              <div class="pt-3 border-t border-zinc-800/50">
+                <span class="text-[10px] text-zinc-500 font-bold uppercase block mb-1">ISBN-13</span>
                 <code class="text-xs text-indigo-400">{{ book.isbn || 'N/A' }}</code>
               </div>
             </div>
@@ -1900,7 +1922,7 @@ export const QuoteCard = defineComponent({
                 'w-full p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border transition-all',
                 isOwned
                   ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                  : 'bg-slate-800/50 border-slate-700/50 text-slate-400'
+                  : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400'
               ]"
             >
               <Home :size="16" />
@@ -1914,7 +1936,7 @@ export const QuoteCard = defineComponent({
                 'w-full p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border transition-all',
                 isWishlisted
                   ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
-                  : 'bg-slate-800/50 border-slate-700/50 text-slate-400'
+                  : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400'
               ]"
             >
               <Gift :size="16" />
@@ -1937,8 +1959,8 @@ export const QuoteCard = defineComponent({
 
   <!-- Link Edition Modal -->
   <Dialog :open="isLinkEditionModalOpen" @update:open="isLinkEditionModalOpen = $event">
-    <DialogContent class="max-w-2xl glass border-slate-700 max-h-[80vh] flex flex-col">
-      <DialogHeader class="border-b border-slate-800 pb-4">
+    <DialogContent class="max-w-2xl glass border-zinc-700 max-h-[80vh] flex flex-col">
+      <DialogHeader class="border-b border-zinc-800 pb-4">
         <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
           <Plus :size="20" class="text-emerald-400" />
           Link Another Edition
@@ -1946,18 +1968,18 @@ export const QuoteCard = defineComponent({
       </DialogHeader>
 
       <div class="flex-1 overflow-hidden flex flex-col space-y-4 py-4">
-        <p class="text-sm text-slate-300">
+        <p class="text-sm text-zinc-300">
           Search for another edition of "{{ book.title }}" to link. This is useful for different language versions or publisher editions.
         </p>
 
         <!-- Search Input -->
         <div class="relative">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="18" />
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="18" />
           <input
             v-model="editionSearchQuery"
             type="text"
             placeholder="Search by title, author, or ISBN..."
-            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-50 outline-none focus:border-emerald-500 transition-all placeholder-slate-600"
+            class="w-full bg-zinc-900 border border-zinc-700 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-50 outline-none focus:border-emerald-500 transition-all placeholder-zinc-600"
             autofocus
           />
         </div>
@@ -1972,33 +1994,33 @@ export const QuoteCard = defineComponent({
           <div
             v-for="result in editionSearchResults"
             :key="result.id"
-            class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-emerald-500/30 transition-all cursor-pointer"
+            class="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-emerald-500/30 transition-all cursor-pointer"
             @click="linkManualEdition(result.id)"
           >
             <div class="flex gap-3">
-              <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+              <div class="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 shadow-md flex items-center justify-center">
                 <img
                   v-if="result.cover_image"
                   :src="result.cover_image"
                   :alt="result.title"
                   class="w-full h-full object-cover"
                 />
-                <BookOpen v-else :size="16" class="text-slate-600" />
+                <BookOpen v-else :size="16" class="text-zinc-600" />
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="font-semibold text-slate-100 text-sm line-clamp-2 mb-1">{{ result.title }}</h4>
+                <h4 class="font-semibold text-zinc-100 text-sm line-clamp-2 mb-1">{{ result.title }}</h4>
                 <div class="space-y-1">
-                  <div v-if="result.authors?.length > 0" class="text-[11px] text-slate-500 truncate">
+                  <div v-if="result.authors?.length > 0" class="text-[11px] text-zinc-500 truncate">
                     {{ result.authors.map(a => a.name).join(', ') }}
                   </div>
                   <div class="flex items-center gap-2 text-[11px]">
-                    <span v-if="result.language" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">
+                    <span v-if="result.language" class="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-bold uppercase">
                       {{ result.language }}
                     </span>
-                    <span v-if="result.pages" class="text-slate-500">{{ result.pages }} pages</span>
-                    <span v-if="result.isbn" class="text-slate-600">ISBN: {{ result.isbn }}</span>
+                    <span v-if="result.pages" class="text-zinc-500">{{ result.pages }} pages</span>
+                    <span v-if="result.isbn" class="text-zinc-600">ISBN: {{ result.isbn }}</span>
                   </div>
-                  <div v-if="result.publisher?.name" class="text-[11px] text-slate-500 truncate">
+                  <div v-if="result.publisher?.name" class="text-[11px] text-zinc-500 truncate">
                     {{ result.publisher.name }}
                   </div>
                 </div>
@@ -2014,11 +2036,11 @@ export const QuoteCard = defineComponent({
 
         <!-- Empty State -->
         <div v-else-if="editionSearchQuery.trim().length >= 2" class="flex-1 flex flex-col items-center justify-center py-8 text-center">
-          <div class="w-16 h-16 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mb-4">
-            <Search :size="24" class="text-slate-600" />
+          <div class="w-16 h-16 rounded-full bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center mb-4">
+            <Search :size="24" class="text-zinc-600" />
           </div>
-          <p class="text-sm font-semibold text-slate-400 mb-1">No books found</p>
-          <p class="text-xs text-slate-500">Try a different search term</p>
+          <p class="text-sm font-semibold text-zinc-400 mb-1">No books found</p>
+          <p class="text-xs text-zinc-500">Try a different search term</p>
         </div>
 
         <!-- Initial State -->
@@ -2026,15 +2048,15 @@ export const QuoteCard = defineComponent({
           <div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
             <BookOpen :size="24" class="text-emerald-400" />
           </div>
-          <p class="text-sm font-semibold text-slate-300 mb-1">Search for editions</p>
-          <p class="text-xs text-slate-500">Start typing to find books in the database</p>
+          <p class="text-sm font-semibold text-zinc-300 mb-1">Search for editions</p>
+          <p class="text-xs text-zinc-500">Start typing to find books in the database</p>
         </div>
 
         <!-- Footer -->
-        <div class="pt-4 border-t border-slate-800">
+        <div class="pt-4 border-t border-zinc-800">
           <button
             @click="isLinkEditionModalOpen = false"
-            class="w-full px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
+            class="w-full px-4 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all border border-zinc-700 hover:border-zinc-600"
           >
             Cancel
           </button>

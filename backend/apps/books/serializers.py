@@ -31,8 +31,26 @@ class AuthorSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'slug', 'created_at']
 
+    def _is_list_context(self):
+        """
+        True when this author is being serialized inside a list-style response
+        (e.g. nested in a book list card), where per-author lookups like
+        author_group.members / author.books would N+1 across every book.
+        Detail views (action == 'retrieve') always get the full computation.
+        """
+        view = self.context.get('view')
+        return bool(view) and hasattr(view, 'action') and view.action != 'retrieve'
+
     def get_books_count(self, obj):
         """Count books by this author (across all aliases if grouped)"""
+        # Use annotation from viewset queryset if available (cheap, no extra query)
+        if hasattr(obj, 'books_count_annotation'):
+            return obj.books_count_annotation
+
+        # Avoid expensive per-author queries when nested inside list responses
+        if self._is_list_context():
+            return None
+
         if obj.author_group_id:
             # Use prefetched author_group.members and their books
             all_book_ids = set()
@@ -40,14 +58,13 @@ class AuthorSerializer(serializers.ModelSerializer):
                 for book in member.books.all():
                     all_book_ids.add(book.id)
             return len(all_book_ids)
-        # Use annotation from viewset queryset if available
-        if hasattr(obj, 'books_count_annotation'):
-            return obj.books_count_annotation
         return obj.books.count()
 
     def get_aliases(self, obj):
         """Return other name spellings for this author."""
         if not obj.author_group_id:
+            return []
+        if self._is_list_context():
             return []
         # Filter in Python to use prefetched cache instead of hitting DB
         return [{
@@ -58,9 +75,7 @@ class AuthorSerializer(serializers.ModelSerializer):
     def get_similar_authors(self, obj):
         """Compute similar authors based on shared DNA themes."""
         # Only compute for detail views, not lists
-        request = self.context.get('request')
-        view = self.context.get('view')
-        if view and hasattr(view, 'action') and view.action != 'retrieve':
+        if self._is_list_context():
             return []
         from apps.books.utils import compute_similar_authors
         return compute_similar_authors(obj)
@@ -73,6 +88,10 @@ class AuthorSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
 
         if not instance.author_group_id:
+            return data
+
+        # Skip the extra lookups below when nested inside a list response
+        if self._is_list_context():
             return data
 
         # Find the best source within the group (primary first, then any sibling)

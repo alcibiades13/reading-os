@@ -254,22 +254,22 @@ onMounted(async () => {
   <div class="animate-in fade-in duration-700">
 
     <!-- ==================== MOBILE HEADER ==================== -->
-    <header class="lg:hidden sticky top-0 z-30 border-b border-white/5 bg-slate-900/80 backdrop-blur-xl">
+    <header class="lg:hidden sticky top-0 z-30 border-b border-white/5 bg-zinc-900/80 backdrop-blur-xl">
       <div class="px-4 py-3 flex items-center gap-3">
         <button
           @click="goBack"
-          class="p-2 -ml-2 rounded-xl text-slate-400 active:bg-white/5 transition-colors"
+          class="p-2 -ml-2 rounded-xl text-zinc-400 active:bg-white/5 transition-colors"
         >
           <ArrowLeft :size="20" />
         </button>
         <div class="flex-1 min-w-0">
           <h1 class="text-sm font-bold text-white truncate">{{ userName }}'s Review</h1>
-          <p class="text-[10px] text-slate-500 truncate">{{ book?.title }}</p>
+          <p class="text-[10px] text-zinc-500 truncate">{{ book?.title }}</p>
         </div>
         <button
           v-if="isOwnReview"
           @click="router.push(getBookUrlWithSuffix(book, 'review'))"
-          class="px-3 py-1.5 rounded-lg border border-slate-700 text-indigo-400 text-xs font-bold hover:border-indigo-500 transition-all flex items-center gap-1.5"
+          class="px-3 py-1.5 rounded-lg border border-zinc-700 text-indigo-400 text-xs font-bold hover:border-indigo-500 transition-all flex items-center gap-1.5"
         >
           <SquarePen :size="12" />
           Edit
@@ -283,7 +283,7 @@ onMounted(async () => {
       <!-- Desktop Back Button -->
       <button
         @click="goBack"
-        class="hidden lg:flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6"
+        class="hidden lg:flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft :size="18" />
         <span class="font-bold text-sm">Back to Book</span>
@@ -300,7 +300,7 @@ onMounted(async () => {
           <User :size="32" class="text-rose-400" />
         </div>
         <h2 class="text-xl font-bold text-white mb-2">Review Not Found</h2>
-        <p class="text-slate-500">{{ error }}</p>
+        <p class="text-zinc-500">{{ error }}</p>
         <button
           @click="goBack"
           class="mt-6 px-6 py-3 rounded-xl bg-indigo-500 text-white font-bold hover:bg-indigo-400 transition-colors"
@@ -316,7 +316,7 @@ onMounted(async () => {
         <div class="flex items-start gap-4 lg:gap-6 mb-6 lg:mb-10">
           <!-- Small Cover -->
           <div class="w-16 sm:w-20 flex-shrink-0">
-            <div class="aspect-[2/3] rounded-lg lg:rounded-xl overflow-hidden shadow-xl border border-slate-800">
+            <div class="aspect-[2/3] rounded-lg lg:rounded-xl overflow-hidden shadow-xl border border-zinc-800">
               <img :src="coverUrl" :alt="book?.title" class="w-full h-full object-cover" />
             </div>
           </div>
@@ -324,14 +324,14 @@ onMounted(async () => {
           <!-- Book Info + Meta -->
           <div class="flex-1 min-w-0">
             <h1 class="text-lg sm:text-xl lg:text-2xl font-black text-white leading-tight mb-0.5 sm:mb-1">{{ book?.title }}</h1>
-            <p class="text-sm text-slate-400 mb-3">
+            <p class="text-sm text-zinc-400 mb-3">
               {{ book?.authors?.map(a => a.name).join(', ') || 'Unknown Author' }}
             </p>
 
             <!-- Meta row -->
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
               <!-- Reviewer pill -->
-              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/50">
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-zinc-800/60 border border-zinc-700/50">
                 <div class="w-5 h-5 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-[9px] font-bold overflow-hidden">
                   <img
                     v-if="reviewData.user.avatar && !reviewData.user.avatar.includes('placeholder')"
@@ -340,7 +340,7 @@ onMounted(async () => {
                   />
                   <span v-else>{{ userInitials }}</span>
                 </div>
-                <span class="text-xs font-semibold text-slate-300">{{ userName }}</span>
+                <span class="text-xs font-semibold text-zinc-300">{{ userName }}</span>
               </div>
 
               <!-- Rating pill -->
@@ -350,13 +350,13 @@ onMounted(async () => {
               </div>
 
               <!-- Date -->
-              <span v-if="formattedDate" class="text-xs text-slate-500 hidden sm:inline">{{ formattedDate }}</span>
+              <span v-if="formattedDate" class="text-xs text-zinc-500 hidden sm:inline">{{ formattedDate }}</span>
 
               <!-- Edit button (desktop, only for own review) -->
               <button
                 v-if="isOwnReview"
                 @click="router.push(getBookUrlWithSuffix(book, 'review'))"
-                class="hidden sm:flex ml-auto px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 transition-all items-center gap-1.5"
+                class="hidden sm:flex ml-auto px-3 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs font-bold hover:border-indigo-500 hover:text-indigo-400 transition-all items-center gap-1.5"
               >
                 <SquarePen :size="12" />
                 Edit
@@ -372,14 +372,14 @@ onMounted(async () => {
           <div class="flex-1 min-w-0 space-y-4 sm:space-y-6">
 
             <!-- Review Content -->
-            <div class="rounded-2xl border border-slate-800 p-4 sm:p-8 lg:p-10 bg-slate-900/40">
+            <div class="rounded-2xl border border-zinc-800 p-4 sm:p-8 lg:p-10 bg-zinc-900/40">
               <div
                 v-if="reviewData.review"
-                class="review-display text-base text-slate-200 leading-relaxed"
+                class="review-display text-base text-zinc-200 leading-relaxed"
                 v-html="reviewData.review"
               />
               <div v-else class="text-center py-8 lg:py-12">
-                <p class="text-slate-500 text-sm sm:text-lg italic">This user hasn't written a review yet.</p>
+                <p class="text-zinc-500 text-sm sm:text-lg italic">This user hasn't written a review yet.</p>
               </div>
             </div>
 
@@ -388,14 +388,14 @@ onMounted(async () => {
               <button
                 @click="toggleLike"
                 class="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all font-bold text-xs sm:text-sm"
-                :class="liked ? 'bg-rose-500/10 text-rose-400 border border-rose-500/50' : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:border-slate-600'"
+                :class="liked ? 'bg-rose-500/10 text-rose-400 border border-rose-500/50' : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700 hover:border-zinc-600'"
               >
                 <Heart :size="15" :class="liked ? 'fill-rose-400' : ''" />
                 <span>{{ likeCount > 0 ? likeCount : 'Like' }}</span>
               </button>
 
               <button
-                class="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-slate-800/50 text-slate-400 border border-slate-700 hover:border-slate-600 transition-all font-bold text-xs sm:text-sm"
+                class="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-zinc-800/50 text-zinc-400 border border-zinc-700 hover:border-zinc-600 transition-all font-bold text-xs sm:text-sm"
               >
                 <MessageCircle :size="15" />
                 <span>{{ comments.length > 0 ? comments.length : 'Comment' }}</span>
@@ -403,7 +403,7 @@ onMounted(async () => {
 
               <button
                 @click="handleShare"
-                class="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-slate-800/50 text-slate-400 border border-slate-700 hover:border-slate-600 transition-all font-bold text-xs sm:text-sm"
+                class="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-zinc-800/50 text-zinc-400 border border-zinc-700 hover:border-zinc-600 transition-all font-bold text-xs sm:text-sm"
               >
                 <Share2 :size="15" />
                 <span class="hidden sm:inline">Share</span>
@@ -411,8 +411,8 @@ onMounted(async () => {
             </div>
 
             <!-- Comments Section -->
-            <div class="rounded-2xl border border-slate-800 p-4 sm:p-6 lg:p-8 bg-slate-900/40">
-              <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 sm:mb-6">
+            <div class="rounded-2xl border border-zinc-800 p-4 sm:p-6 lg:p-8 bg-zinc-900/40">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 sm:mb-6">
                 Comments ({{ comments.length }})
               </h3>
 
@@ -427,7 +427,7 @@ onMounted(async () => {
                       v-model="newComment"
                       placeholder="Share your thoughts..."
                       rows="2"
-                      class="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none"
+                      class="w-full bg-zinc-950/50 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
                       @keydown.ctrl.enter="addComment"
                     />
                     <div class="flex justify-end mt-2">
@@ -451,12 +451,12 @@ onMounted(async () => {
                     {{ getCommentAuthorInitials(comment) }}
                   </div>
                   <div class="flex-1">
-                    <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3">
+                    <div class="bg-zinc-950/50 border border-zinc-800 rounded-xl p-3">
                       <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-slate-200 text-xs">{{ getCommentAuthorName(comment) }}</span>
-                        <span class="text-[10px] text-slate-500">{{ formatCommentDate(comment.created_at) }}</span>
+                        <span class="font-bold text-zinc-200 text-xs">{{ getCommentAuthorName(comment) }}</span>
+                        <span class="text-[10px] text-zinc-500">{{ formatCommentDate(comment.created_at) }}</span>
                       </div>
-                      <p class="text-slate-300 text-xs leading-relaxed">{{ comment.content }}</p>
+                      <p class="text-zinc-300 text-xs leading-relaxed">{{ comment.content }}</p>
                     </div>
                     <div class="flex items-center gap-4 mt-1.5 pl-3">
                       <button
@@ -470,7 +470,7 @@ onMounted(async () => {
               </div>
 
               <div v-else class="text-center py-6">
-                <p class="text-slate-600 text-xs italic">No comments yet. Be the first to comment!</p>
+                <p class="text-zinc-600 text-xs italic">No comments yet. Be the first to comment!</p>
               </div>
             </div>
           </div>
@@ -479,35 +479,35 @@ onMounted(async () => {
           <div class="hidden lg:block w-72 xl:w-80 flex-shrink-0 space-y-5">
 
             <!-- Reading Journey Card -->
-            <div v-if="formattedStartedAt || formattedFinishedAt || readingDuration" class="rounded-2xl border border-slate-800 p-5 bg-slate-900/40">
-              <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Reading Journey</h3>
+            <div v-if="formattedStartedAt || formattedFinishedAt || readingDuration" class="rounded-2xl border border-zinc-800 p-5 bg-zinc-900/40">
+              <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">Reading Journey</h3>
               <div class="space-y-3">
                 <div v-if="formattedStartedAt" class="flex items-center justify-between">
-                  <span class="text-xs text-slate-400">Started</span>
-                  <span class="text-xs font-semibold text-slate-200">{{ formattedStartedAt }}</span>
+                  <span class="text-xs text-zinc-400">Started</span>
+                  <span class="text-xs font-semibold text-zinc-200">{{ formattedStartedAt }}</span>
                 </div>
                 <div v-if="formattedFinishedAt" class="flex items-center justify-between">
-                  <span class="text-xs text-slate-400">Finished</span>
+                  <span class="text-xs text-zinc-400">Finished</span>
                   <span class="text-xs font-semibold text-emerald-400">{{ formattedFinishedAt }}</span>
                 </div>
                 <div v-if="readingDuration" class="flex items-center justify-between">
-                  <span class="text-xs text-slate-400">Duration</span>
+                  <span class="text-xs text-zinc-400">Duration</span>
                   <div class="flex items-center gap-1">
                     <Clock :size="11" class="text-indigo-400" />
                     <span class="text-xs font-semibold text-indigo-400">{{ readingDuration }} days</span>
                   </div>
                 </div>
                 <div v-if="reviewData?.status" class="flex items-center justify-between">
-                  <span class="text-xs text-slate-400">Status</span>
+                  <span class="text-xs text-zinc-400">Status</span>
                   <span class="text-xs font-semibold text-emerald-400 capitalize">{{ reviewData.status?.replace('_', ' ') }}</span>
                 </div>
               </div>
             </div>
 
             <!-- Community Reviews -->
-            <div v-if="communityReviews.length > 0" class="rounded-2xl border border-slate-800 p-5 bg-slate-900/40">
+            <div v-if="communityReviews.length > 0" class="rounded-2xl border border-zinc-800 p-5 bg-zinc-900/40">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Other Reviews</h3>
+                <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Other Reviews</h3>
                 <span class="text-[10px] font-bold text-indigo-400">{{ communityReviewsCount }}</span>
               </div>
 
@@ -516,7 +516,7 @@ onMounted(async () => {
                   v-for="review in communityReviews.slice(0, 4)"
                   :key="review.id"
                   @click="router.push(`/books/${route.params.id}/review/${review.user.id}`)"
-                  class="w-full text-left p-3 rounded-xl bg-slate-950/40 border border-slate-800 hover:border-slate-700 transition-all group"
+                  class="w-full text-left p-3 rounded-xl bg-zinc-950/40 border border-zinc-800 hover:border-zinc-700 transition-all group"
                 >
                   <div class="flex items-center gap-2 mb-2">
                     <div class="w-6 h-6 rounded-full bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-[9px] font-bold overflow-hidden flex-shrink-0">
@@ -527,13 +527,13 @@ onMounted(async () => {
                       />
                       <span v-else>{{ getReviewerInitials(review.user) }}</span>
                     </div>
-                    <span class="text-xs font-semibold text-slate-300 truncate">{{ getReviewerName(review.user) }}</span>
+                    <span class="text-xs font-semibold text-zinc-300 truncate">{{ getReviewerName(review.user) }}</span>
                     <div v-if="review.rating" class="flex items-center gap-0.5 ml-auto flex-shrink-0">
                       <Star :size="9" class="fill-yellow-500 text-yellow-500" />
                       <span class="text-[10px] font-bold text-yellow-500">{{ review.rating }}</span>
                     </div>
                   </div>
-                  <p class="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{{ review.review_preview }}</p>
+                  <p class="text-[11px] text-zinc-400 leading-relaxed line-clamp-2">{{ review.review_preview }}</p>
                   <div class="flex items-center gap-1 mt-1.5 text-[10px] text-indigo-400/70 opacity-0 group-hover:opacity-100 transition-opacity">
                     <span>Read full review</span>
                     <ChevronRight :size="10" />
@@ -543,31 +543,31 @@ onMounted(async () => {
             </div>
 
             <!-- Book Details -->
-            <div v-if="booksStore.currentBook" class="rounded-2xl border border-slate-800 p-5 bg-slate-900/40">
-              <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Book Details</h3>
+            <div v-if="booksStore.currentBook" class="rounded-2xl border border-zinc-800 p-5 bg-zinc-900/40">
+              <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">Book Details</h3>
               <div class="space-y-3">
                 <div v-if="booksStore.currentBook?.pages" class="flex items-center justify-between">
-                  <div class="flex items-center gap-2 text-slate-400">
+                  <div class="flex items-center gap-2 text-zinc-400">
                     <BookOpen :size="13" />
                     <span class="text-xs">Pages</span>
                   </div>
-                  <span class="text-xs font-bold text-slate-200">{{ booksStore.currentBook.pages }}</span>
+                  <span class="text-xs font-bold text-zinc-200">{{ booksStore.currentBook.pages }}</span>
                 </div>
                 <div v-if="booksStore.currentBook?.language" class="flex items-center justify-between">
-                  <div class="flex items-center gap-2 text-slate-400">
+                  <div class="flex items-center gap-2 text-zinc-400">
                     <Hash :size="13" />
                     <span class="text-xs">Language</span>
                   </div>
-                  <span class="text-xs font-bold text-slate-200">{{ booksStore.currentBook.language?.toUpperCase() }}</span>
+                  <span class="text-xs font-bold text-zinc-200">{{ booksStore.currentBook.language?.toUpperCase() }}</span>
                 </div>
                 <div v-if="booksStore.currentBook?.published_date" class="flex items-center justify-between">
-                  <div class="flex items-center gap-2 text-slate-400">
+                  <div class="flex items-center gap-2 text-zinc-400">
                     <Calendar :size="13" />
                     <span class="text-xs">Published</span>
                   </div>
-                  <span class="text-xs font-bold text-slate-200">{{ booksStore.currentBook.published_date }}</span>
+                  <span class="text-xs font-bold text-zinc-200">{{ booksStore.currentBook.published_date }}</span>
                 </div>
-                <div v-if="booksStore.currentBook?.genres?.length > 0" class="pt-2 border-t border-slate-800">
+                <div v-if="booksStore.currentBook?.genres?.length > 0" class="pt-2 border-t border-zinc-800">
                   <div class="flex flex-wrap gap-1.5">
                     <span
                       v-for="genre in booksStore.currentBook.genres"
@@ -585,25 +585,25 @@ onMounted(async () => {
 
         <!-- ==================== MOBILE: Community Reviews ==================== -->
         <div v-if="communityReviews.length > 0" class="lg:hidden mt-6">
-          <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 px-1">Other Reviews</h3>
+          <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 px-1">Other Reviews</h3>
           <div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
             <button
               v-for="review in communityReviews.slice(0, 6)"
               :key="review.id"
               @click="router.push(`/books/${route.params.id}/review/${review.user.id}`)"
-              class="flex-shrink-0 w-56 text-left p-3 rounded-xl bg-slate-900/60 border border-slate-800 active:bg-slate-800/60 transition-all"
+              class="flex-shrink-0 w-56 text-left p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 active:bg-zinc-800/60 transition-all"
             >
               <div class="flex items-center gap-2 mb-2">
                 <div class="w-6 h-6 rounded-full bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-[9px] font-bold flex-shrink-0">
                   {{ getReviewerInitials(review.user) }}
                 </div>
-                <span class="text-xs font-semibold text-slate-300 truncate">{{ getReviewerName(review.user) }}</span>
+                <span class="text-xs font-semibold text-zinc-300 truncate">{{ getReviewerName(review.user) }}</span>
                 <div v-if="review.rating" class="flex items-center gap-0.5 ml-auto">
                   <Star :size="9" class="fill-yellow-500 text-yellow-500" />
                   <span class="text-[10px] font-bold text-yellow-500">{{ review.rating }}</span>
                 </div>
               </div>
-              <p class="text-[11px] text-slate-400 leading-relaxed line-clamp-3">{{ review.review_preview }}</p>
+              <p class="text-[11px] text-zinc-400 leading-relaxed line-clamp-3">{{ review.review_preview }}</p>
             </button>
           </div>
         </div>

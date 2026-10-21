@@ -2,7 +2,7 @@ from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from django.db.models import Q, Count, Avg
+from django.db.models import Q, Count, Avg, Prefetch
 
 from apps.books.models import Author, AuthorGroup, Publisher, Genre, Tag, Book
 from apps.contributions.signals import create_contribution
@@ -17,6 +17,12 @@ from apps.books.serializers import (
     BookImportSerializer,
 )
 from apps.books.filters import UnaccentSearchFilter
+
+
+def _authors_prefetch():
+    """Prefetch authors with author_group joined, so BookListSerializer's nested
+    AuthorSerializer never has to hit the DB again for author_group_id."""
+    return Prefetch('authors', queryset=Author.objects.select_related('author_group'))
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
@@ -240,7 +246,7 @@ class BookViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter and optimize queryset"""
         queryset = Book.objects.all().select_related('publisher').prefetch_related(
-            'authors',
+            _authors_prefetch(),
             'genres',
             'tags',
         )
@@ -481,7 +487,7 @@ class BookViewSet(viewsets.ModelViewSet):
 
         thirty_days_ago = timezone.now() - timedelta(days=30)
 
-        books = Book.objects.annotate(
+        books = Book.objects.select_related('publisher', 'book_group').prefetch_related(_authors_prefetch()).annotate(
             # Count total readers
             readers_count=Count('user_books', distinct=True),
 
@@ -521,7 +527,7 @@ class BookViewSet(viewsets.ModelViewSet):
 
         seven_days_ago = timezone.now() - timedelta(days=7)
 
-        books = Book.objects.annotate(
+        books = Book.objects.select_related('publisher', 'book_group').prefetch_related(_authors_prefetch()).annotate(
             recent_activity=Count(
                 'user_books',
                 filter=Q(user_books__created_at__gte=seven_days_ago)
@@ -536,7 +542,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def featured(self, request):
         """Curated featured books - great for cold start"""
-        books = Book.objects.filter(
+        books = Book.objects.select_related('publisher', 'book_group').prefetch_related(_authors_prefetch()).filter(
             is_featured=True
         ).order_by('featured_order')[:20]
 
@@ -546,7 +552,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def recent(self, request):
         """Get recently added books"""
-        books = Book.objects.all().order_by('-created_at')[:20]
+        books = Book.objects.select_related('publisher', 'book_group').prefetch_related(_authors_prefetch()).order_by('-created_at')[:20]
         serializer = BookListSerializer(books, many=True)
         return Response(serializer.data)
 
@@ -675,6 +681,56 @@ class BookViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(
                 {'error': f'Error scraping Delfi.rs: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'], url_path='search_delfi_isbn')
+    def search_delfi_isbn(self, request):
+        """Search Delfi.rs by ISBN — scrapes their search page and returns book data"""
+        from utils.delfi_scraper import DelfiScraper
+
+        isbn = request.query_params.get('isbn', '').strip()
+        if not isbn or len(isbn) not in (10, 13):
+            return Response(
+                {'error': 'Valid ISBN (10 or 13 digits) is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            scraper = DelfiScraper()
+            book_data = scraper.scrape_book_by_isbn(isbn)
+            if not book_data:
+                return Response(
+                    {'error': 'No book found on Delfi.rs with this ISBN'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            publisher = book_data.get('publisher')
+            if publisher and len(publisher) > 200:
+                publisher = None
+
+            transformed_data = {
+                'title': book_data.get('title'),
+                'subtitle': book_data.get('subtitle'),
+                'description': book_data.get('description'),
+                'isbn_13': book_data.get('isbn_13'),
+                'isbn_10': book_data.get('isbn_10'),
+                'cover_image_url': book_data.get('cover_image_url'),
+                'published_date': book_data.get('published_date'),
+                'page_count': book_data.get('page_count'),
+                'language': book_data.get('language', 'sr'),
+                'authors': book_data.get('authors', []),
+                'publisher_name': publisher,
+                'genres': book_data.get('categories', []),
+                'source': 'delfi_scrape',
+                'delfi_id': book_data.get('delfi_id'),
+            }
+
+            return Response(transformed_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {'error': f'Delfi.rs search failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

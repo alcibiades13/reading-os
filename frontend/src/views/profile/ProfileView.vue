@@ -159,7 +159,7 @@ const cancelEdit = () => {
           <h1 class="text-page-heading font-black text-white tracking-tight mb-2 sm:mb-4">
             Your <span class="text-indigo-500">Reading</span> Journey
           </h1>
-          <p class="text-page-subtitle text-slate-400 max-w-2xl leading-relaxed hidden sm:block">
+          <p class="text-page-subtitle text-zinc-400 max-w-2xl leading-relaxed hidden sm:block">
             Track your progress, manage your profile, and see how far you've come on your literary adventure.
           </p>
         </header>
@@ -170,7 +170,7 @@ const cancelEdit = () => {
         <!-- Profile Info Card -->
         <div class="lg:col-span-2 space-y-4 sm:space-y-6">
           <!-- Avatar & Basic Info -->
-          <div class="glass bg-slate-900/40 rounded-2xl border border-slate-800/50 p-4 sm:p-8">
+          <div class="glass bg-zinc-900/40 rounded-2xl border border-zinc-800/50 p-4 sm:p-8">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-8">
               <!-- Avatar -->
               <div class="relative flex-shrink-0">
@@ -205,7 +205,7 @@ const cancelEdit = () => {
                     ? `${authStore.user.first_name} ${authStore.user.last_name}`.trim()
                     : authStore.user?.username }}
                 </h2>
-                <p class="text-slate-400 text-sm flex items-center gap-2">
+                <p class="text-zinc-400 text-sm flex items-center gap-2">
                   <Mail :size="14" />
                   {{ authStore.user?.email }}
                 </p>
@@ -214,7 +214,7 @@ const cancelEdit = () => {
                     <Shield :size="12" />
                     {{ currentTier.label }}
                   </span>
-                  <span v-if="reputation" class="text-xs text-slate-500 font-medium">
+                  <span v-if="reputation" class="text-xs text-zinc-500 font-medium">
                     {{ reputation.total_points }} pts
                   </span>
                 </div>
@@ -234,85 +234,85 @@ const cancelEdit = () => {
             <div class="space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">First Name</label>
+                  <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">First Name</label>
                   <input
                     v-model="profileForm.first_name"
                     :disabled="!isEditing"
                     type="text"
                     placeholder="First name"
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Last Name</label>
+                  <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Last Name</label>
                   <input
                     v-model="profileForm.last_name"
                     :disabled="!isEditing"
                     type="text"
                     placeholder="Last name"
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div>
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Bio</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Bio</label>
                 <textarea
                   v-model="profileForm.bio"
                   :disabled="!isEditing"
                   rows="3"
                   placeholder="Tell us about yourself..."
-                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Location</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Location</label>
                 <div class="relative">
-                  <MapPin class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="16" />
+                  <MapPin class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" :size="16" />
                   <input
                     v-model="profileForm.location"
                     :disabled="!isEditing"
                     type="text"
                     placeholder="City, Country"
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div>
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Website</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Website</label>
                 <div class="relative">
-                  <Globe class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" :size="16" />
+                  <Globe class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" :size="16" />
                   <input
                     v-model="profileForm.website"
                     :disabled="!isEditing"
                     type="url"
                     placeholder="https://yourwebsite.com"
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div>
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Birth Date</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Birth Date</label>
                 <div class="relative">
-                  <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" :size="16" />
+                  <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" :size="16" />
                   <input
                     v-model="profileForm.birth_date"
                     :disabled="!isEditing"
                     type="date"
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                   />
                 </div>
               </div>
 
               <!-- Privacy Setting -->
-              <div class="border-t border-slate-800 pt-6 mt-6">
+              <div class="border-t border-zinc-800 pt-6 mt-6">
                 <div class="flex items-center justify-between">
                   <div>
                     <span class="text-sm font-bold text-white block mb-1">Public Profile</span>
-                    <span class="text-xs text-slate-500">Allow other users to view your profile, books, and quotes</span>
+                    <span class="text-xs text-zinc-500">Allow other users to view your profile, books, and quotes</span>
                   </div>
                   <label :class="['relative inline-flex items-center', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
                     <input
@@ -321,7 +321,7 @@ const cancelEdit = () => {
                       type="checkbox"
                       class="sr-only peer"
                     />
-                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 peer-disabled:opacity-50"></div>
+                    <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 peer-disabled:opacity-50"></div>
                   </label>
                 </div>
               </div>
@@ -329,7 +329,7 @@ const cancelEdit = () => {
               <div v-if="isEditing" class="flex items-center gap-3 pt-4">
                 <button
                   @click="cancelEdit"
-                  class="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                  class="flex-1 px-4 py-2.5 rounded-xl border border-zinc-700 text-zinc-300 text-sm font-bold hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                 >
                   <X :size="16" />
                   Cancel
@@ -348,44 +348,44 @@ const cancelEdit = () => {
 
         <!-- Stats Sidebar -->
         <div class="space-y-3">
-          <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 lg:mb-3">Reading Statistics</h3>
+          <h3 class="text-xs font-black text-zinc-500 uppercase tracking-widest mb-2 lg:mb-3">Reading Statistics</h3>
 
           <!-- Mobile: compact 2-col grid, Desktop: stacked column -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 sm:gap-3">
-            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-indigo-500/30 transition-all">
+            <div class="glass bg-zinc-900/40 rounded-xl border border-zinc-800/50 p-3 lg:p-4 text-center hover:border-indigo-500/30 transition-all">
               <BookOpen class="w-5 h-5 lg:w-6 lg:h-6 text-indigo-400 mx-auto mb-1.5" />
               <p class="text-xl lg:text-2xl font-black text-white mb-0.5">{{ stats.totalBooks }}</p>
-              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Books</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Total Books</p>
             </div>
 
-            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-emerald-500/30 transition-all">
+            <div class="glass bg-zinc-900/40 rounded-xl border border-zinc-800/50 p-3 lg:p-4 text-center hover:border-emerald-500/30 transition-all">
               <BookOpen class="w-5 h-5 lg:w-6 lg:h-6 text-emerald-400 mx-auto mb-1.5" />
               <p class="text-xl lg:text-2xl font-black text-emerald-400 mb-0.5">{{ stats.booksRead }}</p>
-              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Books Read</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Books Read</p>
             </div>
 
-            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-sky-500/30 transition-all">
+            <div class="glass bg-zinc-900/40 rounded-xl border border-zinc-800/50 p-3 lg:p-4 text-center hover:border-sky-500/30 transition-all">
               <BookOpen class="w-5 h-5 lg:w-6 lg:h-6 text-sky-400 mx-auto mb-1.5" />
               <p class="text-xl lg:text-2xl font-black text-sky-400 mb-0.5">{{ stats.currentlyReading }}</p>
-              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reading</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Reading</p>
             </div>
 
-            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-amber-500/30 transition-all">
+            <div class="glass bg-zinc-900/40 rounded-xl border border-zinc-800/50 p-3 lg:p-4 text-center hover:border-amber-500/30 transition-all">
               <Quote class="w-5 h-5 lg:w-6 lg:h-6 text-amber-400 mx-auto mb-1.5" />
               <p class="text-xl lg:text-2xl font-black text-amber-400 mb-0.5">{{ stats.quotes }}</p>
-              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quotes</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Quotes</p>
             </div>
 
-            <div class="glass bg-slate-900/40 rounded-xl border border-slate-800/50 p-3 lg:p-4 text-center hover:border-purple-500/30 transition-all">
+            <div class="glass bg-zinc-900/40 rounded-xl border border-zinc-800/50 p-3 lg:p-4 text-center hover:border-purple-500/30 transition-all">
               <Target class="w-5 h-5 lg:w-6 lg:h-6 text-purple-400 mx-auto mb-1.5" />
               <p class="text-xl lg:text-2xl font-black text-purple-400 mb-0.5">{{ stats.wantToRead }}</p>
-              <p class="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Want to Read</p>
+              <p class="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Want to Read</p>
             </div>
           </div>
         </div>
 
         <!-- Reputation & Badges -->
-        <div v-if="reputation" class="lg:col-span-3 glass bg-slate-900/40 rounded-xl sm:rounded-2xl border border-slate-800/50 p-4 sm:p-6">
+        <div v-if="reputation" class="lg:col-span-3 glass bg-zinc-900/40 rounded-xl sm:rounded-2xl border border-zinc-800/50 p-4 sm:p-6">
           <div class="flex items-center gap-3 mb-4">
             <Award :size="20" class="text-indigo-400" />
             <h3 class="text-sm sm:text-lg font-black text-white">Reputation</h3>
@@ -397,31 +397,31 @@ const cancelEdit = () => {
 
           <!-- Points Breakdown -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+            <div class="text-center p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/50">
               <p class="text-lg font-black text-indigo-400">{{ reputation.content_points }}</p>
-              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Content</p>
+              <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Content</p>
             </div>
-            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+            <div class="text-center p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/50">
               <p class="text-lg font-black text-emerald-400">{{ reputation.community_points }}</p>
-              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Community</p>
+              <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Community</p>
             </div>
-            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+            <div class="text-center p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/50">
               <p class="text-lg font-black text-purple-400">{{ reputation.curation_points }}</p>
-              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Curation</p>
+              <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Curation</p>
             </div>
-            <div class="text-center p-3 rounded-xl bg-slate-950/50 border border-slate-800/50">
+            <div class="text-center p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/50">
               <p class="text-lg font-black text-amber-400">{{ reputation.reading_points }}</p>
-              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Reading</p>
+              <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Reading</p>
             </div>
           </div>
 
           <!-- Next Tier Progress -->
           <div v-if="reputation.next_tier" class="mb-4">
             <div class="flex items-center justify-between text-xs mb-1.5">
-              <span class="text-slate-400 font-medium">Progress to {{ reputation.next_tier }}</span>
-              <span class="text-slate-500 font-bold">{{ reputation.total_points }} / {{ reputation.total_points + (reputation.next_tier_points_needed || 0) }} pts</span>
+              <span class="text-zinc-400 font-medium">Progress to {{ reputation.next_tier }}</span>
+              <span class="text-zinc-500 font-bold">{{ reputation.total_points }} / {{ reputation.total_points + (reputation.next_tier_points_needed || 0) }} pts</span>
             </div>
-            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
               <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all"
                 :style="{ width: reputation.next_tier_points_needed ? Math.min(100, (reputation.total_points / (reputation.total_points + reputation.next_tier_points_needed)) * 100) + '%' : '100%' }" />
             </div>
@@ -429,21 +429,21 @@ const cancelEdit = () => {
 
           <!-- Badges -->
           <div v-if="badges.length > 0">
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Earned Badges</p>
+            <p class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Earned Badges</p>
             <div class="flex flex-wrap gap-2">
               <div v-for="ub in badges" :key="ub.id"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-slate-700/50 bg-slate-800/50"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-zinc-700/50 bg-zinc-800/50"
                 :title="ub.badge.description">
                 <span :style="{ color: ub.badge.color }">{{ ub.badge.icon }}</span>
-                <span class="text-slate-300">{{ ub.badge.name }}</span>
+                <span class="text-zinc-300">{{ ub.badge.name }}</span>
               </div>
             </div>
           </div>
-          <p v-else class="text-xs text-slate-600 text-center py-2">No badges earned yet. Keep contributing!</p>
+          <p v-else class="text-xs text-zinc-600 text-center py-2">No badges earned yet. Keep contributing!</p>
         </div>
 
         <!-- Data Export Section -->
-        <div class="lg:col-span-3 glass bg-slate-900/40 rounded-xl sm:rounded-2xl border border-slate-800/50 p-4 sm:p-6">
+        <div class="lg:col-span-3 glass bg-zinc-900/40 rounded-xl sm:rounded-2xl border border-zinc-800/50 p-4 sm:p-6">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
@@ -452,7 +452,7 @@ const cancelEdit = () => {
               </div>
               <div>
                 <h3 class="text-sm sm:text-lg font-black text-white">Data Export</h3>
-                <p class="text-[10px] sm:text-xs text-slate-500">Download all your data as a ZIP archive</p>
+                <p class="text-[10px] sm:text-xs text-zinc-500">Download all your data as a ZIP archive</p>
               </div>
             </div>
             <button

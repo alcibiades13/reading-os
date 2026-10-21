@@ -68,19 +68,19 @@ const setPreset = (value) => {
 </script>
 
 <template>
-  <div v-if="open" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in duration-300">
+  <div v-if="open" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-sm animate-in fade-in duration-300">
     <div class="relative w-full max-w-md glass rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 ring-2 ring-indigo-500">
 
       <!-- Close Button -->
       <button
         @click="handleClose"
-        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-slate-900/50 hover:bg-slate-800 text-slate-300 transition-colors"
+        class="absolute top-6 right-6 z-20 p-2 rounded-full bg-zinc-900/50 hover:bg-zinc-800 text-zinc-300 transition-colors"
       >
         <X :size="20" />
       </button>
 
       <!-- Header -->
-      <div class="p-8 pb-6 border-b border-slate-800">
+      <div class="p-8 pb-6 border-b border-zinc-800">
         <div class="flex items-center gap-3 mb-2">
           <div class="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
             <Target :size="24" class="text-indigo-400" />
@@ -89,7 +89,7 @@ const setPreset = (value) => {
             {{ challenge ? 'Edit Challenge' : 'Create Challenge' }}
           </h2>
         </div>
-        <p class="text-sm text-slate-400">
+        <p class="text-sm text-zinc-400">
           Set your reading goal for {{ currentYear }}
         </p>
       </div>
@@ -98,7 +98,7 @@ const setPreset = (value) => {
       <div class="p-8 space-y-6">
         <!-- Target Books -->
         <div>
-          <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">
+          <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">
             Books to Read
           </label>
           <input
@@ -106,7 +106,7 @@ const setPreset = (value) => {
             type="number"
             min="1"
             max="999"
-            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-2xl font-bold text-white text-center focus:border-indigo-500 focus:outline-none"
+            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-2xl font-bold text-white text-center focus:border-indigo-500 focus:outline-none"
           />
 
           <!-- Preset Buttons -->
@@ -115,7 +115,7 @@ const setPreset = (value) => {
               v-for="preset in presets"
               :key="preset"
               @click="setPreset(preset)"
-              :class="formData.target_books === preset ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:border-indigo-500/50'"
+              :class="formData.target_books === preset ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-zinc-800/50 text-zinc-400 border-zinc-700 hover:border-indigo-500/50'"
               class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
             >
               {{ preset }}
@@ -125,37 +125,37 @@ const setPreset = (value) => {
 
         <!-- Challenge Title (Optional) -->
         <div>
-          <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">
+          <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">
             Challenge Title (Optional)
           </label>
           <input
             v-model="formData.title"
             type="text"
             placeholder="My Reading Challenge"
-            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none"
+            class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:border-indigo-500 focus:outline-none"
           />
         </div>
 
         <!-- Date Range -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">
+            <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">
               Start Date
             </label>
             <input
               v-model="formData.start_date"
               type="date"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:border-indigo-500 focus:outline-none"
             />
           </div>
           <div>
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">
+            <label class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">
               End Date
             </label>
             <input
               v-model="formData.end_date"
               type="date"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:border-indigo-500 focus:outline-none"
             />
           </div>
         </div>
@@ -166,11 +166,11 @@ const setPreset = (value) => {
             <input
               v-model="formData.is_active"
               type="checkbox"
-              class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+              class="w-4 h-4 rounded bg-zinc-800 border-zinc-700 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
             />
             <div>
               <span class="text-sm font-semibold text-white">Active Challenge</span>
-              <p class="text-xs text-slate-500">Track progress for this challenge</p>
+              <p class="text-xs text-zinc-500">Track progress for this challenge</p>
             </div>
           </label>
 
@@ -178,21 +178,21 @@ const setPreset = (value) => {
             <input
               v-model="formData.is_public"
               type="checkbox"
-              class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+              class="w-4 h-4 rounded bg-zinc-800 border-zinc-700 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
             />
             <div>
               <span class="text-sm font-semibold text-white">Public Challenge</span>
-              <p class="text-xs text-slate-500">Let others see your progress</p>
+              <p class="text-xs text-zinc-500">Let others see your progress</p>
             </div>
           </label>
         </div>
       </div>
 
       <!-- Footer Actions -->
-      <div class="p-6 border-t border-slate-800 bg-slate-900/50 flex gap-3">
+      <div class="p-6 border-t border-zinc-800 bg-zinc-900/50 flex gap-3">
         <button
           @click="handleClose"
-          class="flex-1 px-5 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors"
+          class="flex-1 px-5 py-3 rounded-xl border border-zinc-700 text-zinc-300 text-sm font-semibold hover:bg-zinc-800 transition-colors"
         >
           Cancel
         </button>

@@ -639,7 +639,7 @@ const handleBookUpdated = (updatedUserBook) => {
   <div class="animate-in fade-in duration-700">
 
     <!-- ==================== MOBILE HEADER ==================== -->
-    <header class="lg:hidden relative border-b border-white/5 bg-slate-900">
+    <header class="lg:hidden relative border-b border-white/5 bg-zinc-900">
       <div class="px-4 pt-4 pb-3">
         <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-3">
@@ -648,14 +648,14 @@ const handleBookUpdated = (updatedUserBook) => {
           </div>
           <div>
             <h1 class="text-lg font-black text-white">Activity</h1>
-            <p class="text-[10px] text-slate-500 uppercase tracking-wider">{{ filteredPosts.length }} updates</p>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-wider">{{ filteredPosts.length }} updates</p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <button
             @click="showMobileSidebar = true"
-            class="p-2.5 rounded-xl bg-white/5 text-slate-400 active:bg-slate-800 transition-colors"
+            class="p-2.5 rounded-xl bg-white/5 text-zinc-400 active:bg-zinc-800 transition-colors"
           >
             <Sparkles :size="18" />
           </button>
@@ -663,7 +663,7 @@ const handleBookUpdated = (updatedUserBook) => {
             @click.stop="showFilters = !showFilters"
             :class="[
               'p-2.5 rounded-xl transition-colors',
-              !selectedActivityTypes.includes('all') ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400'
+              !selectedActivityTypes.includes('all') ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-zinc-400'
             ]"
           >
             <Filter :size="18" />
@@ -675,10 +675,10 @@ const handleBookUpdated = (updatedUserBook) => {
       <!-- Mobile Filters Dropdown -->
       <div
         v-if="showFilters"
-        class="absolute top-full left-0 right-0 bg-slate-900 border-b border-slate-700 p-4 z-50 shadow-xl shadow-black/50"
+        class="absolute top-full left-0 right-0 bg-zinc-900 border-b border-zinc-700 p-4 z-50 shadow-xl shadow-black/50"
         @click.stop
       >
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Filter by Activity</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">Filter by Activity</h3>
         <div class="grid grid-cols-2 gap-2 mb-4">
           <button
             v-for="type in activityTypes"
@@ -688,7 +688,7 @@ const handleBookUpdated = (updatedUserBook) => {
               'flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all',
               isActivityTypeSelected(type.value)
                 ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                : 'bg-white/5 text-slate-400 border border-transparent'
+                : 'bg-white/5 text-zinc-400 border border-transparent'
             ]"
           >
             <component :is="type.icon" :size="14" />
@@ -698,7 +698,7 @@ const handleBookUpdated = (updatedUserBook) => {
         <div class="flex gap-2">
           <button
             @click="selectedActivityTypes = ['all']; showFilters = false"
-            class="flex-1 px-4 py-2.5 rounded-xl bg-white/5 text-slate-300 text-xs font-bold"
+            class="flex-1 px-4 py-2.5 rounded-xl bg-white/5 text-zinc-300 text-xs font-bold"
           >
             Reset
           </button>
@@ -717,7 +717,7 @@ const handleBookUpdated = (updatedUserBook) => {
           @click="activeTab = 'all'"
           :class="[
             'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
-            activeTab === 'all' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+            activeTab === 'all' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-zinc-400'
           ]"
         >
           <Sparkles :size="14" />
@@ -727,7 +727,7 @@ const handleBookUpdated = (updatedUserBook) => {
           @click="activeTab = 'following'"
           :class="[
             'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
-            activeTab === 'following' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+            activeTab === 'following' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-zinc-400'
           ]"
         >
           <Users :size="14" />
@@ -737,7 +737,7 @@ const handleBookUpdated = (updatedUserBook) => {
           @click="activeTab = 'books'"
           :class="[
             'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
-            activeTab === 'books' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+            activeTab === 'books' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-zinc-400'
           ]"
         >
           <TrendingUp :size="14" />
@@ -747,7 +747,7 @@ const handleBookUpdated = (updatedUserBook) => {
           @click="activeTab = 'discover'"
           :class="[
             'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0',
-            activeTab === 'discover' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+            activeTab === 'discover' ? 'bg-indigo-500 text-white' : 'bg-white/5 text-zinc-400'
           ]"
         >
           <Compass :size="14" />
@@ -770,7 +770,7 @@ const handleBookUpdated = (updatedUserBook) => {
         <h1 class="text-page-heading font-black text-white tracking-tight mb-4">
           Reading OS <span class="text-indigo-500">Feed</span>
         </h1>
-        <p class="text-page-subtitle text-slate-400 leading-relaxed max-w-2xl">
+        <p class="text-page-subtitle text-zinc-400 leading-relaxed max-w-2xl">
           See what your reading community is up to. Discover new books, insights, and reading milestones.
         </p>
       </header>
@@ -783,12 +783,12 @@ const handleBookUpdated = (updatedUserBook) => {
 
       <!-- Filter Tabs - Desktop Only -->
       <div class="hidden lg:flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-        <div class="flex items-center gap-1 p-1 bg-slate-900/80 rounded-2xl border border-slate-800 overflow-x-auto">
+        <div class="flex items-center gap-1 p-1 bg-zinc-900/80 rounded-2xl border border-zinc-800 overflow-x-auto">
           <button
             @click="activeTab = 'all'"
             :class="[
               'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
-              activeTab === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
+              activeTab === 'all' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-500 hover:text-zinc-300'
             ]"
           >
             <Sparkles :size="14" />
@@ -799,7 +799,7 @@ const handleBookUpdated = (updatedUserBook) => {
             @click="activeTab = 'following'"
             :class="[
               'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
-              activeTab === 'following' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
+              activeTab === 'following' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-500 hover:text-zinc-300'
             ]"
           >
             <Users :size="14" />
@@ -810,7 +810,7 @@ const handleBookUpdated = (updatedUserBook) => {
             @click="activeTab = 'books'"
             :class="[
               'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
-              activeTab === 'books' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
+              activeTab === 'books' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-500 hover:text-zinc-300'
             ]"
           >
             <TrendingUp :size="14" />
@@ -821,7 +821,7 @@ const handleBookUpdated = (updatedUserBook) => {
             @click="activeTab = 'discover'"
             :class="[
               'flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
-              activeTab === 'discover' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
+              activeTab === 'discover' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-500 hover:text-zinc-300'
             ]"
           >
             <Compass :size="14" />
@@ -832,7 +832,7 @@ const handleBookUpdated = (updatedUserBook) => {
 
         <button
           @click.stop="showFilters = !showFilters"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-all text-xs sm:text-sm font-bold relative shrink-0"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all text-xs sm:text-sm font-bold relative shrink-0"
         >
           <Filter :size="16" />
           <span class="hidden sm:inline">Filters</span>
@@ -842,10 +842,10 @@ const handleBookUpdated = (updatedUserBook) => {
           <div
             v-if="showFilters"
             @click.stop
-            class="absolute right-0 top-12 w-80 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-[100]"
+            class="absolute right-0 top-12 w-80 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl z-[100]"
           >
             <div class="p-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Activity Types</h3>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">Activity Types</h3>
               <div class="space-y-2">
                 <button
                   v-for="type in activityTypes"
@@ -855,7 +855,7 @@ const handleBookUpdated = (updatedUserBook) => {
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                     isActivityTypeSelected(type.value)
                       ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                      : 'text-slate-400 hover:bg-slate-800 border border-transparent'
+                      : 'text-zinc-400 hover:bg-zinc-800 border border-transparent'
                   ]"
                 >
                   <component :is="type.icon" :size="16" />
@@ -869,10 +869,10 @@ const handleBookUpdated = (updatedUserBook) => {
               </div>
             </div>
 
-            <div class="p-4 pt-3 border-t border-slate-800 flex gap-2 bg-slate-900/50">
+            <div class="p-4 pt-3 border-t border-zinc-800 flex gap-2 bg-zinc-900/50">
               <button
                 @click="selectedActivityTypes = ['all']; showFilters = false"
-                class="flex-1 px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700 transition-colors"
+                class="flex-1 px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-bold hover:bg-zinc-700 transition-colors"
               >
                 Reset
               </button>
@@ -893,8 +893,8 @@ const handleBookUpdated = (updatedUserBook) => {
       </div>
       <div v-else class="space-y-2 lg:space-y-8">
         <div v-if="loading" class="space-y-8">
-          <div v-for="n in 3" :key="n" class="h-64 glass bg-slate-900/50 rounded-2xl animate-pulse flex items-center justify-center">
-            <div class="w-12 h-12 rounded-full border-4 border-slate-800 border-t-indigo-500 animate-spin" />
+          <div v-for="n in 3" :key="n" class="h-64 glass bg-zinc-900/50 rounded-2xl animate-pulse flex items-center justify-center">
+            <div class="w-12 h-12 rounded-full border-4 border-zinc-800 border-t-indigo-500 animate-spin" />
           </div>
         </div>
 
@@ -909,7 +909,7 @@ const handleBookUpdated = (updatedUserBook) => {
           />
 
           <div class="flex justify-center pt-8 pb-4">
-            <button class="px-8 py-4 rounded-2xl bg-slate-900 border border-slate-800 text-white font-bold hover:bg-slate-800 hover:border-slate-700 transition-all flex items-center gap-3 active:scale-95">
+            <button class="px-8 py-4 rounded-2xl bg-zinc-900 border border-zinc-800 text-white font-bold hover:bg-zinc-800 hover:border-zinc-700 transition-all flex items-center gap-3 active:scale-95">
               <TrendingUp :size="20" class="text-indigo-400" />
               Load Older Activity
             </button>
@@ -943,7 +943,7 @@ const handleBookUpdated = (updatedUserBook) => {
                   :to="getBookUrl(book)"
                   class="shrink-0 w-28 group"
                 >
-                  <div class="aspect-[2/3] rounded-xl overflow-hidden bg-slate-800 shadow-lg mb-2">
+                  <div class="aspect-[2/3] rounded-xl overflow-hidden bg-zinc-800 shadow-lg mb-2">
                     <img
                       v-if="book.cover_image"
                       :src="book.cover_image"
@@ -951,11 +951,11 @@ const handleBookUpdated = (updatedUserBook) => {
                       class="w-full h-full object-cover group-active:scale-105 transition-transform"
                     />
                     <div v-else class="w-full h-full flex items-center justify-center">
-                      <BookOpen :size="24" class="text-slate-600" />
+                      <BookOpen :size="24" class="text-zinc-600" />
                     </div>
                   </div>
                   <h4 class="text-xs font-bold text-white line-clamp-2 leading-tight">{{ book.title }}</h4>
-                  <p class="text-[10px] text-slate-500 truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
+                  <p class="text-[10px] text-zinc-500 truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
                   <div v-if="book.match_score" class="flex items-center gap-1 mt-1">
                     <Heart :size="10" class="text-indigo-400" />
                     <span class="text-[10px] font-bold text-indigo-400">{{ Math.round(book.match_score) }}%</span>
@@ -1005,13 +1005,13 @@ const handleBookUpdated = (updatedUserBook) => {
         <div class="hidden lg:block lg:col-span-4 min-w-0 space-y-6">
 
           <!-- For You - Recommended Books -->
-          <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+          <div class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40">
             <div class="flex items-center justify-between mb-5">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                   <Sparkles :size="16" class="text-indigo-400" />
                 </div>
-                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">For You</h3>
+                <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">For You</h3>
               </div>
               <router-link
                 to="/discover"
@@ -1024,10 +1024,10 @@ const handleBookUpdated = (updatedUserBook) => {
             <!-- Loading State -->
             <div v-if="loadingRecommendations" class="space-y-4">
               <div v-for="n in 3" :key="n" class="flex items-center gap-3 animate-pulse">
-                <div class="w-12 h-16 rounded-lg bg-slate-800" />
+                <div class="w-12 h-16 rounded-lg bg-zinc-800" />
                 <div class="flex-1 space-y-2">
-                  <div class="h-3 bg-slate-800 rounded w-3/4" />
-                  <div class="h-2 bg-slate-800 rounded w-1/2" />
+                  <div class="h-3 bg-zinc-800 rounded w-3/4" />
+                  <div class="h-2 bg-zinc-800 rounded w-1/2" />
                 </div>
               </div>
             </div>
@@ -1040,7 +1040,7 @@ const handleBookUpdated = (updatedUserBook) => {
                 :to="getBookUrl(book)"
                 class="group flex items-center gap-3 p-2 -mx-1 rounded-xl hover:bg-white/5 transition-all"
               >
-                <div class="shrink-0 w-14 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                <div class="shrink-0 w-14 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 shadow-md flex items-center justify-center">
                   <img
                     v-if="book.cover_image"
                     :src="book.cover_image"
@@ -1048,13 +1048,13 @@ const handleBookUpdated = (updatedUserBook) => {
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     @error="(e) => e.target.style.display = 'none'"
                   />
-                  <BookOpen v-else :size="18" class="text-slate-600" />
+                  <BookOpen v-else :size="18" class="text-zinc-600" />
                 </div>
                 <div class="flex-1 min-w-0 py-0.5">
                   <h4 class="font-bold text-white text-sm leading-snug line-clamp-2 group-hover:text-indigo-400 transition-colors">
                     {{ book.title }}
                   </h4>
-                  <p class="text-slate-400 text-xs truncate mt-0.5">
+                  <p class="text-zinc-400 text-xs truncate mt-0.5">
                     {{ book.authors?.map(a => a.name).join(', ') || 'Unknown' }}
                   </p>
                   <!-- Match info + Themes on same area -->
@@ -1062,7 +1062,7 @@ const handleBookUpdated = (updatedUserBook) => {
                     <span v-if="book.match_score" class="text-xs font-bold text-indigo-400">
                       {{ Math.round(book.match_score) }}%
                     </span>
-                    <span v-if="book.match_highlights?.length" class="text-xs text-slate-500">
+                    <span v-if="book.match_highlights?.length" class="text-xs text-zinc-500">
                       · {{ book.match_highlights.join(', ') }}
                     </span>
                   </div>
@@ -1070,7 +1070,7 @@ const handleBookUpdated = (updatedUserBook) => {
                     <span
                       v-for="theme in book.themes.slice(0, 2)"
                       :key="theme"
-                      class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-400"
+                      class="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-400"
                     >
                       {{ theme }}
                     </span>
@@ -1081,10 +1081,10 @@ const handleBookUpdated = (updatedUserBook) => {
 
             <!-- Empty State -->
             <div v-else class="text-center py-6">
-              <div class="w-12 h-12 mx-auto rounded-full bg-slate-800/50 flex items-center justify-center mb-3">
-                <BookOpen :size="20" class="text-slate-600" />
+              <div class="w-12 h-12 mx-auto rounded-full bg-zinc-800/50 flex items-center justify-center mb-3">
+                <BookOpen :size="20" class="text-zinc-600" />
               </div>
-              <p class="text-slate-500 text-xs">
+              <p class="text-zinc-500 text-xs">
                 Rate more books to get personalized recommendations
               </p>
               <router-link
@@ -1097,14 +1097,14 @@ const handleBookUpdated = (updatedUserBook) => {
           </div>
 
           <!-- Your Reading DNA (mini version) -->
-          <div v-if="tasteProfile && tasteProfile.vote_count > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+          <div v-if="tasteProfile && tasteProfile.vote_count > 0" class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40">
             <div class="flex items-center gap-3 mb-5">
               <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                 <Dna :size="16" class="text-indigo-400" />
               </div>
               <div>
-                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Your DNA</h3>
-                <p class="text-slate-600 text-[9px]">{{ tasteProfile.vote_count }} books rated</p>
+                <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">Your DNA</h3>
+                <p class="text-zinc-600 text-[9px]">{{ tasteProfile.vote_count }} books rated</p>
               </div>
             </div>
 
@@ -1112,10 +1112,10 @@ const handleBookUpdated = (updatedUserBook) => {
             <div class="space-y-3">
               <div v-if="tasteProfile.pace_preference !== undefined">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-[9px] font-bold text-slate-500 uppercase">Pace</span>
-                  <span class="text-[9px] text-slate-600">{{ tasteProfile.pace_preference > 0.5 ? 'Fast' : 'Slow' }}</span>
+                  <span class="text-[9px] font-bold text-zinc-500 uppercase">Pace</span>
+                  <span class="text-[9px] text-zinc-600">{{ tasteProfile.pace_preference > 0.5 ? 'Fast' : 'Slow' }}</span>
                 </div>
-                <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div class="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-indigo-500 rounded-full transition-all"
                     :style="{ width: `${tasteProfile.pace_preference * 100}%` }"
@@ -1124,10 +1124,10 @@ const handleBookUpdated = (updatedUserBook) => {
               </div>
               <div v-if="tasteProfile.complexity_tolerance !== undefined">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-[9px] font-bold text-slate-500 uppercase">Complexity</span>
-                  <span class="text-[9px] text-slate-600">{{ tasteProfile.complexity_tolerance > 0.5 ? 'Dense' : 'Light' }}</span>
+                  <span class="text-[9px] font-bold text-zinc-500 uppercase">Complexity</span>
+                  <span class="text-[9px] text-zinc-600">{{ tasteProfile.complexity_tolerance > 0.5 ? 'Dense' : 'Light' }}</span>
                 </div>
-                <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div class="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-purple-500 rounded-full transition-all"
                     :style="{ width: `${tasteProfile.complexity_tolerance * 100}%` }"
@@ -1136,10 +1136,10 @@ const handleBookUpdated = (updatedUserBook) => {
               </div>
               <div v-if="tasteProfile.darkness_tolerance !== undefined">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-[9px] font-bold text-slate-500 uppercase">Tone</span>
-                  <span class="text-[9px] text-slate-600">{{ tasteProfile.darkness_tolerance > 0.5 ? 'Dark' : 'Light' }}</span>
+                  <span class="text-[9px] font-bold text-zinc-500 uppercase">Tone</span>
+                  <span class="text-[9px] text-zinc-600">{{ tasteProfile.darkness_tolerance > 0.5 ? 'Dark' : 'Light' }}</span>
                 </div>
-                <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div class="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-rose-500 rounded-full transition-all"
                     :style="{ width: `${tasteProfile.darkness_tolerance * 100}%` }"
@@ -1157,8 +1157,8 @@ const handleBookUpdated = (updatedUserBook) => {
           </div>
 
           <!-- Quick Mood Picks -->
-          <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
-            <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Quick Picks</h3>
+          <div class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40">
+            <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Quick Picks</h3>
             <div class="grid grid-cols-2 gap-2">
               <router-link
                 to="/discover?mood=peaceful"
@@ -1209,13 +1209,13 @@ const handleBookUpdated = (updatedUserBook) => {
           />
 
           <!-- Panel -->
-          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-slate-900 border-l border-slate-800 overflow-y-auto">
+          <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-zinc-900 border-l border-zinc-800 overflow-y-auto">
             <!-- Header -->
-            <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
+            <div class="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-zinc-800 bg-zinc-900">
               <h2 class="text-lg font-bold text-white">For You</h2>
               <button
                 @click="showMobileSidebar = false"
-                class="p-2 rounded-xl bg-slate-800 text-slate-400"
+                class="p-2 rounded-xl bg-zinc-800 text-zinc-400"
               >
                 <X :size="18" />
               </button>
@@ -1224,13 +1224,13 @@ const handleBookUpdated = (updatedUserBook) => {
             <!-- Content -->
             <div class="p-4 space-y-4">
               <!-- Recommended Books -->
-              <div class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+              <div class="p-4 rounded-2xl glass border-zinc-800 bg-zinc-900/40">
                 <div class="flex items-center justify-between mb-4">
                   <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                       <Sparkles :size="16" class="text-indigo-400" />
                     </div>
-                    <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Recommendations</h3>
+                    <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">Recommendations</h3>
                   </div>
                   <router-link
                     to="/discover"
@@ -1244,10 +1244,10 @@ const handleBookUpdated = (updatedUserBook) => {
                 <!-- Loading State -->
                 <div v-if="loadingRecommendations" class="space-y-3">
                   <div v-for="n in 3" :key="n" class="flex items-center gap-3 animate-pulse">
-                    <div class="w-10 h-14 rounded-lg bg-slate-800" />
+                    <div class="w-10 h-14 rounded-lg bg-zinc-800" />
                     <div class="flex-1 space-y-2">
-                      <div class="h-3 bg-slate-800 rounded w-3/4" />
-                      <div class="h-2 bg-slate-800 rounded w-1/2" />
+                      <div class="h-3 bg-zinc-800 rounded w-3/4" />
+                      <div class="h-2 bg-zinc-800 rounded w-1/2" />
                     </div>
                   </div>
                 </div>
@@ -1261,18 +1261,18 @@ const handleBookUpdated = (updatedUserBook) => {
                     @click="showMobileSidebar = false"
                     class="flex items-center gap-3 p-2 -mx-1 rounded-xl active:bg-white/5 transition-all"
                   >
-                    <div class="shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center">
+                    <div class="shrink-0 w-10 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 shadow-md flex items-center justify-center">
                       <img
                         v-if="book.cover_image"
                         :src="book.cover_image"
                         :alt="book.title"
                         class="w-full h-full object-cover"
                       />
-                      <BookOpen v-else :size="14" class="text-slate-600" />
+                      <BookOpen v-else :size="14" class="text-zinc-600" />
                     </div>
                     <div class="flex-1 min-w-0">
                       <h4 class="font-bold text-white text-sm leading-snug line-clamp-1">{{ book.title }}</h4>
-                      <p class="text-slate-500 text-xs truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
+                      <p class="text-zinc-500 text-xs truncate">{{ book.authors?.map(a => a.name).join(', ') }}</p>
                       <div v-if="book.match_score" class="flex items-center gap-1 mt-0.5">
                         <Heart :size="10" class="text-indigo-400" />
                         <span class="text-[10px] font-bold text-indigo-400">{{ Math.round(book.match_score) }}%</span>
@@ -1283,47 +1283,47 @@ const handleBookUpdated = (updatedUserBook) => {
 
                 <!-- Empty State -->
                 <div v-else class="text-center py-4">
-                  <p class="text-slate-500 text-xs">Rate more books to get recommendations</p>
+                  <p class="text-zinc-500 text-xs">Rate more books to get recommendations</p>
                 </div>
               </div>
 
               <!-- Your DNA Mini -->
-              <div v-if="tasteProfile && tasteProfile.vote_count > 0" class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
+              <div v-if="tasteProfile && tasteProfile.vote_count > 0" class="p-4 rounded-2xl glass border-zinc-800 bg-zinc-900/40">
                 <div class="flex items-center gap-2 mb-4">
                   <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                     <Dna :size="16" class="text-indigo-400" />
                   </div>
                   <div>
-                    <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Your DNA</h3>
-                    <p class="text-slate-600 text-[9px]">{{ tasteProfile.vote_count }} books rated</p>
+                    <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">Your DNA</h3>
+                    <p class="text-zinc-600 text-[9px]">{{ tasteProfile.vote_count }} books rated</p>
                   </div>
                 </div>
 
                 <div class="space-y-3">
                   <div v-if="tasteProfile.pace_preference !== undefined">
                     <div class="flex items-center justify-between mb-1">
-                      <span class="text-[9px] font-bold text-slate-500 uppercase">Pace</span>
-                      <span class="text-[9px] text-slate-600">{{ tasteProfile.pace_preference > 0.5 ? 'Fast' : 'Slow' }}</span>
+                      <span class="text-[9px] font-bold text-zinc-500 uppercase">Pace</span>
+                      <span class="text-[9px] text-zinc-600">{{ tasteProfile.pace_preference > 0.5 ? 'Fast' : 'Slow' }}</span>
                     </div>
-                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                       <div class="h-full bg-indigo-500 rounded-full" :style="{ width: `${tasteProfile.pace_preference * 100}%` }" />
                     </div>
                   </div>
                   <div v-if="tasteProfile.complexity_tolerance !== undefined">
                     <div class="flex items-center justify-between mb-1">
-                      <span class="text-[9px] font-bold text-slate-500 uppercase">Complexity</span>
-                      <span class="text-[9px] text-slate-600">{{ tasteProfile.complexity_tolerance > 0.5 ? 'Dense' : 'Light' }}</span>
+                      <span class="text-[9px] font-bold text-zinc-500 uppercase">Complexity</span>
+                      <span class="text-[9px] text-zinc-600">{{ tasteProfile.complexity_tolerance > 0.5 ? 'Dense' : 'Light' }}</span>
                     </div>
-                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                       <div class="h-full bg-purple-500 rounded-full" :style="{ width: `${tasteProfile.complexity_tolerance * 100}%` }" />
                     </div>
                   </div>
                   <div v-if="tasteProfile.darkness_tolerance !== undefined">
                     <div class="flex items-center justify-between mb-1">
-                      <span class="text-[9px] font-bold text-slate-500 uppercase">Tone</span>
-                      <span class="text-[9px] text-slate-600">{{ tasteProfile.darkness_tolerance > 0.5 ? 'Dark' : 'Light' }}</span>
+                      <span class="text-[9px] font-bold text-zinc-500 uppercase">Tone</span>
+                      <span class="text-[9px] text-zinc-600">{{ tasteProfile.darkness_tolerance > 0.5 ? 'Dark' : 'Light' }}</span>
                     </div>
-                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                       <div class="h-full bg-rose-500 rounded-full" :style="{ width: `${tasteProfile.darkness_tolerance * 100}%` }" />
                     </div>
                   </div>
@@ -1331,8 +1331,8 @@ const handleBookUpdated = (updatedUserBook) => {
               </div>
 
               <!-- Quick Mood Picks -->
-              <div class="p-4 rounded-2xl glass border-slate-800 bg-slate-900/40">
-                <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] mb-3">Quick Picks</h3>
+              <div class="p-4 rounded-2xl glass border-zinc-800 bg-zinc-900/40">
+                <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px] mb-3">Quick Picks</h3>
                 <div class="grid grid-cols-2 gap-2">
                   <router-link
                     to="/discover?mood=peaceful"

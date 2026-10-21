@@ -167,13 +167,13 @@ const getMatchColor = (score) => {
   if (score >= 90) return 'from-indigo-500 to-purple-600'
   if (score >= 80) return 'from-indigo-500 to-blue-600'
   if (score >= 70) return 'from-blue-500 to-cyan-600'
-  return 'from-slate-600 to-slate-700'
+  return 'from-zinc-600 to-zinc-700'
 }
 
 const getMatchBadgeClasses = (score) => {
   if (score >= 80) return 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20'
   if (score >= 60) return 'bg-blue-500/15 text-blue-400 border-blue-500/20'
-  return 'bg-slate-500/15 text-slate-400 border-slate-500/20'
+  return 'bg-zinc-500/15 text-zinc-400 border-zinc-500/20'
 }
 
 const getStatusLabel = (user) => {
@@ -184,7 +184,7 @@ const getStatusLabel = (user) => {
 
 const getStatusColor = (user) => {
   if (user.currently_reading) return 'bg-emerald-500'
-  return 'bg-slate-500'
+  return 'bg-zinc-500'
 }
 </script>
 
@@ -203,42 +203,42 @@ const getStatusColor = (user) => {
       <div class="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/5">
         <Users :size="14" class="text-indigo-400 sm:w-4 sm:h-4" />
         <span class="text-xs sm:text-sm font-bold text-white">{{ friends.length }}</span>
-        <span class="text-[10px] sm:text-xs text-slate-500">Friends</span>
+        <span class="text-[10px] sm:text-xs text-zinc-500">Friends</span>
       </div>
       <div v-if="pendingCount > 0" class="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-amber-500/5 border border-amber-500/10">
         <Clock :size="14" class="text-amber-400 sm:w-4 sm:h-4" />
         <span class="text-xs sm:text-sm font-bold text-amber-400">{{ pendingCount }}</span>
-        <span class="text-[10px] sm:text-xs text-slate-500">Pending</span>
+        <span class="text-[10px] sm:text-xs text-zinc-500">Pending</span>
       </div>
       <div class="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/5">
         <Sparkles :size="14" class="text-purple-400 sm:w-4 sm:h-4" />
         <span class="text-xs sm:text-sm font-bold text-white">{{ suggestedUsers.length }}</span>
-        <span class="text-[10px] sm:text-xs text-slate-500">Suggested</span>
+        <span class="text-[10px] sm:text-xs text-zinc-500">Suggested</span>
       </div>
     </div>
 
     <!-- Search + Tabs -->
     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
       <div class="relative flex-1 group">
-        <Search :size="16" class="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+        <Search :size="16" class="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-indigo-400 transition-colors" />
         <input
           v-model="searchQuery"
           type="text"
           placeholder="Search by name or interest..."
-          class="w-full bg-white/[0.03] border border-white/5 rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 text-sm text-white outline-none focus:border-indigo-500/50 transition-all placeholder-slate-600"
+          class="w-full bg-white/[0.03] border border-white/5 rounded-xl sm:rounded-2xl pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 text-sm text-white outline-none focus:border-indigo-500/50 transition-all placeholder-zinc-600"
         />
       </div>
-      <div class="flex items-center gap-0.5 sm:gap-1 p-1 bg-slate-900/40 border border-white/5 rounded-xl sm:rounded-2xl shrink-0 self-start">
+      <div class="flex items-center gap-0.5 sm:gap-1 p-1 bg-zinc-900/40 border border-white/5 rounded-xl sm:rounded-2xl shrink-0 self-start">
         <button
           @click="activeTab = 'friends'"
-          :class="activeTab === 'friends' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'"
+          :class="activeTab === 'friends' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-500 hover:text-white'"
           class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all"
         >
           Friends
         </button>
         <button
           @click="activeTab = 'pending'"
-          :class="activeTab === 'pending' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'"
+          :class="activeTab === 'pending' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-500 hover:text-white'"
           class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all relative"
         >
           Pending
@@ -248,7 +248,7 @@ const getStatusColor = (user) => {
         </button>
         <button
           @click="activeTab = 'discover'"
-          :class="activeTab === 'discover' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'"
+          :class="activeTab === 'discover' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-500 hover:text-white'"
           class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all"
         >
           Discover
@@ -275,7 +275,7 @@ const getStatusColor = (user) => {
           :key="friend.id"
           class="group"
         >
-          <div class="relative h-full rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-b from-slate-800/60 to-slate-900/80 border border-slate-700/30 hover:border-indigo-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col">
+          <div class="relative h-full rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 border border-zinc-700/30 hover:border-indigo-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col">
 
             <!-- Match badge -->
             <div v-if="friend.match_score" class="absolute top-2.5 sm:top-4 right-2.5 sm:right-4 z-10">
@@ -288,7 +288,7 @@ const getStatusColor = (user) => {
             <div class="absolute top-2.5 sm:top-4 left-2.5 sm:left-4 z-10 hidden sm:block">
               <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
                 <div :class="getStatusColor(friend)" class="w-1.5 h-1.5 rounded-full animate-pulse" />
-                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ getStatusLabel(friend) }}</span>
+                <span class="text-[8px] font-black text-zinc-400 uppercase tracking-widest">{{ getStatusLabel(friend) }}</span>
               </div>
             </div>
 
@@ -297,8 +297,8 @@ const getStatusColor = (user) => {
               <!-- Circular avatar with gradient ring -->
               <div class="relative mb-2.5 sm:mb-4">
                 <div :class="`bg-gradient-to-br ${getMatchColor(friend.match_score || 70)}`" class="w-14 h-14 sm:w-[76px] sm:h-[76px] rounded-full p-[2px] sm:p-[3px] group-hover:scale-105 transition-transform duration-300">
-                  <div class="w-full h-full rounded-full bg-slate-900 p-[1.5px] sm:p-[2px]">
-                    <div class="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                  <div class="w-full h-full rounded-full bg-zinc-900 p-[1.5px] sm:p-[2px]">
+                    <div class="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center">
                       <img v-if="friend.avatar" :src="getMediaUrl(friend.avatar)" class="w-full h-full object-cover" @error="friend.avatar = null" />
                       <span v-else class="text-white text-sm sm:text-lg font-black">{{ getInitials(friend) }}</span>
                     </div>
@@ -310,10 +310,10 @@ const getStatusColor = (user) => {
               <h3 class="text-xs sm:text-[15px] font-black text-white mb-0.5 group-hover:text-indigo-400 transition-colors line-clamp-1">
                 {{ getDisplayName(friend) }}
               </h3>
-              <p v-if="friend.username" class="text-[9px] sm:text-[10px] text-slate-600 mb-2 sm:mb-3">@{{ friend.username }}</p>
+              <p v-if="friend.username" class="text-[9px] sm:text-[10px] text-zinc-600 mb-2 sm:mb-3">@{{ friend.username }}</p>
 
               <!-- Bio (italic quoted) — hidden on mobile -->
-              <p v-if="friend.bio" class="hidden sm:block text-[11px] text-slate-500 italic line-clamp-2 leading-relaxed mb-4 px-2">
+              <p v-if="friend.bio" class="hidden sm:block text-[11px] text-zinc-500 italic line-clamp-2 leading-relaxed mb-4 px-2">
                 "{{ friend.bio }}"
               </p>
             </div>
@@ -321,11 +321,11 @@ const getStatusColor = (user) => {
             <!-- Stats boxes: VAULT + SHARED -->
             <div class="px-2.5 sm:px-4 mb-2.5 sm:mb-4 grid grid-cols-2 gap-1.5 sm:gap-2">
               <div class="rounded-lg sm:rounded-xl bg-white/[0.03] border border-white/5 py-1.5 sm:py-2.5 px-2 sm:px-3 text-center">
-                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-slate-600 mb-0.5 sm:mb-1">Vault</div>
+                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-0.5 sm:mb-1">Vault</div>
                 <div class="text-sm sm:text-base font-black text-white">{{ friend.books_read_count || friend.books_count || 0 }}</div>
               </div>
               <div class="rounded-lg sm:rounded-xl bg-white/[0.03] border border-white/5 py-1.5 sm:py-2.5 px-2 sm:px-3 text-center">
-                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-slate-600 mb-0.5 sm:mb-1">Shared</div>
+                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-0.5 sm:mb-1">Shared</div>
                 <div class="text-sm sm:text-base font-black text-indigo-400">{{ friend.shared_books_count || 0 }}</div>
               </div>
             </div>
@@ -338,7 +338,7 @@ const getStatusColor = (user) => {
                   <span class="text-[8px] font-black uppercase tracking-widest text-indigo-400">Devouring</span>
                 </div>
                 <p class="text-[11px] font-bold text-white line-clamp-1">{{ friend.currently_reading.title || friend.currently_reading }}</p>
-                <div v-if="friend.currently_reading.progress" class="mt-2 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div v-if="friend.currently_reading.progress" class="mt-2 w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                   <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" :style="{ width: friend.currently_reading.progress + '%' }" />
                 </div>
               </div>
@@ -368,7 +368,7 @@ const getStatusColor = (user) => {
               </button>
               <button
                 @click.stop="openMessage(friend)"
-                class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700/60 transition-all flex items-center justify-center shrink-0"
+                class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-zinc-800/60 border border-zinc-700/50 text-zinc-400 hover:text-white hover:bg-zinc-700/60 transition-all flex items-center justify-center shrink-0"
               >
                 <MessageCircle :size="12" class="sm:w-3.5 sm:h-3.5" />
               </button>
@@ -379,12 +379,12 @@ const getStatusColor = (user) => {
 
       <!-- Empty state -->
       <div v-else class="py-24 text-center">
-        <div class="w-16 h-16 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center mx-auto mb-6 opacity-30">
-          <Users :size="28" class="text-slate-500" />
+        <div class="w-16 h-16 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center mx-auto mb-6 opacity-30">
+          <Users :size="28" class="text-zinc-500" />
         </div>
         <h3 v-if="searchQuery" class="text-lg font-black text-white/30 uppercase tracking-widest mb-2">No matches found</h3>
         <h3 v-else class="text-lg font-black text-white/30 uppercase tracking-widest mb-2">No friends yet</h3>
-        <p class="text-sm text-slate-600 max-w-sm mx-auto mb-6">
+        <p class="text-sm text-zinc-600 max-w-sm mx-auto mb-6">
           {{ searchQuery ? 'Try a different search term.' : 'Discover like-minded readers and send them a friend request.' }}
         </p>
         <button
@@ -407,8 +407,8 @@ const getStatusColor = (user) => {
         >
           <!-- Avatar -->
           <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 p-[2px] shrink-0">
-            <div class="w-full h-full rounded-full bg-slate-900 p-[1px]">
-              <div class="w-full h-full rounded-full overflow-hidden bg-slate-800 flex items-center justify-center">
+            <div class="w-full h-full rounded-full bg-zinc-900 p-[1px]">
+              <div class="w-full h-full rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
                 <img v-if="request.from_user?.avatar" :src="getMediaUrl(request.from_user.avatar)" class="w-full h-full object-cover" />
                 <span v-else class="text-white text-xs sm:text-sm font-black">{{ getInitials(request.from_user || {}) }}</span>
               </div>
@@ -418,7 +418,7 @@ const getStatusColor = (user) => {
           <!-- Info -->
           <div class="flex-1 min-w-0">
             <h4 class="text-xs sm:text-sm font-bold text-white truncate">{{ getDisplayName(request.from_user || {}) }}</h4>
-            <p class="text-[10px] sm:text-xs text-slate-500">wants to connect</p>
+            <p class="text-[10px] sm:text-xs text-zinc-500">wants to connect</p>
           </div>
 
           <!-- Actions -->
@@ -435,7 +435,7 @@ const getStatusColor = (user) => {
             <button
               @click="declineRequest(request)"
               :disabled="decliningIds.has(request.id)"
-              class="p-2 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-slate-800 text-slate-400 text-[10px] font-black uppercase tracking-wider hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50 flex items-center gap-1.5"
+              class="p-2 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-zinc-800 text-zinc-400 text-[10px] font-black uppercase tracking-wider hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50 flex items-center gap-1.5"
             >
               <Loader2 v-if="decliningIds.has(request.id)" :size="12" class="animate-spin" />
               <UserX v-else :size="14" class="sm:w-3 sm:h-3" />
@@ -447,11 +447,11 @@ const getStatusColor = (user) => {
 
       <!-- Empty pending -->
       <div v-else class="py-24 text-center">
-        <div class="w-16 h-16 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center mx-auto mb-6 opacity-30">
-          <Clock :size="28" class="text-slate-500" />
+        <div class="w-16 h-16 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center mx-auto mb-6 opacity-30">
+          <Clock :size="28" class="text-zinc-500" />
         </div>
         <h3 class="text-lg font-black text-white/30 uppercase tracking-widest mb-2">No pending requests</h3>
-        <p class="text-sm text-slate-600">When someone sends you a friend request, it will appear here.</p>
+        <p class="text-sm text-zinc-600">When someone sends you a friend request, it will appear here.</p>
       </div>
     </template>
 
@@ -463,7 +463,7 @@ const getStatusColor = (user) => {
           :key="user.id"
           class="group"
         >
-          <div class="relative h-full rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-b from-slate-800/60 to-slate-900/80 border border-slate-700/30 hover:border-indigo-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col">
+          <div class="relative h-full rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 border border-zinc-700/30 hover:border-indigo-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col">
 
             <!-- Match badge -->
             <div v-if="user.match_score" class="absolute top-2.5 sm:top-4 right-2.5 sm:right-4 z-10">
@@ -477,8 +477,8 @@ const getStatusColor = (user) => {
               <!-- Circular avatar with gradient ring -->
               <div class="relative mb-2.5 sm:mb-4">
                 <div :class="`bg-gradient-to-br ${getMatchColor(user.match_score || 50)}`" class="w-14 h-14 sm:w-[76px] sm:h-[76px] rounded-full p-[2px] sm:p-[3px] group-hover:scale-105 transition-transform duration-300">
-                  <div class="w-full h-full rounded-full bg-slate-900 p-[1.5px] sm:p-[2px]">
-                    <div class="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                  <div class="w-full h-full rounded-full bg-zinc-900 p-[1.5px] sm:p-[2px]">
+                    <div class="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center">
                       <img v-if="user.avatar" :src="user.avatar" class="w-full h-full object-cover" @error="user.avatar = null" />
                       <span v-else class="text-white text-sm sm:text-lg font-black">{{ getInitials(user) }}</span>
                     </div>
@@ -490,12 +490,12 @@ const getStatusColor = (user) => {
               <h3 class="text-xs sm:text-[15px] font-black text-white mb-0.5 group-hover:text-indigo-400 transition-colors line-clamp-1">
                 {{ getDisplayName(user) }}
               </h3>
-              <p class="text-[9px] sm:text-[10px] text-slate-600 mb-2 sm:mb-3">
+              <p class="text-[9px] sm:text-[10px] text-zinc-600 mb-2 sm:mb-3">
                 @{{ user.username || 'reader' }}
               </p>
 
               <!-- Bio — hidden on mobile -->
-              <p v-if="user.bio" class="hidden sm:block text-[11px] text-slate-500 italic line-clamp-2 leading-relaxed mb-4 px-2">
+              <p v-if="user.bio" class="hidden sm:block text-[11px] text-zinc-500 italic line-clamp-2 leading-relaxed mb-4 px-2">
                 "{{ user.bio }}"
               </p>
             </div>
@@ -503,11 +503,11 @@ const getStatusColor = (user) => {
             <!-- Stats boxes: VAULT + SHARED -->
             <div class="px-2.5 sm:px-4 mb-2.5 sm:mb-4 grid grid-cols-2 gap-1.5 sm:gap-2">
               <div class="rounded-lg sm:rounded-xl bg-white/[0.03] border border-white/5 py-1.5 sm:py-2.5 px-2 sm:px-3 text-center">
-                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-slate-600 mb-0.5 sm:mb-1">Vault</div>
+                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-0.5 sm:mb-1">Vault</div>
                 <div class="text-sm sm:text-base font-black text-white">{{ user.books_read_count || 0 }}</div>
               </div>
               <div class="rounded-lg sm:rounded-xl bg-white/[0.03] border border-white/5 py-1.5 sm:py-2.5 px-2 sm:px-3 text-center">
-                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-slate-600 mb-0.5 sm:mb-1">Shared</div>
+                <div class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-0.5 sm:mb-1">Shared</div>
                 <div class="text-sm sm:text-base font-black text-indigo-400">{{ user.shared_books_count || 0 }}</div>
               </div>
             </div>
@@ -526,10 +526,10 @@ const getStatusColor = (user) => {
             <!-- Match bar -->
             <div v-if="user.match_score" class="px-2.5 sm:px-4 mb-2.5 sm:mb-4">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-slate-600">Resonance</span>
+                <span class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-zinc-600">Resonance</span>
                 <span class="text-[9px] sm:text-[10px] font-black text-indigo-400">{{ user.match_score }}%</span>
               </div>
-              <div class="w-full h-1 sm:h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="w-full h-1 sm:h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                 <div
                   :class="`bg-gradient-to-r ${getMatchColor(user.match_score)}`"
                   class="h-full rounded-full transition-all duration-500"
@@ -559,11 +559,11 @@ const getStatusColor = (user) => {
 
       <!-- Empty discover -->
       <div v-else class="py-24 text-center">
-        <div class="w-16 h-16 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center mx-auto mb-6 opacity-30">
-          <Search :size="28" class="text-slate-500" />
+        <div class="w-16 h-16 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center mx-auto mb-6 opacity-30">
+          <Search :size="28" class="text-zinc-500" />
         </div>
         <h3 class="text-lg font-black text-white/30 uppercase tracking-widest mb-2">No suggestions found</h3>
-        <p class="text-sm text-slate-600 max-w-sm mx-auto">
+        <p class="text-sm text-zinc-600 max-w-sm mx-auto">
           {{ searchQuery ? 'Try a different search term.' : 'Rate more books to improve suggestions based on your reading taste.' }}
         </p>
       </div>
@@ -576,7 +576,7 @@ const getStatusColor = (user) => {
       </div>
       <div class="relative z-10 text-center sm:text-left">
         <h3 class="text-base sm:text-xl font-black text-white mb-1">Grow Your Reading Network</h3>
-        <p class="text-xs sm:text-sm text-slate-500">Share your reading journey and connect with the most thoughtful readers.</p>
+        <p class="text-xs sm:text-sm text-zinc-500">Share your reading journey and connect with the most thoughtful readers.</p>
       </div>
       <button
         @click="activeTab = 'discover'"

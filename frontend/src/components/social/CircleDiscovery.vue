@@ -22,9 +22,9 @@ async function handleJoin(circleId) {
     </div>
 
     <div v-if="circlesStore.discoverCircles.length === 0" class="text-center py-16">
-      <Globe :size="48" class="text-slate-700 mx-auto mb-4" />
-      <h3 class="text-lg font-black text-slate-400 mb-2">No Public Circles</h3>
-      <p class="text-sm text-slate-600">No public circles available to join right now.</p>
+      <Globe :size="48" class="text-zinc-700 mx-auto mb-4" />
+      <h3 class="text-lg font-black text-zinc-400 mb-2">No Public Circles</h3>
+      <p class="text-sm text-zinc-600">No public circles available to join right now.</p>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -42,8 +42,8 @@ async function handleJoin(circleId) {
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="text-base font-bold text-white truncate">{{ circle.name }}</h3>
-            <p v-if="circle.description" class="text-xs text-slate-500 line-clamp-2 mt-1">{{ circle.description }}</p>
-            <div class="flex items-center gap-3 mt-2 text-[10px] text-slate-600 font-bold uppercase">
+            <p v-if="circle.description" class="text-xs text-zinc-500 line-clamp-2 mt-1">{{ circle.description }}</p>
+            <div class="flex items-center gap-3 mt-2 text-[10px] text-zinc-600 font-bold uppercase">
               <span class="flex items-center gap-1"><Users :size="10" /> {{ circle.members_count }} members</span>
               <span v-if="circle.creator" class="truncate">by {{ circle.creator.first_name }}</span>
             </div>
@@ -52,9 +52,9 @@ async function handleJoin(circleId) {
             <div v-if="circle.current_book_data" class="mt-3 flex items-center gap-2 p-2 rounded-lg bg-white/5">
               <div class="w-6 h-8 rounded overflow-hidden shrink-0">
                 <img v-if="circle.current_book_data.cover_image" :src="circle.current_book_data.cover_image" class="w-full h-full object-cover" />
-                <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen :size="8" class="text-slate-600" /></div>
+                <div v-else class="w-full h-full bg-zinc-800 flex items-center justify-center"><BookOpen :size="8" class="text-zinc-600" /></div>
               </div>
-              <p class="text-[10px] text-slate-400 truncate">Reading: {{ circle.current_book_data.title }}</p>
+              <p class="text-[10px] text-zinc-400 truncate">Reading: {{ circle.current_book_data.title }}</p>
             </div>
           </div>
         </div>

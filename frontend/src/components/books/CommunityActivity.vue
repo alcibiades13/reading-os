@@ -73,21 +73,21 @@ const viewFullReview = (review) => {
 </script>
 
 <template>
-  <section class="space-y-6 pt-12 border-t border-slate-900">
+  <section class="space-y-6 pt-12 border-t border-zinc-900">
     <div class="flex items-center justify-between">
-      <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
+      <h2 class="text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
         <Users :size="16" /> Community Activity
       </h2>
 
       <!-- Tab Switcher -->
-      <div v-if="!loading && hasActivity" class="flex items-center gap-1 p-1 rounded-xl bg-slate-900/50 border border-slate-800">
+      <div v-if="!loading && hasActivity" class="flex items-center gap-1 p-1 rounded-xl bg-zinc-900/50 border border-zinc-800">
         <button
           @click="activeTab = 'reviews'"
           :class="[
             'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5',
             activeTab === 'reviews'
               ? 'bg-indigo-500/20 text-indigo-400'
-              : 'text-slate-500 hover:text-slate-300'
+              : 'text-zinc-500 hover:text-zinc-300'
           ]"
         >
           <MessageSquare :size="12" />
@@ -100,7 +100,7 @@ const viewFullReview = (review) => {
             'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5',
             activeTab === 'quotes'
               ? 'bg-indigo-500/20 text-indigo-400'
-              : 'text-slate-500 hover:text-slate-300'
+              : 'text-zinc-500 hover:text-zinc-300'
           ]"
         >
           <Quote :size="12" />
@@ -121,10 +121,10 @@ const viewFullReview = (review) => {
         <div
           v-for="review in communityData.reviews"
           :key="review.id"
-          class="flex gap-4 p-4 rounded-2xl hover:bg-slate-900/50 transition-colors border border-transparent hover:border-slate-800 group"
+          class="flex gap-4 p-4 rounded-2xl hover:bg-zinc-900/50 transition-colors border border-transparent hover:border-zinc-800 group"
         >
           <!-- Avatar -->
-          <div class="w-10 h-10 rounded-full bg-slate-800 flex-shrink-0 border border-slate-700 flex items-center justify-center font-bold text-slate-400 text-xs overflow-hidden">
+          <div class="w-10 h-10 rounded-full bg-zinc-800 flex-shrink-0 border border-zinc-700 flex items-center justify-center font-bold text-zinc-400 text-xs overflow-hidden">
             <img
               v-if="review.user.avatar && !review.user.avatar.includes('placeholder')"
               :src="review.user.avatar"
@@ -144,7 +144,7 @@ const viewFullReview = (review) => {
                 >
                   Finished
                 </span>
-                <span class="text-[10px] text-slate-600">{{ formatDate(review.finished_at || review.updated_at) }}</span>
+                <span class="text-[10px] text-zinc-600">{{ formatDate(review.finished_at || review.updated_at) }}</span>
               </div>
             </div>
 
@@ -155,7 +155,7 @@ const viewFullReview = (review) => {
             </div>
 
             <!-- Review Preview -->
-            <p class="text-sm text-slate-400 leading-relaxed">
+            <p class="text-sm text-zinc-400 leading-relaxed">
               "{{ review.review_preview }}"
             </p>
 
@@ -172,10 +172,10 @@ const viewFullReview = (review) => {
       </template>
 
       <!-- Empty State for Reviews -->
-      <div v-else class="p-6 rounded-2xl bg-slate-900/30 border border-slate-800/50 text-center">
-        <MessageSquare :size="32" class="text-slate-700 mx-auto mb-3" />
-        <p class="text-slate-500 text-sm">No community reviews yet.</p>
-        <p class="text-slate-600 text-xs mt-1">Be the first to share your thoughts!</p>
+      <div v-else class="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 text-center">
+        <MessageSquare :size="32" class="text-zinc-700 mx-auto mb-3" />
+        <p class="text-zinc-500 text-sm">No community reviews yet.</p>
+        <p class="text-zinc-600 text-xs mt-1">Be the first to share your thoughts!</p>
       </div>
     </div>
 
@@ -185,18 +185,18 @@ const viewFullReview = (review) => {
         <div
           v-for="quote in communityData.quotes"
           :key="quote.id"
-          class="p-5 rounded-2xl glass border-slate-800/50 hover:border-indigo-500/30 transition-all space-y-3"
+          class="p-5 rounded-2xl glass border-zinc-800/50 hover:border-indigo-500/30 transition-all space-y-3"
         >
           <!-- Quote Text -->
-          <blockquote class="text-sm font-serif text-slate-200 italic leading-relaxed border-l-4 border-indigo-500 pl-4">
+          <blockquote class="text-sm font-serif text-zinc-200 italic leading-relaxed border-l-4 border-indigo-500 pl-4">
             "{{ quote.text }}"
           </blockquote>
 
           <!-- Quote Meta -->
-          <div class="flex items-center justify-between pt-3 border-t border-slate-800/50">
+          <div class="flex items-center justify-between pt-3 border-t border-zinc-800/50">
             <div class="flex items-center gap-3">
               <!-- User Avatar -->
-              <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-[9px] font-bold text-slate-500 overflow-hidden">
+              <div class="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[9px] font-bold text-zinc-500 overflow-hidden">
                 <img
                   v-if="quote.user.avatar && !quote.user.avatar.includes('placeholder')"
                   :src="quote.user.avatar"
@@ -204,8 +204,8 @@ const viewFullReview = (review) => {
                 />
                 <span v-else>{{ getUserInitials(quote.user) }}</span>
               </div>
-              <span class="text-xs text-slate-500">{{ getUserName(quote.user) }}</span>
-              <span v-if="quote.page_number" class="text-xs text-slate-600">• p. {{ quote.page_number }}</span>
+              <span class="text-xs text-zinc-500">{{ getUserName(quote.user) }}</span>
+              <span v-if="quote.page_number" class="text-xs text-zinc-600">• p. {{ quote.page_number }}</span>
             </div>
 
             <!-- Tags -->
@@ -213,7 +213,7 @@ const viewFullReview = (review) => {
               <span
                 v-for="tag in quote.tags.slice(0, 2)"
                 :key="tag.id"
-                class="px-2 py-0.5 rounded text-[9px] font-medium bg-slate-800/50 text-slate-500"
+                class="px-2 py-0.5 rounded text-[9px] font-medium bg-zinc-800/50 text-zinc-500"
               >
                 {{ tag.name }}
               </span>
@@ -223,18 +223,18 @@ const viewFullReview = (review) => {
       </template>
 
       <!-- Empty State for Quotes -->
-      <div v-else class="p-6 rounded-2xl bg-slate-900/30 border border-slate-800/50 text-center">
-        <Quote :size="32" class="text-slate-700 mx-auto mb-3" />
-        <p class="text-slate-500 text-sm">No shared quotes yet.</p>
-        <p class="text-slate-600 text-xs mt-1">Readers haven't shared any highlights from this book.</p>
+      <div v-else class="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 text-center">
+        <Quote :size="32" class="text-zinc-700 mx-auto mb-3" />
+        <p class="text-zinc-500 text-sm">No shared quotes yet.</p>
+        <p class="text-zinc-600 text-xs mt-1">Readers haven't shared any highlights from this book.</p>
       </div>
     </div>
 
     <!-- No Activity State -->
-    <div v-if="!loading && !hasActivity" class="p-6 rounded-2xl bg-slate-900/30 border border-slate-800/50 flex items-center justify-between">
+    <div v-if="!loading && !hasActivity" class="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 flex items-center justify-between">
       <div>
-        <p class="text-slate-400 text-sm">No community activity for this book yet.</p>
-        <p class="text-slate-600 text-xs mt-1">Be the first to share your experience!</p>
+        <p class="text-zinc-400 text-sm">No community activity for this book yet.</p>
+        <p class="text-zinc-600 text-xs mt-1">Be the first to share your experience!</p>
       </div>
     </div>
   </section>
@@ -251,37 +251,33 @@ const viewFullReview = (review) => {
 }
 
 /* Light mode */
-body.light .bg-slate-900\/50,
-body.light .bg-slate-900\/30 {
+body.light .bg-zinc-900\/50,
+body.light .bg-zinc-900\/30 {
   background-color: #f8fafc !important;
 }
 
-body.light .border-slate-800,
-body.light .border-slate-800\/50 {
+body.light .border-zinc-800,
+body.light .border-zinc-800\/50 {
   border-color: #e2e8f0 !important;
 }
 
-body.light .text-slate-400 {
+body.light .text-zinc-400 {
   color: #64748b !important;
 }
 
-body.light .text-slate-500 {
+body.light .text-zinc-500 {
   color: #94a3b8 !important;
 }
 
-body.light .text-white {
-  color: #1e293b !important;
-}
-
-body.light .text-slate-200 {
+body.light .text-zinc-200 {
   color: #334155 !important;
 }
 
-body.light .bg-slate-800 {
+body.light .bg-zinc-800 {
   background-color: #e2e8f0 !important;
 }
 
-body.light .hover\:bg-slate-900\/50:hover {
+body.light .hover\:bg-zinc-900\/50:hover {
   background-color: #f1f5f9 !important;
 }
 </style>

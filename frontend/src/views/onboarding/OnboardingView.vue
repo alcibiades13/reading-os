@@ -179,7 +179,7 @@ function getGenreSelectedColor(idx) {
 </script>
 
 <template>
-  <div class="onboarding-page min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+  <div class="onboarding-page min-h-screen bg-zinc-950 text-zinc-50 flex flex-col">
 
     <!-- Background -->
     <div class="fixed inset-0 pointer-events-none">
@@ -204,7 +204,7 @@ function getGenreSelectedColor(idx) {
           :class="[
             'h-1.5 rounded-full transition-all duration-500',
             n - 1 === currentStep ? 'w-8 bg-indigo-500' :
-            n - 1 < currentStep ? 'w-1.5 bg-indigo-500/60' : 'w-1.5 bg-slate-700'
+            n - 1 < currentStep ? 'w-1.5 bg-indigo-500/60' : 'w-1.5 bg-zinc-700'
           ]"
         />
       </div>
@@ -212,7 +212,7 @@ function getGenreSelectedColor(idx) {
       <!-- Skip all -->
       <button
         @click="completeOnboarding"
-        class="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+        class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
       >
         Skip all
       </button>
@@ -229,7 +229,7 @@ function getGenreSelectedColor(idx) {
               <h1 class="text-3xl sm:text-4xl font-black tracking-tight mb-3">
                 Welcome, {{ userName }}.
               </h1>
-              <p class="text-slate-400 text-base leading-relaxed max-w-md mx-auto">
+              <p class="text-zinc-400 text-base leading-relaxed max-w-md mx-auto">
                 Let's set up your personal reading space.
                 This takes about a minute.
               </p>
@@ -237,26 +237,26 @@ function getGenreSelectedColor(idx) {
 
             <!-- Highlights -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="rounded-xl border border-slate-800/60 bg-slate-900/40 p-4 text-center">
+              <div class="rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-4 text-center">
                 <div class="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-3">
                   <Quote :size="16" class="text-indigo-400" />
                 </div>
                 <p class="text-xs font-semibold mb-1">Save quotes</p>
-                <p class="text-[10px] text-slate-500 leading-relaxed">Passages that matter, always accessible</p>
+                <p class="text-[10px] text-zinc-500 leading-relaxed">Passages that matter, always accessible</p>
               </div>
-              <div class="rounded-xl border border-slate-800/60 bg-slate-900/40 p-4 text-center">
+              <div class="rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-4 text-center">
                 <div class="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-3">
                   <Dna :size="16" class="text-purple-400" />
                 </div>
                 <p class="text-xs font-semibold mb-1">Know your taste</p>
-                <p class="text-[10px] text-slate-500 leading-relaxed">Discover patterns in what you love</p>
+                <p class="text-[10px] text-zinc-500 leading-relaxed">Discover patterns in what you love</p>
               </div>
-              <div class="rounded-xl border border-slate-800/60 bg-slate-900/40 p-4 text-center">
+              <div class="rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-4 text-center">
                 <div class="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mx-auto mb-3">
                   <CircleDot :size="16" class="text-sky-400" />
                 </div>
                 <p class="text-xs font-semibold mb-1">Read together</p>
-                <p class="text-[10px] text-slate-500 leading-relaxed">Book circles with spoiler protection</p>
+                <p class="text-[10px] text-zinc-500 leading-relaxed">Book circles with spoiler protection</p>
               </div>
             </div>
 
@@ -277,7 +277,7 @@ function getGenreSelectedColor(idx) {
               <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">
                 What do you love to read?
               </h2>
-              <p class="text-slate-400 text-sm">
+              <p class="text-zinc-400 text-sm">
                 Pick as many as you like. This helps us personalise your experience.
               </p>
             </div>
@@ -295,7 +295,7 @@ function getGenreSelectedColor(idx) {
                   'px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all duration-200',
                   isGenreSelected(genre)
                     ? getGenreSelectedColor(idx) + ' ring-1 ring-white/20 scale-105'
-                    : 'border-slate-700/50 bg-slate-800/30 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+                    : 'border-zinc-700/50 bg-zinc-800/30 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                 ]"
               >
                 <span class="flex items-center gap-1.5">
@@ -311,11 +311,11 @@ function getGenreSelectedColor(idx) {
 
             <!-- Navigation -->
             <div class="flex items-center justify-between pt-4">
-              <button @click="prevStep" class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+              <button @click="prevStep" class="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
                 <ArrowLeft :size="14" /> Back
               </button>
               <div class="flex items-center gap-3">
-                <button @click="skipStep" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                <button @click="skipStep" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
                   Skip
                 </button>
                 <button
@@ -335,7 +335,7 @@ function getGenreSelectedColor(idx) {
               <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">
                 Set a reading intention
               </h2>
-              <p class="text-slate-400 text-sm">
+              <p class="text-zinc-400 text-sm">
                 How many books would you like to read this year? No pressure — this is just for you.
               </p>
             </div>
@@ -350,11 +350,11 @@ function getGenreSelectedColor(idx) {
                   'relative w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-300',
                   readingGoal === preset
                     ? 'border-indigo-500 bg-indigo-500/15 shadow-lg shadow-indigo-500/20 scale-105'
-                    : 'border-slate-700 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-800/40'
+                    : 'border-zinc-700 bg-zinc-900/40 hover:border-zinc-600 hover:bg-zinc-800/40'
                 ]"
               >
-                <span class="text-2xl font-black" :class="readingGoal === preset ? 'text-indigo-400' : 'text-slate-300'">{{ preset }}</span>
-                <span class="text-[9px] text-slate-500 font-medium">books</span>
+                <span class="text-2xl font-black" :class="readingGoal === preset ? 'text-indigo-400' : 'text-zinc-300'">{{ preset }}</span>
+                <span class="text-[9px] text-zinc-500 font-medium">books</span>
               </button>
 
               <!-- Custom -->
@@ -363,7 +363,7 @@ function getGenreSelectedColor(idx) {
                   'relative w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-300',
                   readingGoal && !goalPresets.includes(readingGoal)
                     ? 'border-indigo-500 bg-indigo-500/15'
-                    : 'border-slate-700 bg-slate-900/40'
+                    : 'border-zinc-700 bg-zinc-900/40'
                 ]"
               >
                 <input
@@ -374,23 +374,23 @@ function getGenreSelectedColor(idx) {
                   min="1"
                   max="365"
                   placeholder="?"
-                  class="w-10 text-center text-2xl font-black bg-transparent outline-none text-slate-300 placeholder-slate-600 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  class="w-10 text-center text-2xl font-black bg-transparent outline-none text-zinc-300 placeholder-zinc-600 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
-                <span class="text-[9px] text-slate-500 font-medium">custom</span>
+                <span class="text-[9px] text-zinc-500 font-medium">custom</span>
               </div>
             </div>
 
-            <p v-if="readingGoal" class="text-center text-sm text-slate-400">
+            <p v-if="readingGoal" class="text-center text-sm text-zinc-400">
               That's about <span class="text-indigo-400 font-bold">{{ Math.ceil(readingGoal / 12) }} book{{ Math.ceil(readingGoal / 12) > 1 ? 's' : '' }}</span> per month
             </p>
 
             <!-- Navigation -->
             <div class="flex items-center justify-between pt-4">
-              <button @click="prevStep" class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+              <button @click="prevStep" class="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
                 <ArrowLeft :size="14" /> Back
               </button>
               <div class="flex items-center gap-3">
-                <button @click="skipStep" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                <button @click="skipStep" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
                   Skip
                 </button>
                 <button
@@ -410,20 +410,20 @@ function getGenreSelectedColor(idx) {
               <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">
                 Bring your library
               </h2>
-              <p class="text-slate-400 text-sm">
+              <p class="text-zinc-400 text-sm">
                 Search for books you've read or want to read. You can always add more later.
               </p>
             </div>
 
             <!-- Search bar -->
             <div class="relative">
-              <Search :size="16" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search :size="16" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 v-model="bookSearchQuery"
                 @input="onSearchInput"
                 type="text"
                 placeholder="Search by title or author..."
-                class="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-900/60 border border-slate-700/50 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                class="w-full pl-11 pr-4 py-3 rounded-xl bg-zinc-900/60 border border-zinc-700/50 text-sm text-zinc-200 placeholder-zinc-500 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
               />
             </div>
 
@@ -441,10 +441,10 @@ function getGenreSelectedColor(idx) {
               <div
                 v-for="book in importStore.searchResults.slice(0, 10)"
                 :key="book.isbn_13 || book.title"
-                class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/40 border border-slate-800/50 hover:border-slate-700 transition-colors"
+                class="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/40 border border-zinc-800/50 hover:border-zinc-700 transition-colors"
               >
                 <!-- Cover -->
-                <div class="w-10 h-14 rounded bg-gradient-to-br from-slate-700 to-slate-800 flex-shrink-0 overflow-hidden">
+                <div class="w-10 h-14 rounded bg-gradient-to-br from-zinc-700 to-zinc-800 flex-shrink-0 overflow-hidden">
                   <img
                     v-if="book.cover_image_url"
                     :src="book.cover_image_url"
@@ -454,8 +454,8 @@ function getGenreSelectedColor(idx) {
                 </div>
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-slate-200 truncate">{{ book.title }}</p>
-                  <p class="text-[11px] text-slate-500 truncate">{{ book.authors?.join(', ') || 'Unknown author' }}</p>
+                  <p class="text-sm font-semibold text-zinc-200 truncate">{{ book.title }}</p>
+                  <p class="text-[11px] text-zinc-500 truncate">{{ book.authors?.join(', ') || 'Unknown author' }}</p>
                 </div>
                 <!-- Add button -->
                 <button
@@ -470,7 +470,7 @@ function getGenreSelectedColor(idx) {
                 </div>
               </div>
             </div>
-            <div v-else-if="bookSearchQuery.length >= 2 && !importStore.loading" class="text-center py-8 text-sm text-slate-500">
+            <div v-else-if="bookSearchQuery.length >= 2 && !importStore.loading" class="text-center py-8 text-sm text-zinc-500">
               No books found. Try a different search.
             </div>
 
@@ -478,25 +478,25 @@ function getGenreSelectedColor(idx) {
             <div v-if="!bookSearchQuery && importStore.searchResults.length === 0" class="space-y-3 pt-2">
               <button
                 @click="router.push('/import')"
-                class="w-full flex items-center gap-3 p-4 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:border-slate-700 transition-colors text-left"
+                class="w-full flex items-center gap-3 p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 hover:border-zinc-700 transition-colors text-left"
               >
                 <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                   <Upload :size="15" class="text-amber-400" />
                 </div>
                 <div>
                   <p class="text-sm font-semibold">Import from Goodreads</p>
-                  <p class="text-[10px] text-slate-500">Bring your entire reading history</p>
+                  <p class="text-[10px] text-zinc-500">Bring your entire reading history</p>
                 </div>
               </button>
             </div>
 
             <!-- Navigation -->
             <div class="flex items-center justify-between pt-4">
-              <button @click="prevStep" class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+              <button @click="prevStep" class="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
                 <ArrowLeft :size="14" /> Back
               </button>
               <div class="flex items-center gap-3">
-                <button @click="skipStep" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                <button @click="skipStep" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
                   I'll do this later
                 </button>
                 <button

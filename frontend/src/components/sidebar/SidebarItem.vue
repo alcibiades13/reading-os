@@ -33,7 +33,7 @@ defineEmits(['click'])
       collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-3 py-2',
       active
         ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 font-bold'
-        : 'text-slate-400 hover:text-indigo-500 hover:bg-slate-800/50'
+        : 'text-zinc-400 hover:text-indigo-500 hover:bg-zinc-800/50'
     ]"
     :title="collapsed ? label : ''"
   >
@@ -41,7 +41,7 @@ defineEmits(['click'])
       :is="icon"
       :size="16"
       :class="[
-        active ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'
+        active ? 'text-white' : 'text-zinc-400 group-hover:text-indigo-400'
       ]"
       class="transition-colors flex-shrink-0"
     />

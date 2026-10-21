@@ -91,7 +91,7 @@ function resetState() {
 
 <template>
   <Dialog v-model:open="open" @update:open="resetState">
-    <DialogContent class="glass border-slate-700 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto">
+    <DialogContent class="glass border-zinc-700 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle class="text-lg sm:text-xl lg:text-2xl font-bold flex items-center gap-2 lg:gap-3">
           <FileUp :size="20" class="text-emerald-400 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
@@ -102,14 +102,14 @@ function resetState() {
       <div class="space-y-4 lg:space-y-6 py-3 lg:py-4">
         <!-- Instructions -->
         <div class="space-y-3">
-          <p class="text-sm text-slate-300 leading-relaxed">
+          <p class="text-sm text-zinc-300 leading-relaxed">
             Import your reading history from Goodreads by uploading your library export CSV file.
           </p>
           <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-3">
             <p class="text-xs text-indigo-300 font-medium">
               📚 How to export from Goodreads:
             </p>
-            <ol class="text-xs text-slate-400 mt-2 space-y-1 list-decimal list-inside">
+            <ol class="text-xs text-zinc-400 mt-2 space-y-1 list-decimal list-inside">
               <li>Go to Goodreads → My Books</li>
               <li>Click "Import and export"</li>
               <li>Download your library CSV</li>
@@ -129,7 +129,7 @@ function resetState() {
           <button
             @click="triggerFileInput"
             :disabled="importing"
-            class="w-full px-6 py-4 rounded-xl border-2 border-dashed border-slate-700 hover:border-indigo-500/50 bg-slate-900/50 hover:bg-slate-900 transition-all duration-300 text-slate-400 hover:text-white flex flex-col items-center justify-center gap-2"
+            class="w-full px-6 py-4 rounded-xl border-2 border-dashed border-zinc-700 hover:border-indigo-500/50 bg-zinc-900/50 hover:bg-zinc-900 transition-all duration-300 text-zinc-400 hover:text-white flex flex-col items-center justify-center gap-2"
           >
             <Upload :size="32" />
             <span class="text-sm font-medium">
@@ -141,12 +141,12 @@ function resetState() {
         <!-- Progress -->
         <div v-if="importProgress" class="space-y-2">
           <div class="flex items-center justify-between text-sm">
-            <span class="text-slate-400">{{ importProgress.status }}</span>
+            <span class="text-zinc-400">{{ importProgress.status }}</span>
             <span v-if="importProgress.total > 0" class="text-indigo-400 font-medium">
               {{ importProgress.current }} / {{ importProgress.total }}
             </span>
           </div>
-          <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+          <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
             <div
               v-if="importProgress.total > 0"
               class="bg-gradient-to-r from-emerald-500 to-teal-500 h-full transition-all duration-500 ease-out"
@@ -165,7 +165,7 @@ function resetState() {
           <button
             @click="open = false"
             :disabled="importing"
-            class="px-5 py-3 rounded-xl border border-slate-700 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50"
+            class="px-5 py-3 rounded-xl border border-zinc-700 text-zinc-300 text-sm font-semibold hover:bg-zinc-800 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>

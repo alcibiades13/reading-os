@@ -39,7 +39,7 @@ const displayText = computed(() => {
 
         <div :class="compact ? 'mb-2' : 'mb-5'">
           <p
-            class="font-serif italic text-slate-200 leading-relaxed"
+            class="font-serif italic text-zinc-200 leading-relaxed"
             :class="compact ? 'text-sm' : 'text-quote'"
           >
             "{{ displayText }}"
@@ -64,7 +64,7 @@ const displayText = computed(() => {
           >
             {{ expanded ? 'less' : 'more...' }}
           </button>
-          <p v-if="!compact" class="text-slate-500 text-[10px] font-medium uppercase tracking-wider">
+          <p v-if="!compact" class="text-zinc-500 text-[10px] font-medium uppercase tracking-wider">
             {{ quote.book_title }}
           </p>
         </div>

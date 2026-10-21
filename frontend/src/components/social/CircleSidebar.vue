@@ -13,7 +13,7 @@ defineEmits(['openCreateCircle'])
 
 <template>
   <!-- Collapsed mode: slim vertical strip -->
-  <aside v-if="collapsed" class="w-12 border-r border-white/5 flex flex-col bg-slate-950/40 shrink-0">
+  <aside v-if="collapsed" class="w-12 border-r border-white/5 flex flex-col bg-zinc-950/40 shrink-0">
     <div class="flex-1 overflow-y-auto custom-scrollbar py-2 flex flex-col items-center">
       <button
         v-for="circle in circlesStore.circles"
@@ -39,7 +39,7 @@ defineEmits(['openCreateCircle'])
           {{ circle.name?.charAt(0) }}
           <div
             v-if="circlesStore.circleUnreadCounts[circle.id]"
-            class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-indigo-500 border border-slate-950"
+            class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-indigo-500 border border-zinc-950"
           />
         </div>
       </button>
@@ -50,14 +50,14 @@ defineEmits(['openCreateCircle'])
       <!-- Add + Discover -->
       <button
         @click="$emit('openCreateCircle')"
-        class="py-2 w-full flex justify-center text-slate-600 hover:text-indigo-400 transition-colors"
+        class="py-2 w-full flex justify-center text-zinc-600 hover:text-indigo-400 transition-colors"
         title="New Circle"
       >
         <Plus :size="14" />
       </button>
       <button
         @click="circlesStore.activeTab = 'discover'; circlesStore.activeCircleId = null"
-        :class="['py-2 w-full flex justify-center transition-colors', circlesStore.activeTab === 'discover' && !circlesStore.activeCircleId ? 'text-indigo-400' : 'text-slate-600 hover:text-slate-300']"
+        :class="['py-2 w-full flex justify-center transition-colors', circlesStore.activeTab === 'discover' && !circlesStore.activeCircleId ? 'text-indigo-400' : 'text-zinc-600 hover:text-zinc-300']"
         title="Discover"
       >
         <Globe :size="14" />
@@ -66,9 +66,9 @@ defineEmits(['openCreateCircle'])
   </aside>
 
   <!-- Expanded mode -->
-  <aside v-else class="circles-sidebar w-56 border-r border-white/5 flex flex-col backdrop-blur-3xl z-40 bg-slate-950/40 shrink-0">
+  <aside v-else class="circles-sidebar w-56 border-r border-white/5 flex flex-col backdrop-blur-3xl z-40 bg-zinc-950/40 shrink-0">
     <div class="px-3 py-2.5 border-b border-white/5 flex items-center justify-between">
-      <h2 class="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">Circles</h2>
+      <h2 class="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em]">Circles</h2>
       <button
         @click="$emit('openCreateCircle')"
         class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all"
@@ -97,16 +97,16 @@ defineEmits(['openCreateCircle'])
           {{ circle.name?.charAt(0) }}
           <div
             v-if="circlesStore.circleUnreadCounts[circle.id]"
-            class="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-indigo-500 border border-slate-950 flex items-center justify-center text-[7px] font-black text-white"
+            class="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-indigo-500 border border-zinc-950 flex items-center justify-center text-[7px] font-black text-white"
           >
             {{ circlesStore.circleUnreadCounts[circle.id] > 9 ? '9+' : circlesStore.circleUnreadCounts[circle.id] }}
           </div>
         </div>
         <div class="text-left min-w-0">
-          <p :class="['text-xs font-bold truncate circle-name', circlesStore.activeCircleId === circle.id ? 'text-white' : 'text-slate-400']">
+          <p :class="['text-xs font-bold truncate circle-name', circlesStore.activeCircleId === circle.id ? 'text-white' : 'text-zinc-400']">
             {{ circle.name }}
           </p>
-          <span class="text-[8px] text-slate-600 font-bold circle-members">{{ circle.members_count }} members</span>
+          <span class="text-[8px] text-zinc-600 font-bold circle-members">{{ circle.members_count }} members</span>
         </div>
       </button>
     </div>
@@ -118,7 +118,7 @@ defineEmits(['openCreateCircle'])
         'flex items-center gap-2.5 px-3 py-2 border-t border-white/5 transition-all',
         circlesStore.activeTab === 'discover' && !circlesStore.activeCircleId
           ? 'bg-indigo-500/10 text-indigo-400'
-          : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
+          : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'
       ]"
     >
       <Globe :size="14" />
@@ -140,7 +140,7 @@ defineEmits(['openCreateCircle'])
           <div class="flex gap-1.5">
             <button
               @click="circlesStore.declineInvitation(invitation.id)"
-              class="flex-1 px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 text-[9px] font-bold transition-colors"
+              class="flex-1 px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 hover:bg-rose-500/20 hover:text-rose-400 text-[9px] font-bold transition-colors"
             >
               Decline
             </button>

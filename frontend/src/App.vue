@@ -28,7 +28,7 @@ onMounted(() => {
 </script>
 
   <template>
-    <div id="app" class="min-h-screen bg-slate-950 text-slate-50 selection:bg-sky-500/30">
+    <div id="app" class="min-h-screen bg-zinc-950 text-zinc-50 selection:bg-sky-500/30">
       <!-- Background Gradients -->
       <GradientBackground />
 
@@ -43,7 +43,7 @@ onMounted(() => {
           <HeaderNav />
 
           <!-- View Content -->
-          <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-950">
+          <main class="flex-1 overflow-y-auto custom-scrollbar bg-zinc-950">
             <router-view />
           </main>
         </div>

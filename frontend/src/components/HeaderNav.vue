@@ -40,11 +40,11 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <header class="h-14 lg:h-20 border-b border-slate-800/50 flex items-center justify-between px-3 sm:px-4 lg:px-8 bg-slate-950/50 backdrop-blur-xl z-40">
+  <header class="h-14 lg:h-20 border-b border-zinc-800/50 flex items-center justify-between px-3 sm:px-4 lg:px-8 bg-zinc-950/50 backdrop-blur-xl z-40">
     <!-- Mobile hamburger -->
     <button
       @click="toggleMobileSidebar"
-      class="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all flex-shrink-0 mr-2"
+      class="lg:hidden p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-all flex-shrink-0 mr-2"
     >
       <Menu :size="22" />
     </button>
@@ -53,14 +53,14 @@ const handleLogout = () => {
 
     <div class="flex items-center gap-2 sm:gap-3 lg:gap-6 ml-2 sm:ml-4 lg:ml-8">
       <!-- Theme Toggle (Desktop only - on mobile it's in avatar dropdown) -->
-      <div class="hidden lg:flex items-center gap-0.5 p-1 bg-white/5 rounded-xl border border-slate-800/50">
+      <div class="hidden lg:flex items-center gap-0.5 p-1 bg-white/5 rounded-xl border border-zinc-800/50">
         <button
           @click="themeStore.setTheme('light')"
           :class="[
             'p-2 rounded-lg transition-all',
             themeStore.theme === 'light'
               ? 'bg-indigo-500 text-white shadow-lg'
-              : 'text-slate-400 hover:text-indigo-500'
+              : 'text-zinc-400 hover:text-indigo-500'
           ]"
         >
           <Sun :size="18" />
@@ -71,7 +71,7 @@ const handleLogout = () => {
             'p-2 rounded-lg transition-all',
             themeStore.theme === 'dark'
               ? 'bg-indigo-500 text-white shadow-lg'
-              : 'text-slate-400 hover:text-indigo-500'
+              : 'text-zinc-400 hover:text-indigo-500'
           ]"
         >
           <Moon :size="18" />
@@ -81,13 +81,13 @@ const handleLogout = () => {
       <!-- Notifications -->
       <NotificationDropdown />
 
-      <div class="hidden lg:block h-8 w-px bg-slate-800/50" />
+      <div class="hidden lg:block h-8 w-px bg-zinc-800/50" />
 
       <!-- User Dropdown -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <div class="group p-0.5 rounded-full bg-transparent hover:bg-gradient-to-tr hover:from-indigo-500 hover:to-purple-500 transition-all cursor-pointer">
-            <div class="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-black text-white overflow-hidden">
+            <div class="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-black text-white overflow-hidden">
               <img v-if="userAvatarUrl && !headerAvatarError" :src="userAvatarUrl" @error="headerAvatarError = true" class="w-full h-full object-cover" />
               <span v-else>{{ userInitials }}</span>
             </div>
@@ -96,7 +96,7 @@ const handleLogout = () => {
         <DropdownMenuContent align="end" class="w-56">
           <DropdownMenuLabel>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold overflow-hidden flex-shrink-0">
+              <div class="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold overflow-hidden flex-shrink-0">
                 <img v-if="userAvatarUrl" :src="userAvatarUrl" class="w-full h-full object-cover" />
                 <span v-else>{{ userInitials }}</span>
               </div>
@@ -122,15 +122,15 @@ const handleLogout = () => {
           <!-- Theme Toggle (shown inside dropdown) -->
           <div class="px-2 py-1.5">
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-400">Theme</span>
-              <div class="flex items-center gap-0.5 p-0.5 bg-slate-800/50 rounded-lg border border-slate-700/50">
+              <span class="text-sm text-zinc-400">Theme</span>
+              <div class="flex items-center gap-0.5 p-0.5 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
                 <button
                   @click.stop="themeStore.setTheme('light')"
                   :class="[
                     'p-1.5 rounded-md transition-all',
                     themeStore.theme === 'light'
                       ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'text-slate-400 hover:text-indigo-400'
+                      : 'text-zinc-400 hover:text-indigo-400'
                   ]"
                 >
                   <Sun :size="14" />
@@ -141,7 +141,7 @@ const handleLogout = () => {
                     'p-1.5 rounded-md transition-all',
                     themeStore.theme === 'dark'
                       ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'text-slate-400 hover:text-indigo-400'
+                      : 'text-zinc-400 hover:text-indigo-400'
                   ]"
                 >
                   <Moon :size="14" />

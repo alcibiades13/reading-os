@@ -24,7 +24,11 @@ class CircleMembershipInline(admin.TabularInline):
 
 @admin.register(Circle)
 class CircleAdmin(admin.ModelAdmin):
-    list_display = ['name', 'creator', 'members_count', 'max_members', 'is_invite_only', 'current_book', 'created_at']
+    list_display = ['name', 'creator', 'get_members_count', 'max_members', 'is_invite_only', 'current_book', 'created_at']
+
+    @admin.display(description='Members')
+    def get_members_count(self, obj):
+        return obj.members.count()
     list_filter = ['is_invite_only', 'created_at']
     search_fields = ['name', 'description', 'creator__email']
     inlines = [CircleMembershipInline]
@@ -138,7 +142,11 @@ class FeedItemCommentAdmin(admin.ModelAdmin):
 # Book Club Admin
 @admin.register(DiscussionTopic)
 class DiscussionTopicAdmin(admin.ModelAdmin):
-    list_display = ['title', 'circle', 'category', 'is_locked', 'is_pinned', 'message_count', 'created_at']
+    list_display = ['title', 'circle', 'category', 'is_locked', 'is_pinned', 'get_message_count', 'created_at']
+
+    @admin.display(description='Messages')
+    def get_message_count(self, obj):
+        return obj.messages.count()
     list_filter = ['category', 'is_locked', 'is_pinned', 'created_at']
     search_fields = ['title', 'description', 'circle__name']
 

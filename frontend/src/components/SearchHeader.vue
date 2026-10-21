@@ -52,7 +52,7 @@ onUnmounted(() => {
         <h1 class="text-4xl font-black text-white tracking-tight mb-2">
           Discover <span class="text-indigo-500">Volume</span>
         </h1>
-        <p class="text-slate-500 text-sm font-medium">
+        <p class="text-zinc-500 text-sm font-medium">
           Search millions of titles across the Google Books API
         </p>
       </div>
@@ -64,7 +64,7 @@ onUnmounted(() => {
             'relative flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-200',
             tab === 'general'
               ? 'bg-indigo-500 text-white shadow-md'
-              : 'text-slate-500 hover:text-white'
+              : 'text-zinc-500 hover:text-white'
           ]"
         >
           <Search :size="14" />
@@ -76,7 +76,7 @@ onUnmounted(() => {
             'relative flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-200',
             tab === 'isbn'
               ? 'bg-indigo-500 text-white shadow-md'
-              : 'text-slate-500 hover:text-white'
+              : 'text-zinc-500 hover:text-white'
           ]"
         >
           <Hash :size="14" />
@@ -88,12 +88,12 @@ onUnmounted(() => {
             'relative flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-200',
             tab === 'advanced'
               ? 'bg-indigo-500 text-white shadow-md'
-              : 'text-slate-500 hover:text-white'
+              : 'text-zinc-500 hover:text-white'
           ]"
         >
           <Filter :size="14" />
           Advanced
-          <span class="text-[8px] bg-white/10 text-slate-400 px-1.5 py-0.5 rounded ml-1">
+          <span class="text-[8px] bg-white/10 text-zinc-400 px-1.5 py-0.5 rounded ml-1">
             Soon
           </span>
         </button>
@@ -111,14 +111,14 @@ onUnmounted(() => {
         :class="[
           'relative flex items-center glass rounded-3xl overflow-hidden px-8 py-6 border-2 transition-all duration-300',
           isFocused
-            ? 'border-indigo-500 shadow-2xl bg-slate-900/60'
-            : 'border-white/5 bg-slate-900/40'
+            ? 'border-indigo-500 shadow-2xl bg-zinc-900/60'
+            : 'border-white/5 bg-zinc-900/40'
         ]"
       >
         <Search
           :class="[
             'mr-4 transition-colors duration-300',
-            isFocused ? 'text-indigo-500' : 'text-slate-500'
+            isFocused ? 'text-indigo-500' : 'text-zinc-500'
           ]"
           :size="24"
         />
@@ -129,7 +129,7 @@ onUnmounted(() => {
           @focus="isFocused = true"
           @blur="isFocused = false"
           :placeholder="tab === 'isbn' ? 'Enter 10 or 13 digit ISBN...' : 'Find your next intellectual obsession...'"
-          class="flex-1 bg-transparent border-none outline-none text-2xl text-white placeholder-slate-700 font-serif italic"
+          class="flex-1 bg-transparent border-none outline-none text-2xl text-white placeholder-zinc-700 font-serif italic"
         />
       </div>
     </div>

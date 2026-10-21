@@ -443,7 +443,7 @@ const getSliderBackground = (value) => {
 
 <template>
   <Dialog :open="open" @update:open="$emit('close')">
-    <DialogContent class="max-w-[calc(100vw-2rem)] sm:max-w-md bg-slate-900 border-slate-800">
+    <DialogContent class="max-w-[calc(100vw-2rem)] sm:max-w-md bg-zinc-900 border-zinc-800">
       <!-- Header -->
       <DialogHeader class="text-center pb-2">
         <div class="flex items-center justify-center gap-2 mb-2">
@@ -454,7 +454,7 @@ const getSliderBackground = (value) => {
         <DialogTitle class="text-xl font-black text-white">
           {{ currentStep === 2 ? 'Thank you!' : isUpdate ? 'Update your rating' : 'How would you describe this book?' }}
         </DialogTitle>
-        <DialogDescription class="text-slate-400 text-sm">
+        <DialogDescription class="text-zinc-400 text-sm">
           {{ currentStep === 2 ? 'Your vote helps everyone find their perfect book' : currentStep === 1 ? 'Select themes & genre' : isUpdate ? 'Adjust your previous responses' : 'Quick survey, 6 questions' }}
         </DialogDescription>
       </DialogHeader>
@@ -469,7 +469,7 @@ const getSliderBackground = (value) => {
         />
         <div class="flex-1 min-w-0">
           <h4 class="font-bold text-white text-sm truncate">{{ book.title }}</h4>
-          <p class="text-xs text-slate-500 truncate">{{ book.author_names || book.authors?.map(a => a.name).join(', ') }}</p>
+          <p class="text-xs text-zinc-500 truncate">{{ book.author_names || book.authors?.map(a => a.name).join(', ') }}</p>
         </div>
       </div>
 
@@ -485,7 +485,7 @@ const getSliderBackground = (value) => {
             <span class="text-white font-medium text-xs sm:text-sm">{{ q.question }}</span>
           </div>
           <div class="flex items-center gap-2 sm:gap-3">
-            <span class="text-[9px] sm:text-[10px] text-slate-500 w-16 sm:w-24 text-right leading-tight">{{ q.left_label }}</span>
+            <span class="text-[9px] sm:text-[10px] text-zinc-500 w-16 sm:w-24 text-right leading-tight">{{ q.left_label }}</span>
             <input
               type="range"
               min="0"
@@ -495,7 +495,7 @@ const getSliderBackground = (value) => {
               class="flex-1 h-2 rounded-full appearance-none cursor-pointer slider-thumb"
               :style="{ background: getSliderBackground(responses[q.id]) }"
             />
-            <span class="text-[9px] sm:text-[10px] text-slate-500 w-16 sm:w-24 leading-tight">{{ q.right_label }}</span>
+            <span class="text-[9px] sm:text-[10px] text-zinc-500 w-16 sm:w-24 leading-tight">{{ q.right_label }}</span>
           </div>
         </div>
 
@@ -503,7 +503,7 @@ const getSliderBackground = (value) => {
           <Button
             variant="ghost"
             @click="handleSkip"
-            class="flex-1 text-slate-400 hover:text-slate-300 hover:bg-white/5"
+            class="flex-1 text-zinc-400 hover:text-zinc-300 hover:bg-white/5"
           >
             Skip
           </Button>
@@ -519,7 +519,7 @@ const getSliderBackground = (value) => {
       <!-- Step 2: Theme & Genre Selection -->
       <div v-else-if="currentStep === 1" class="space-y-3">
         <!-- Primary theme hint -->
-        <div class="flex items-center gap-2 text-[10px] text-slate-500">
+        <div class="flex items-center gap-2 text-[10px] text-zinc-500">
           <Star :size="10" class="text-amber-400 flex-shrink-0" />
           <span>First 3 selected become <strong class="text-amber-400">primary</strong> (higher weight). Tap star to toggle.</span>
         </div>
@@ -528,7 +528,7 @@ const getSliderBackground = (value) => {
         <div class="max-h-[320px] overflow-y-auto pr-1 space-y-3 survey-scrollbar">
           <!-- Theme categories -->
           <div v-for="category in themeCategories" :key="category.id">
-            <h4 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+            <h4 class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-1.5">
               {{ category.label }}
             </h4>
             <div class="flex flex-wrap gap-1.5">
@@ -542,7 +542,7 @@ const getSliderBackground = (value) => {
                     ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/50'
                     : isThemeSelected(theme.id)
                       ? 'bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-500/50'
-                      : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-300'
+                      : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-300'
                 ]"
               >
                 <Star
@@ -555,7 +555,7 @@ const getSliderBackground = (value) => {
                   v-else-if="isThemeSelected(theme.id) && primaryThemes.length < MAX_PRIMARY"
                   :is="Star"
                   :size="10"
-                  class="text-slate-500 cursor-pointer"
+                  class="text-zinc-500 cursor-pointer"
                   @click.stop="togglePrimary(theme.id)"
                 />
                 <component
@@ -569,12 +569,12 @@ const getSliderBackground = (value) => {
           </div>
 
           <!-- Genre Tags Section -->
-          <div class="border-t border-slate-700/50 pt-3">
-            <h4 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <div class="border-t border-zinc-700/50 pt-3">
+            <h4 class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <BookOpen :size="10" />
               Genre
             </h4>
-            <div class="flex items-center gap-2 text-[10px] text-slate-600 mb-2">
+            <div class="flex items-center gap-2 text-[10px] text-zinc-600 mb-2">
               <Star :size="9" class="text-emerald-400 flex-shrink-0" />
               <span>First selected becomes <strong class="text-emerald-400">primary genre</strong>. Tap star to change.</span>
             </div>
@@ -589,7 +589,7 @@ const getSliderBackground = (value) => {
                     ? 'bg-emerald-500/25 text-emerald-300 ring-1 ring-emerald-400/60'
                     : isGenreSelected(genre.id)
                       ? 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/40'
-                      : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-300'
+                      : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-300'
                 ]"
               >
                 <Star
@@ -602,7 +602,7 @@ const getSliderBackground = (value) => {
                   v-else-if="isGenreSelected(genre.id)"
                   :is="Star"
                   :size="10"
-                  class="text-slate-500 cursor-pointer"
+                  class="text-zinc-500 cursor-pointer"
                   @click.stop="togglePrimaryGenre(genre.id)"
                 />
                 <component
@@ -621,7 +621,7 @@ const getSliderBackground = (value) => {
           <Button
             variant="ghost"
             @click="handleBack"
-            class="flex-1 text-slate-400 hover:text-slate-300 hover:bg-white/5"
+            class="flex-1 text-zinc-400 hover:text-zinc-300 hover:bg-white/5"
           >
             Back
           </Button>
@@ -641,7 +641,7 @@ const getSliderBackground = (value) => {
         <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
           <Check :size="32" class="text-emerald-400" />
         </div>
-        <p class="text-slate-400 text-sm">Your reading profile has been updated</p>
+        <p class="text-zinc-400 text-sm">Your reading profile has been updated</p>
       </div>
     </DialogContent>
   </Dialog>

@@ -241,8 +241,8 @@ onMounted(async () => {
 
     <!-- ==================== LOADING STATE ==================== -->
     <div v-if="loading" class="max-w-7xl mx-auto px-8 py-20 flex flex-col items-center justify-center min-h-[60vh]">
-      <div class="w-12 h-12 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin mb-4" />
-      <p class="text-slate-500 font-black uppercase tracking-widest text-[9px]">Fetching Chronicles...</p>
+      <div class="w-12 h-12 border-4 border-zinc-800 border-t-indigo-500 rounded-full animate-spin mb-4" />
+      <p class="text-zinc-500 font-black uppercase tracking-widest text-[9px]">Fetching Chronicles...</p>
     </div>
 
     <!-- ==================== ERROR / NOT FOUND ==================== -->
@@ -252,7 +252,7 @@ onMounted(async () => {
           <User :size="32" class="text-rose-400" />
         </div>
         <h2 class="text-xl font-bold text-white mb-2">Author Not Found</h2>
-        <p class="text-slate-500 mb-6">This author doesn't exist or has been removed.</p>
+        <p class="text-zinc-500 mb-6">This author doesn't exist or has been removed.</p>
         <button
           @click="handleBack"
           class="px-6 py-3 rounded-xl bg-indigo-500 text-white font-bold hover:bg-indigo-400 transition-colors"
@@ -275,7 +275,7 @@ onMounted(async () => {
         <!-- Back button -->
         <button
           @click="handleBack"
-          class="absolute top-6 left-6 lg:top-8 lg:left-8 z-50 flex items-center gap-2 text-slate-500 hover:text-white transition-all font-black text-[9px] uppercase tracking-widest group"
+          class="absolute top-6 left-6 lg:top-8 lg:left-8 z-50 flex items-center gap-2 text-zinc-500 hover:text-white transition-all font-black text-[9px] uppercase tracking-widest group"
         >
           <ArrowLeft :size="14" class="group-hover:-translate-x-1 transition-transform" />
           Library
@@ -313,13 +313,13 @@ onMounted(async () => {
             <div class="flex flex-wrap items-center gap-6 lg:gap-8">
               <!-- Volumes stat -->
               <div>
-                <p class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5">Volumes</p>
+                <p class="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-0.5">Volumes</p>
                 <p class="text-lg font-black text-white tracking-tight">{{ volumeCount }}</p>
               </div>
 
               <!-- Reach stat -->
               <div>
-                <p class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5">Reach</p>
+                <p class="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-0.5">Reach</p>
                 <p class="text-lg font-black text-white tracking-tight">Global</p>
               </div>
 
@@ -339,7 +339,7 @@ onMounted(async () => {
               </button>
 
               <!-- Share button -->
-              <button class="p-3 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5">
+              <button class="p-3 rounded-xl bg-white/5 text-zinc-400 hover:text-white transition-all border border-white/5">
                 <Share2 :size="16" />
               </button>
             </div>
@@ -354,10 +354,10 @@ onMounted(async () => {
                 :alt="author.name"
                 class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
               />
-              <div v-else class="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-                <span class="text-5xl lg:text-7xl font-black text-slate-500/60">{{ authorInitials }}</span>
+              <div v-else class="w-full h-full bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center">
+                <span class="text-5xl lg:text-7xl font-black text-zinc-500/60">{{ authorInitials }}</span>
               </div>
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent" />
+              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/60 to-transparent" />
             </div>
           </div>
         </div>
@@ -370,11 +370,11 @@ onMounted(async () => {
           <!-- Section header -->
           <div class="flex items-center gap-4">
             <div class="w-8 h-px bg-indigo-500" />
-            <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">The Profile</h2>
+            <h2 class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">The Profile</h2>
             <button
               v-if="!isEditing"
               @click="startEditing"
-              class="ml-auto p-2 rounded-lg bg-white/5 border border-white/5 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
+              class="ml-auto p-2 rounded-lg bg-white/5 border border-white/5 text-zinc-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
               title="Edit author"
             >
               <Pencil :size="14" />
@@ -382,31 +382,31 @@ onMounted(async () => {
           </div>
 
           <!-- Edit form -->
-          <div v-if="isEditing" class="space-y-6 p-6 rounded-2xl bg-slate-900/60 border border-slate-700/50">
+          <div v-if="isEditing" class="space-y-6 p-6 rounded-2xl bg-zinc-900/60 border border-zinc-700/50">
             <!-- Bio -->
             <div>
-              <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Biography</label>
+              <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Biography</label>
               <textarea
                 v-model="editForm.bio"
                 rows="5"
-                class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all placeholder-slate-600 resize-y"
+                class="w-full bg-zinc-950/60 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-indigo-500 transition-all placeholder-zinc-600 resize-y"
                 placeholder="Short biography..."
               />
             </div>
 
             <!-- Photo URL -->
             <div>
-              <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Photo URL</label>
+              <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Photo URL</label>
               <input
                 v-model="editForm.photo"
                 type="url"
-                class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all placeholder-slate-600"
+                class="w-full bg-zinc-950/60 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-indigo-500 transition-all placeholder-zinc-600"
                 placeholder="https://..."
               />
               <img
                 v-if="editForm.photo"
                 :src="editForm.photo"
-                class="mt-2 w-20 h-24 object-cover rounded-lg border border-slate-700"
+                class="mt-2 w-20 h-24 object-cover rounded-lg border border-zinc-700"
                 @error="(e) => e.target.style.display = 'none'"
               />
             </div>
@@ -414,19 +414,19 @@ onMounted(async () => {
             <!-- Dates row -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Date of Birth</label>
+                <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Date of Birth</label>
                 <input
                   v-model="editForm.birth_date"
                   type="date"
-                  class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all"
+                  class="w-full bg-zinc-950/60 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-indigo-500 transition-all"
                 />
               </div>
               <div>
-                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Date of Death</label>
+                <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Date of Death</label>
                 <input
                   v-model="editForm.death_date"
                   type="date"
-                  class="w-full bg-slate-950/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-all"
+                  class="w-full bg-zinc-950/60 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-indigo-500 transition-all"
                 />
               </div>
             </div>
@@ -445,7 +445,7 @@ onMounted(async () => {
               <button
                 @click="cancelEditing"
                 :disabled="isSaving"
-                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-bold transition-all"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-sm font-bold transition-all"
               >
                 <X :size="14" />
                 Cancel
@@ -455,34 +455,34 @@ onMounted(async () => {
 
           <!-- Bio text (read mode) -->
           <div v-else class="space-y-8">
-            <p v-if="author.bio" class="text-sm sm:text-base lg:text-lg font-serif italic text-slate-300 leading-relaxed max-w-4xl">
+            <p v-if="author.bio" class="text-sm sm:text-base lg:text-lg font-serif italic text-zinc-300 leading-relaxed max-w-4xl">
               {{ author.bio }}
             </p>
-            <p v-else class="text-sm sm:text-base lg:text-lg font-serif italic text-slate-500 leading-relaxed max-w-4xl">
+            <p v-else class="text-sm sm:text-base lg:text-lg font-serif italic text-zinc-500 leading-relaxed max-w-4xl">
               No biography available yet. This author's story remains to be written.
             </p>
 
             <!-- Birth/death details -->
-            <div v-if="author.birth_date || author.death_date" class="flex flex-wrap gap-4 text-xs text-slate-500">
+            <div v-if="author.birth_date || author.death_date" class="flex flex-wrap gap-4 text-xs text-zinc-500">
               <div v-if="author.birth_date" class="flex items-center gap-1.5">
-                <Calendar :size="12" class="text-slate-600" />
+                <Calendar :size="12" class="text-zinc-600" />
                 Born {{ new Date(author.birth_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) }}
               </div>
               <div v-if="author.death_date" class="flex items-center gap-1.5">
-                <Calendar :size="12" class="text-slate-600" />
+                <Calendar :size="12" class="text-zinc-600" />
                 Died {{ new Date(author.death_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) }}
               </div>
             </div>
 
             <!-- Social links -->
             <div class="flex gap-4 pt-2">
-              <button class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all">
+              <button class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-zinc-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
               </button>
-              <button class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all">
+              <button class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-zinc-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
               </button>
-              <button class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all">
+              <button class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-zinc-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all">
                 <Globe :size="18" />
               </button>
             </div>
@@ -504,8 +504,8 @@ onMounted(async () => {
         <div class="lg:col-span-4 space-y-6">
 
           <!-- Aliases Section -->
-          <div v-if="aliases.length > 0" class="p-6 lg:p-8 rounded-[2rem] bg-slate-950/40 border border-white/5 glass">
-            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <div v-if="aliases.length > 0" class="p-6 lg:p-8 rounded-[2rem] bg-zinc-950/40 border border-white/5 glass">
+            <h3 class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Link2 :size="10" />
               Also Known As
             </h3>
@@ -516,18 +516,18 @@ onMounted(async () => {
                 :to="getAuthorUrl(alias)"
                 class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/[0.08] border border-transparent hover:border-indigo-500/20 transition-all group"
               >
-                <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center font-black text-[10px] text-indigo-400 border border-white/5">
+                <div class="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center font-black text-[10px] text-indigo-400 border border-white/5">
                   {{ alias.name?.charAt(0) || '?' }}
                 </div>
-                <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors flex-1">{{ alias.name }}</span>
+                <span class="text-xs font-bold text-zinc-400 group-hover:text-white transition-colors flex-1">{{ alias.name }}</span>
                 <span v-if="alias.is_primary" class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[8px] font-black uppercase">Primary</span>
-                <ChevronRight :size="14" class="text-slate-600 group-hover:text-indigo-400 transition-all" />
+                <ChevronRight :size="14" class="text-zinc-600 group-hover:text-indigo-400 transition-all" />
               </router-link>
             </div>
           </div>
 
           <!-- Potential Aliases Widget -->
-          <div v-if="potentialAliases.length > 0" class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40">
+          <div v-if="potentialAliases.length > 0" class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40">
             <div class="mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
               <p class="text-xs text-amber-200/70">
                 We found authors with similar names. Link them if they're the same person.
@@ -538,30 +538,30 @@ onMounted(async () => {
               <div
                 v-for="alias in potentialAliases"
                 :key="alias.id"
-                class="p-4 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-amber-500/30 transition-all space-y-3"
+                class="p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 hover:border-amber-500/30 transition-all space-y-3"
               >
                 <div class="flex gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center font-black text-sm text-amber-400 border border-white/5">
+                  <div class="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center font-black text-sm text-amber-400 border border-white/5">
                     {{ alias.name?.charAt(0) || '?' }}
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-start gap-2 mb-1">
-                      <h4 class="flex-1 font-semibold text-slate-100 text-sm">{{ alias.name }}</h4>
+                      <h4 class="flex-1 font-semibold text-zinc-100 text-sm">{{ alias.name }}</h4>
                       <span class="shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold">
                         {{ Math.round(alias.similarity * 100) }}%
                       </span>
                     </div>
-                    <div class="text-[10px] text-slate-500">
+                    <div class="text-[10px] text-zinc-500">
                       {{ alias.books_count }} {{ alias.books_count === 1 ? 'book' : 'books' }}
                     </div>
-                    <div v-if="alias.bio" class="text-[10px] text-slate-600 line-clamp-2 mt-1">{{ alias.bio }}</div>
+                    <div v-if="alias.bio" class="text-[10px] text-zinc-600 line-clamp-2 mt-1">{{ alias.bio }}</div>
                   </div>
                 </div>
 
-                <div class="pt-3 border-t border-slate-800/50 flex gap-2">
+                <div class="pt-3 border-t border-zinc-800/50 flex gap-2">
                   <button
                     @click="dismissPotentialAlias(alias.id)"
-                    class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 text-xs font-bold transition-all"
+                    class="px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-rose-500/10 text-zinc-500 hover:text-rose-400 text-xs font-bold transition-all"
                   >
                     Not Same
                   </button>
@@ -573,7 +573,7 @@ onMounted(async () => {
                   </button>
                   <router-link
                     :to="getAuthorUrl(alias)"
-                    class="px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all"
+                    class="px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 text-xs font-bold transition-all"
                   >
                     View
                   </router-link>
@@ -583,7 +583,7 @@ onMounted(async () => {
           </div>
 
           <!-- Link Author Button -->
-          <div class="p-6 rounded-[2rem] glass border-slate-800 bg-slate-900/40 border-dashed">
+          <div class="p-6 rounded-[2rem] glass border-zinc-800 bg-zinc-900/40 border-dashed">
             <button
               @click="isLinkAuthorModalOpen = true; aliasSearchQuery = ''; aliasSearchResults = []"
               class="w-full px-4 py-3 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 text-indigo-400 text-sm font-bold transition-all flex items-center justify-center gap-2 group"
@@ -591,14 +591,14 @@ onMounted(async () => {
               <Plus :size="16" class="group-hover:rotate-90 transition-transform" />
               Link Another Spelling
             </button>
-            <p class="text-[10px] text-slate-500 text-center mt-2">
+            <p class="text-[10px] text-zinc-500 text-center mt-2">
               Link authors with the same name across languages
             </p>
           </div>
 
           <!-- Similar Minds -->
-          <div class="p-6 lg:p-8 rounded-[2rem] bg-slate-950/40 border border-white/5 glass">
-            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-6">Similar Minds</h3>
+          <div class="p-6 lg:p-8 rounded-[2rem] bg-zinc-950/40 border border-white/5 glass">
+            <h3 class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-6">Similar Minds</h3>
             <div v-if="similarAuthors.length > 0" class="space-y-3">
               <router-link
                 v-for="sim in similarAuthors"
@@ -607,20 +607,20 @@ onMounted(async () => {
                 class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-transparent hover:border-indigo-500/20 hover:bg-white/[0.08] transition-all"
               >
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center font-black text-[10px] text-indigo-400 border border-white/5">
+                  <div class="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center font-black text-[10px] text-indigo-400 border border-white/5">
                     {{ sim.name?.charAt(0) || '?' }}
                   </div>
-                  <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">{{ sim.name }}</span>
+                  <span class="text-xs font-bold text-zinc-400 group-hover:text-white transition-colors">{{ sim.name }}</span>
                 </div>
-                <ChevronRight :size="14" class="text-slate-600 group-hover:text-indigo-400 transition-all" />
+                <ChevronRight :size="14" class="text-zinc-600 group-hover:text-indigo-400 transition-all" />
               </router-link>
             </div>
             <!-- Empty state for similar minds -->
             <div v-else class="space-y-3">
               <div class="flex items-center justify-center py-8">
                 <div class="text-center">
-                  <Users :size="24" class="text-slate-700 mx-auto mb-3" />
-                  <p class="text-[10px] text-slate-600 font-bold">No similar authors found yet</p>
+                  <Users :size="24" class="text-zinc-700 mx-auto mb-3" />
+                  <p class="text-[10px] text-zinc-600 font-bold">No similar authors found yet</p>
                 </div>
               </div>
             </div>
@@ -633,9 +633,9 @@ onMounted(async () => {
         <div class="flex items-center justify-between mb-8 lg:mb-12">
           <div class="flex items-center gap-4">
             <div class="w-8 h-px bg-indigo-500" />
-            <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Masterworks</h2>
+            <h2 class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Masterworks</h2>
           </div>
-          <span v-if="authorBooks.length > 0" class="text-[9px] font-black text-slate-600 uppercase tracking-widest">{{ authorBooks.length }} Titles</span>
+          <span v-if="authorBooks.length > 0" class="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{{ authorBooks.length }} Titles</span>
         </div>
 
         <!-- Books Grid -->
@@ -646,7 +646,7 @@ onMounted(async () => {
             :to="getBookUrl(book)"
             class="group"
           >
-            <div class="aspect-[2/3] rounded-xl lg:rounded-2xl overflow-hidden bg-slate-800/50 shadow-lg ring-1 ring-white/5 mb-2 lg:mb-3">
+            <div class="aspect-[2/3] rounded-xl lg:rounded-2xl overflow-hidden bg-zinc-800/50 shadow-lg ring-1 ring-white/5 mb-2 lg:mb-3">
               <img
                 v-if="book.cover_image"
                 :src="book.cover_image"
@@ -654,18 +654,18 @@ onMounted(async () => {
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div v-else class="w-full h-full flex items-center justify-center">
-                <BookOpen :size="24" class="text-slate-600" />
+                <BookOpen :size="24" class="text-zinc-600" />
               </div>
             </div>
             <h4 class="text-xs lg:text-sm font-bold text-white line-clamp-2 leading-tight group-hover:text-indigo-400 transition-colors">{{ book.title }}</h4>
-            <p v-if="book.published_date" class="text-[10px] text-slate-500 mt-0.5">{{ book.published_date?.split('-')[0] }}</p>
+            <p v-if="book.published_date" class="text-[10px] text-zinc-500 mt-0.5">{{ book.published_date?.split('-')[0] }}</p>
           </router-link>
         </div>
 
         <!-- Empty State -->
         <div v-else class="text-center py-16 lg:py-24">
-          <BookOpen :size="40" class="text-slate-700 mx-auto mb-4" />
-          <p class="text-slate-500 text-sm">No books found for this author in the database.</p>
+          <BookOpen :size="40" class="text-zinc-700 mx-auto mb-4" />
+          <p class="text-zinc-500 text-sm">No books found for this author in the database.</p>
         </div>
       </section>
 
@@ -673,8 +673,8 @@ onMounted(async () => {
 
     <!-- ========== LINK AUTHOR MODAL ========== -->
     <Dialog :open="isLinkAuthorModalOpen" @update:open="isLinkAuthorModalOpen = $event">
-      <DialogContent class="max-w-2xl glass border-slate-700 max-h-[80vh] flex flex-col">
-        <DialogHeader class="border-b border-slate-800 pb-4">
+      <DialogContent class="max-w-2xl glass border-zinc-700 max-h-[80vh] flex flex-col">
+        <DialogHeader class="border-b border-zinc-800 pb-4">
           <DialogTitle class="text-lg font-bold flex items-center gap-2 text-white">
             <Link2 :size="20" class="text-indigo-400" />
             Link Another Spelling
@@ -682,18 +682,18 @@ onMounted(async () => {
         </DialogHeader>
 
         <div class="flex-1 overflow-hidden flex flex-col space-y-4 py-4">
-          <p class="text-sm text-slate-300">
+          <p class="text-sm text-zinc-300">
             Find "{{ author?.name }}" in another language or with a different name spelling.
           </p>
 
           <!-- Search Input -->
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" :size="18" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" :size="18" />
             <input
               v-model="aliasSearchQuery"
               type="text"
               placeholder="Search by author name..."
-              class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-50 outline-none focus:border-indigo-500 transition-all placeholder-slate-600"
+              class="w-full bg-zinc-900 border border-zinc-700 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-50 outline-none focus:border-indigo-500 transition-all placeholder-zinc-600"
               autofocus
             />
           </div>
@@ -708,16 +708,16 @@ onMounted(async () => {
             <div
               v-for="result in aliasSearchResults"
               :key="result.id"
-              class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/30 transition-all cursor-pointer"
+              class="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-indigo-500/30 transition-all cursor-pointer"
               @click="linkManualAlias(result.id)"
             >
               <div class="flex gap-3">
-                <div class="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center font-black text-sm text-indigo-400 border border-white/5">
+                <div class="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center font-black text-sm text-indigo-400 border border-white/5">
                   {{ result.name?.charAt(0) || '?' }}
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h4 class="font-semibold text-slate-100 text-sm mb-1">{{ result.name }}</h4>
-                  <div class="text-[11px] text-slate-500">
+                  <h4 class="font-semibold text-zinc-100 text-sm mb-1">{{ result.name }}</h4>
+                  <div class="text-[11px] text-zinc-500">
                     {{ result.books_count || 0 }} {{ (result.books_count || 0) === 1 ? 'book' : 'books' }}
                   </div>
                 </div>
@@ -732,11 +732,11 @@ onMounted(async () => {
 
           <!-- Empty State -->
           <div v-else-if="aliasSearchQuery.trim().length >= 2" class="flex-1 flex flex-col items-center justify-center py-8 text-center">
-            <div class="w-16 h-16 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mb-4">
-              <Search :size="24" class="text-slate-600" />
+            <div class="w-16 h-16 rounded-full bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center mb-4">
+              <Search :size="24" class="text-zinc-600" />
             </div>
-            <p class="text-sm font-semibold text-slate-400 mb-1">No results</p>
-            <p class="text-xs text-slate-500">Try a different search term</p>
+            <p class="text-sm font-semibold text-zinc-400 mb-1">No results</p>
+            <p class="text-xs text-zinc-500">Try a different search term</p>
           </div>
 
           <!-- Initial State -->
@@ -744,15 +744,15 @@ onMounted(async () => {
             <div class="w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
               <User :size="24" class="text-indigo-400" />
             </div>
-            <p class="text-sm font-semibold text-slate-300 mb-1">Search authors</p>
-            <p class="text-xs text-slate-500">Start typing to find an author</p>
+            <p class="text-sm font-semibold text-zinc-300 mb-1">Search authors</p>
+            <p class="text-xs text-zinc-500">Start typing to find an author</p>
           </div>
 
           <!-- Footer -->
-          <div class="pt-4 border-t border-slate-800">
+          <div class="pt-4 border-t border-zinc-800">
             <button
               @click="isLinkAuthorModalOpen = false"
-              class="w-full px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-700 hover:border-slate-600"
+              class="w-full px-4 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all border border-zinc-700 hover:border-zinc-600"
             >
               Cancel
             </button>

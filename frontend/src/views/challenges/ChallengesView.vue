@@ -181,7 +181,7 @@ const toggleBooks = async (challenge) => {
 }
 
 const MASTERY_LABEL = { new: 'New', learning: 'Learning', mastered: 'Mastered' }
-const MASTERY_COLOR = { new: 'text-slate-400', learning: 'text-amber-400', mastered: 'text-green-400' }
+const MASTERY_COLOR = { new: 'text-zinc-400', learning: 'text-amber-400', mastered: 'text-green-400' }
 
 // ===== SCHEDULE STATE =====
 const schedules = ref([])
@@ -365,7 +365,7 @@ const isBookInSchedule = (bookId) => {
   <div class="animate-in fade-in duration-700">
 
     <!-- ==================== MOBILE HEADER ==================== -->
-    <header class="lg:hidden sticky top-0 z-30 border-b border-white/5 bg-slate-900/80 backdrop-blur-xl">
+    <header class="lg:hidden sticky top-0 z-30 border-b border-white/5 bg-zinc-900/80 backdrop-blur-xl">
       <div class="px-4 pt-4 pb-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -374,7 +374,7 @@ const isBookInSchedule = (bookId) => {
             </div>
             <div>
               <h1 class="text-lg font-black text-white">Reading Plans</h1>
-              <p class="text-[10px] text-slate-500 uppercase tracking-wider">{{ activeChallenges.length }} active</p>
+              <p class="text-[10px] text-zinc-500 uppercase tracking-wider">{{ activeChallenges.length }} active</p>
             </div>
           </div>
           <Dialog v-if="activeTab === 'challenges'" v-model:open="isCreateDialogOpen">
@@ -398,7 +398,7 @@ const isBookInSchedule = (bookId) => {
                 </div>
                 <div class="space-y-2">
                   <Label>Challenge Type</Label>
-                  <select v-model="newChallenge.challenge_type" class="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select v-model="newChallenge.challenge_type" class="flex h-10 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option v-for="opt in CHALLENGE_TYPES" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                   </select>
                 </div>
@@ -433,7 +433,7 @@ const isBookInSchedule = (bookId) => {
                   </label>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                  <button type="button" @click="isCreateDialogOpen = false" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-colors">Cancel</button>
+                  <button type="button" @click="isCreateDialogOpen = false" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white transition-colors">Cancel</button>
                   <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-400 transition-colors">Create</button>
                 </div>
               </form>
@@ -442,16 +442,16 @@ const isBookInSchedule = (bookId) => {
         </div>
 
         <!-- Mobile Tab Switcher -->
-        <div class="flex mt-3 p-1 rounded-xl bg-slate-800/50 gap-1">
+        <div class="flex mt-3 p-1 rounded-xl bg-zinc-800/50 gap-1">
           <button
             @click="switchTab('challenges')"
-            :class="['flex-1 py-1.5 rounded-lg text-xs font-bold transition-all', activeTab === 'challenges' ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300']"
+            :class="['flex-1 py-1.5 rounded-lg text-xs font-bold transition-all', activeTab === 'challenges' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300']"
           >
             <Target :size="12" class="inline mr-1" />Challenges
           </button>
           <button
             @click="switchTab('schedule')"
-            :class="['flex-1 py-1.5 rounded-lg text-xs font-bold transition-all', activeTab === 'schedule' ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300']"
+            :class="['flex-1 py-1.5 rounded-lg text-xs font-bold transition-all', activeTab === 'schedule' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300']"
           >
             <ListTodo :size="12" class="inline mr-1" />Schedule
           </button>
@@ -499,7 +499,7 @@ const isBookInSchedule = (bookId) => {
                 </div>
                 <div class="space-y-2">
                   <Label>Challenge Type</Label>
-                  <select v-model="newChallenge.challenge_type" class="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <select v-model="newChallenge.challenge_type" class="flex h-10 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option v-for="opt in CHALLENGE_TYPES" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                   </select>
                 </div>
@@ -534,7 +534,7 @@ const isBookInSchedule = (bookId) => {
                   </label>
                 </div>
                 <div class="flex justify-end gap-2">
-                  <button type="button" @click="isCreateDialogOpen = false" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-colors border border-slate-700">Cancel</button>
+                  <button type="button" @click="isCreateDialogOpen = false" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white transition-colors border border-zinc-700">Cancel</button>
                   <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-400 transition-colors">Create Challenge</button>
                 </div>
               </form>
@@ -543,16 +543,16 @@ const isBookInSchedule = (bookId) => {
         </div>
 
         <!-- Desktop Tab Switcher -->
-        <div class="flex gap-1 p-1 rounded-xl bg-slate-900/50 border border-slate-800 w-fit">
+        <div class="flex gap-1 p-1 rounded-xl bg-zinc-900/50 border border-zinc-800 w-fit">
           <button
             @click="switchTab('challenges')"
-            :class="['px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2', activeTab === 'challenges' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5']"
+            :class="['px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2', activeTab === 'challenges' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-white/5']"
           >
             <Target :size="15" />Challenges
           </button>
           <button
             @click="switchTab('schedule')"
-            :class="['px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2', activeTab === 'schedule' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5']"
+            :class="['px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2', activeTab === 'schedule' ? 'bg-indigo-500 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-white/5']"
           >
             <ListTodo :size="15" />Reading Schedule
           </button>
@@ -569,21 +569,21 @@ const isBookInSchedule = (bookId) => {
               <Play :size="18" class="text-green-400" />
               Active Challenges
             </h2>
-            <span class="text-xs font-bold text-slate-500 bg-white/5 px-2.5 py-1 rounded-full">{{ activeChallenges.length }}</span>
+            <span class="text-xs font-bold text-zinc-500 bg-white/5 px-2.5 py-1 rounded-full">{{ activeChallenges.length }}</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             <div
               v-for="challenge in activeChallenges"
               :key="challenge.id"
-              class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-5 hover:border-slate-700 transition-all"
+              class="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5 hover:border-zinc-700 transition-all"
             >
               <!-- Title & Status -->
               <div class="flex items-start justify-between mb-3">
                 <div class="flex-1 min-w-0">
                   <h3 class="text-sm sm:text-base font-bold text-white truncate">{{ challenge.title }}</h3>
-                  <p v-if="challenge.description" class="text-xs text-slate-500 mt-1 line-clamp-2">{{ challenge.description }}</p>
-                  <span class="text-[10px] font-medium text-slate-600 mt-0.5 block">
+                  <p v-if="challenge.description" class="text-xs text-zinc-500 mt-1 line-clamp-2">{{ challenge.description }}</p>
+                  <span class="text-[10px] font-medium text-zinc-600 mt-0.5 block">
                     {{ CHALLENGE_TYPES.find(t => t.value === challenge.challenge_type)?.label || 'Books Read' }}
                   </span>
                 </div>
@@ -605,15 +605,15 @@ const isBookInSchedule = (bookId) => {
                   <span class="text-2xl sm:text-3xl font-black" :class="getProgressColor(challenge.progress_percentage || 0)">
                     {{ challenge.completed_books || 0 }}
                   </span>
-                  <span class="text-xs text-slate-500">/ {{ challenge.target_books || 0 }} {{ getUnitLabel(challenge.challenge_type) }}</span>
+                  <span class="text-xs text-zinc-500">/ {{ challenge.target_books || 0 }} {{ getUnitLabel(challenge.challenge_type) }}</span>
                 </div>
-                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                <div class="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
                   <div
                     :class="['h-full rounded-full transition-all duration-500', getProgressBg(challenge.progress_percentage || 0)]"
                     :style="{ width: Math.min(challenge.progress_percentage || 0, 100) + '%' }"
                   />
                 </div>
-                <div class="flex justify-between mt-1.5 text-[10px] text-slate-500">
+                <div class="flex justify-between mt-1.5 text-[10px] text-zinc-500">
                   <span>{{ Math.round(challenge.progress_percentage || 0) }}%</span>
                   <span v-if="(challenge.target_books || 0) - (challenge.completed_books || 0) > 0">
                     {{ (challenge.target_books || 0) - (challenge.completed_books || 0) }} to go
@@ -625,7 +625,7 @@ const isBookInSchedule = (bookId) => {
               <template v-if="!challenge.challenge_type || challenge.challenge_type === 'books' || challenge.challenge_type === 'vocabulary_words'">
                 <button
                   @click="toggleBooks(challenge)"
-                  class="w-full flex items-center justify-between py-2.5 border-t border-slate-800 text-xs text-slate-400 hover:text-white transition-colors"
+                  class="w-full flex items-center justify-between py-2.5 border-t border-zinc-800 text-xs text-zinc-400 hover:text-white transition-colors"
                 >
                   <div class="flex items-center gap-2">
                     <BookOpen :size="14" class="text-indigo-400" />
@@ -635,8 +635,8 @@ const isBookInSchedule = (bookId) => {
                   <ChevronDown v-else :size="14" />
                 </button>
 
-                <div v-if="expandedChallenges[challenge.id]" class="border-t border-slate-800/50 pt-2 space-y-1 max-h-48 overflow-y-auto">
-                  <div v-if="loadingBooks[challenge.id]" class="text-xs text-slate-500 py-2 text-center">Loading...</div>
+                <div v-if="expandedChallenges[challenge.id]" class="border-t border-zinc-800/50 pt-2 space-y-1 max-h-48 overflow-y-auto">
+                  <div v-if="loadingBooks[challenge.id]" class="text-xs text-zinc-500 py-2 text-center">Loading...</div>
                   <template v-else-if="challengeItems[challenge.id]">
 
                     <!-- Books list -->
@@ -644,18 +644,18 @@ const isBookInSchedule = (bookId) => {
                       <div
                         v-for="book in challengeItems[challenge.id].items"
                         :key="book.id"
-                        class="flex items-center gap-2 py-1 px-1 rounded hover:bg-slate-800/50 cursor-pointer transition-colors"
+                        class="flex items-center gap-2 py-1 px-1 rounded hover:bg-zinc-800/50 cursor-pointer transition-colors"
                         @click="$router.push(`/books/${book.id}-${book.slug}`)"
                       >
                         <img v-if="book.cover_image" :src="book.cover_image" class="w-6 h-9 object-cover rounded shrink-0" />
-                        <div v-else class="w-6 h-9 bg-slate-800 rounded shrink-0" />
+                        <div v-else class="w-6 h-9 bg-zinc-800 rounded shrink-0" />
                         <div class="flex-1 min-w-0">
-                          <p class="text-xs font-medium text-slate-200 truncate">{{ book.title }}</p>
-                          <p class="text-[10px] text-slate-500 truncate">{{ book.authors?.join(', ') }}</p>
+                          <p class="text-xs font-medium text-zinc-200 truncate">{{ book.title }}</p>
+                          <p class="text-[10px] text-zinc-500 truncate">{{ book.authors?.join(', ') }}</p>
                         </div>
-                        <span class="text-[10px] text-slate-500 shrink-0">{{ book.finished_at }}</span>
+                        <span class="text-[10px] text-zinc-500 shrink-0">{{ book.finished_at }}</span>
                       </div>
-                      <p v-if="!challengeItems[challenge.id].items.length" class="text-xs text-slate-500 py-2 text-center">No books read yet.</p>
+                      <p v-if="!challengeItems[challenge.id].items.length" class="text-xs text-zinc-500 py-2 text-center">No books read yet.</p>
                     </template>
 
                     <!-- Vocabulary list -->
@@ -663,19 +663,19 @@ const isBookInSchedule = (bookId) => {
                       <div
                         v-for="word in challengeItems[challenge.id].items"
                         :key="word.id"
-                        class="flex items-start gap-2 py-1.5 px-1.5 rounded hover:bg-slate-800/50 transition-colors"
+                        class="flex items-start gap-2 py-1.5 px-1.5 rounded hover:bg-zinc-800/50 transition-colors"
                       >
                         <div class="flex-1 min-w-0">
                           <div class="flex items-center gap-2">
-                            <p class="text-xs font-bold text-slate-200">{{ word.word }}</p>
+                            <p class="text-xs font-bold text-zinc-200">{{ word.word }}</p>
                             <span :class="['text-[10px] font-medium', MASTERY_COLOR[word.mastery]]">{{ MASTERY_LABEL[word.mastery] }}</span>
                           </div>
-                          <p class="text-[10px] text-slate-500 truncate mt-0.5">{{ word.definition }}</p>
-                          <p v-if="word.book_title" class="text-[10px] text-slate-600 truncate">{{ word.book_title }}</p>
+                          <p class="text-[10px] text-zinc-500 truncate mt-0.5">{{ word.definition }}</p>
+                          <p v-if="word.book_title" class="text-[10px] text-zinc-600 truncate">{{ word.book_title }}</p>
                         </div>
-                        <span class="text-[10px] text-slate-600 shrink-0 mt-0.5">{{ word.created_at }}</span>
+                        <span class="text-[10px] text-zinc-600 shrink-0 mt-0.5">{{ word.created_at }}</span>
                       </div>
-                      <p v-if="!challengeItems[challenge.id].items.length" class="text-xs text-slate-500 py-2 text-center">No words added yet.</p>
+                      <p v-if="!challengeItems[challenge.id].items.length" class="text-xs text-zinc-500 py-2 text-center">No words added yet.</p>
                     </template>
 
                   </template>
@@ -683,29 +683,29 @@ const isBookInSchedule = (bookId) => {
               </template>
 
               <!-- Dates -->
-              <div class="flex items-center gap-2 text-xs text-slate-500 mt-3 border-t border-slate-800 pt-3">
+              <div class="flex items-center gap-2 text-xs text-zinc-500 mt-3 border-t border-zinc-800 pt-3">
                 <Calendar :size="12" />
                 <span>{{ formatDateShort(challenge.start_date) }} — {{ formatDateShort(challenge.end_date) }}</span>
               </div>
-              <div v-if="challenge.min_pages" class="text-[10px] text-slate-500 mt-1">
+              <div v-if="challenge.min_pages" class="text-[10px] text-zinc-500 mt-1">
                 Min {{ challenge.min_pages }} pages per book
               </div>
 
               <!-- Actions -->
-              <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800">
+              <div class="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800">
                 <div class="flex gap-1">
-                  <button @click="toggleActive(challenge)" class="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all" title="Pause">
+                  <button @click="toggleActive(challenge)" class="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-all" title="Pause">
                     <Pause :size="14" />
                   </button>
-                  <button @click="refreshProgress(challenge)" class="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all" title="Refresh progress">
+                  <button @click="refreshProgress(challenge)" class="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-all" title="Refresh progress">
                     <TrendingUp :size="14" />
                   </button>
                 </div>
                 <div class="flex gap-1">
-                  <button @click="openEditDialog(challenge)" class="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all" title="Edit">
+                  <button @click="openEditDialog(challenge)" class="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-all" title="Edit">
                     <Edit :size="14" />
                   </button>
-                  <button @click="deleteChallenge(challenge)" class="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all" title="Delete">
+                  <button @click="deleteChallenge(challenge)" class="p-2 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all" title="Delete">
                     <Trash2 :size="14" />
                   </button>
                 </div>
@@ -721,7 +721,7 @@ const isBookInSchedule = (bookId) => {
               <Award :size="18" class="text-yellow-400" />
               Completed
             </h2>
-            <span class="text-xs font-bold text-slate-500 bg-white/5 px-2.5 py-1 rounded-full">{{ completedChallenges.length }}</span>
+            <span class="text-xs font-bold text-zinc-500 bg-white/5 px-2.5 py-1 rounded-full">{{ completedChallenges.length }}</span>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -735,10 +735,10 @@ const isBookInSchedule = (bookId) => {
               <p class="text-lg sm:text-xl font-black text-green-400">
                 {{ challenge.completed_books || 0 }}/{{ challenge.target_books || 0 }}
               </p>
-              <p class="text-[10px] text-slate-500 mt-1">
+              <p class="text-[10px] text-zinc-500 mt-1">
                 {{ CHALLENGE_TYPES.find(t => t.value === challenge.challenge_type)?.label || 'Books Read' }}
               </p>
-              <p class="text-[10px] text-slate-500 mt-1">
+              <p class="text-[10px] text-zinc-500 mt-1">
                 Completed {{ formatDateShort(challenge.end_date) }}
               </p>
             </div>
@@ -762,7 +762,7 @@ const isBookInSchedule = (bookId) => {
               </div>
               <div class="space-y-2">
                 <Label>Challenge Type</Label>
-                <select v-model="editForm.challenge_type" class="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <select v-model="editForm.challenge_type" class="flex h-10 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option v-for="opt in CHALLENGE_TYPES" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                 </select>
               </div>
@@ -797,7 +797,7 @@ const isBookInSchedule = (bookId) => {
                 </label>
               </div>
               <div class="flex justify-end gap-2 pt-2">
-                <button type="button" @click="isEditDialogOpen = false" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-colors">Cancel</button>
+                <button type="button" @click="isEditDialogOpen = false" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white transition-colors">Cancel</button>
                 <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-400 transition-colors">Save Changes</button>
               </div>
             </form>
@@ -806,11 +806,11 @@ const isBookInSchedule = (bookId) => {
 
         <!-- Empty State -->
         <div v-if="activeChallenges.length === 0 && completedChallenges.length === 0" class="text-center py-16 lg:py-24">
-          <div class="w-20 h-20 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center justify-center mx-auto mb-6">
-            <Target :size="40" class="text-slate-700" />
+          <div class="w-20 h-20 rounded-2xl bg-zinc-900/50 border border-zinc-800 flex items-center justify-center mx-auto mb-6">
+            <Target :size="40" class="text-zinc-700" />
           </div>
           <h3 class="text-lg font-bold text-white mb-2">No challenges yet</h3>
-          <p class="text-sm text-slate-500 mb-6 max-w-xs mx-auto">
+          <p class="text-sm text-zinc-500 mb-6 max-w-xs mx-auto">
             Set a reading goal to stay motivated and track your progress!
           </p>
           <button
@@ -837,16 +837,16 @@ const isBookInSchedule = (bookId) => {
           <aside class="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 gap-4 sticky top-4">
 
             <!-- Schedules list -->
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/50 overflow-hidden flex flex-col">
-              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Schedules</span>
-                <button @click="isCreatingSchedule = !isCreatingSchedule" class="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all">
+            <div class="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden flex flex-col">
+              <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+                <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Schedules</span>
+                <button @click="isCreatingSchedule = !isCreatingSchedule" class="p-1 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all">
                   <Plus :size="14" />
                 </button>
               </div>
 
               <!-- New schedule input -->
-              <div v-if="isCreatingSchedule" class="px-3 py-2 border-b border-slate-800">
+              <div v-if="isCreatingSchedule" class="px-3 py-2 border-b border-zinc-800">
                 <div class="flex gap-2">
                   <input
                     v-model="newScheduleTitle"
@@ -854,7 +854,7 @@ const isBookInSchedule = (bookId) => {
                     @keydown.escape="isCreatingSchedule = false; newScheduleTitle = ''"
                     placeholder="Schedule title..."
                     autofocus
-                    class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    class="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
                   />
                   <button @click="createSchedule" class="px-2 py-1.5 rounded-lg bg-indigo-500 text-white text-xs font-bold hover:bg-indigo-400 transition-colors">Add</button>
                 </div>
@@ -863,23 +863,23 @@ const isBookInSchedule = (bookId) => {
               <!-- Schedule list -->
               <div class="flex-1 overflow-y-auto">
                 <div v-if="schedules.length === 0" class="py-8 text-center">
-                  <ListTodo :size="28" class="text-slate-700 mx-auto mb-2" />
-                  <p class="text-xs text-slate-500">No schedules yet</p>
+                  <ListTodo :size="28" class="text-zinc-700 mx-auto mb-2" />
+                  <p class="text-xs text-zinc-500">No schedules yet</p>
                 </div>
                 <div
                   v-for="schedule in schedules"
                   :key="schedule.id"
                   @click="selectSchedule(schedule)"
                   :class="[
-                    'w-full flex items-center gap-2 px-4 py-3 cursor-pointer transition-all border-b border-slate-800/50 group',
-                    selectedScheduleId === schedule.id ? 'bg-indigo-500/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                    'w-full flex items-center gap-2 px-4 py-3 cursor-pointer transition-all border-b border-zinc-800/50 group',
+                    selectedScheduleId === schedule.id ? 'bg-indigo-500/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
                   ]"
                 >
-                  <ListTodo :size="14" :class="selectedScheduleId === schedule.id ? 'text-indigo-400' : 'text-slate-600'" />
+                  <ListTodo :size="14" :class="selectedScheduleId === schedule.id ? 'text-indigo-400' : 'text-zinc-600'" />
                   <span class="flex-1 text-sm font-medium truncate">{{ schedule.title }}</span>
                   <button
                     @click.stop="deleteSchedule(schedule)"
-                    class="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-rose-400 transition-all"
+                    class="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-rose-400 transition-all"
                   >
                     <Trash2 :size="12" />
                   </button>
@@ -888,18 +888,18 @@ const isBookInSchedule = (bookId) => {
             </div>
 
             <!-- Library books -->
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/50 overflow-hidden flex flex-col">
-              <div class="px-4 py-3 border-b border-slate-800">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Library</span>
+            <div class="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden flex flex-col">
+              <div class="px-4 py-3 border-b border-zinc-800">
+                <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-2">Library</span>
                 <div class="relative">
-                  <Search :size="13" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Search :size="13" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <input
                     v-model="bookSearch"
                     placeholder="Search books..."
-                    class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
-                <p class="text-[10px] text-slate-500 mt-1.5">Drag to section or click <span class="text-indigo-400">+</span></p>
+                <p class="text-[10px] text-zinc-500 mt-1.5">Drag to section or click <span class="text-indigo-400">+</span></p>
               </div>
 
               <draggable
@@ -910,26 +910,33 @@ const isBookInSchedule = (bookId) => {
                 :group="{ name: 'schedule-books', pull: 'clone', put: false }"
                 :sort="false"
                 :clone="(book) => ({ ...book })"
+                handle=".library-drag-handle"
               >
                 <template #item="{ element: book }">
                   <div
                     :class="[
                       'flex items-center gap-2 p-1.5 rounded-lg transition-colors group',
-                      isBookInSchedule(book.id) ? 'opacity-40' : 'hover:bg-slate-800/50 cursor-grab active:cursor-grabbing'
+                      isBookInSchedule(book.id) ? 'opacity-40' : 'hover:bg-zinc-800/50'
                     ]"
                   >
+                    <GripVertical
+                      v-if="!isBookInSchedule(book.id)"
+                      :size="12"
+                      class="library-drag-handle text-zinc-600 cursor-grab active:cursor-grabbing shrink-0 touch-none"
+                    />
+                    <div v-else class="w-3 shrink-0" />
                     <img v-if="book.cover_image" :src="book.cover_image" class="w-7 h-10 object-cover rounded shrink-0" />
-                    <div v-else class="w-7 h-10 bg-slate-800 rounded shrink-0 flex items-center justify-center">
-                      <BookOpen :size="10" class="text-slate-600" />
+                    <div v-else class="w-7 h-10 bg-zinc-800 rounded shrink-0 flex items-center justify-center">
+                      <BookOpen :size="10" class="text-zinc-600" />
                     </div>
                     <div class="flex-1 min-w-0">
-                      <p class="text-[11px] font-medium text-slate-200 leading-tight truncate">{{ book.title }}</p>
-                      <p class="text-[10px] text-slate-500 truncate">{{ getAuthorNames(book) }}</p>
+                      <p class="text-[11px] font-medium text-zinc-200 leading-tight truncate">{{ book.title }}</p>
+                      <p class="text-[10px] text-zinc-500 truncate">{{ getAuthorNames(book) }}</p>
                     </div>
                     <button
                       v-if="!isBookInSchedule(book.id) && activeSection"
                       @click.stop="addBookToSection(book)"
-                      class="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all shrink-0"
+                      class="opacity-0 group-hover:opacity-100 p-1 rounded text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all shrink-0"
                       title="Add to active section"
                     >
                       <Plus :size="13" />
@@ -937,7 +944,7 @@ const isBookInSchedule = (bookId) => {
                   </div>
                 </template>
                 <template #footer>
-                  <p v-if="libraryBooks.length === 0" class="text-xs text-slate-500 py-4 text-center">No books found</p>
+                  <p v-if="libraryBooks.length === 0" class="text-xs text-zinc-500 py-4 text-center">No books found</p>
                 </template>
               </draggable>
             </div>
@@ -946,11 +953,50 @@ const isBookInSchedule = (bookId) => {
           <!-- ===== MAIN BOARD ===== -->
           <div class="flex-1 flex flex-col min-w-0">
 
+            <!-- Mobile schedule picker -->
+            <div class="lg:hidden mb-4 shrink-0">
+              <div class="flex items-center gap-2">
+                <select
+                  :value="selectedScheduleId || ''"
+                  @change="(e) => { const s = schedules.find(s => s.id === Number(e.target.value)); if (s) selectSchedule(s); }"
+                  class="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 appearance-none"
+                >
+                  <option value="" disabled>Select a schedule...</option>
+                  <option v-for="s in schedules" :key="s.id" :value="s.id">{{ s.title }}</option>
+                </select>
+                <button
+                  @click="isCreatingSchedule = true"
+                  class="p-2.5 rounded-xl bg-indigo-500 text-white shrink-0"
+                >
+                  <Plus :size="16" />
+                </button>
+                <button
+                  v-if="selectedScheduleId"
+                  @click="deleteSchedule(schedules.find(s => s.id === selectedScheduleId))"
+                  class="p-2.5 rounded-xl border border-zinc-700 text-zinc-500 hover:text-rose-400 shrink-0"
+                >
+                  <Trash2 :size="16" />
+                </button>
+              </div>
+              <!-- Mobile new schedule input -->
+              <div v-if="isCreatingSchedule" class="mt-2 flex gap-2">
+                <input
+                  v-model="newScheduleTitle"
+                  @keydown.enter="createSchedule"
+                  @keydown.escape="isCreatingSchedule = false; newScheduleTitle = ''"
+                  placeholder="Schedule title..."
+                  autofocus
+                  class="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                />
+                <button @click="createSchedule" class="px-4 py-2 rounded-xl bg-indigo-500 text-white text-sm font-bold">Add</button>
+              </div>
+            </div>
+
             <!-- No schedule selected -->
             <div v-if="!selectedScheduleId" class="flex-1 flex items-center justify-center">
               <div class="text-center">
-                <ListTodo :size="48" class="text-slate-700 mx-auto mb-4" />
-                <p class="text-slate-500 mb-4">No schedule selected</p>
+                <ListTodo :size="48" class="text-zinc-700 mx-auto mb-4" />
+                <p class="text-zinc-500 mb-4">No schedule selected</p>
                 <button
                   @click="isCreatingSchedule = true"
                   class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-400 transition-colors flex items-center gap-2 mx-auto"
@@ -966,11 +1012,11 @@ const isBookInSchedule = (bookId) => {
               <div class="flex items-center justify-between mb-4 shrink-0">
                 <div>
                   <h2 class="text-lg font-bold text-white">{{ schedules.find(s => s.id === selectedScheduleId)?.title }}</h2>
-                  <p class="text-xs text-slate-500">{{ localSections.length }} sections · drag books between sections</p>
+                  <p class="text-xs text-zinc-500">{{ localSections.length }} sections · drag books between sections</p>
                 </div>
                 <button
                   @click="addSection"
-                  class="px-4 py-2 rounded-xl border border-dashed border-slate-700 text-slate-400 hover:text-white hover:border-slate-600 text-sm font-medium flex items-center gap-1.5 transition-all"
+                  class="px-4 py-2 rounded-xl border border-dashed border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-600 text-sm font-medium flex items-center gap-1.5 transition-all"
                 >
                   <Plus :size="14" />
                   Add Section
@@ -981,23 +1027,23 @@ const isBookInSchedule = (bookId) => {
               <div class="lg:hidden mb-3 shrink-0">
                 <div class="flex items-center gap-2">
                   <div class="relative flex-1">
-                    <Search :size="13" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <Search :size="13" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                     <input
                       v-model="bookSearch"
                       placeholder="Search library..."
-                      class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
+                      class="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-8 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none"
                     />
                   </div>
                 </div>
                 <!-- Mobile library quick-add books -->
-                <div v-if="bookSearch.trim()" class="mt-2 rounded-xl border border-slate-800 bg-slate-900/80 p-2 max-h-40 overflow-y-auto space-y-1">
+                <div v-if="bookSearch.trim()" class="mt-2 rounded-xl border border-zinc-800 bg-zinc-900/80 p-2 max-h-40 overflow-y-auto space-y-1">
                   <div
                     v-for="book in libraryBooks.slice(0, 8)"
                     :key="book.id"
-                    class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800/50 transition-colors"
+                    class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-zinc-800/50 transition-colors"
                   >
                     <div class="flex-1 min-w-0">
-                      <p class="text-xs font-medium text-slate-200 truncate">{{ book.title }}</p>
+                      <p class="text-xs font-medium text-zinc-200 truncate">{{ book.title }}</p>
                     </div>
                     <button
                       v-if="!isBookInSchedule(book.id) && activeSection"
@@ -1024,13 +1070,13 @@ const isBookInSchedule = (bookId) => {
                     <div
                       :class="[
                         'w-56 xl:w-64 shrink-0 rounded-2xl border overflow-hidden transition-colors',
-                        activeSectionId === section.id ? 'border-indigo-500/40 bg-indigo-950/20' : 'border-slate-800 bg-slate-900/50'
+                        activeSectionId === section.id ? 'border-indigo-500/40 bg-indigo-950/20' : 'border-zinc-800 bg-zinc-900/50'
                       ]"
                       @click="activeSectionId = section.id"
                     >
                       <!-- Section header -->
-                      <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-slate-800 shrink-0">
-                        <GripVertical :size="14" class="section-drag-handle text-slate-600 cursor-grab active:cursor-grabbing shrink-0" />
+                      <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-zinc-800 shrink-0">
+                        <GripVertical :size="14" class="section-drag-handle text-zinc-600 cursor-grab active:cursor-grabbing shrink-0" />
                         <input
                           v-if="editingSectionId === section.id"
                           v-model="editingSectionTitle"
@@ -1044,11 +1090,11 @@ const isBookInSchedule = (bookId) => {
                         <span
                           v-else
                           @dblclick.stop="startEditSection(section.id, section.title)"
-                          class="flex-1 text-sm font-bold text-slate-200 truncate cursor-pointer"
+                          class="flex-1 text-sm font-bold text-zinc-200 truncate cursor-pointer"
                           title="Double-click to rename"
                         >{{ section.title }}</span>
-                        <span class="text-[10px] text-slate-600 shrink-0">{{ section.bookItems.length }}</span>
-                        <button @click.stop="deleteSection(section)" class="text-slate-600 hover:text-rose-400 transition-colors shrink-0">
+                        <span class="text-[10px] text-zinc-600 shrink-0">{{ section.bookItems.length }}</span>
+                        <button @click.stop="deleteSection(section)" class="text-zinc-600 hover:text-rose-400 transition-colors shrink-0">
                           <X :size="12" />
                         </button>
                       </div>
@@ -1062,25 +1108,27 @@ const isBookInSchedule = (bookId) => {
                         :animation="150"
                         :group="{ name: 'schedule-books', pull: true, put: true }"
                         ghost-class="opacity-30"
+                        handle=".book-drag-handle"
                         @change="(evt) => onSectionBooksChange(section, evt)"
                       >
                         <template #item="{ element: book, index }">
-                          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 group cursor-grab active:cursor-grabbing transition-colors">
+                          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-zinc-800/60 hover:bg-zinc-800 group transition-colors">
+                            <GripVertical :size="12" class="book-drag-handle text-zinc-600 cursor-grab active:cursor-grabbing shrink-0 touch-none" />
                             <img v-if="book.cover_image" :src="book.cover_image" class="w-7 h-10 object-cover rounded shrink-0" />
-                            <div v-else class="w-7 h-10 bg-slate-700 rounded shrink-0 flex items-center justify-center">
-                              <BookOpen :size="10" class="text-slate-500" />
+                            <div v-else class="w-7 h-10 bg-zinc-700 rounded shrink-0 flex items-center justify-center">
+                              <BookOpen :size="10" class="text-zinc-500" />
                             </div>
                             <div class="flex-1 min-w-0">
-                              <p class="text-[11px] font-medium text-slate-200 leading-tight line-clamp-2">{{ book.title }}</p>
-                              <p class="text-[10px] text-slate-500 truncate">{{ getAuthorNames(book) }}</p>
+                              <p class="text-[11px] font-medium text-zinc-200 leading-tight line-clamp-2">{{ book.title }}</p>
+                              <p class="text-[10px] text-zinc-500 truncate">{{ getAuthorNames(book) }}</p>
                             </div>
-                            <button @click.stop="removeBookFromSection(section, index)" class="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-rose-400 transition-all shrink-0 p-0.5">
+                            <button @click.stop="removeBookFromSection(section, index)" class="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-rose-400 transition-all shrink-0 p-0.5">
                               <X :size="11" />
                             </button>
                           </div>
                         </template>
                         <template #footer>
-                          <div v-if="section.bookItems.length === 0" class="flex items-center justify-center py-6 rounded-lg border border-dashed border-slate-800 text-slate-600 text-xs">
+                          <div v-if="section.bookItems.length === 0" class="flex items-center justify-center py-6 rounded-lg border border-dashed border-zinc-800 text-zinc-600 text-xs">
                             Drop books here
                           </div>
                         </template>
@@ -1092,7 +1140,7 @@ const isBookInSchedule = (bookId) => {
                 <!-- Empty board state -->
                 <div v-if="localSections.length === 0" class="flex items-center justify-center h-48">
                   <div class="text-center">
-                    <p class="text-slate-500 text-sm mb-3">No sections yet</p>
+                    <p class="text-zinc-500 text-sm mb-3">No sections yet</p>
                     <button @click="addSection" class="px-4 py-2 rounded-xl bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-400 transition-colors flex items-center gap-2 mx-auto">
                       <Plus :size="14" />
                       Add First Section
@@ -1106,8 +1154,8 @@ const isBookInSchedule = (bookId) => {
 
         <!-- Mobile: No schedule empty state -->
         <div v-if="!scheduleLoading && schedules.length === 0 && activeTab === 'schedule'" class="lg:hidden text-center py-12">
-          <ListTodo :size="40" class="text-slate-700 mx-auto mb-3" />
-          <p class="text-slate-500 text-sm mb-4">Create a reading schedule to plan your books</p>
+          <ListTodo :size="40" class="text-zinc-700 mx-auto mb-3" />
+          <p class="text-zinc-500 text-sm mb-4">Create a reading schedule to plan your books</p>
           <button
             @click="isCreatingSchedule = true; newScheduleTitle = 'My Reading Plan'"
             class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-400 transition-colors inline-flex items-center gap-2"

@@ -22,10 +22,10 @@ const formatDateTime = (timestamp) => {
   <div :class="['flex flex-col max-w-3xl', isMe ? 'items-end ml-auto' : 'items-start']">
     <!-- Message Header -->
     <div :class="['flex items-center gap-3 mb-3', isMe ? 'flex-row-reverse' : '']">
-      <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+      <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
         {{ message.senderName }}
       </span>
-      <span class="text-[9px] text-slate-700 font-bold">
+      <span class="text-[9px] text-zinc-700 font-bold">
         {{ formatDateTime(message.timestamp) }}
       </span>
       <span
@@ -42,7 +42,7 @@ const formatDateTime = (timestamp) => {
         'p-4 rounded-2xl border w-full',
         isMe
           ? 'bg-white/[0.04] border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.4)]'
-          : 'bg-slate-900/30 border-white/5 shadow-xl'
+          : 'bg-zinc-900/30 border-white/5 shadow-xl'
       ]"
     >
       <!-- Subject Line -->
@@ -55,7 +55,7 @@ const formatDateTime = (timestamp) => {
       </h3>
 
       <!-- Message Content -->
-      <p class="text-sm text-slate-200 leading-relaxed mb-3 selection:bg-indigo-500/30">
+      <p class="text-sm text-zinc-200 leading-relaxed mb-3 selection:bg-indigo-500/30">
         {{ message.content }}
       </p>
 
@@ -78,7 +78,7 @@ const formatDateTime = (timestamp) => {
                 <Book :size="12" /> Volume Recommendation
               </p>
               <h4 class="text-lg font-black text-white tracking-tight">{{ attachment.title }}</h4>
-              <p class="text-xs text-slate-500 font-bold">{{ attachment.subtitle }}</p>
+              <p class="text-xs text-zinc-500 font-bold">{{ attachment.subtitle }}</p>
               <button class="mt-4 px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all flex items-center gap-2">
                 View Entry <ChevronRight :size="12" />
               </button>
@@ -88,7 +88,7 @@ const formatDateTime = (timestamp) => {
           <!-- Quote Attachment -->
           <div
             v-else-if="attachment.type === 'quote'"
-            class="p-8 rounded-3xl bg-white/[0.02] border border-white/5 italic font-serif text-slate-300 relative group overflow-hidden"
+            class="p-8 rounded-3xl bg-white/[0.02] border border-white/5 italic font-serif text-zinc-300 relative group overflow-hidden"
           >
             <div class="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:scale-110 transition-transform">
               <QuoteIcon :size="64" />
@@ -110,11 +110,11 @@ const formatDateTime = (timestamp) => {
             <p class="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em] mb-3 flex items-center gap-2 relative z-10">
               <Brain :size="12" /> Study Note
             </p>
-            <p class="text-sm text-slate-300 leading-relaxed relative z-10">{{ attachment.content }}</p>
+            <p class="text-sm text-zinc-300 leading-relaxed relative z-10">{{ attachment.content }}</p>
             <div class="mt-4 flex items-center gap-2 relative z-10">
-              <span class="text-[10px] font-bold text-slate-500">{{ attachment.title }}</span>
-              <span v-if="attachment.subtitle" class="text-slate-700">|</span>
-              <span v-if="attachment.subtitle" class="text-[10px] text-slate-600">{{ attachment.subtitle }}</span>
+              <span class="text-[10px] font-bold text-zinc-500">{{ attachment.title }}</span>
+              <span v-if="attachment.subtitle" class="text-zinc-700">|</span>
+              <span v-if="attachment.subtitle" class="text-[10px] text-zinc-600">{{ attachment.subtitle }}</span>
             </div>
           </div>
         </div>

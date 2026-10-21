@@ -3,11 +3,11 @@ import { Shield, Hexagon } from 'lucide-vue-next'
 export const TIERS = {
   reader: {
     label: 'Reader',
-    bg: 'bg-slate-500/10',
-    text: 'text-slate-400',
-    fill: 'fill-slate-400',
-    border: 'border-slate-500/20',
-    borderStrong: 'border-slate-500/30',
+    bg: 'bg-zinc-500/10',
+    text: 'text-zinc-400',
+    fill: 'fill-zinc-400',
+    border: 'border-zinc-500/20',
+    borderStrong: 'border-zinc-500/30',
     icon: Hexagon,
     color: '#94a3b8',
   },

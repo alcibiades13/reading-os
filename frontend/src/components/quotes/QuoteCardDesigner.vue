@@ -120,13 +120,13 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="max-w-5xl glass border-slate-700 overflow-hidden p-0 gap-0 rounded-none sm:rounded-2xl !inset-0 !translate-x-0 !translate-y-0 sm:!inset-auto sm:!left-1/2 sm:!top-1/2 sm:!-translate-x-1/2 sm:!-translate-y-1/2 sm:w-[calc(100%-2rem)] sm:max-h-[90vh]">
+    <DialogContent class="max-w-5xl glass border-zinc-700 overflow-hidden p-0 gap-0 rounded-none sm:rounded-2xl !inset-0 !translate-x-0 !translate-y-0 sm:!inset-auto sm:!left-1/2 sm:!top-1/2 sm:!-translate-x-1/2 sm:!-translate-y-1/2 sm:w-[calc(100%-2rem)] sm:max-h-[90vh]">
       <div class="flex flex-col lg:flex-row h-[100dvh] sm:h-auto sm:max-h-[90vh]">
 
         <!-- LEFT: Live Preview Panel -->
         <div
           ref="previewContainerRef"
-          class="h-[35dvh] sm:h-auto flex-none sm:flex-1 bg-slate-950/50 lg:min-h-[500px] overflow-hidden relative"
+          class="h-[35dvh] sm:h-auto flex-none sm:flex-1 bg-zinc-950/50 lg:min-h-[500px] overflow-hidden relative"
         >
           <!-- Checkerboard pattern hint -->
           <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(45deg, #fff 25%, transparent 25%), linear-gradient(-45deg, #fff 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #fff 75%), linear-gradient(-45deg, transparent 75%, #fff 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0;" />
@@ -380,10 +380,10 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
         </div>
 
         <!-- RIGHT: Controls Sidebar -->
-        <div class="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col flex-1 min-h-0">
+        <div class="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-zinc-800 flex flex-col flex-1 min-h-0">
 
           <!-- Header -->
-          <DialogHeader class="px-4 py-3 sm:p-5 border-b border-slate-800 shrink-0">
+          <DialogHeader class="px-4 py-3 sm:p-5 border-b border-zinc-800 shrink-0">
             <DialogTitle class="text-base sm:text-lg font-black text-white flex items-center gap-2">
               <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <Download :size="14" class="text-white" />
@@ -400,7 +400,7 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
 
             <!-- Section: Layout Template -->
             <div>
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                 <Layout :size="12" /> Layout
               </label>
               <div class="grid grid-cols-2 gap-2">
@@ -410,18 +410,18 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
                   @click="selectedTemplate = tmpl.id"
                   :class="selectedTemplate === tmpl.id
                     ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                    : 'border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300'"
+                    : 'border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'"
                   class="px-3 py-2.5 rounded-xl border-2 text-left transition-all"
                 >
                   <span class="text-xs font-bold block">{{ tmpl.label }}</span>
-                  <span class="text-[9px] text-slate-500 block mt-0.5">{{ tmpl.description }}</span>
+                  <span class="text-[9px] text-zinc-500 block mt-0.5">{{ tmpl.description }}</span>
                 </button>
               </div>
             </div>
 
             <!-- Section: Background -->
             <div>
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                 <Palette :size="12" /> Background
               </label>
               <div class="flex flex-wrap gap-2">
@@ -431,9 +431,9 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
                   @click="selectedBackground = bg.id"
                   :title="bg.name"
                   :class="selectedBackground === bg.id
-                    ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-slate-900 scale-110'
+                    ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-900 scale-110'
                     : 'hover:scale-105'"
-                  class="w-8 h-8 rounded-lg transition-all border border-slate-600"
+                  class="w-8 h-8 rounded-lg transition-all border border-zinc-600"
                   :style="{ background: bg.preview }"
                 />
               </div>
@@ -441,7 +441,7 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
 
             <!-- Section: Font -->
             <div>
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                 <Type :size="12" /> Font
               </label>
               <div class="space-y-1.5">
@@ -451,13 +451,13 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
                   @click="selectedFont = font.id"
                   :class="selectedFont === font.id
                     ? 'border-indigo-500 bg-indigo-500/10'
-                    : 'border-slate-700/50 hover:border-slate-600'"
+                    : 'border-zinc-700/50 hover:border-zinc-600'"
                   class="w-full text-left px-3 py-2 sm:py-2.5 rounded-xl border-2 transition-all"
                 >
                   <span :style="{ fontFamily: font.family }" class="text-white text-xs sm:text-sm font-medium">
                     {{ font.name }}
                   </span>
-                  <span :style="{ fontFamily: font.family }" class="text-slate-500 text-[10px] sm:text-xs italic block mt-0.5 hidden sm:block">
+                  <span :style="{ fontFamily: font.family }" class="text-zinc-500 text-[10px] sm:text-xs italic block mt-0.5 hidden sm:block">
                     {{ font.preview }}
                   </span>
                 </button>
@@ -466,21 +466,21 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
 
             <!-- Section: Font Size -->
             <div>
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                 <Type :size="12" /> Size Adjust
               </label>
               <div class="flex items-center gap-3">
                 <button
                   @click="fontSizeAdjust = Math.max(fontSizeAdjust - 1, -5)"
                   :disabled="fontSizeAdjust <= -5"
-                  class="w-9 h-9 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 flex items-center justify-center hover:border-slate-500 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="w-9 h-9 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-300 flex items-center justify-center hover:border-zinc-500 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Minus :size="14" />
                 </button>
                 <div class="flex-1 text-center">
                   <span
                     class="text-sm font-bold"
-                    :class="fontSizeAdjust === 0 ? 'text-slate-500' : 'text-indigo-400'"
+                    :class="fontSizeAdjust === 0 ? 'text-zinc-500' : 'text-indigo-400'"
                   >
                     {{ fontSizeAdjust === 0 ? 'Default' : (fontSizeAdjust > 0 ? '+' : '') + fontSizeAdjust }}
                   </span>
@@ -488,14 +488,14 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
                 <button
                   @click="fontSizeAdjust = Math.min(fontSizeAdjust + 1, 5)"
                   :disabled="fontSizeAdjust >= 5"
-                  class="w-9 h-9 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 flex items-center justify-center hover:border-slate-500 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="w-9 h-9 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-300 flex items-center justify-center hover:border-zinc-500 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Plus :size="14" />
                 </button>
                 <button
                   v-if="fontSizeAdjust !== 0"
                   @click="fontSizeAdjust = 0"
-                  class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                  class="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
                   Reset
                 </button>
@@ -504,7 +504,7 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
 
             <!-- Section: Aspect Ratio -->
             <div>
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                 <RectangleHorizontal :size="12" /> Size
               </label>
               <div class="flex gap-2">
@@ -514,7 +514,7 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
                   @click="selectedAspectRatio = ratio.id"
                   :class="selectedAspectRatio === ratio.id
                     ? 'bg-indigo-500 text-white border-indigo-500'
-                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-600'"
+                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-600'"
                   class="flex-1 px-3 py-2 rounded-xl text-center border transition-all"
                 >
                   <span class="text-xs font-bold block">{{ ratio.label }}</span>
@@ -525,12 +525,12 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
           </div>
 
           <!-- Footer: Share & Download -->
-          <div class="p-4 sm:p-5 border-t border-slate-800 shrink-0 space-y-3" style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
+          <div class="p-4 sm:p-5 border-t border-zinc-800 shrink-0 space-y-3" style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
             <!-- Share row -->
             <div class="flex items-center gap-2">
               <button
                 @click="handleCopyText"
-                class="flex-1 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-slate-500 hover:text-white transition-all"
+                class="flex-1 px-3 py-2 rounded-xl border border-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-zinc-500 hover:text-white transition-all"
               >
                 <Check v-if="justCopied" :size="14" class="text-emerald-400" />
                 <Copy v-else :size="14" />
@@ -538,7 +538,7 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
               </button>
               <button
                 @click="handleShareTwitter"
-                class="flex-1 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-sky-500/50 hover:text-sky-400 transition-all"
+                class="flex-1 px-3 py-2 rounded-xl border border-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-sky-500/50 hover:text-sky-400 transition-all"
               >
                 <svg :width="14" :height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 Post
@@ -546,7 +546,7 @@ const dividerColor = computed(() => isDarkText.value ? 'rgba(15,23,42,0.15)' : '
               <button
                 v-if="canNativeShare"
                 @click="handleNativeShare"
-                class="px-3 py-2 rounded-xl border border-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-slate-500 hover:text-white transition-all"
+                class="px-3 py-2 rounded-xl border border-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-zinc-500 hover:text-white transition-all"
               >
                 <Share2 :size="14" />
               </button>

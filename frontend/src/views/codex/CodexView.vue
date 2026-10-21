@@ -62,12 +62,12 @@ const ToolbarBtn = defineComponent({
         'p-2 rounded-lg transition-all relative group',
         props.active
           ? 'text-indigo-400 bg-indigo-500/10'
-          : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+          : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
       ]
     }, [
       h(props.icon, { size: 15 }),
       h('span', {
-        class: 'absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50'
+        class: 'absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50'
       }, props.label)
     ])
   }
@@ -265,7 +265,7 @@ const moods = ['contemplative', 'inspired', 'melancholic', 'energetic', 'serene'
 const moodColors = {
   contemplative: 'bg-indigo-500',
   inspired: 'bg-amber-500',
-  melancholic: 'bg-slate-500',
+  melancholic: 'bg-zinc-500',
   energetic: 'bg-rose-500',
   serene: 'bg-emerald-500'
 }
@@ -645,7 +645,7 @@ onUnmounted(() => {
               @click="activeTab = 'journal'"
               :class="[
                 'flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                activeTab === 'journal' ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:text-white'
+                activeTab === 'journal' ? 'bg-indigo-500 text-white' : 'text-zinc-500 hover:text-white'
               ]"
             >
               Journal
@@ -654,7 +654,7 @@ onUnmounted(() => {
               @click="activeTab = 'manuscript'"
               :class="[
                 'flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                activeTab === 'manuscript' ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:text-white'
+                activeTab === 'manuscript' ? 'bg-indigo-500 text-white' : 'text-zinc-500 hover:text-white'
               ]"
             >
               Studio
@@ -675,14 +675,14 @@ onUnmounted(() => {
               </button>
               <button
                 @click="handleExportJournal"
-                class="p-3 rounded-2xl bg-white/5 border border-white/5 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/20 transition-all"
+                class="p-3 rounded-2xl bg-white/5 border border-white/5 text-zinc-500 hover:text-emerald-400 hover:border-emerald-500/20 transition-all"
                 title="Export journal"
               >
                 <Download :size="14" />
               </button>
               <button
                 @click="toggleTrash"
-                :class="['p-3 rounded-2xl border transition-all', showTrash ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-white/5 border-white/5 text-slate-500 hover:text-rose-400']"
+                :class="['p-3 rounded-2xl border transition-all', showTrash ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-white/5 border-white/5 text-zinc-500 hover:text-rose-400']"
                 title="Trash"
               >
                 <Trash2 :size="14" />
@@ -692,22 +692,22 @@ onUnmounted(() => {
             <!-- Trash Section -->
             <div v-if="showTrash" class="mb-4 p-3 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-2">
               <p class="text-[10px] font-black text-rose-400 uppercase tracking-widest">Trash</p>
-              <div v-if="trashEntries.length === 0 && trashManuscripts.length === 0" class="text-[10px] text-slate-600 italic">Nothing in trash</div>
+              <div v-if="trashEntries.length === 0 && trashManuscripts.length === 0" class="text-[10px] text-zinc-600 italic">Nothing in trash</div>
               <div v-for="entry in trashEntries" :key="'t-' + entry.id" class="flex items-center justify-between p-2 rounded-xl bg-white/5">
                 <div class="min-w-0">
-                  <p class="text-xs font-bold text-slate-400 truncate">{{ entry.title }}</p>
-                  <p class="text-[9px] text-slate-600">{{ formatDate(entry.deletedAt) }}</p>
+                  <p class="text-xs font-bold text-zinc-400 truncate">{{ entry.title }}</p>
+                  <p class="text-[9px] text-zinc-600">{{ formatDate(entry.deletedAt) }}</p>
                 </div>
-                <button @click="handleRestoreEntry(entry.id)" class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Restore">
+                <button @click="handleRestoreEntry(entry.id)" class="p-1.5 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Restore">
                   <RotateCcw :size="12" />
                 </button>
               </div>
               <div v-for="ms in trashManuscripts" :key="'tm-' + ms.id" class="flex items-center justify-between p-2 rounded-xl bg-white/5">
                 <div class="min-w-0">
-                  <p class="text-xs font-bold text-slate-400 truncate">{{ ms.title }}</p>
-                  <p class="text-[9px] text-slate-600">Manuscript &middot; {{ formatDate(ms.deletedAt) }}</p>
+                  <p class="text-xs font-bold text-zinc-400 truncate">{{ ms.title }}</p>
+                  <p class="text-[9px] text-zinc-600">Manuscript &middot; {{ formatDate(ms.deletedAt) }}</p>
                 </div>
-                <button @click="handleRestoreManuscript(ms.id)" class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Restore">
+                <button @click="handleRestoreManuscript(ms.id)" class="p-1.5 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Restore">
                   <RotateCcw :size="12" />
                 </button>
               </div>
@@ -725,7 +725,7 @@ onUnmounted(() => {
               ]"
             >
               <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold text-slate-500">{{ formatDate(entry.date) }}</span>
+                <span class="text-[10px] font-bold text-zinc-500">{{ formatDate(entry.date) }}</span>
                 <!-- MoodOrb -->
                 <div
                   :class="['w-2 h-2 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-pulse', moodColors[entry.mood]]"
@@ -734,7 +734,7 @@ onUnmounted(() => {
               <h4 class="text-sm font-bold text-white truncate group-hover:text-indigo-400 transition-colors">
                 {{ entry.title }}
               </h4>
-              <p class="text-[10px] text-slate-500 line-clamp-1 mt-1 italic">
+              <p class="text-[10px] text-zinc-500 line-clamp-1 mt-1 italic">
                 {{ entry.content.substring(0, 40) }}...
               </p>
             </button>
@@ -746,21 +746,21 @@ onUnmounted(() => {
             <div v-if="showNewManuscriptForm" class="p-4 rounded-2xl bg-white/5 border border-indigo-500/20 space-y-3 mb-4">
               <div class="flex items-center justify-between">
                 <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">New Manuscript</span>
-                <button @click="showNewManuscriptForm = false" class="text-slate-500 hover:text-white">
+                <button @click="showNewManuscriptForm = false" class="text-zinc-500 hover:text-white">
                   <X :size="14" />
                 </button>
               </div>
               <input
                 v-model="newManuscriptTitle"
                 placeholder="Title..."
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-500/50"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-indigo-500/50"
                 @keyup.enter="handleNewManuscript"
                 autofocus
               />
               <input
                 v-model="newManuscriptGenre"
                 placeholder="Genre (e.g. Fiction, Poetry...)"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-500/50"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-indigo-500/50"
                 @keyup.enter="handleNewManuscript"
               />
               <button
@@ -792,7 +792,7 @@ onUnmounted(() => {
                 >
                   <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">{{ ms.genre }}</p>
                   <h4 class="text-sm font-black text-white mb-2">{{ ms.title }}</h4>
-                  <div class="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                  <div class="flex items-center justify-between text-[10px] font-bold text-zinc-500">
                     <span>{{ ms.targetWordCount ? Math.round((ms.currentWordCount / ms.targetWordCount) * 100) : 0 }}%</span>
                     <span>{{ (ms.currentWordCount || 0).toLocaleString() }} words</span>
                   </div>
@@ -801,7 +801,7 @@ onUnmounted(() => {
                 <button
                   @click.stop="selectedManuscript?.id === ms.id && handleDeleteManuscript()"
                   v-if="selectedManuscript?.id === ms.id"
-                  class="absolute top-2 right-2 p-1.5 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                  class="absolute top-2 right-2 p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
                   title="Delete manuscript"
                 >
                   <Trash2 :size="12" />
@@ -821,14 +821,14 @@ onUnmounted(() => {
                     'w-full text-left px-4 py-2 rounded-xl text-xs font-bold transition-all',
                     activeChapterIndex === idx
                       ? 'text-indigo-400 bg-white/5'
-                      : 'text-slate-500 hover:text-slate-300'
+                      : 'text-zinc-500 hover:text-zinc-300'
                   ]"
                 >
                   {{ idx + 1 }}. {{ ch.title }}
                 </button>
                 <button
                   @click="handleAddChapter"
-                  class="w-full text-left px-4 py-2 rounded-xl text-[10px] font-black text-slate-600 uppercase hover:text-indigo-400 flex items-center gap-2"
+                  class="w-full text-left px-4 py-2 rounded-xl text-[10px] font-black text-zinc-600 uppercase hover:text-indigo-400 flex items-center gap-2"
                 >
                   <Plus :size="12" /> Add Chapter
                 </button>
@@ -851,18 +851,18 @@ onUnmounted(() => {
               <template v-if="selectedManuscript">
                 <input
                   v-model="selectedManuscript.title"
-                  class="bg-transparent border-none text-xl font-black text-white tracking-tighter outline-none w-full placeholder-slate-800"
+                  class="bg-transparent border-none text-xl font-black text-white tracking-tighter outline-none w-full placeholder-zinc-800"
                   placeholder="Manuscript Title..."
                 />
                 <div class="flex items-center gap-1.5 mt-1">
                   <input
                     v-model="selectedManuscript.genre"
                     :size="selectedManuscript.genre?.length || 5"
-                    class="bg-transparent border-none text-[10px] font-black text-indigo-400 uppercase tracking-widest outline-none placeholder-slate-700"
+                    class="bg-transparent border-none text-[10px] font-black text-indigo-400 uppercase tracking-widest outline-none placeholder-zinc-700"
                     placeholder="Genre..."
                   />
-                  <span class="text-[10px] font-black text-slate-600">·</span>
-                  <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  <span class="text-[10px] font-black text-zinc-600">·</span>
+                  <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                     Chapter {{ activeChapterIndex + 1 }}
                   </span>
                 </div>
@@ -871,7 +871,7 @@ onUnmounted(() => {
                 <h3 class="text-xl font-black text-white tracking-tighter">
                   {{ selectedEntry ? 'Daily Reflection' : 'Codex Studio' }}
                 </h3>
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">
+                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">
                   {{ selectedEntry ? `Current Mood: ${selectedEntry.mood}` : 'Ready to write' }}
                 </p>
               </template>
@@ -880,7 +880,7 @@ onUnmounted(() => {
 
           <div class="flex items-center gap-3">
             <!-- Auto-save indicator (manuscripts) -->
-            <span v-if="selectedManuscript" :class="['text-[10px] font-bold uppercase tracking-widest transition-colors', saveStatus === 'saved' ? 'text-emerald-500' : saveStatus === 'saving' ? 'text-amber-400' : 'text-slate-500']">
+            <span v-if="selectedManuscript" :class="['text-[10px] font-bold uppercase tracking-widest transition-colors', saveStatus === 'saved' ? 'text-emerald-500' : saveStatus === 'saving' ? 'text-amber-400' : 'text-zinc-500']">
               {{ saveStatus === 'saved' ? 'Saved' : saveStatus === 'saving' ? 'Saving...' : 'Unsaved' }}
             </span>
 
@@ -888,7 +888,7 @@ onUnmounted(() => {
             <button
               v-if="selectedManuscript"
               @click="handleExportManuscript"
-              class="p-3 rounded-2xl bg-white/5 text-slate-400 hover:text-emerald-400 transition-all"
+              class="p-3 rounded-2xl bg-white/5 text-zinc-400 hover:text-emerald-400 transition-all"
               title="Print / Export"
             >
               <Printer :size="16" />
@@ -898,16 +898,16 @@ onUnmounted(() => {
             <div v-if="selectedManuscript" class="relative">
               <button
                 @click="handleToggleShare"
-                :class="['p-3 rounded-2xl transition-all', selectedManuscript.isShared ? 'bg-indigo-500/10 text-indigo-400' : 'bg-white/5 text-slate-400 hover:text-indigo-400']"
+                :class="['p-3 rounded-2xl transition-all', selectedManuscript.isShared ? 'bg-indigo-500/10 text-indigo-400' : 'bg-white/5 text-zinc-400 hover:text-indigo-400']"
                 :title="selectedManuscript.isShared ? 'Disable sharing' : 'Share manuscript'"
               >
                 <Share2 :size="16" />
               </button>
               <!-- Share link popover -->
-              <div v-if="selectedManuscript.isShared && shareLink" class="absolute top-full right-0 mt-2 p-3 rounded-xl bg-slate-800 border border-white/10 shadow-2xl z-50 min-w-[280px]">
+              <div v-if="selectedManuscript.isShared && shareLink" class="absolute top-full right-0 mt-2 p-3 rounded-xl bg-zinc-800 border border-white/10 shadow-2xl z-50 min-w-[280px]">
                 <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Share Link</p>
                 <div class="flex items-center gap-2">
-                  <input :value="shareLink" readonly class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none" />
+                  <input :value="shareLink" readonly class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-zinc-300 outline-none" />
                   <button @click="copyShareLink" class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 transition-all">
                     <Check v-if="showShareCopied" :size="14" />
                     <Link v-else :size="14" />
@@ -918,7 +918,7 @@ onUnmounted(() => {
 
             <button
               @click="isFocusMode = true"
-              class="p-3 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+              class="p-3 rounded-2xl bg-white/5 text-zinc-400 hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
             >
               <Maximize2 :size="16" /> Focus
             </button>
@@ -942,7 +942,7 @@ onUnmounted(() => {
           <button
             v-if="isFocusMode"
             @click="isFocusMode = false"
-            class="absolute top-10 right-10 p-4 rounded-full bg-white/5 text-slate-700 hover:text-white transition-all z-50 group"
+            class="absolute top-10 right-10 p-4 rounded-full bg-white/5 text-zinc-700 hover:text-white transition-all z-50 group"
           >
             <Minimize2 :size="24" />
             <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -956,7 +956,7 @@ onUnmounted(() => {
               <div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
                 <input
                   v-model="selectedEntry.title"
-                  class="bg-transparent border-none text-3xl lg:text-4xl font-black text-white outline-none flex-1 min-w-0 tracking-tighter placeholder-slate-800"
+                  class="bg-transparent border-none text-3xl lg:text-4xl font-black text-white outline-none flex-1 min-w-0 tracking-tighter placeholder-zinc-800"
                   placeholder="Reflection Title..."
                 />
                 <!-- Mood Selector -->
@@ -994,7 +994,7 @@ onUnmounted(() => {
                 contenteditable="true"
                 @input="handleJournalInput"
                 @keydown="handleEditorKeydown"
-                class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-xl font-serif italic text-slate-300 leading-relaxed min-h-[60vh] focus:outline-none"
+                class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-xl font-serif italic text-zinc-300 leading-relaxed min-h-[60vh] focus:outline-none"
                 data-placeholder="Breathe and let your thoughts flow onto the digital parchment..."
               />
             </div>
@@ -1028,16 +1028,16 @@ onUnmounted(() => {
                 contenteditable="true"
                 @input="handleManuscriptInput"
                 @keydown="handleEditorKeydown"
-                class="codex-editor w-full bg-transparent border-none outline-none text-xl text-slate-300 leading-[1.9] min-h-[60vh] focus:outline-none font-serif"
+                class="codex-editor w-full bg-transparent border-none outline-none text-xl text-zinc-300 leading-[1.9] min-h-[60vh] focus:outline-none font-serif"
                 data-placeholder="Continue the legacy..."
               />
             </div>
 
             <!-- Empty State -->
             <div v-else class="h-full flex flex-col items-center justify-center text-center py-40 opacity-30 animate-pulse">
-              <Feather :size="80" class="text-slate-500 mb-8" />
+              <Feather :size="80" class="text-zinc-500 mb-8" />
               <h3 class="text-4xl font-black text-white uppercase tracking-[0.2em] mb-4">The Chamber of Silence</h3>
-              <p class="max-w-md mx-auto text-slate-500 text-lg">
+              <p class="max-w-md mx-auto text-zinc-500 text-lg">
                 Every great work begins with the first drop of ink. Select an entry or start a new creation.
               </p>
             </div>
@@ -1051,17 +1051,17 @@ onUnmounted(() => {
         >
           <div class="flex items-center gap-8">
             <div class="flex items-center gap-2">
-              <FileText :size="14" class="text-slate-500" />
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <FileText :size="14" class="text-zinc-500" />
+              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 {{ wordCount }} words{{ selectedManuscript ? ' in chapter' : '' }}
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <Clock :size="14" class="text-slate-500" />
-              <span v-if="selectedManuscript" :class="['text-[10px] font-bold uppercase tracking-widest', saveStatus === 'saved' ? 'text-emerald-500/60' : saveStatus === 'saving' ? 'text-amber-400/60' : 'text-slate-500']">
+              <Clock :size="14" class="text-zinc-500" />
+              <span v-if="selectedManuscript" :class="['text-[10px] font-bold uppercase tracking-widest', saveStatus === 'saved' ? 'text-emerald-500/60' : saveStatus === 'saving' ? 'text-amber-400/60' : 'text-zinc-500']">
                 {{ saveStatus === 'saved' ? 'All changes saved' : saveStatus === 'saving' ? 'Saving...' : 'Unsaved changes' }}
               </span>
-              <span v-else class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <span v-else class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Last edited just now
               </span>
             </div>
@@ -1071,7 +1071,7 @@ onUnmounted(() => {
             <button
               v-if="selectedEntry"
               @click="handleDeleteEntry"
-              class="p-2 text-slate-600 hover:text-rose-500 transition-all"
+              class="p-2 text-zinc-600 hover:text-rose-500 transition-all"
               title="Delete reflection"
             >
               <Trash2 :size="18" />
@@ -1079,12 +1079,12 @@ onUnmounted(() => {
             <button
               v-if="selectedManuscript"
               @click="handleDeleteManuscript"
-              class="p-2 text-slate-600 hover:text-rose-500 transition-all"
+              class="p-2 text-zinc-600 hover:text-rose-500 transition-all"
               title="Delete manuscript"
             >
               <Trash2 :size="18" />
             </button>
-            <button class="p-2 text-slate-600 hover:text-white transition-all">
+            <button class="p-2 text-zinc-600 hover:text-white transition-all">
               <History :size="18" />
             </button>
           </div>
@@ -1121,7 +1121,7 @@ onUnmounted(() => {
               @click="activeTab = 'journal'"
               :class="[
                 'flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                activeTab === 'journal' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-500'
+                activeTab === 'journal' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-zinc-500'
               ]"
             >
               Journal
@@ -1130,7 +1130,7 @@ onUnmounted(() => {
               @click="activeTab = 'manuscript'"
               :class="[
                 'flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
-                activeTab === 'manuscript' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-500'
+                activeTab === 'manuscript' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-zinc-500'
               ]"
             >
               Studio
@@ -1156,7 +1156,7 @@ onUnmounted(() => {
                 class="w-full text-left p-4 rounded-2xl bg-ink-light border border-white/5 active:scale-[0.98] transition-all relative overflow-hidden"
               >
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-[10px] font-bold text-slate-500">{{ formatDate(entry.date) }}</span>
+                  <span class="text-[10px] font-bold text-zinc-500">{{ formatDate(entry.date) }}</span>
                   <div
                     :class="['w-2.5 h-2.5 rounded-full shadow-[0_0_12px_rgba(255,255,255,0.15)] animate-pulse', moodColors[entry.mood]]"
                   />
@@ -1164,7 +1164,7 @@ onUnmounted(() => {
                 <h4 class="text-sm font-bold text-white truncate mb-1">
                   {{ entry.title }}
                 </h4>
-                <p class="text-[10px] text-slate-500 line-clamp-2 italic leading-relaxed">
+                <p class="text-[10px] text-zinc-500 line-clamp-2 italic leading-relaxed">
                   {{ entry.content.substring(0, 80) }}{{ entry.content.length > 80 ? '...' : '' }}
                 </p>
               </button>
@@ -1173,10 +1173,10 @@ onUnmounted(() => {
             <!-- Empty State -->
             <div v-else class="flex flex-col items-center justify-center py-20 px-6 text-center">
               <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                <Feather :size="28" class="text-slate-600" />
+                <Feather :size="28" class="text-zinc-600" />
               </div>
-              <p class="text-sm text-slate-500 mb-1 font-bold">No reflections yet</p>
-              <p class="text-xs text-slate-600 mb-5">Start your first journal entry</p>
+              <p class="text-sm text-zinc-500 mb-1 font-bold">No reflections yet</p>
+              <p class="text-xs text-zinc-600 mb-5">Start your first journal entry</p>
               <button
                 @click="mobileNewEntry"
                 class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold active:scale-95 transition-transform shadow-lg shadow-indigo-500/30"
@@ -1193,21 +1193,21 @@ onUnmounted(() => {
               <div class="p-4 rounded-2xl bg-ink-light border border-indigo-500/20 space-y-3">
                 <div class="flex items-center justify-between">
                   <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">New Manuscript</span>
-                  <button @click="showNewManuscriptForm = false" class="text-slate-500 p-1">
+                  <button @click="showNewManuscriptForm = false" class="text-zinc-500 p-1">
                     <X :size="16" />
                   </button>
                 </div>
                 <input
                   v-model="newManuscriptTitle"
                   placeholder="Title..."
-                  class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-500/50"
+                  class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-indigo-500/50"
                   @keyup.enter="mobileNewManuscript"
                   autofocus
                 />
                 <input
                   v-model="newManuscriptGenre"
                   placeholder="Genre (e.g. Fiction, Poetry...)"
-                  class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-500/50"
+                  class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-indigo-500/50"
                   @keyup.enter="mobileNewManuscript"
                 />
                 <button
@@ -1236,7 +1236,7 @@ onUnmounted(() => {
                     :style="{ width: `${ms.targetWordCount ? Math.min(100, Math.round((ms.currentWordCount / ms.targetWordCount) * 100)) : 0}%` }"
                   />
                 </div>
-                <div class="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                <div class="flex items-center justify-between text-[10px] font-bold text-zinc-500">
                   <span>{{ ms.chapters?.length || 0 }} chapter{{ (ms.chapters?.length || 0) !== 1 ? 's' : '' }}</span>
                   <span>{{ (ms.currentWordCount || 0).toLocaleString() }} words</span>
                 </div>
@@ -1246,10 +1246,10 @@ onUnmounted(() => {
             <!-- Empty State -->
             <div v-else-if="!showNewManuscriptForm" class="flex flex-col items-center justify-center py-20 px-6 text-center">
               <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                <PenTool :size="28" class="text-slate-600" />
+                <PenTool :size="28" class="text-zinc-600" />
               </div>
-              <p class="text-sm text-slate-500 mb-1 font-bold">No manuscripts yet</p>
-              <p class="text-xs text-slate-600 mb-5">Begin your first masterwork</p>
+              <p class="text-sm text-zinc-500 mb-1 font-bold">No manuscripts yet</p>
+              <p class="text-xs text-zinc-600 mb-5">Begin your first masterwork</p>
               <button
                 @click="openNewManuscriptForm"
                 class="px-5 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold active:scale-95 transition-transform shadow-lg shadow-indigo-500/30"
@@ -1269,14 +1269,14 @@ onUnmounted(() => {
           <div class="flex items-center gap-3">
             <button
               @click="closeMobileEditor"
-              class="p-2 -ml-2 rounded-xl text-slate-400 active:scale-95 transition-all"
+              class="p-2 -ml-2 rounded-xl text-zinc-400 active:scale-95 transition-all"
             >
               <ArrowLeft :size="22" />
             </button>
             <div class="flex-1 min-w-0">
               <input
                 v-model="selectedEntry.title"
-                class="bg-transparent border-none text-base font-black text-white tracking-tight outline-none w-full placeholder-slate-700"
+                class="bg-transparent border-none text-base font-black text-white tracking-tight outline-none w-full placeholder-zinc-700"
                 placeholder="Reflection Title..."
               />
             </div>
@@ -1293,7 +1293,7 @@ onUnmounted(() => {
 
           <!-- Mood Selector -->
           <div class="flex items-center gap-3 mt-3 ml-8">
-            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mood</span>
+            <span class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Mood</span>
             <div class="flex gap-2.5">
               <button
                 v-for="m in moods"
@@ -1317,7 +1317,7 @@ onUnmounted(() => {
             contenteditable="true"
             @input="handleJournalInput"
             @keydown="handleEditorKeydown"
-            class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-base font-serif italic text-slate-300 leading-relaxed min-h-[60vh] focus:outline-none"
+            class="codex-editor journal-editor w-full bg-transparent border-none outline-none text-base font-serif italic text-zinc-300 leading-relaxed min-h-[60vh] focus:outline-none"
             data-placeholder="Breathe and let your thoughts flow onto the digital parchment..."
           />
         </div>
@@ -1338,12 +1338,12 @@ onUnmounted(() => {
           </div>
           <div class="flex items-center justify-between px-5 py-2">
             <div class="flex items-center gap-2">
-              <FileText :size="13" class="text-slate-600" />
-              <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{{ wordCount }} words</span>
+              <FileText :size="13" class="text-zinc-600" />
+              <span class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">{{ wordCount }} words</span>
             </div>
             <button
               @click="handleDeleteEntry"
-              class="p-2 text-slate-600 active:text-rose-400 transition-colors"
+              class="p-2 text-zinc-600 active:text-rose-400 transition-colors"
             >
               <Trash2 :size="16" />
             </button>
@@ -1359,20 +1359,20 @@ onUnmounted(() => {
           <div class="flex items-center gap-3">
             <button
               @click="closeMobileEditor"
-              class="p-2 -ml-2 rounded-xl text-slate-400 active:scale-95 transition-all"
+              class="p-2 -ml-2 rounded-xl text-zinc-400 active:scale-95 transition-all"
             >
               <ArrowLeft :size="22" />
             </button>
             <div class="flex-1 min-w-0">
               <input
                 v-model="selectedManuscript.title"
-                class="bg-transparent border-none text-base font-black text-white tracking-tight outline-none w-full placeholder-slate-700"
+                class="bg-transparent border-none text-base font-black text-white tracking-tight outline-none w-full placeholder-zinc-700"
                 placeholder="Manuscript Title..."
               />
               <div class="flex items-center gap-1.5 mt-0.5">
                 <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{{ selectedManuscript.genre }}</span>
-                <span class="text-[10px] font-black text-slate-700">·</span>
-                <span class="text-[10px] font-bold text-slate-600">Ch. {{ activeChapterIndex + 1 }}</span>
+                <span class="text-[10px] font-black text-zinc-700">·</span>
+                <span class="text-[10px] font-bold text-zinc-600">Ch. {{ activeChapterIndex + 1 }}</span>
               </div>
             </div>
             <button
@@ -1396,14 +1396,14 @@ onUnmounted(() => {
                 'px-3.5 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 transition-all active:scale-95',
                 activeChapterIndex === idx
                   ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                  : 'bg-white/5 text-slate-500 border border-white/5'
+                  : 'bg-white/5 text-zinc-500 border border-white/5'
               ]"
             >
               {{ idx + 1 }}. {{ ch.title || `Chapter ${idx + 1}` }}
             </button>
             <button
               @click="handleAddChapter"
-              class="px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-slate-600 text-[10px] font-bold shrink-0 flex items-center gap-1 active:scale-95 transition-all"
+              class="px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-zinc-600 text-[10px] font-bold shrink-0 flex items-center gap-1 active:scale-95 transition-all"
             >
               <Plus :size="12" /> Add
             </button>
@@ -1414,7 +1414,7 @@ onUnmounted(() => {
         <div v-if="currentChapter" class="flex-1 overflow-y-auto p-5">
           <input
             v-model="currentChapter.title"
-            class="bg-transparent border-none text-xl font-black text-white outline-none w-full tracking-tighter mb-4 placeholder-slate-800"
+            class="bg-transparent border-none text-xl font-black text-white outline-none w-full tracking-tighter mb-4 placeholder-zinc-800"
             placeholder="Chapter Title"
           />
           <div
@@ -1422,7 +1422,7 @@ onUnmounted(() => {
             contenteditable="true"
             @input="handleManuscriptInput"
             @keydown="handleEditorKeydown"
-            class="codex-editor w-full bg-transparent border-none outline-none text-base text-slate-300 leading-loose min-h-[60vh] focus:outline-none font-serif"
+            class="codex-editor w-full bg-transparent border-none outline-none text-base text-zinc-300 leading-loose min-h-[60vh] focus:outline-none font-serif"
             data-placeholder="Continue the legacy..."
           />
         </div>
@@ -1443,12 +1443,12 @@ onUnmounted(() => {
           </div>
           <div class="flex items-center justify-between px-5 py-2">
             <div class="flex items-center gap-2">
-              <FileText :size="13" class="text-slate-600" />
-              <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{{ wordCount }} words in chapter</span>
+              <FileText :size="13" class="text-zinc-600" />
+              <span class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">{{ wordCount }} words in chapter</span>
             </div>
             <button
               @click="handleDeleteManuscript"
-              class="p-2 text-slate-600 active:text-rose-400 transition-colors"
+              class="p-2 text-zinc-600 active:text-rose-400 transition-colors"
             >
               <Trash2 :size="16" />
             </button>

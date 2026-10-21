@@ -53,7 +53,7 @@ const navigateToCodex = () => {
 
 <template>
   <section v-if="!loading && totalItems > 0">
-    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2 mb-6">
+    <h2 class="text-sm font-bold text-zinc-500 uppercase tracking-[0.15em] flex items-center gap-2 mb-6">
       <Brain :size="14" class="text-indigo-400" />
       Knowledge Hub
     </h2>
@@ -74,7 +74,7 @@ const navigateToCodex = () => {
           <p
             v-for="q in knowledge.quotes.recent.slice(0, 2)"
             :key="q.id"
-            class="text-[10px] text-slate-500 line-clamp-1 italic"
+            class="text-[10px] text-zinc-500 line-clamp-1 italic"
           >
             "{{ q.text }}"
           </p>
@@ -99,7 +99,7 @@ const navigateToCodex = () => {
           <p
             v-for="n in knowledge.study_notes.recent.slice(0, 2)"
             :key="n.id"
-            class="text-[10px] text-slate-500 line-clamp-1"
+            class="text-[10px] text-zinc-500 line-clamp-1"
           >
             {{ n.content }}
           </p>
@@ -124,9 +124,9 @@ const navigateToCodex = () => {
           <p
             v-for="w in knowledge.vocabulary.recent.slice(0, 2)"
             :key="w.id"
-            class="text-[10px] text-slate-500 line-clamp-1"
+            class="text-[10px] text-zinc-500 line-clamp-1"
           >
-            <span class="font-bold text-slate-400">{{ w.word }}</span> — {{ w.definition }}
+            <span class="font-bold text-zinc-400">{{ w.word }}</span> — {{ w.definition }}
           </p>
         </div>
         <div class="mt-2 flex items-center gap-1 text-[10px] font-bold text-emerald-400/60 group-hover:text-emerald-400 transition-colors">
@@ -149,7 +149,7 @@ const navigateToCodex = () => {
           <p
             v-for="e in knowledge.journal_entries.recent.slice(0, 2)"
             :key="e.id"
-            class="text-[10px] text-slate-500 line-clamp-1"
+            class="text-[10px] text-zinc-500 line-clamp-1"
           >
             {{ e.title }}
           </p>

@@ -1,14 +1,13 @@
 import { ref } from 'vue'
 import { Capacitor } from '@capacitor/core'
 
-let BarcodeScanner = null
+let scannerModule = null
 
 async function loadScanner() {
-  if (!BarcodeScanner) {
-    const mod = await import('@capacitor-mlkit/barcode-scanning')
-    BarcodeScanner = mod.BarcodeScanner
+  if (!scannerModule) {
+    scannerModule = await import('@capacitor-mlkit/barcode-scanning')
   }
-  return BarcodeScanner
+  return scannerModule
 }
 
 export function useIsbnScanner() {
@@ -16,14 +15,6 @@ export function useIsbnScanner() {
   const scanError = ref(null)
 
   const isNative = Capacitor.isNativePlatform()
-
-  async function checkAndRequestPermissions() {
-    const scanner = await loadScanner()
-    const { camera } = await scanner.checkPermissions()
-    if (camera === 'granted') return true
-    const result = await scanner.requestPermissions()
-    return result.camera === 'granted'
-  }
 
   async function scanIsbn() {
     isScanning.value = true
@@ -35,24 +26,17 @@ export function useIsbnScanner() {
         return null
       }
 
-      const hasPermission = await checkAndRequestPermissions()
-      if (!hasPermission) {
-        scanError.value = 'Camera permission denied.'
-        return null
-      }
+      const { BarcodeScanner, BarcodeFormat } = await loadScanner()
 
-      const scanner = await loadScanner()
-
-      // Check if Google Barcode Scanner is available (required for MLKit)
-      const { available } = await scanner.isGoogleBarcodeScannerModuleAvailable()
+      const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable()
       if (!available) {
-        await scanner.installGoogleBarcodeScannerModule()
+        await BarcodeScanner.installGoogleBarcodeScannerModule()
         scanError.value = 'Scanner module is being installed. Please try again in a moment.'
         return null
       }
 
-      const { barcodes } = await scanner.scan({
-        formats: ['EAN_13', 'EAN_8', 'ISBN_13', 'ISBN_10'],
+      const { barcodes } = await BarcodeScanner.scan({
+        formats: [BarcodeFormat.Ean13, BarcodeFormat.Ean8],
       })
 
       if (!barcodes || barcodes.length === 0) return null

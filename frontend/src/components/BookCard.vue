@@ -28,7 +28,7 @@ const statusConfig = {
   want_to_read: { label: 'Want to Read', variant: 'secondary', class: 'bg-sky-500/90 text-white border-0' },
   currently_reading: { label: 'Reading', variant: 'default', class: 'bg-indigo-500 text-white border-0' },
   read: { label: 'Read', variant: 'default', class: 'bg-emerald-500/90 text-white border-0' },
-  abandoned: { label: 'Abandoned', variant: 'destructive', class: 'bg-slate-600 text-slate-200 border-0' },
+  abandoned: { label: 'Abandoned', variant: 'destructive', class: 'bg-zinc-600 text-zinc-200 border-0' },
 }
 
 const statusInfo = computed(() => statusConfig[props.book.status] || statusConfig.want_to_read)
@@ -55,7 +55,7 @@ const progressPercent = computed(() => {
   <Card class="group hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden">
     <!-- Book cover -->
     <div
-      class="relative aspect-[2/3] bg-gradient-to-br from-slate-700 to-slate-800 overflow-hidden flex items-center justify-center"
+      class="relative aspect-[2/3] bg-gradient-to-br from-zinc-700 to-zinc-800 overflow-hidden flex items-center justify-center"
       @click="emit('view', book)"
     >
       <img
@@ -65,7 +65,7 @@ const progressPercent = computed(() => {
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         @error="(e) => e.target.style.display = 'none'"
       />
-      <BookOpen v-if="!coverImage" :size="32" class="lg:w-12 lg:h-12 text-slate-600" />
+      <BookOpen v-if="!coverImage" :size="32" class="lg:w-12 lg:h-12 text-zinc-600" />
 
       <!-- Favorite heart -->
       <button

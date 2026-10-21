@@ -20,13 +20,13 @@ defineEmits(['switchEdition', 'clickEdition'])
         <BookOpen :size="16" class="text-indigo-400" />
       </div>
       <div>
-        <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
-        <p class="text-slate-600 text-[9px]">{{ editions.length }} edition{{ editions.length !== 1 ? 's' : '' }}</p>
+        <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
+        <p class="text-zinc-600 text-[9px]">{{ editions.length }} edition{{ editions.length !== 1 ? 's' : '' }}</p>
       </div>
     </div>
     <div v-else class="flex items-center gap-2 mb-4">
       <BookOpen :size="16" class="text-indigo-400" />
-      <h3 class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
+      <h3 class="text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px]">Other Editions</h3>
     </div>
 
     <!-- Editions List -->
@@ -35,7 +35,7 @@ defineEmits(['switchEdition', 'clickEdition'])
         v-for="edition in editions"
         :key="edition.id"
         :class="[
-          'rounded-xl bg-slate-950/50 border border-slate-800',
+          'rounded-xl bg-zinc-950/50 border border-zinc-800',
           compact ? 'p-3' : 'p-4 hover:border-indigo-500/30 transition-all space-y-3'
         ]"
       >
@@ -46,7 +46,7 @@ defineEmits(['switchEdition', 'clickEdition'])
           :class="compact ? 'flex gap-3' : 'flex gap-3 cursor-pointer group/card'"
         >
           <div :class="[
-            'shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-md flex items-center justify-center',
+            'shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-zinc-700 to-zinc-800 shadow-md flex items-center justify-center',
             compact ? 'w-10 h-14' : 'w-12 h-16'
           ]">
             <img
@@ -56,12 +56,12 @@ defineEmits(['switchEdition', 'clickEdition'])
               class="w-full h-full object-cover"
               @error="(e) => e.target.style.display = 'none'"
             />
-            <BookOpen v-else :size="compact ? 14 : 16" class="text-slate-600" />
+            <BookOpen v-else :size="compact ? 14 : 16" class="text-zinc-600" />
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
               <h4 :class="[
-                'font-semibold text-slate-100 text-sm',
+                'font-semibold text-zinc-100 text-sm',
                 compact ? 'line-clamp-1' : 'line-clamp-2 group-hover/card:text-indigo-400 transition-colors'
               ]">{{ edition.title }}</h4>
               <span
@@ -73,15 +73,15 @@ defineEmits(['switchEdition', 'clickEdition'])
             </div>
             <div class="space-y-1">
               <div class="flex items-center gap-2 text-[10px]">
-                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">
+                <span class="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-bold uppercase">
                   {{ edition.language?.toUpperCase() || 'N/A' }}
                 </span>
-                <span class="text-slate-500">{{ edition.pages }} pages</span>
+                <span class="text-zinc-500">{{ edition.pages }} pages</span>
               </div>
-              <div v-if="!compact && edition.publisher" class="text-[10px] text-slate-500 truncate">
+              <div v-if="!compact && edition.publisher" class="text-[10px] text-zinc-500 truncate">
                 {{ edition.publisher }}
               </div>
-              <div v-if="!compact && edition.published_date" class="text-[10px] text-slate-600">
+              <div v-if="!compact && edition.published_date" class="text-[10px] text-zinc-600">
                 {{ edition.published_date.split('-')[0] }}
               </div>
             </div>
@@ -89,7 +89,7 @@ defineEmits(['switchEdition', 'clickEdition'])
         </router-link>
 
         <!-- Actions (full mode only for rich buttons) -->
-        <div v-if="!compact" class="pt-3 border-t border-slate-800/50">
+        <div v-if="!compact" class="pt-3 border-t border-zinc-800/50">
           <router-link
             v-if="userBookId === edition.id"
             :to="getBookUrl(edition)"
@@ -108,7 +108,7 @@ defineEmits(['switchEdition', 'clickEdition'])
           <router-link
             v-else
             :to="getBookUrl(edition)"
-            class="block w-full px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all text-center"
+            class="block w-full px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 text-xs font-bold transition-all text-center"
           >
             View edition
           </router-link>

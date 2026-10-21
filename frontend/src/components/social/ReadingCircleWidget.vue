@@ -66,7 +66,7 @@ const goToUserProfile = (userId) => {
 </script>
 
 <template>
-  <div class="p-6 rounded-[2rem] glass border-slate-800 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5">
+  <div class="p-6 rounded-[2rem] glass border-zinc-800 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
@@ -75,7 +75,7 @@ const goToUserProfile = (userId) => {
         </div>
         <div>
           <h3 class="text-sm font-black text-white uppercase tracking-wider">Reading Circle</h3>
-          <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+          <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
             {{ followingCount }} Following • {{ followersCount }} Followers
           </p>
         </div>
@@ -114,7 +114,7 @@ const goToUserProfile = (userId) => {
               >
                 {{ user.first_name }} {{ user.last_name }}
               </h4>
-              <div class="flex items-center gap-2 text-[9px] text-slate-500 font-black uppercase tracking-widest">
+              <div class="flex items-center gap-2 text-[9px] text-zinc-500 font-black uppercase tracking-widest">
                 <span class="text-indigo-400">{{ user.match_score }}% match</span>
                 <span>•</span>
                 <span>{{ user.shared_books_count }} shared</span>
@@ -159,11 +159,7 @@ const goToUserProfile = (userId) => {
 
 <style scoped>
 /* Light mode adjustments */
-body.light .text-white {
-  color: #0f172a !important;
-}
-
-body.light .text-slate-500 {
+body.light .text-zinc-500 {
   color: #64748b !important;
 }
 

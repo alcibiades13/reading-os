@@ -37,43 +37,55 @@ def aggregate_book_dna(book_id: int) -> BookDNA:
         introspection=Avg('introspection'),
     )
 
-    # Aggregate themes (most common)
-    all_themes = []
-    for vote in votes:
-        all_themes.extend(vote.themes or [])
+    vote_count = votes.count()
 
-    theme_counts = Counter(all_themes)
-    # Get themes that appear in at least 30% of votes (min 1)
-    min_count = max(1, votes.count() * 0.3)
-    top_themes = [theme for theme, count in theme_counts.most_common(10) if count >= min_count]
+    if vote_count == 1:
+        # Single voter: there is nothing to "aggregate" - using Counter.most_common(10)
+        # here would silently truncate to whichever 10 themes/tags happened to be listed
+        # first by that one voter (all tied at count=1), discarding real choices further
+        # down their list. Just use their selections as-is.
+        only_vote = votes.first()
+        top_themes = list(only_vote.themes or [])
+        top_primary_themes = list((only_vote.primary_themes or [])[:3])
+        top_genre_tags = list(only_vote.genre_tags or [])
+        primary_genre_tag = only_vote.primary_genre_tag or None
+    else:
+        # Aggregate themes (most common)
+        all_themes = []
+        for vote in votes:
+            all_themes.extend(vote.themes or [])
 
-    # Aggregate primary themes (most commonly marked as primary)
-    all_primary_themes = []
-    for vote in votes:
-        all_primary_themes.extend(vote.primary_themes or [])
-    primary_theme_counts = Counter(all_primary_themes)
-    top_primary_themes = [t for t, _ in primary_theme_counts.most_common(3)]
+        theme_counts = Counter(all_themes)
+        # Get themes that appear in at least 30% of votes (min 1)
+        min_count = max(1, vote_count * 0.3)
+        top_themes = [theme for theme, count in theme_counts.most_common(10) if count >= min_count]
 
-    # Aggregate genre tags
-    all_genre_tags = []
-    for vote in votes:
-        all_genre_tags.extend(vote.genre_tags or [])
-    genre_tag_counts = Counter(all_genre_tags)
-    min_genre_count = max(1, votes.count() * 0.3)
-    top_genre_tags = [
-        tag for tag, count in genre_tag_counts.most_common(10)
-        if count >= min_genre_count
-    ]
+        # Aggregate primary themes (most commonly marked as primary)
+        all_primary_themes = []
+        for vote in votes:
+            all_primary_themes.extend(vote.primary_themes or [])
+        primary_theme_counts = Counter(all_primary_themes)
+        top_primary_themes = [t for t, _ in primary_theme_counts.most_common(3)]
 
-    # Aggregate primary genre tag (most common)
-    primary_genre_votes = [v.primary_genre_tag for v in votes if v.primary_genre_tag]
-    primary_genre_tag = None
-    if primary_genre_votes:
-        primary_genre_tag = Counter(primary_genre_votes).most_common(1)[0][0]
+        # Aggregate genre tags
+        all_genre_tags = []
+        for vote in votes:
+            all_genre_tags.extend(vote.genre_tags or [])
+        genre_tag_counts = Counter(all_genre_tags)
+        min_genre_count = max(1, vote_count * 0.3)
+        top_genre_tags = [
+            tag for tag, count in genre_tag_counts.most_common(10)
+            if count >= min_genre_count
+        ]
+
+        # Aggregate primary genre tag (most common)
+        primary_genre_votes = [v.primary_genre_tag for v in votes if v.primary_genre_tag]
+        primary_genre_tag = None
+        if primary_genre_votes:
+            primary_genre_tag = Counter(primary_genre_votes).most_common(1)[0][0]
 
     # Calculate confidence score based on vote count
     # 1 vote = 0.1, 5 votes = 0.5, 10+ votes = 1.0
-    vote_count = votes.count()
     confidence = min(vote_count / 10.0, 1.0)
 
     # Update or create BookDNA

@@ -32,26 +32,26 @@ onMounted(() => {
         </div>
         <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Reading Life</h1>
       </div>
-      <p class="text-sm text-slate-400 ml-12">Your reading journey, reflected back to you.</p>
+      <p class="text-sm text-zinc-400 ml-12">Your reading journey, reflected back to you.</p>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="space-y-6">
-      <div v-for="n in 4" :key="n" class="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-6">
+      <div v-for="n in 4" :key="n" class="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-6">
         <div class="animate-pulse space-y-4">
-          <div class="h-4 bg-slate-800 rounded w-1/3"></div>
-          <div class="h-32 bg-slate-800/50 rounded-xl"></div>
+          <div class="h-4 bg-zinc-800 rounded w-1/3"></div>
+          <div class="h-32 bg-zinc-800/50 rounded-xl"></div>
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="!hasData && !loading" class="text-center py-20">
-      <div class="w-16 h-16 rounded-2xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mx-auto mb-4">
-        <BookOpen :size="28" class="text-slate-600" />
+      <div class="w-16 h-16 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center mx-auto mb-4">
+        <BookOpen :size="28" class="text-zinc-600" />
       </div>
-      <h3 class="text-lg font-bold text-slate-300 mb-2">Your story starts here</h3>
-      <p class="text-sm text-slate-500 max-w-sm mx-auto">
+      <h3 class="text-lg font-bold text-zinc-300 mb-2">Your story starts here</h3>
+      <p class="text-sm text-zinc-500 max-w-sm mx-auto">
         Start reading and tracking books to see your reading life unfold. Every book you finish adds to your story.
       </p>
     </div>

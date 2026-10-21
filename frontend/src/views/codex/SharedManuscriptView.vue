@@ -27,18 +27,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+  <div class="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center min-h-screen">
-      <div class="animate-pulse text-slate-500">Loading manuscript...</div>
+      <div class="animate-pulse text-zinc-500">Loading manuscript...</div>
     </div>
 
     <!-- Error -->
     <div v-else-if="error" class="flex items-center justify-center min-h-screen">
       <div class="text-center max-w-md">
-        <BookOpen :size="48" class="text-slate-700 mx-auto mb-4" />
+        <BookOpen :size="48" class="text-zinc-700 mx-auto mb-4" />
         <h1 class="text-xl font-black text-white mb-2">Manuscript Not Found</h1>
-        <p class="text-slate-500 text-sm">{{ error }}</p>
+        <p class="text-zinc-500 text-sm">{{ error }}</p>
       </div>
     </div>
 
@@ -47,8 +47,8 @@ onMounted(async () => {
       <!-- Title Page -->
       <div class="text-center mb-16 py-12 border-b border-white/5">
         <h1 class="text-4xl font-black text-white tracking-tight mb-2">{{ manuscript.title }}</h1>
-        <p v-if="manuscript.subtitle" class="text-lg text-slate-400 italic">{{ manuscript.subtitle }}</p>
-        <div class="mt-4 flex items-center justify-center gap-3 text-xs text-slate-600">
+        <p v-if="manuscript.subtitle" class="text-lg text-zinc-400 italic">{{ manuscript.subtitle }}</p>
+        <div class="mt-4 flex items-center justify-center gap-3 text-xs text-zinc-600">
           <span class="uppercase tracking-widest">{{ manuscript.genre }}</span>
           <span>&middot;</span>
           <span>{{ (manuscript.currentWordCount || 0).toLocaleString() }} words</span>
@@ -65,7 +65,7 @@ onMounted(async () => {
             'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
             activeChapterIndex === idx
               ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-              : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-white/10'
+              : 'bg-white/5 text-zinc-500 border border-white/5 hover:bg-white/10'
           ]"
         >
           {{ ch.title || `Chapter ${idx + 1}` }}
@@ -75,7 +75,7 @@ onMounted(async () => {
       <!-- Active Chapter Content -->
       <div v-if="activeChapter" class="prose-reader">
         <h2 class="text-2xl font-black text-white mb-8">{{ activeChapter.title }}</h2>
-        <div class="text-base text-slate-300 leading-[1.9] whitespace-pre-wrap font-serif">{{ activeChapter.content }}</div>
+        <div class="text-base text-zinc-300 leading-[1.9] whitespace-pre-wrap font-serif">{{ activeChapter.content }}</div>
       </div>
 
       <!-- Chapter Navigation -->
@@ -98,7 +98,7 @@ onMounted(async () => {
       </div>
 
       <!-- Footer -->
-      <div class="mt-16 text-center text-[10px] text-slate-700 uppercase tracking-widest">
+      <div class="mt-16 text-center text-[10px] text-zinc-700 uppercase tracking-widest">
         Shared via Reading OS
       </div>
     </div>

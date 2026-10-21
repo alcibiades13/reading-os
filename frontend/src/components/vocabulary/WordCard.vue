@@ -25,7 +25,7 @@ const returnToLearning = () => {
 </script>
 
 <template>
-  <div class="group glass bg-slate-900/40 rounded-2xl p-6 border border-slate-800/50 hover:border-indigo-500/30 transition-all duration-300">
+  <div class="group glass bg-zinc-900/40 rounded-2xl p-6 border border-zinc-800/50 hover:border-indigo-500/30 transition-all duration-300">
     <div class="flex items-start justify-between mb-4 gap-2">
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap">
@@ -47,25 +47,25 @@ const returnToLearning = () => {
         </div>
       </div>
       <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <button @click="emit('edit', word)" class="p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-white transition-colors">
+        <button @click="emit('edit', word)" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors">
           <Edit3 :size="14" />
         </button>
-        <button @click="emit('delete', word.id)" class="p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-colors">
+        <button @click="emit('delete', word.id)" class="p-2 rounded-lg hover:bg-red-500/10 text-zinc-500 hover:text-red-400 transition-colors">
           <Trash2 :size="14" />
         </button>
       </div>
     </div>
 
-    <p class="text-sm text-slate-400 italic mb-4 line-clamp-[8]">
+    <p class="text-sm text-zinc-400 italic mb-4 line-clamp-[8]">
       "{{ word.context || "No context provided." }}"
     </p>
 
-    <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
-      <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 truncate max-w-[150px]">
+    <div class="pt-4 border-t border-zinc-800 flex items-center justify-between">
+      <div class="flex items-center gap-2 text-[10px] font-bold text-zinc-500 truncate max-w-[150px]">
         <Bookmark :size="12" />
         <span class="truncate">{{ word.bookTitle || 'Manual' }}</span>
       </div>
-      <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest">
+      <div class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
         {{ word.reviewCount }} Reviews
       </div>
     </div>
