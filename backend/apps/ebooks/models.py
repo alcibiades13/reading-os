@@ -93,3 +93,23 @@ class EBook(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.format}) - {self.user}"
+
+
+class EBookBookmark(models.Model):
+    """
+    A "sticker": a named reading position. Lets the user follow several reading
+    threads in one book (e.g. Old and New Testament in parallel). The thread being
+    read moves along with the reader; overall progress = the earliest sticker.
+    """
+    ebook = models.ForeignKey(EBook, on_delete=models.CASCADE, related_name='bookmarks')
+    label = models.CharField(max_length=200)
+    position = models.CharField(max_length=1000, help_text="EPUB CFI or PDF page number")
+    progress = models.FloatField(null=True, blank=True, help_text="0..1 (unknown until EPUB locations are ready)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.label} ({self.ebook.title})"

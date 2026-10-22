@@ -36,6 +36,8 @@ const quoteNote = ref('')
 const word = ref(cleanWord(props.selection.text).slice(0, 200))
 const definition = ref('')
 const context = ref(props.selection.context)
+// Where in the book - detected chapter, editable (e.g. add a verse: "Matej 7:12")
+const reference = ref(props.chapter || (props.pageNumber ? `Page ${props.pageNumber}` : ''))
 // Note
 const noteType = ref('note')
 const noteContent = ref(`"${props.selection.text}"\n\n`)
@@ -93,7 +95,7 @@ const save = async () => {
       book_author: (book.authors || []).join(', ') || ebook.author,
       page_number: props.pageNumber || null,
     }
-    const chapter = (props.chapter || '').slice(0, 100)
+    const chapter = reference.value.trim().slice(0, 100)
 
     if (props.mode === 'quote') {
       await quotesAPI.create({
@@ -116,7 +118,7 @@ const save = async () => {
         user_book: ebook.library_entry?.id || null,
         note_type: noteType.value,
         content: noteContent.value.trim(),
-        reference: (chapter || (props.pageNumber ? `Page ${props.pageNumber}` : ebook.title)).slice(0, 255),
+        reference: (reference.value.trim() || (props.pageNumber ? `Page ${props.pageNumber}` : ebook.title)).slice(0, 255),
         page_number: props.pageNumber || null,
         chapter,
       })
@@ -211,8 +213,22 @@ const save = async () => {
       />
     </template>
 
+    <!-- Where in the book (quotes and notes) -->
+    <div v-if="mode !== 'word'">
+      <p class="text-[10px] font-black uppercase tracking-widest mb-1.5" :style="{ color: theme.muted }">
+        {{ mode === 'note' ? 'Reference' : 'Chapter' }}
+      </p>
+      <input
+        v-model="reference"
+        maxlength="100"
+        :placeholder="mode === 'note' ? 'e.g. Matej 7:12' : 'e.g. Chapter 7'"
+        class="w-full rounded-xl px-3 py-2 text-sm outline-none border focus:border-indigo-500"
+        :style="inputStyle"
+      />
+    </div>
+
     <p class="text-[11px]" :style="{ color: theme.muted }">
-      {{ ebook.book_detail?.title || ebook.title }}<template v-if="chapter"> · {{ chapter }}</template><template v-if="pageNumber"> · p. {{ pageNumber }}</template>
+      {{ ebook.book_detail?.title || ebook.title }}<template v-if="mode === 'word' && chapter"> · {{ chapter }}</template><template v-if="pageNumber"> · p. {{ pageNumber }}</template>
     </p>
 
     <p v-if="error" class="text-sm text-red-400">{{ error }}</p>

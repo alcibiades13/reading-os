@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { getMediaUrl } from '@/utils/mediaUrl'
 
 // Base URL za Django backend
 // U development: koristi Vite proxy (/api)
@@ -34,9 +35,31 @@ api.interceptors.request.use(
   }
 )
 
+// Book covers taken from the user's own e-books are stored on our server as
+// site-relative /media/ paths - resolve them so they load on web and in the mobile app
+const resolveLocalCovers = (value, depth = 0) => {
+  if (!value || typeof value !== 'object' || depth > 8) return
+  if (Array.isArray(value)) {
+    value.forEach((item) => resolveLocalCovers(item, depth + 1))
+    return
+  }
+  for (const [key, item] of Object.entries(value)) {
+    if (key === 'cover_image' && typeof item === 'string' && item.startsWith('/media/')) {
+      value[key] = getMediaUrl(item)
+    } else if (item && typeof item === 'object') {
+      resolveLocalCovers(item, depth + 1)
+    }
+  }
+}
+
 // Response interceptor - handleuje token refresh
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data && typeof response.data === 'object' && !(response.data instanceof ArrayBuffer) && !(response.data instanceof Blob)) {
+      resolveLocalCovers(response.data)
+    }
+    return response
+  },
   async (error) => {
     const originalRequest = error.config
 
@@ -365,6 +388,10 @@ export const ebooksAPI = {
   setTracking: (id, data) => api.post(`/ebooks/${id}/tracking/`, data),
   finish: (id) => api.post(`/ebooks/${id}/finish/`),
   linkCatalog: (id) => api.post(`/ebooks/${id}/link-catalog/`),
+  // Stickers - named reading positions (parallel reading threads)
+  addBookmark: (id, data) => api.post(`/ebooks/${id}/bookmarks/`, data),
+  updateBookmark: (id, bookmarkId, data) => api.patch(`/ebooks/${id}/bookmarks/${bookmarkId}/`, data),
+  deleteBookmark: (id, bookmarkId) => api.delete(`/ebooks/${id}/bookmarks/${bookmarkId}/`),
   // Public-domain catalog (Project Gutenberg)
   publicDomainSearch: (params) => api.get('/ebooks/public-domain/search/', { params, timeout: 30000 }),
   publicDomainImport: (gutenbergId) =>

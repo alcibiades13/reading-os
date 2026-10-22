@@ -62,18 +62,89 @@ const applyStyles = () => {
   rendition.getContents().forEach((contents) => applyStyleTo(contents.document))
 }
 
-const tocLabelFor = (href) => {
-  if (!href) return ''
-  const base = href.split('#')[0]
-  let found = ''
-  const walk = (items) => {
-    for (const item of items) {
-      if (item.href && item.href.split('#')[0].endsWith(base)) found = item.label.trim()
-      if (item.subitems?.length) walk(item.subitems)
-    }
+/* ---------- chapter detection (for the progress label and note references) ---------- */
+
+let flatToc = [] // TOC in reading order: { label, href, parent }
+
+const flattenToc = (items, parent = '') => {
+  for (const item of items) {
+    const label = (item.label || '').replace(/\s+/g, ' ').trim()
+    flatToc.push({ label, href: item.href || '', parent })
+    if (item.subitems?.length) flattenToc(item.subitems, label)
   }
-  walk(toc)
+}
+
+const fileOf = (href) => (href || '').split('#')[0]
+const sameFile = (a, b) => !!a && !!b && (a.endsWith(b) || b.endsWith(a))
+const normalize = (text) => (text || '').replace(/\s+/g, ' ').trim()
+
+// "Glava 7" / "ГЛАВА 7" / "Chapter 7" / "Псалам 23" -> "7" (so references read "Matej 7:12")
+const CHAPTER_WORD = /^(глава|glava|поглавље|poglavlje|chapter|chap\.?|kapitel|chapitre|capitolo|capítulo|псалам|psalam|psalm)\s+(\d+)\.?$/i
+const chapterNumber = (label) => label.match(CHAPTER_WORD)?.[2] || label
+
+// "Matej" + "7" -> "Matej 7"; "Matej" + "Glava 7" -> "Matej 7"; otherwise "Matej › Title"
+const joinLabel = (parent, label) => {
+  if (!parent) return label
+  if (!label) return parent
+  label = chapterNumber(label)
+  if (/^\d+$/.test(label)) return `${parent} ${label}`
+  if (label.toLowerCase().includes(parent.toLowerCase())) return label
+  return `${parent} › ${label}`
+}
+
+// True if element `el` comes before (or contains) `node` in the document
+const precedes = (el, node) =>
+  el === node || el.contains(node) || !!(el.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+// Chapters often exist only as headings in the text (e.g. Bible books split into numbered chapters)
+const HEADING_SELECTOR = 'h1, h2, h3, h4, h5, h6, [class*="chapter" i], [class*="chap" i], [class*="glava" i], [class*="poglav" i]'
+const lastHeadingBefore = (doc, node) => {
+  let found = ''
+  for (const el of doc.querySelectorAll(HEADING_SELECTOR)) {
+    if (!precedes(el, node)) break
+    const text = normalize(el.textContent)
+    if (text && text.length <= 60) found = text
+  }
   return found
+}
+
+const chapterAt = (doc, node, sectionHref) => {
+  const file = fileOf(sectionHref)
+  let best = null
+  for (const item of flatToc) {
+    if (!sameFile(fileOf(item.href), file)) continue
+    const fragment = item.href.split('#')[1]
+    if (!fragment) {
+      if (!best) best = item
+      continue
+    }
+    const el = doc.getElementById(decodeURIComponent(fragment))
+    if (el && precedes(el, node)) best = item
+  }
+
+  let label = best ? joinLabel(best.parent, best.label) : ''
+  if (!best || !best.href.includes('#')) {
+    const heading = lastHeadingBefore(doc, node)
+    const same = heading && label && (label.toLowerCase().includes(heading.toLowerCase()) || heading.toLowerCase().includes(label.toLowerCase()))
+    if (heading && !same) label = joinLabel(label, heading)
+  }
+  return label.slice(0, 200)
+}
+
+// Fallback when the DOM isn't available: the TOC entry for the file
+const tocLabelFor = (href) => {
+  const item = flatToc.find((i) => sameFile(fileOf(i.href), fileOf(href)))
+  return item ? joinLabel(item.parent, item.label) : ''
+}
+
+const labelForLocation = (location) => {
+  try {
+    const range = rendition.getRange(location.start.cfi)
+    if (range) return chapterAt(range.startContainer.ownerDocument, range.startContainer, location.start.href)
+  } catch {
+    // section not rendered yet
+  }
+  return tocLabelFor(location.start.href)
 }
 
 const emitLocation = (location) => {
@@ -83,7 +154,7 @@ const emitLocation = (location) => {
   emit('relocated', {
     position: currentCfi,
     progress,
-    label: tocLabelFor(location.start.href),
+    label: labelForLocation(location),
     atStart: location.atStart,
     atEnd: location.atEnd,
   })
@@ -153,7 +224,8 @@ const watchSelection = (contents) => {
       } catch {
         // CFI is optional
       }
-      emit('selection', { ...info, cfi })
+      const sectionHref = book.spine.get(contents.sectionIndex)?.href
+      emit('selection', { ...info, cfi, chapter: chapterAt(doc, range.startContainer, sectionHref) })
     }, 300)
   })
 }
@@ -228,7 +300,9 @@ const goToProgress = (fraction) => {
   rendition?.display(book.locations.cfiFromPercentage(Math.min(Math.max(fraction, 0), 1)))
 }
 
-defineExpose({ next, prev, goToHref, goToProgress, clearSelection })
+const goToPosition = (cfi) => rendition?.display(cfi)
+
+defineExpose({ next, prev, goToHref, goToProgress, goToPosition, clearSelection })
 
 onMounted(async () => {
   try {
@@ -237,6 +311,8 @@ onMounted(async () => {
     await book.ready
     const navigation = await book.loaded.navigation
     toc = navigation?.toc || []
+    flatToc = []
+    flattenToc(toc)
     await createRendition(props.initialPosition)
     emit('ready', { toc })
     loadLocations()

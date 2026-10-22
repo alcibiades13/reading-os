@@ -1312,7 +1312,7 @@ export const QuoteCard = defineComponent({
               >
                 <Tablet :size="14" />
                 {{ ebook.progress > 0 ? 'Continue e-book' : 'Read e-book' }}
-                <span class="opacity-70 font-semibold uppercase">· {{ ebook.format }}<template v-if="ebook.progress > 0"> · {{ Math.round(ebook.progress * 100) }}%</template></span>
+                <span class="opacity-70 font-semibold uppercase">· {{ ebook.format }}<template v-if="(ebook.overall_progress ?? ebook.progress) > 0"> · {{ Math.round((ebook.overall_progress ?? ebook.progress) * 100) }}%</template></span>
               </router-link>
             </div>
 

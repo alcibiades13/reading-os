@@ -43,7 +43,8 @@ const formatSize = (bytes) => {
   return `${Math.max(0.1, bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-const progressPercent = (ebook) => Math.round((ebook.progress || 0) * 100)
+// With stickers the book is as far as its earliest sticker
+const progressPercent = (ebook) => Math.round((ebook.overall_progress ?? ebook.progress ?? 0) * 100)
 
 const loadUsage = async () => {
   try {

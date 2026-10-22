@@ -4,8 +4,8 @@ from django.db.models import Sum
 from rest_framework import serializers
 
 from apps.books.models import Book
-from apps.ebooks.models import EBook
-from apps.ebooks.progress import get_user_book, total_pages
+from apps.ebooks.models import EBook, EBookBookmark
+from apps.ebooks.progress import get_user_book, overall_progress, total_pages
 
 MAX_COVER_BYTES = 2 * 1024 * 1024
 ALLOWED_COVER_TYPES = {'image/jpeg', 'image/png', 'image/webp'}
@@ -44,12 +44,30 @@ class LinkedBookSerializer(serializers.ModelSerializer):
         return [a.name for a in obj.authors.all()]
 
 
+class EBookBookmarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EBookBookmark
+        fields = ['id', 'label', 'position', 'progress', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_label(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('Name the sticker.')
+        return value
+
+    def validate_progress(self, value):
+        return None if value is None else min(max(value, 0.0), 1.0)
+
+
 class EBookSerializer(serializers.ModelSerializer):
     book = serializers.PrimaryKeyRelatedField(queryset=Book.objects.all(), allow_null=True, required=False)
     book_detail = LinkedBookSerializer(source='book', read_only=True)
     has_cover = serializers.SerializerMethodField()
     library_entry = serializers.SerializerMethodField()
     total_pages = serializers.SerializerMethodField()
+    bookmarks = EBookBookmarkSerializer(many=True, read_only=True)
+    overall_progress = serializers.SerializerMethodField()
 
     class Meta:
         model = EBook
@@ -57,7 +75,7 @@ class EBookSerializer(serializers.ModelSerializer):
             'id', 'title', 'author', 'language', 'isbn',
             'book', 'book_detail', 'library_entry', 'total_pages',
             'format', 'file_size', 'original_filename', 'page_count', 'has_cover', 'source', 'source_id',
-            'position', 'progress', 'track_progress', 'last_opened_at',
+            'position', 'progress', 'overall_progress', 'bookmarks', 'track_progress', 'last_opened_at',
             'created_at', 'updated_at',
         ]
         # track_progress changes only through the `tracking` action (it has side effects,
@@ -82,6 +100,9 @@ class EBookSerializer(serializers.ModelSerializer):
 
     def get_total_pages(self, obj):
         return total_pages(obj)
+
+    def get_overall_progress(self, obj):
+        return overall_progress(obj)
 
     def validate_title(self, value):
         value = value.strip()
@@ -135,6 +156,8 @@ class EBookUploadSerializer(EBookSerializer):
         return cover
 
     def create(self, validated_data):
+        from apps.ebooks.progress import publish_cover_to_book
+
         uploaded = validated_data.pop('file')
         cover = validated_data.pop('cover_file', None)
 
@@ -148,4 +171,5 @@ class EBookUploadSerializer(EBookSerializer):
         if cover:
             ebook.cover.save(cover.name or 'cover.jpg', cover, save=False)
         ebook.save()
+        publish_cover_to_book(ebook)
         return ebook

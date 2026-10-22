@@ -29,6 +29,10 @@ class TempEbookStorage:
             patcher = mock.patch.object(EBook._meta.get_field(name), 'storage', storage)
             patcher.start()
             self.addCleanup(patcher.stop)
+        # Public copies of covers (catalog books) go to default storage
+        patcher = mock.patch('apps.ebooks.progress.default_storage', storage)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         super().setUp()
 
 
@@ -172,6 +176,89 @@ class EBookAPITests(TempEbookStorage, TestCase):
         self.assertIsNotNone(first)
         self.assertEqual(first, second)
         self.assertIsNone(EBook.objects.get(pk=ebook_id).track_progress)
+
+    def test_cover_is_shared_with_catalog_book_without_cover(self):
+        cover = SimpleUploadedFile('c.jpg', b'\xff\xd8jpeg', content_type='image/jpeg')
+        no_cover = Book.objects.create(title='Bez korice')
+        self.upload(make_pdf(), book=no_cover.id, cover_file=cover)
+        no_cover.refresh_from_db()
+        self.assertTrue(no_cover.cover_image.startswith('/media/book_covers/ebook-'))
+
+        # A catalog book that already has a cover keeps it
+        with_cover = Book.objects.create(title='Sa koricom', cover_image='https://example.com/c.jpg')
+        cover = SimpleUploadedFile('c.jpg', b'\xff\xd8jpeg', content_type='image/jpeg')
+        self.upload(make_pdf(), book=with_cover.id, cover_file=cover)
+        with_cover.refresh_from_db()
+        self.assertEqual(with_cover.cover_image, 'https://example.com/c.jpg')
+
+    def test_book_with_local_cover_can_still_be_edited(self):
+        book = Book.objects.create(title='Lokalna', cover_image='/media/book_covers/x.jpg')
+        res = self.client.patch(f'/api/books/{book.id}/', {'cover_image': '/media/book_covers/x.jpg', 'title': 'Lokalna 2'}, format='json')
+        self.assertEqual(res.status_code, 200, res.data)
+        res = self.client.patch(f'/api/books/{book.id}/', {'cover_image': 'http://192.168.1.5:8001/media/book_covers/x.jpg'}, format='json')
+        book.refresh_from_db()
+        self.assertEqual(book.cover_image, '/media/book_covers/x.jpg')
+        res = self.client.patch(f'/api/books/{book.id}/', {'cover_image': 'not a url'}, format='json')
+        self.assertEqual(res.status_code, 400)
+
+    # --- stickers (parallel reading threads) ---
+
+    def _tracked_pdf(self, pages=100):
+        ebook_id = self.upload(make_pdf(), page_count=pages).data['id']
+        self.client.post(f'/api/ebooks/{ebook_id}/tracking/', {'enabled': True}, format='json')
+        return ebook_id
+
+    def _page(self):
+        return UserBook.objects.get(user=self.user).current_page
+
+    def test_stickers_set_overall_progress_to_earliest(self):
+        ebook_id = self._tracked_pdf()
+        self.client.post(f'/api/ebooks/{ebook_id}/bookmarks/', {'label': 'Stari zavet', 'position': '30', 'progress': 0.3}, format='json')
+        res = self.client.post(f'/api/ebooks/{ebook_id}/bookmarks/', {'label': 'Novi zavet', 'position': '70', 'progress': 0.7}, format='json')
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.data['overall_progress'], 0.3)
+        self.assertEqual(len(res.data['bookmarks']), 2)
+        self.assertEqual(self._page(), 30)
+
+        # An earlier sticker pulls progress back
+        res = self.client.post(f'/api/ebooks/{ebook_id}/bookmarks/', {'label': 'Psalmi', 'position': '10', 'progress': 0.1}, format='json')
+        self.assertEqual(self._page(), 10)
+
+        # Removing it moves progress forward to the next earliest
+        psalmi = next(b for b in res.data['bookmarks'] if b['label'] == 'Psalmi')
+        self.client.delete(f"/api/ebooks/{ebook_id}/bookmarks/{psalmi['id']}/")
+        self.assertEqual(self._page(), 30)
+
+    def test_reading_from_a_sticker_moves_it(self):
+        ebook_id = self._tracked_pdf()
+        res = self.client.post(f'/api/ebooks/{ebook_id}/bookmarks/', {'label': 'Stari', 'position': '30', 'progress': 0.3}, format='json')
+        self.client.post(f'/api/ebooks/{ebook_id}/bookmarks/', {'label': 'Novi', 'position': '70', 'progress': 0.7}, format='json')
+        stari = res.data['bookmarks'][0]['id']
+
+        res = self.client.patch(f'/api/ebooks/{ebook_id}/', {'position': '45', 'progress': 0.45, 'bookmark': stari}, format='json')
+        moved = next(b for b in res.data['bookmarks'] if b['id'] == stari)
+        self.assertEqual((moved['position'], moved['progress']), ('45', 0.45))
+        self.assertEqual(res.data['overall_progress'], 0.45)
+        self.assertEqual(self._page(), 45)
+
+        # Reading without a sticker doesn't move any sticker or the overall progress
+        res = self.client.patch(f'/api/ebooks/{ebook_id}/', {'position': '90', 'progress': 0.9}, format='json')
+        self.assertEqual(res.data['overall_progress'], 0.45)
+        self.assertEqual(self._page(), 45)
+
+    def test_sticker_rename_and_validation(self):
+        ebook_id = self.upload(make_epub()).data['id']
+        res = self.client.post(f'/api/ebooks/{ebook_id}/bookmarks/', {'label': '  ', 'position': 'epubcfi(/6/2)'}, format='json')
+        self.assertEqual(res.status_code, 400)
+        res = self.client.post(f'/api/ebooks/{ebook_id}/bookmarks/', {'label': 'Matej 7', 'position': 'epubcfi(/6/2)'}, format='json')
+        bid = res.data['bookmarks'][0]['id']
+        self.assertIsNone(res.data['bookmarks'][0]['progress'])
+        res = self.client.patch(f'/api/ebooks/{ebook_id}/bookmarks/{bid}/', {'label': 'Matej 7:12'}, format='json')
+        self.assertEqual(res.data['bookmarks'][0]['label'], 'Matej 7:12')
+
+        other = APIClient()
+        other.force_authenticate(self.other)
+        self.assertEqual(other.delete(f'/api/ebooks/{ebook_id}/bookmarks/{bid}/').status_code, 404)
 
     def test_filter_by_book(self):
         book = Book.objects.create(title='Linked')

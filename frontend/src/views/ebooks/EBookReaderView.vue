@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, ALargeSmall, ListTree, X, ChevronLeft, ChevronRight, Library, PartyPopper, Quote, Brain, NotebookPen } from 'lucide-vue-next'
+import { ArrowLeft, ALargeSmall, ListTree, X, ChevronLeft, ChevronRight, Library, PartyPopper, Quote, Brain, NotebookPen, StickyNote } from 'lucide-vue-next'
 import { ebooksAPI } from '@/services/api'
 import { getCachedEbook, cacheEbook } from '@/utils/ebookCache'
 import { useReaderSettingsStore, READER_THEMES } from '@/stores/readerSettingsStore'
@@ -11,6 +11,7 @@ import EpubReader from '@/components/ebooks/EpubReader.vue'
 import PdfReader from '@/components/ebooks/PdfReader.vue'
 import ReaderSettingsPanel from '@/components/ebooks/ReaderSettingsPanel.vue'
 import CaptureSheet from '@/components/ebooks/CaptureSheet.vue'
+import StickersSheet from '@/components/ebooks/StickersSheet.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -61,6 +62,82 @@ const askForPages = computed(() => ebook.value?.format === 'epub' && !ebook.valu
 const mergeEbook = (data) => {
   // Keep the live position - the server copy may be a few seconds behind
   ebook.value = { ...ebook.value, ...data, position: ebook.value.position, progress: ebook.value.progress }
+  syncActiveSticker()
+}
+
+/* ---------- stickers: several reading threads in one book ---------- */
+
+const activeBookmarkId = ref(null) // the sticker being read from - it follows the reader
+const stickersMode = ref(null) // null | 'manage' | 'continue'
+const stickersBusy = ref(false)
+const bookmarks = computed(() => ebook.value?.bookmarks || [])
+const activeBookmark = computed(() => bookmarks.value.find((b) => b.id === activeBookmarkId.value) || null)
+
+// Keep the local copy of the active sticker at the live position
+const syncActiveSticker = () => {
+  const active = activeBookmark.value
+  if (!active || !location.value.position) return
+  active.position = location.value.position
+  if (location.value.progress != null) active.progress = location.value.progress
+}
+
+// The book is only as far as its earliest sticker
+const overallProgress = computed(() => {
+  const known = bookmarks.value.map((b) => b.progress).filter((p) => p != null)
+  return known.length ? Math.min(...known) : location.value.progress
+})
+
+const goToSticker = (bookmark) => {
+  activeBookmarkId.value = bookmark.id
+  stickersMode.value = null
+  reader.value?.goToPosition(bookmark.position)
+}
+
+const continueFromLast = () => {
+  activeBookmarkId.value = null
+  stickersMode.value = null
+}
+
+const stickerRequest = async (request, successMessage) => {
+  stickersBusy.value = true
+  try {
+    const { data } = await request()
+    mergeEbook(data)
+    if (successMessage) addToast(successMessage)
+    return data
+  } catch {
+    addToast('Could not update stickers', 'error')
+    return null
+  } finally {
+    stickersBusy.value = false
+  }
+}
+
+const addSticker = async (label) => {
+  await savePosition()
+  const before = new Set(bookmarks.value.map((b) => b.id))
+  const data = await stickerRequest(() => ebooksAPI.addBookmark(ebook.value.id, {
+    label,
+    position: location.value.position,
+    progress: location.value.progress,
+  }), 'Sticker added')
+  // You're reading here, so the new sticker follows you
+  const created = data?.bookmarks.find((b) => !before.has(b.id))
+  if (created) activeBookmarkId.value = created.id
+}
+
+const renameSticker = (bookmark, label) =>
+  stickerRequest(() => ebooksAPI.updateBookmark(ebook.value.id, bookmark.id, { label }))
+
+const deleteSticker = async (bookmark) => {
+  if (bookmark.id === activeBookmarkId.value) activeBookmarkId.value = null
+  await stickerRequest(() => ebooksAPI.deleteBookmark(ebook.value.id, bookmark.id), 'Sticker removed')
+}
+
+const openStickers = () => {
+  showSettings.value = false
+  showToc.value = false
+  stickersMode.value = 'manage'
 }
 
 const answerTracking = async (enabled) => {
@@ -73,6 +150,7 @@ const answerTracking = async (enabled) => {
     })
     mergeEbook(data)
     showTrackPrompt.value = false
+    if (bookmarks.value.length) stickersMode.value = 'continue'
     chromeTimer = setTimeout(() => {
       if (!showSettings.value && !showToc.value) showChrome.value = false
     }, 1500)
@@ -90,6 +168,11 @@ const answerTracking = async (enabled) => {
 
 const maybeOfferFinish = (loc) => {
   if (!isTracking.value || finishDismissed || ebook.value.library_entry.status === 'read') return
+  // With stickers, every reading thread has to reach the end
+  if (bookmarks.value.length) {
+    if (overallProgress.value != null && overallProgress.value >= 0.985) showFinishPrompt.value = true
+    return
+  }
   if (loc.atEnd || (loc.progress != null && loc.progress >= 0.985)) {
     showFinishPrompt.value = true
   }
@@ -222,6 +305,7 @@ const savePosition = async () => {
   lastSaved = position
   const payload = { position }
   if (progress != null) payload.progress = progress
+  if (activeBookmarkId.value) payload.bookmark = activeBookmarkId.value
   try {
     await ebooksAPI.update(ebook.value.id, payload)
   } catch {
@@ -235,6 +319,7 @@ const handleRelocated = (loc) => {
     progress: loc.progress ?? location.value.progress,
     label: loc.label || '',
   }
+  syncActiveSticker()
   lastActivity = Date.now()
   if (sessionStartProgress == null) sessionStartProgress = location.value.progress
   clearTimeout(saveTimer)
@@ -262,6 +347,10 @@ const handleReady = (info) => {
   sessionTimer = setInterval(tickSession, TICK_SECONDS * 1000)
   if (ebook.value.track_progress == null) {
     setTimeout(() => { showTrackPrompt.value = true }, 600)
+    return
+  }
+  if (bookmarks.value.length) {
+    stickersMode.value = 'continue'
     return
   }
   chromeTimer = setTimeout(() => {
@@ -293,8 +382,17 @@ const openSettings = () => {
   showSettings.value = !showSettings.value
 }
 
+// Jumping elsewhere (contents, slider) leaves the current reading thread:
+// the sticker stays where it was instead of following to the new place
+const detachSticker = () => {
+  if (!activeBookmarkId.value) return
+  activeBookmarkId.value = null
+  addToast('Sticker kept in place - you jumped to another part')
+}
+
 const goToTocItem = (item) => {
   showToc.value = false
+  detachSticker()
   reader.value?.goToHref(item.href)
 }
 
@@ -305,10 +403,18 @@ const handleSliderInput = (e) => {
 const handleSliderChange = (e) => {
   const value = Number(e.target.value) / 1000
   sliderValue.value = null
+  detachSticker()
   reader.value?.goToProgress(value)
 }
 
 const handleKey = (e) => {
+  if (stickersMode.value) {
+    if (e.key === 'Escape') {
+      if (stickersMode.value === 'continue') continueFromLast()
+      else stickersMode.value = null
+    }
+    return
+  }
   if (captureMode.value) {
     if (e.key === 'Escape') captureMode.value = null
     return
@@ -433,6 +539,13 @@ onBeforeUnmount(() => {
               <p class="text-sm font-bold truncate">{{ ebook.title }}</p>
               <p class="text-[11px] truncate" :style="{ color: theme.muted }">{{ ebook.author }}</p>
             </div>
+            <button class="relative p-2.5 rounded-xl hover:opacity-70" title="Stickers" @click="openStickers">
+              <StickyNote :size="20" />
+              <span
+                v-if="bookmarks.length"
+                class="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-[10px] font-black text-black flex items-center justify-center"
+              >{{ bookmarks.length }}</span>
+            </button>
             <button v-if="ebook.format === 'epub' && toc.length" class="p-2.5 rounded-xl hover:opacity-70" title="Contents" @click="openToc">
               <ListTree :size="20" />
             </button>
@@ -457,7 +570,11 @@ onBeforeUnmount(() => {
         >
           <div class="px-4 sm:px-6 py-3 max-w-3xl mx-auto">
             <div class="flex items-center justify-between text-[11px] mb-2 gap-3" :style="{ color: theme.muted }">
-              <span class="truncate">{{ location.label || ' ' }}</span>
+              <span class="truncate">
+                <span v-if="activeBookmark" class="inline-flex items-center gap-1 mr-1.5 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-400 font-bold">
+                  <StickyNote :size="10" /> {{ activeBookmark.label }}
+                </span>{{ location.label || ' ' }}
+              </span>
               <span class="shrink-0 tabular-nums">
                 {{ sliderValue != null ? `${Math.round(sliderValue / 10)}%` : progressPercent != null ? `${progressPercent}%` : '' }}
                 <template v-if="sliderValue == null && printPage"> · p. {{ printPage }}/{{ ebook.total_pages }}</template>
@@ -514,12 +631,38 @@ onBeforeUnmount(() => {
             :selection="captureSelection"
             :ebook="ebook"
             :page-number="capturePage"
-            :chapter="location.label"
+            :chapter="captureSelection?.chapter ?? (ebook.format === 'epub' ? location.label : '')"
             :theme="theme"
             class="w-full sm:w-[30rem]"
             @close="captureMode = null"
             @saved="handleCaptured"
             @ebook-updated="mergeEbook"
+          />
+        </div>
+      </Transition>
+
+      <!-- Stickers: manage, or choose where to continue on open -->
+      <Transition name="reader-sheet">
+        <div v-if="stickersMode" class="absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30" @click="stickersMode === 'continue' ? continueFromLast() : (stickersMode = null)">
+          <StickersSheet
+            :key="stickersMode"
+            :mode="stickersMode"
+            :bookmarks="bookmarks"
+            :active-id="activeBookmarkId"
+            :current-label="location.label"
+            :last-progress="location.progress"
+            :total-pages="ebook.total_pages"
+            :format="ebook.format"
+            :theme="theme"
+            :busy="stickersBusy"
+            class="w-full sm:w-[30rem]"
+            @close="stickersMode === 'continue' ? continueFromLast() : (stickersMode = null)"
+            @go="goToSticker"
+            @add="addSticker"
+            @rename="renameSticker"
+            @delete="deleteSticker"
+            @unfollow="activeBookmarkId = null"
+            @continue-last="continueFromLast"
           />
         </div>
       </Transition>

@@ -2,8 +2,12 @@
 Connects an e-book's reading position to the user's library entry (UserBook):
 progress sync, finishing a book and logging reading sessions.
 """
+import uuid
 from datetime import timedelta
 
+from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.utils import timezone
 
@@ -42,6 +46,26 @@ def find_or_create_catalog_book(ebook):
             author, _ = Author.objects.get_or_create(name=name)
             book.authors.add(author)
     return book
+
+
+def publish_cover_to_book(ebook):
+    """
+    Give the catalog book the e-book's cover when it has none, so it shows in the
+    library/vault too. Covers aren't sensitive, so a public copy goes to MEDIA storage.
+    """
+    book = ebook.book
+    if not book or book.cover_image or not ebook.cover:
+        return False
+    try:
+        with ebook.cover.open('rb') as handle:
+            data = handle.read()
+    except (FileNotFoundError, OSError):
+        return False
+    ext = ebook.cover.name.rsplit('.', 1)[-1].lower() if '.' in ebook.cover.name else 'jpg'
+    name = default_storage.save(f'book_covers/ebook-{uuid.uuid4().hex}.{ext}', ContentFile(data))
+    book.cover_image = f'{settings.MEDIA_URL}{name}'
+    book.save(update_fields=['cover_image'])
+    return True
 
 
 def get_user_book(ebook):
@@ -85,6 +109,7 @@ def enable_tracking(ebook, book=None, pages=None):
 
     ebook.track_progress = True
     ebook.save(update_fields=['book', 'track_progress', 'updated_at'])
+    publish_cover_to_book(ebook)
 
     user_book = get_user_book(ebook)
     today = timezone.now().date()
@@ -104,24 +129,40 @@ def enable_tracking(ebook, book=None, pages=None):
     return user_book
 
 
+def bookmark_progresses(ebook):
+    return [p for p in ebook.bookmarks.values_list('progress', flat=True) if p is not None]
+
+
+def overall_progress(ebook):
+    """With stickers (parallel reading threads), the book is only as far as the earliest one."""
+    progresses = bookmark_progresses(ebook)
+    return min(progresses) if progresses else ebook.progress
+
+
 def sync_progress(ebook):
     """
-    Copy the e-book position to UserBook.current_page. Only moves forward
-    ("furthest page read"), so flipping back to look something up doesn't lose progress.
+    Copy the reading position to UserBook.current_page.
+    - No stickers: only moves forward ("furthest page read"), so flipping back to look
+      something up doesn't lose progress.
+    - With stickers: follows the earliest sticker exactly (it can go back when an
+      earlier sticker is added).
     Uses a queryset update on purpose: the post_save progress signal would otherwise
     post a feed item on every page turn.
     """
     if not ebook.track_progress or not ebook.book_id:
         return
-    page = page_for_progress(ebook, ebook.progress)
+    progresses = bookmark_progresses(ebook)
+    page = page_for_progress(ebook, min(progresses) if progresses else ebook.progress)
     if not page:
         return
-    UserBook.objects.filter(
+    entries = UserBook.objects.filter(
         user=ebook.user,
         book_id=ebook.book_id,
         replaced_by__isnull=True,
-        current_page__lt=page,
-    ).exclude(status='read').update(current_page=page, updated_at=timezone.now())
+    ).exclude(status='read')
+    if not progresses:
+        entries = entries.filter(current_page__lt=page)
+    entries.exclude(current_page=page).update(current_page=page, updated_at=timezone.now())
 
 
 def finish(ebook):

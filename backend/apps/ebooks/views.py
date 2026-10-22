@@ -17,8 +17,8 @@ from apps.ebooks import progress as ebook_progress
 from apps.ebooks import public_domain
 from apps.ebooks.serializers import detect_format
 
-from apps.ebooks.models import EBook
-from apps.ebooks.serializers import EBookSerializer, EBookUploadSerializer
+from apps.ebooks.models import EBook, EBookBookmark
+from apps.ebooks.serializers import EBookBookmarkSerializer, EBookSerializer, EBookUploadSerializer
 
 CONTENT_TYPES = {
     EBook.FORMAT_EPUB: 'application/epub+zip',
@@ -53,7 +53,7 @@ class EBookViewSet(viewsets.ModelViewSet):
         return (
             queryset
             .select_related('book')
-            .prefetch_related('book__authors')
+            .prefetch_related('book__authors', 'bookmarks')
             # Most recent activity first: last opened, or upload time if never opened
             .annotate(activity=Coalesce('last_opened_at', 'created_at'))
             .order_by('-activity')
@@ -72,6 +72,15 @@ class EBookViewSet(viewsets.ModelViewSet):
         if 'position' in serializer.validated_data:
             extra['last_opened_at'] = timezone.now()
         ebook = serializer.save(**extra)
+        # Reading from a sticker: the sticker follows the reader
+        bookmark_id = self.request.data.get('bookmark')
+        if bookmark_id and 'position' in serializer.validated_data:
+            fields = {'position': ebook.position, 'updated_at': timezone.now()}
+            if 'progress' in serializer.validated_data:
+                fields['progress'] = ebook.progress
+            EBookBookmark.objects.filter(pk=bookmark_id, ebook=ebook).update(**fields)
+        if serializer.validated_data.get('book'):
+            ebook_progress.publish_cover_to_book(ebook)
         if 'progress' in serializer.validated_data:
             ebook_progress.sync_progress(ebook)
 
@@ -137,6 +146,38 @@ class EBookViewSet(viewsets.ModelViewSet):
         ebook.refresh_from_db()
         return Response(EBookSerializer(ebook, context={'request': request}).data)
 
+    @action(detail=True, methods=['get', 'post'])
+    def bookmarks(self, request, pk=None):
+        """List stickers, or add one: {label, position, progress}."""
+        ebook = self.get_object()
+        if request.method == 'GET':
+            return Response(EBookBookmarkSerializer(ebook.bookmarks.all(), many=True).data)
+        if ebook.bookmarks.count() >= 50:
+            return Response({'detail': 'Too many stickers in this book.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = EBookBookmarkSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(ebook=ebook)
+        ebook_progress.sync_progress(ebook)
+        ebook = self.get_object()  # reload - the bookmarks list was prefetched before the change
+        return Response(EBookSerializer(ebook, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['patch', 'delete'], url_path=r'bookmarks/(?P<bookmark_id>\d+)')
+    def bookmark_detail(self, request, pk=None, bookmark_id=None):
+        """Rename/move a sticker (PATCH) or remove it (DELETE)."""
+        ebook = self.get_object()
+        bookmark = ebook.bookmarks.filter(pk=bookmark_id).first()
+        if bookmark is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        if request.method == 'DELETE':
+            bookmark.delete()
+        else:
+            serializer = EBookBookmarkSerializer(bookmark, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        ebook_progress.sync_progress(ebook)
+        ebook = self.get_object()  # reload - the bookmarks list was prefetched before the change
+        return Response(EBookSerializer(ebook, context={'request': request}).data)
+
     @action(detail=True, methods=['post'], url_path='link-catalog')
     def link_catalog(self, request, pk=None):
         """Make sure the file is linked to a catalog book (needed for quotes/notes/words made in the reader)."""
@@ -144,6 +185,7 @@ class EBookViewSet(viewsets.ModelViewSet):
         if not ebook.book_id:
             ebook.book = ebook_progress.find_or_create_catalog_book(ebook)
             ebook.save(update_fields=['book', 'updated_at'])
+        ebook_progress.publish_cover_to_book(ebook)
         return Response(EBookSerializer(ebook, context={'request': request}).data)
 
     @action(detail=True, methods=['post'])

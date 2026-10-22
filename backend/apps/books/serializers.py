@@ -1,6 +1,30 @@
+from urllib.parse import urlparse
+
 from django.utils.text import slugify
 from rest_framework import serializers
 from apps.books.models import Author, Publisher, Genre, Tag, Book
+
+
+class CoverImageField(serializers.CharField):
+    """
+    Cover URL: an absolute http(s) URL, or a site-relative /media/ path
+    (covers taken from the user's own e-book files are stored locally).
+    """
+    def __init__(self, **kwargs):
+        kwargs.setdefault('max_length', 200)
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('allow_blank', True)
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        # The app may send our own cover back as an absolute URL (mobile app host) - keep it relative
+        path = urlparse(value).path if value.startswith('http') else ''
+        if path.startswith('/media/book_covers/'):
+            value = path
+        if value and not value.startswith('/media/'):
+            serializers.URLField().run_validation(value)
+        return value
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -209,6 +233,7 @@ class BookListSerializer(serializers.ModelSerializer):
 
 class BookDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for single book view"""
+    cover_image = CoverImageField()
     authors = AuthorSerializer(many=True, read_only=True)
     publisher = PublisherSerializer(read_only=True)
     genres = GenreSerializer(many=True, read_only=True)
@@ -384,6 +409,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
 class BookCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating books"""
+    cover_image = CoverImageField()
     author_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Author.objects.all(),

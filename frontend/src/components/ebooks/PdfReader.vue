@@ -287,7 +287,13 @@ const handleSelectionChange = () => {
     let node = range.startContainer
     if (node.nodeType !== 1) node = node.parentElement
     const page = Number(node?.closest('[data-page]')?.dataset.page) || currentPage.value
-    emit('selection', { ...info, page })
+    // Chapter = last heading recognised before the selection (among the loaded pages)
+    let chapter = ''
+    for (const heading of scroller.value.querySelectorAll('.pdf-reflow-page h2')) {
+      if (!(heading.compareDocumentPosition(range.startContainer) & Node.DOCUMENT_POSITION_FOLLOWING)) break
+      chapter = heading.textContent.replace(/\s+/g, ' ').trim().slice(0, 200)
+    }
+    emit('selection', { ...info, page, chapter })
   }, 300)
 }
 
@@ -360,7 +366,9 @@ onBeforeUnmount(() => {
   doc?.destroy()
 })
 
-defineExpose({ next, prev, goToPage, goToProgress, clearSelection })
+const goToPosition = (position) => goToPage(parseInt(position, 10) || 1)
+
+defineExpose({ next, prev, goToPage, goToProgress, goToPosition, clearSelection })
 </script>
 
 <template>

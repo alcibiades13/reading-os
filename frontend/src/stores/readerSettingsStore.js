@@ -3,8 +3,8 @@ import { reactive, watch } from 'vue'
 
 // E-book reader appearance - saved per device, like the app theme
 export const READER_THEMES = {
-  dark: { label: 'Dark', bg: '#18181b', fg: '#d4d4d8', muted: '#71717a', link: '#818cf8' },
-  black: { label: 'Black', bg: '#000000', fg: '#a1a1aa', muted: '#52525b', link: '#818cf8' },
+  dark: { label: 'Dark', bg: '#18181b', fg: '#e4e4e7', muted: '#71717a', link: '#818cf8' },
+  black: { label: 'Black', bg: '#000000', fg: '#e4e4e7', muted: '#71717a', link: '#818cf8' },
   light: { label: 'Light', bg: '#fafafa', fg: '#27272a', muted: '#71717a', link: '#4f46e5' },
   sepia: { label: 'Sepia', bg: '#f4ecd8', fg: '#5b4636', muted: '#8a7560', link: '#9a5b2b' },
 }
