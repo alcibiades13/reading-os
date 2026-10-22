@@ -15,9 +15,11 @@ from rest_framework import status
 from apps.books.models import Book
 from apps.ebooks import progress as ebook_progress
 from apps.ebooks import public_domain
+from apps.ebooks import capture as ebook_capture
+from apps.ebooks.definitions import DefinitionUnavailable, suggest_definition
 from apps.ebooks.serializers import detect_format
 
-from apps.ebooks.models import EBook, EBookBookmark
+from apps.ebooks.models import EBook, EBookAnnotation, EBookBookmark
 from apps.ebooks.serializers import EBookBookmarkSerializer, EBookSerializer, EBookUploadSerializer
 
 CONTENT_TYPES = {
@@ -177,6 +179,61 @@ class EBookViewSet(viewsets.ModelViewSet):
         ebook_progress.sync_progress(ebook)
         ebook = self.get_object()  # reload - the bookmarks list was prefetched before the change
         return Response(EBookSerializer(ebook, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def capture(self, request, pk=None):
+        """
+        Save selected text as a quote / study note / vocabulary word, with its place in the book.
+        Body: {kind: quote|note|word, data: {...fields}, position, text, client_id}
+        """
+        ebook = self.get_object()
+        data = request.data.get('data') or {}
+        if not isinstance(data, dict):
+            return Response({'detail': 'data must be an object.'}, status=status.HTTP_400_BAD_REQUEST)
+        annotation, created = ebook_capture.capture(
+            ebook,
+            kind=request.data.get('kind'),
+            data=data,
+            position=request.data.get('position', ''),
+            text=request.data.get('text', ''),
+            client_id=str(request.data.get('client_id') or ''),
+            request=request,
+        )
+        ebook = self.get_object()
+        return Response(
+            {
+                'annotation': (ebook_capture.describe([annotation]) or [None])[0],
+                'ebook': EBookSerializer(ebook, context={'request': request}).data,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=['get'])
+    def annotations(self, request, pk=None):
+        """Highlights for the reader: captured quotes/notes/words in this e-book."""
+        ebook = self.get_object()
+        return Response(ebook_capture.describe(list(ebook.annotations.all())))
+
+    @action(detail=False, methods=['get'], url_path='annotations/index')
+    def annotations_index(self, request):
+        """Which quotes/notes/words came from an e-book (for "open in e-book" links). Param: kind."""
+        queryset = EBookAnnotation.objects.filter(ebook__user=request.user)
+        kind = request.query_params.get('kind')
+        if kind:
+            queryset = queryset.filter(kind=kind)
+        return Response(list(queryset.values('kind', 'object_id', 'ebook_id', 'position')))
+
+    @action(detail=False, methods=['post'])
+    def define(self, request):
+        """Suggest a definition of a word as used in its sentence: {word, context}."""
+        word = str(request.data.get('word', '')).strip()
+        if not word:
+            return Response({'detail': 'word is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            definition = suggest_definition(word, str(request.data.get('context', '')))
+        except DefinitionUnavailable as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response({'definition': definition})
 
     @action(detail=True, methods=['post'], url_path='link-catalog')
     def link_catalog(self, request, pk=None):

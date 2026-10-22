@@ -1,9 +1,11 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Plus, Search, Tablet, Pencil, Trash2, Lock, Link2, RefreshCw, CheckCircle2, Library, Landmark } from 'lucide-vue-next'
+import { Plus, Search, Tablet, Pencil, Trash2, Lock, Link2, RefreshCw, CheckCircle2, Library, Landmark, CloudOff } from 'lucide-vue-next'
 import { ebooksAPI } from '@/services/api'
 import { removeCachedEbook } from '@/utils/ebookCache'
+import { kvGet, kvSet } from '@/utils/offlineStore'
+import { isNetworkError } from '@/stores/offlineSyncStore'
 import { getBookUrl } from '@/utils/bookUrl'
 import { useToast } from '@/composables/useToast'
 import EBookCover from '@/components/ebooks/EBookCover.vue'
@@ -54,13 +56,29 @@ const loadUsage = async () => {
   }
 }
 
+const offline = ref(false)
+
+// Keep the device copy current (uploads, edits, deletes) so the list works offline
+watch(ebooks, (list) => {
+  if (!loading.value && !offline.value) kvSet('ebooks:list', list)
+}, { deep: true })
+
 const loadEbooks = async () => {
   loading.value = true
   try {
     const { data } = await ebooksAPI.list({ page_size: 200 })
     ebooks.value = data?.results || data || []
-  } catch {
-    addToast('Could not load your e-books', 'error')
+    offline.value = false
+    kvSet('ebooks:list', ebooks.value)
+  } catch (err) {
+    // No connection: show the list saved on this device (opened books read offline)
+    const cached = isNetworkError(err) ? await kvGet('ebooks:list') : null
+    if (cached) {
+      ebooks.value = cached
+      offline.value = true
+    } else {
+      addToast('Could not load your e-books', 'error')
+    }
   } finally {
     loading.value = false
   }
@@ -163,6 +181,11 @@ const handleImported = (ebook) => {
       <PublicDomainCatalog v-if="tab === 'classics'" @imported="handleImported" @open="(id) => router.push(`/ebooks/${id}/read`)" />
 
       <template v-else>
+      <div v-if="offline" class="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
+        <CloudOff :size="16" class="shrink-0" />
+        You're offline. Books you've opened on this device can still be read - your place, quotes and notes sync when you're back online.
+      </div>
+
       <!-- Search + storage -->
       <div v-if="ebooks.length" class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-6">
         <div class="relative flex-1 max-w-md">

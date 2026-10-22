@@ -7,14 +7,16 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image, Download, Share2, Camera, Loader2 } from 'lucide-vue-next'
+import { Plus, BookOpen, Edit, Trash2, Star, Copy, Bookmark, MoreHorizontal, Sparkles, Type, Search, AlignLeft, Hash, Globe, Lock, Save, ExternalLink, X, Filter, Image, Download, Share2, Camera, Loader2, Tablet } from 'lucide-vue-next'
 import { quotesAPI } from '@/services/api'
 import { downloadBlob } from '@/utils/downloadFile'
 import { getBookUrl } from '@/utils/bookUrl'
 import QuoteCardDesigner from '@/components/quotes/QuoteCardDesigner.vue'
+import { useEbookLinks } from '@/composables/useEbookLinks'
 import { useQuoteScanner } from '@/composables/useQuoteScanner'
 
 const router = useRouter()
+const { ebookLink } = useEbookLinks('quote')
 const route = useRoute()
 const quotesStore = useQuotesStore()
 
@@ -1082,6 +1084,15 @@ const handleEditQuote = async () => {
                   <Copy :size="18" class="sm:hidden" />
                   <Copy :size="20" class="hidden sm:block" />
                 </button>
+                <router-link
+                  v-if="ebookLink(quote.id)"
+                  :to="ebookLink(quote.id)"
+                  title="Open in e-book"
+                  class="p-1.5 sm:p-2 rounded-full text-zinc-500 hover:text-indigo-400 hover:bg-zinc-800 transition-all"
+                >
+                  <Tablet :size="18" class="sm:hidden" />
+                  <Tablet :size="20" class="hidden sm:block" />
+                </router-link>
                 <button
                   @click="openDesigner(quote)"
                   class="p-1.5 sm:p-2 rounded-full text-zinc-500 hover:text-indigo-400 hover:bg-zinc-800 transition-all"

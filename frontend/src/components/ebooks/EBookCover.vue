@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { BookOpen } from 'lucide-vue-next'
 import { ebooksAPI } from '@/services/api'
+import { kvGet, kvSet } from '@/utils/offlineStore'
 
 // Covers are private files (need the auth header), so they're fetched as blobs.
 // Object URLs are cached for the whole session.
@@ -18,8 +19,14 @@ const load = async () => {
   if (ebook.has_cover) {
     if (!coverUrls.has(ebook.id)) {
       coverUrls.set(ebook.id, ebooksAPI.cover(ebook.id)
-        .then(({ data }) => URL.createObjectURL(data))
-        .catch(() => null))
+        .then(({ data }) => {
+          kvSet(`cover:${ebook.id}`, data) // available offline
+          return URL.createObjectURL(data)
+        })
+        .catch(async () => {
+          const cached = await kvGet(`cover:${ebook.id}`)
+          return cached ? URL.createObjectURL(cached) : null
+        }))
     }
     src.value = await coverUrls.get(ebook.id)
   }

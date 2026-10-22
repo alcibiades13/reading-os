@@ -260,6 +260,68 @@ class EBookAPITests(TempEbookStorage, TestCase):
         other.force_authenticate(self.other)
         self.assertEqual(other.delete(f'/api/ebooks/{ebook_id}/bookmarks/{bid}/').status_code, 404)
 
+    # --- capture from the reader (quotes / notes / words + highlights) ---
+
+    def _capture(self, ebook_id, kind, data, client_id='', position='epubcfi(/6/4!/4/2,/1:0,/1:10)', text='Blaženi'):
+        return self.client.post(f'/api/ebooks/{ebook_id}/capture/', {
+            'kind': kind, 'data': data, 'position': position, 'text': text, 'client_id': client_id,
+        }, format='json')
+
+    def test_capture_creates_objects_with_highlights(self):
+        from apps.reading.models import Quote, VocabularyWord
+        from apps.reading.models_study import StudyNote
+        ebook_id = self.upload(make_epub()).data['id']
+
+        quote = self._capture(ebook_id, 'quote', {'text': 'Blaženi krotki', 'chapter': 'Matej 5'})
+        self.assertEqual(quote.status_code, 201, quote.data)
+        self.assertIsNotNone(quote.data['ebook']['book'])  # linked to the catalog on first capture
+        note = self._capture(ebook_id, 'note', {'content': 'Misao', 'reference': 'Matej 5:5', 'note_type': 'insight'})
+        self.assertEqual(note.status_code, 201, note.data)
+        word = self._capture(ebook_id, 'word', {'word': 'krotki', 'definition': 'blagi', 'context': 'Blaženi krotki.'})
+        self.assertEqual(word.status_code, 201, word.data)
+
+        q = Quote.objects.get(user=self.user)
+        self.assertEqual((q.text, q.chapter, q.book_id), ('Blaženi krotki', 'Matej 5', quote.data['ebook']['book']))
+        self.assertEqual(StudyNote.objects.get(user=self.user).reference, 'Matej 5:5')
+        self.assertEqual(VocabularyWord.objects.get(user=self.user).definition, 'blagi')
+
+        highlights = self.client.get(f'/api/ebooks/{ebook_id}/annotations/').data
+        self.assertEqual([h['kind'] for h in highlights], ['quote', 'note', 'word'])
+        self.assertEqual(highlights[2]['title'], 'krotki')
+        self.assertEqual(highlights[1]['reference'], 'Matej 5:5')
+
+        index = self.client.get('/api/ebooks/annotations/index/?kind=quote').data
+        self.assertEqual(index, [{'kind': 'quote', 'object_id': q.id, 'ebook_id': ebook_id, 'position': 'epubcfi(/6/4!/4/2,/1:0,/1:10)'}])
+
+    def test_capture_replay_is_idempotent(self):
+        from apps.reading.models import Quote
+        ebook_id = self.upload(make_epub()).data['id']
+        first = self._capture(ebook_id, 'quote', {'text': 'Jednom'}, client_id='abc-123')
+        again = self._capture(ebook_id, 'quote', {'text': 'Jednom'}, client_id='abc-123')
+        self.assertEqual((first.status_code, again.status_code), (201, 200))
+        self.assertEqual(Quote.objects.filter(user=self.user).count(), 1)
+
+    def test_deleting_quote_removes_highlight(self):
+        from apps.reading.models import Quote
+        ebook_id = self.upload(make_epub()).data['id']
+        self._capture(ebook_id, 'quote', {'text': 'Prolazno'})
+        Quote.objects.get(user=self.user).delete()
+        self.assertEqual(self.client.get(f'/api/ebooks/{ebook_id}/annotations/').data, [])
+
+    def test_capture_validation_errors(self):
+        ebook_id = self.upload(make_epub()).data['id']
+        self.assertEqual(self._capture(ebook_id, 'poem', {'text': 'x'}).status_code, 400)
+        self.assertEqual(self._capture(ebook_id, 'word', {'word': 'x'}).status_code, 400)  # definition required
+
+    def test_define_suggests_and_reports_outage(self):
+        from apps.ebooks.definitions import DefinitionUnavailable
+        with mock.patch('apps.ebooks.views.suggest_definition', return_value='blag, smiren') as suggest:
+            res = self.client.post('/api/ebooks/define/', {'word': 'krotki', 'context': 'Blaženi krotki.'}, format='json')
+        self.assertEqual(res.data, {'definition': 'blag, smiren'})
+        suggest.assert_called_once_with('krotki', 'Blaženi krotki.')
+        with mock.patch('apps.ebooks.views.suggest_definition', side_effect=DefinitionUnavailable('down')):
+            self.assertEqual(self.client.post('/api/ebooks/define/', {'word': 'x'}, format='json').status_code, 503)
+
     def test_filter_by_book(self):
         book = Book.objects.create(title='Linked')
         self.upload(make_pdf(), book=book.id)

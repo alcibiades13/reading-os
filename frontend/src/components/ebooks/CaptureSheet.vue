@@ -1,23 +1,26 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Quote, Brain, NotebookPen, X, Loader2 } from 'lucide-vue-next'
-import { ebooksAPI, quotesAPI, vocabularyAPI, studyNotesAPI } from '@/services/api'
+import { Quote, Brain, NotebookPen, X, Loader2, Sparkles } from 'lucide-vue-next'
+import { ebooksAPI } from '@/services/api'
 import { cleanWord } from '@/utils/textContext'
+import { useOfflineSyncStore, isNetworkError } from '@/stores/offlineSyncStore'
 
 /**
  * Turns text selected in the reader into a Quote, a Vocabulary word or a Study note,
- * linked to the e-book's catalog book.
+ * saved together with its place in the book (shown as a highlight). Works offline:
+ * the capture is queued and sent when the connection returns.
  */
 const props = defineProps({
   mode: { type: String, required: true }, // 'quote' | 'word' | 'note'
-  selection: { type: Object, required: true }, // { text, context }
+  selection: { type: Object, required: true }, // { text, context, cfi?, page? }
   ebook: { type: Object, required: true },
   pageNumber: { type: Number, default: null },
   chapter: { type: String, default: '' },
   theme: { type: Object, required: true },
 })
 
-const emit = defineEmits(['close', 'saved', 'ebook-updated'])
+const emit = defineEmits(['close', 'saved'])
+const sync = useOfflineSyncStore()
 
 const NOTE_TYPES = [
   { id: 'note', label: 'Note' },
@@ -36,6 +39,9 @@ const quoteNote = ref('')
 const word = ref(cleanWord(props.selection.text).slice(0, 200))
 const definition = ref('')
 const context = ref(props.selection.context)
+const suggesting = ref(false)
+const suggestError = ref('')
+const suggested = ref(false)
 // Where in the book - detected chapter, editable (e.g. add a verse: "Matej 7:12")
 const reference = ref(props.chapter || (props.pageNumber ? `Page ${props.pageNumber}` : ''))
 // Note
@@ -64,9 +70,33 @@ const inputStyle = computed(() => ({
   color: props.theme.fg,
 }))
 
+// What the word means in this sentence (Gemini) - a suggestion the user can edit
+const suggestDefinition = async (auto = false) => {
+  if (!word.value.trim() || suggesting.value) return
+  suggesting.value = true
+  suggestError.value = ''
+  try {
+    const { data } = await ebooksAPI.define(word.value.trim(), context.value.trim())
+    // The automatic suggestion never overwrites what the user started typing
+    if (!auto || !definition.value.trim()) {
+      definition.value = data.definition
+      suggested.value = true
+    }
+  } catch (err) {
+    suggestError.value = isNetworkError(err)
+      ? 'Suggestions need a connection - type the meaning yourself.'
+      : err?.response?.data?.detail || 'Could not suggest a definition.'
+  } finally {
+    suggesting.value = false
+  }
+}
+
 onMounted(() => {
   // Put the cursor where the user has to type
-  if (props.mode === 'word') definitionInput.value?.focus()
+  if (props.mode === 'word') {
+    definitionInput.value?.focus()
+    if (sync.online) suggestDefinition(true)
+  }
   if (props.mode === 'note') {
     const el = noteInput.value
     el?.focus()
@@ -74,59 +104,58 @@ onMounted(() => {
   }
 })
 
-// Quotes, notes and words belong to a catalog book - link the file on first capture
-const ensureCatalogBook = async () => {
-  if (props.ebook.book_detail) return props.ebook
-  const { data } = await ebooksAPI.linkCatalog(props.ebook.id)
-  emit('ebook-updated', data)
-  return data
+const buildData = () => {
+  const page = props.pageNumber || null
+  const chapter = reference.value.trim().slice(0, 100)
+  if (props.mode === 'quote') {
+    return { text: quoteText.value.trim(), note: quoteNote.value.trim(), chapter, page_number: page }
+  }
+  if (props.mode === 'word') {
+    return { word: word.value.trim(), definition: definition.value.trim(), context: context.value.trim(), page_number: page }
+  }
+  return {
+    note_type: noteType.value,
+    content: noteContent.value.trim(),
+    reference: (chapter || (page ? `Page ${page}` : props.ebook.title)).slice(0, 255),
+    page_number: page,
+    chapter,
+  }
 }
+
+// Shown as a highlight right away, even before the server has it
+const localAnnotation = (clientId, data, position) => ({
+  id: `local-${clientId}`,
+  kind: props.mode,
+  position,
+  text: props.selection.text,
+  title: props.mode === 'word' ? data.word : props.mode === 'quote' ? 'Quote' : 'Note',
+  body: props.mode === 'word' ? data.definition : props.mode === 'quote' ? data.note : data.content,
+  reference: data.reference || data.chapter || '',
+  pending: true,
+})
 
 const save = async () => {
   if (!canSave.value || saving.value) return
   saving.value = true
   error.value = ''
+  const clientId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  const position = props.selection.cfi || String(props.selection.page || props.pageNumber || '')
+  const data = buildData()
+  const body = { kind: props.mode, data, position, text: props.selection.text, client_id: clientId }
   try {
-    const ebook = await ensureCatalogBook()
-    const book = ebook.book_detail
-    const common = {
-      book: book.id,
-      book_title: book.title || ebook.title,
-      book_author: (book.authors || []).join(', ') || ebook.author,
-      page_number: props.pageNumber || null,
-    }
-    const chapter = reference.value.trim().slice(0, 100)
-
-    if (props.mode === 'quote') {
-      await quotesAPI.create({
-        ...common,
-        user_book: ebook.library_entry?.id || null,
-        text: quoteText.value.trim(),
-        note: quoteNote.value.trim(),
-        chapter,
-      })
-    } else if (props.mode === 'word') {
-      await vocabularyAPI.create({
-        ...common,
-        word: word.value.trim(),
-        definition: definition.value.trim(),
-        context: context.value.trim(),
-      })
+    const result = await sync.run(
+      () => ebooksAPI.capture(props.ebook.id, body),
+      { method: 'post', url: `/ebooks/${props.ebook.id}/capture/`, data: body },
+    )
+    if (result.queued) {
+      emit('saved', { kind: props.mode, queued: true, annotation: localAnnotation(clientId, data, position) })
     } else {
-      await studyNotesAPI.create({
-        book: book.id,
-        user_book: ebook.library_entry?.id || null,
-        note_type: noteType.value,
-        content: noteContent.value.trim(),
-        reference: (reference.value.trim() || (props.pageNumber ? `Page ${props.pageNumber}` : ebook.title)).slice(0, 255),
-        page_number: props.pageNumber || null,
-        chapter,
-      })
+      emit('saved', { kind: props.mode, annotation: result.data.annotation, ebook: result.data.ebook })
     }
-    emit('saved', props.mode)
   } catch (err) {
-    const data = err?.response?.data
-    const first = data && typeof data === 'object' ? Object.values(data)[0] : null
+    const detail = err?.response?.data
+    const inner = detail?.data && typeof detail.data === 'object' ? detail.data : detail
+    const first = inner && typeof inner === 'object' ? Object.values(inner)[0] : null
     error.value = (Array.isArray(first) ? first[0] : first) || 'Could not save. Please try again.'
   } finally {
     saving.value = false
@@ -173,14 +202,29 @@ const save = async () => {
         class="w-full rounded-xl px-3 py-2.5 text-lg font-serif font-bold outline-none border focus:border-indigo-500"
         :style="inputStyle"
       />
-      <textarea
-        ref="definitionInput"
-        v-model="definition"
-        rows="2"
-        placeholder="Definition / meaning *"
-        class="w-full rounded-xl px-3 py-2.5 text-sm outline-none border focus:border-indigo-500 resize-none"
-        :style="inputStyle"
-      />
+      <div class="relative">
+        <textarea
+          ref="definitionInput"
+          v-model="definition"
+          rows="3"
+          @input="suggested = false"
+          :placeholder="suggesting ? 'Looking up the meaning in this sentence…' : 'Definition / meaning *'"
+          class="w-full rounded-xl px-3 py-2.5 pr-11 text-sm outline-none border focus:border-indigo-500 resize-none"
+          :style="inputStyle"
+        />
+        <button
+          type="button"
+          class="absolute right-2 top-2 p-1.5 rounded-lg text-amber-400 hover:bg-amber-500/15 disabled:opacity-50"
+          title="Suggest the meaning in this sentence"
+          :disabled="suggesting || !word.trim()"
+          @click="suggestDefinition()"
+        >
+          <Loader2 v-if="suggesting" :size="16" class="animate-spin" />
+          <Sparkles v-else :size="16" />
+        </button>
+      </div>
+      <p v-if="suggestError" class="text-[11px] -mt-2 text-amber-400">{{ suggestError }}</p>
+      <p v-else-if="suggested && definition && !suggesting" class="text-[11px] -mt-2" :style="{ color: theme.muted }">Suggested by AI - check and edit before saving.</p>
       <div>
         <p class="text-[10px] font-black uppercase tracking-widest mb-1.5" :style="{ color: theme.muted }">Context</p>
         <textarea

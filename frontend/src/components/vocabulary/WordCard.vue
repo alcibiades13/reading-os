@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
-import { Star, Edit3, Trash2, Bookmark, RotateCcw } from 'lucide-vue-next'
+import { Star, Edit3, Trash2, Bookmark, RotateCcw, Tablet } from 'lucide-vue-next'
+import { useEbookLinks } from '@/composables/useEbookLinks'
 
 const props = defineProps({
   word: {
@@ -10,6 +11,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['edit', 'delete', 'update-mastery'])
+const { ebookLink } = useEbookLinks('word')
 
 const masteryConfig = {
   new: { label: 'New', color: 'bg-indigo-500' },
@@ -46,6 +48,14 @@ const returnToLearning = () => {
           <Star v-if="word.isFavorite" :size="12" class="text-amber-400 flex-shrink-0" fill="currentColor" />
         </div>
       </div>
+      <router-link
+        v-if="ebookLink(word.id)"
+        :to="ebookLink(word.id)"
+        title="Open in e-book"
+        class="p-2 rounded-lg hover:bg-indigo-500/10 text-zinc-500 hover:text-indigo-400 transition-colors flex-shrink-0"
+      >
+        <Tablet :size="14" />
+      </router-link>
       <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button @click="emit('edit', word)" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors">
           <Edit3 :size="14" />

@@ -2,19 +2,22 @@
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { READER_THEMES, READER_FONTS, READER_MARGINS } from '@/stores/readerSettingsStore'
 import { describeRange } from '@/utils/textContext'
+import { normalizeQuery, findAll, excerpt } from '@/utils/textSearch'
 
 const props = defineProps({
   data: { type: ArrayBuffer, required: true },
   ebookId: { type: [Number, String], required: true },
   initialPosition: { type: String, default: '' },
   settings: { type: Object, required: true },
+  annotations: { type: Array, default: () => [] }, // highlights: { id, kind, position (CFI range) }
 })
 
-const emit = defineEmits(['ready', 'relocated', 'tap', 'error', 'selection'])
+const emit = defineEmits(['ready', 'relocated', 'tap', 'error', 'selection', 'annotation-click'])
 
 const viewer = ref(null)
 let book = null
 let rendition = null
+let EpubCFI = null
 let toc = []
 let currentCfi = props.initialPosition || ''
 let locationsReady = false
@@ -147,6 +150,18 @@ const labelForLocation = (location) => {
   return tocLabelFor(location.start.href)
 }
 
+// Where the current spine section (e.g. one Gospel) ends, as a progress fraction - for time estimates
+const sectionEnds = new Map()
+const sectionEndProgress = (index) => {
+  if (!locationsReady || index == null) return null
+  if (!sectionEnds.has(index)) {
+    const all = book.locations._locations || []
+    const next = all.findIndex((cfi) => new EpubCFI(cfi).spinePos > index)
+    sectionEnds.set(index, next < 0 ? 1 : next / all.length)
+  }
+  return sectionEnds.get(index)
+}
+
 const emitLocation = (location) => {
   if (!location?.start) return
   currentCfi = location.start.cfi
@@ -155,9 +170,100 @@ const emitLocation = (location) => {
     position: currentCfi,
     progress,
     label: labelForLocation(location),
+    section: tocLabelFor(location.start.href),
+    sectionEnd: sectionEndProgress(location.start.index),
     atStart: location.atStart,
     atEnd: location.atEnd,
   })
+}
+
+/* ---------- highlights (saved quotes / notes / words) ---------- */
+
+const HIGHLIGHT_STYLES = {
+  quote: { fill: '#818cf8', 'fill-opacity': '0.32' },
+  note: { fill: '#38bdf8', 'fill-opacity': '0.32' },
+  word: { fill: '#fbbf24', 'fill-opacity': '0.38' },
+}
+const drawn = new Map() // annotation id -> CFI
+let lastHighlightClick = 0
+
+const drawAnnotations = () => {
+  if (!rendition) return
+  const wanted = new Map(props.annotations.filter((a) => a.position?.startsWith('epubcfi')).map((a) => [a.id, a]))
+  for (const [id, cfi] of drawn) {
+    if (wanted.get(id)?.position !== cfi) {
+      rendition.annotations.remove(cfi, 'highlight')
+      drawn.delete(id)
+    }
+  }
+  for (const [id, annotation] of wanted) {
+    if (drawn.has(id)) continue
+    try {
+      rendition.annotations.highlight(annotation.position, { id }, () => {
+        lastHighlightClick = Date.now()
+        emit('annotation-click', id)
+      }, `hl-${annotation.kind}`, HIGHLIGHT_STYLES[annotation.kind] || HIGHLIGHT_STYLES.quote)
+      drawn.set(id, annotation.position)
+    } catch {
+      // position no longer valid in this file
+    }
+  }
+}
+
+// Briefly mark a search hit
+const flash = (cfi) => {
+  try {
+    rendition.annotations.highlight(cfi, {}, null, 'search-hit', { fill: '#facc15', 'fill-opacity': '0.55' })
+    setTimeout(() => rendition?.annotations.remove(cfi, 'highlight'), 2500)
+  } catch {
+    // ignore
+  }
+}
+
+/* ---------- search ---------- */
+
+let searchRun = 0
+// Streams results section by section via onResults([...]); a newer search cancels older ones
+const search = async (query, onResults) => {
+  const run = ++searchRun
+  const normalized = normalizeQuery(query)
+  if (normalized.length < 2 || !book) return
+  let total = 0
+  for (const section of book.spine.spineItems) {
+    if (run !== searchRun || total >= 500) return
+    try {
+      await section.load(book.load.bind(book))
+      const doc = section.document
+      const walker = doc.createTreeWalker(doc.body || doc.documentElement, NodeFilter.SHOW_TEXT)
+      const results = []
+      let node
+      while ((node = walker.nextNode()) && total + results.length < 500) {
+        for (const match of findAll(node.textContent, normalized, 50)) {
+          const range = doc.createRange()
+          range.setStart(node, match.start)
+          range.setEnd(node, match.end)
+          results.push({
+            cfi: section.cfiFromRange(range),
+            chapter: chapterAt(doc, node, section.href),
+            excerpt: excerpt(node.textContent, match.start, match.end),
+          })
+        }
+      }
+      section.unload()
+      total += results.length
+      if (results.length && run === searchRun) onResults(results)
+    } catch {
+      // unreadable section - skip
+    }
+    await new Promise((resolve) => setTimeout(resolve)) // keep the UI responsive
+  }
+}
+
+const cancelSearch = () => { searchRun++ }
+
+const goToSearchResult = async (cfi) => {
+  await rendition?.display(cfi)
+  flash(cfi)
 }
 
 const loadLocations = async () => {
@@ -185,7 +291,14 @@ const loadLocations = async () => {
 const handleClick = (e) => {
   const selection = e.view?.getSelection?.()
   if (selection && selection.toString().trim()) return
+  // A tap on a highlight opens it - don't also turn the page
+  setTimeout(() => {
+    if (Date.now() - lastHighlightClick < 400) return
+    handleTap(e)
+  }, 40)
+}
 
+const handleTap = (e) => {
   if (props.settings.epubFlow === 'scrolled') {
     emit('tap', 'center')
     return
@@ -282,6 +395,8 @@ const createRendition = async (target) => {
     // Saved CFI no longer valid - start from the beginning
     await rendition.display()
   }
+  drawn.clear()
+  drawAnnotations()
 }
 
 // Changing flow needs a fresh rendition; reopen at the same spot
@@ -302,11 +417,13 @@ const goToProgress = (fraction) => {
 
 const goToPosition = (cfi) => rendition?.display(cfi)
 
-defineExpose({ next, prev, goToHref, goToProgress, goToPosition, clearSelection })
+defineExpose({ next, prev, goToHref, goToProgress, goToPosition, clearSelection, search, cancelSearch, goToSearchResult })
 
 onMounted(async () => {
   try {
-    const { default: ePub } = await import('epubjs')
+    const epubjs = await import('epubjs')
+    const ePub = epubjs.default
+    EpubCFI = epubjs.EpubCFI || ePub.CFI
     book = ePub(props.data)
     await book.ready
     const navigation = await book.loaded.navigation
@@ -326,6 +443,7 @@ watch(
   applyStyles
 )
 watch(() => props.settings.epubFlow, () => rebuild())
+watch(() => props.annotations, drawAnnotations, { deep: true })
 watch(() => props.settings.margin, async () => {
   await nextTick()
   rendition?.resize()

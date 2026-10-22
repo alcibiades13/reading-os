@@ -1,7 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
 import { useAuthStore } from '@/stores/authStore'
 
 let authInitialized = false
+
+const LAST_READER_KEY = 'last_reader_route'
+const RESUME_READER_MS = 12 * 60 * 60 * 1000
 
 const routes = [
   {
@@ -289,6 +293,18 @@ router.beforeEach((to, from, next) => {
   if (!authInitialized) {
     authInitialized = true
     authStore.initAuth()
+
+    // Mobile app cold start (e.g. Android closed it in the background): go back to the
+    // book being read, or to the library - the landing page makes no sense in the app
+    if (Capacitor.isNativePlatform() && to.path === '/' && authStore.isAuthenticated) {
+      try {
+        const last = JSON.parse(localStorage.getItem(LAST_READER_KEY) || 'null')
+        if (last && Date.now() - last.at < RESUME_READER_MS) return next(last.path)
+      } catch {
+        // ignore
+      }
+      return next('/library')
+    }
   }
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
@@ -315,6 +331,16 @@ router.beforeEach((to, from, next) => {
     next({ name: 'Onboarding' })
   } else {
     next()
+  }
+})
+
+// Remember an open e-book so the app can reopen it after being restarted
+router.afterEach((to) => {
+  try {
+    if (to.name === 'EBookReader') localStorage.setItem(LAST_READER_KEY, JSON.stringify({ path: to.path, at: Date.now() }))
+    else localStorage.removeItem(LAST_READER_KEY)
+  } catch {
+    // ignore
   }
 })
 

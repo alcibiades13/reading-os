@@ -30,6 +30,14 @@
         </span>
       </div>
 
+      <router-link
+        v-if="ebookLink(note.id)"
+        :to="ebookLink(note.id)"
+        title="Open in e-book"
+        class="p-2 rounded-lg hover:bg-indigo-500/10 text-zinc-500 hover:text-indigo-400 transition-colors flex-shrink-0"
+      >
+        <Tablet :size="14" />
+      </router-link>
       <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button
           v-if="note.note_type === 'quote' && !note.is_promoted_to_quote"
@@ -115,6 +123,8 @@ import {
   Hash,
   Highlighter
 } from 'lucide-vue-next'
+import { Tablet } from 'lucide-vue-next'
+import { useEbookLinks } from '@/composables/useEbookLinks'
 
 const props = defineProps({
   note: {
@@ -124,6 +134,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['edit', 'delete', 'promote', 'highlight', 'remove-highlight'])
+const { ebookLink } = useEbookLinks('note')
 
 const showHighlightButton = ref(false)
 const highlightButtonPosition = ref({ x: 0, y: 0 })

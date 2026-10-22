@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, ALargeSmall, ListTree, X, ChevronLeft, ChevronRight, Library, PartyPopper, Quote, Brain, NotebookPen, StickyNote } from 'lucide-vue-next'
-import { ebooksAPI } from '@/services/api'
+import { ArrowLeft, ALargeSmall, ListTree, X, ChevronLeft, ChevronRight, Library, PartyPopper, Quote, Brain, NotebookPen, StickyNote, Search, CloudOff, Trash2, ExternalLink } from 'lucide-vue-next'
+import { ebooksAPI, quotesAPI, studyNotesAPI, vocabularyAPI } from '@/services/api'
 import { getCachedEbook, cacheEbook } from '@/utils/ebookCache'
+import { kvGet, kvSet, outboxAll } from '@/utils/offlineStore'
+import { useOfflineSyncStore, isNetworkError } from '@/stores/offlineSyncStore'
 import { useReaderSettingsStore, READER_THEMES } from '@/stores/readerSettingsStore'
 import { getBookUrlWithSuffix } from '@/utils/bookUrl'
 import { useToast } from '@/composables/useToast'
@@ -12,12 +14,14 @@ import PdfReader from '@/components/ebooks/PdfReader.vue'
 import ReaderSettingsPanel from '@/components/ebooks/ReaderSettingsPanel.vue'
 import CaptureSheet from '@/components/ebooks/CaptureSheet.vue'
 import StickersSheet from '@/components/ebooks/StickersSheet.vue'
+import SearchSheet from '@/components/ebooks/SearchSheet.vue'
 
 const route = useRoute()
 const router = useRouter()
 const readerSettings = useReaderSettingsStore()
 const settings = readerSettings.settings
 const { addToast } = useToast()
+const sync = useOfflineSyncStore()
 
 const ebook = ref(null)
 const fileData = ref(null)
@@ -32,7 +36,7 @@ const showToc = ref(false)
 const toc = ref([])
 const pdfHasText = ref(true)
 
-const location = ref({ position: '', progress: null, label: '' })
+const location = ref({ position: '', progress: null, label: '', section: '', sectionEnd: null })
 const sliderValue = ref(null) // while dragging
 
 const theme = computed(() => READER_THEMES[settings.theme] || READER_THEMES.dark)
@@ -63,6 +67,20 @@ const mergeEbook = (data) => {
   // Keep the live position - the server copy may be a few seconds behind
   ebook.value = { ...ebook.value, ...data, position: ebook.value.position, progress: ebook.value.progress }
   syncActiveSticker()
+  cacheMeta()
+}
+
+// Everything needed to open this book again without a connection
+const cacheMeta = async () => {
+  if (!ebook.value) return
+  const snapshot = { ...ebook.value, position: location.value.position || ebook.value.position }
+  kvSet(`ebook:${snapshot.id}`, snapshot)
+  // Also list it in the offline e-book list (it may have been opened from a book page)
+  const list = (await kvGet('ebooks:list')) || []
+  const index = list.findIndex((e) => e.id === snapshot.id)
+  if (index >= 0) list[index] = { ...list[index], ...snapshot }
+  else list.unshift(snapshot)
+  kvSet('ebooks:list', list)
 }
 
 /* ---------- stickers: several reading threads in one book ---------- */
@@ -105,8 +123,8 @@ const stickerRequest = async (request, successMessage) => {
     mergeEbook(data)
     if (successMessage) addToast(successMessage)
     return data
-  } catch {
-    addToast('Could not update stickers', 'error')
+  } catch (err) {
+    addToast(isNetworkError(err) ? 'Stickers need a connection - you can still read from existing ones' : 'Could not update stickers', 'error')
     return null
   } finally {
     stickersBusy.value = false
@@ -182,9 +200,18 @@ const finishBook = async () => {
   trackBusy.value = true
   try {
     await savePosition()
-    const { data } = await ebooksAPI.finish(ebook.value.id)
-    mergeEbook(data)
-    addToast('Marked as read. Congratulations!')
+    const result = await sync.run(
+      () => ebooksAPI.finish(ebook.value.id),
+      { method: 'post', url: `/ebooks/${ebook.value.id}/finish/` },
+    )
+    if (result.queued) {
+      ebook.value.library_entry = { ...ebook.value.library_entry, status: 'read' }
+      cacheMeta()
+      addToast('Marked as read - will sync when you are online')
+    } else {
+      mergeEbook(result.data)
+      addToast('Marked as read. Congratulations!')
+    }
   } catch {
     addToast('Could not mark the book as read', 'error')
     showFinishPrompt.value = false
@@ -231,10 +258,136 @@ const openCapture = (mode) => {
 }
 
 const CAPTURE_TOASTS = { quote: 'Quote saved', word: 'Word added to vocabulary', note: 'Study note saved' }
-const handleCaptured = (kind) => {
+const handleCaptured = ({ kind, annotation, ebook: updated, queued }) => {
   captureMode.value = null
-  addToast(CAPTURE_TOASTS[kind])
+  if (updated) mergeEbook(updated)
+  if (annotation) {
+    annotations.value = [...annotations.value.filter((a) => a.id !== annotation.id), annotation]
+    kvSet(`annotations:${ebook.value.id}`, annotations.value)
+  }
+  addToast(queued ? `${CAPTURE_TOASTS[kind]} - will sync when you are online` : CAPTURE_TOASTS[kind])
 }
+
+/* ---------- highlights of saved quotes / notes / words ---------- */
+
+const annotations = ref([])
+const openAnnotation = ref(null)
+
+const loadAnnotations = async () => {
+  const key = `annotations:${ebook.value.id}`
+  try {
+    const { data } = await ebooksAPI.annotations(ebook.value.id)
+    // Keep highlights captured offline whose capture is still waiting to be sent
+    const queuedIds = new Set((await outboxAll()).map((e) => e.data?.client_id).filter(Boolean))
+    const pendingLocal = ((await kvGet(key)) || []).filter((a) => a.pending && queuedIds.has(String(a.id).replace('local-', '')))
+    annotations.value = [...data, ...pendingLocal]
+    kvSet(key, annotations.value)
+  } catch {
+    annotations.value = (await kvGet(key)) || []
+  }
+}
+
+const handleAnnotationClick = (id) => {
+  openAnnotation.value = annotations.value.find((a) => a.id === id) || null
+}
+
+const ANNOTATION_LINKS = {
+  quote: () => '/quotes',
+  note: () => (ebook.value.book_detail ? getBookUrlWithSuffix(ebook.value.book_detail, 'study') : '/study'),
+  word: () => '/vocabulary',
+}
+const ANNOTATION_DELETE = { quote: quotesAPI.delete, note: studyNotesAPI.delete, word: vocabularyAPI.delete }
+
+const openAnnotationTarget = () => {
+  const annotation = openAnnotation.value
+  openAnnotation.value = null
+  router.push(ANNOTATION_LINKS[annotation.kind]())
+}
+
+const deleteAnnotation = async () => {
+  const annotation = openAnnotation.value
+  if (!annotation || annotation.pending) return
+  if (!confirm('Delete this ' + (annotation.kind === 'word' ? 'word' : annotation.kind) + '? It will be removed everywhere.')) return
+  try {
+    await ANNOTATION_DELETE[annotation.kind](annotation.object_id)
+    annotations.value = annotations.value.filter((a) => a.id !== annotation.id)
+    kvSet(`annotations:${ebook.value.id}`, annotations.value)
+    openAnnotation.value = null
+  } catch (err) {
+    addToast(isNetworkError(err) ? 'Deleting needs a connection' : 'Could not delete', 'error')
+  }
+}
+
+/* ---------- search in the book ---------- */
+
+const showSearch = ref(false)
+
+const openSearch = () => {
+  showSettings.value = false
+  showToc.value = false
+  showSearch.value = true
+}
+
+const goToSearchResult = (result, query) => {
+  showSearch.value = false
+  detachSticker()
+  if (ebook.value.format === 'pdf') reader.value?.goToSearchResult(result.page, query)
+  else reader.value?.goToSearchResult(result.cfi)
+}
+
+/* ---------- time left (from this device's reading speed in this book) ---------- */
+
+const MIN_MEASURED_SECONDS = 120
+let speed = { seconds: 0, progress: 0 }
+let lastMove = null // { at, progress }
+
+const loadSpeed = () => {
+  try {
+    speed = JSON.parse(localStorage.getItem(`ebook_speed_${ebook.value.id}`)) || speed
+  } catch {
+    // keep defaults
+  }
+}
+
+const recordSpeed = (progress) => {
+  const now = Date.now()
+  if (lastMove && progress != null && lastMove.progress != null) {
+    const delta = progress - lastMove.progress
+    const seconds = (now - lastMove.at) / 1000
+    // Only normal page turns count - not jumps, not long pauses
+    if (delta > 0 && delta < 0.02 && seconds > 1 && seconds < 600) {
+      speed = { seconds: speed.seconds + seconds, progress: speed.progress + delta }
+      try {
+        localStorage.setItem(`ebook_speed_${ebook.value.id}`, JSON.stringify(speed))
+      } catch {
+        // ignore
+      }
+    }
+  }
+  lastMove = { at: now, progress }
+}
+
+const formatDuration = (seconds) => {
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 1) return '<1 min'
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  return rest ? `${hours} h ${rest} min` : `${hours} h`
+}
+
+const timeLeft = computed(() => {
+  const progress = location.value.progress
+  if (progress == null || speed.seconds < MIN_MEASURED_SECONDS || !speed.progress) return ''
+  const perSecond = speed.progress / speed.seconds
+  const parts = []
+  const { sectionEnd, section } = location.value
+  if (sectionEnd != null && sectionEnd > progress && sectionEnd < 1) {
+    parts.push(`~${formatDuration((sectionEnd - progress) / perSecond)} left in ${section || 'this part'}`)
+  }
+  if (progress < 0.999) parts.push(`~${formatDuration((1 - progress) / perSecond)} in book`)
+  return parts.join(' · ')
+})
 
 /* ---------- reading sessions (feed the stats) ---------- */
 
@@ -259,11 +412,11 @@ const flushSession = () => {
   sessionSeconds = 0
   sessionStartProgress = end
   if (!isTracking.value || seconds < 60 || end == null) return
-  ebooksAPI.logSession(ebook.value.id, {
-    duration_seconds: seconds,
-    start_progress: start ?? end,
-    end_progress: end,
-  }).catch(() => {})
+  const data = { duration_seconds: seconds, start_progress: start ?? end, end_progress: end }
+  sync.run(
+    () => ebooksAPI.logSession(ebook.value.id, data),
+    { method: 'post', url: `/ebooks/${ebook.value.id}/session/`, data },
+  ).catch(() => {})
 }
 
 /* ---------- loading ---------- */
@@ -283,12 +436,33 @@ onMounted(async () => {
   window.addEventListener('keydown', handleKey)
   document.addEventListener('visibilitychange', handleVisibility)
   try {
-    const { data: meta } = await ebooksAPI.get(route.params.id)
+    let meta
+    try {
+      meta = (await ebooksAPI.get(route.params.id)).data
+    } catch (err) {
+      if (!isNetworkError(err)) throw err
+      // No connection - open the copy saved on this device
+      sync.markOffline()
+      meta = await kvGet(`ebook:${route.params.id}`)
+      if (!meta) throw Object.assign(new Error('offline'), { offline: true })
+    }
+    // A position read offline and not synced yet is newer than the server's
+    const local = await kvGet(`pos:${meta.id}`)
+    if (local && (!meta.updated_at || local.at > Date.parse(meta.updated_at))) {
+      meta = { ...meta, position: local.position, progress: local.progress ?? meta.progress }
+    }
     ebook.value = meta
-    location.value = { position: meta.position, progress: meta.progress, label: '' }
+    location.value = { position: meta.position, progress: meta.progress, label: '', section: '', sectionEnd: null }
+    cacheMeta()
+    loadSpeed()
     fileData.value = await loadFile(meta)
+    loadAnnotations()
   } catch (err) {
-    error.value = err?.response?.status === 404 ? 'This e-book was not found.' : 'Could not open this e-book.'
+    if (err?.offline || isNetworkError(err)) {
+      error.value = "You're offline and this e-book isn't saved on this device yet. Open it once while connected - after that it works offline."
+    } else {
+      error.value = err?.response?.status === 404 ? 'This e-book was not found.' : 'Could not open this e-book.'
+    }
   }
 })
 
@@ -306,8 +480,16 @@ const savePosition = async () => {
   const payload = { position }
   if (progress != null) payload.progress = progress
   if (activeBookmarkId.value) payload.bookmark = activeBookmarkId.value
+  kvSet(`pos:${ebook.value.id}`, { position, progress, at: Date.now() })
+  ebook.value.position = position
+  if (progress != null) ebook.value.progress = progress
+  cacheMeta()
   try {
-    await ebooksAPI.update(ebook.value.id, payload)
+    await sync.run(
+      () => ebooksAPI.update(ebook.value.id, payload),
+      // Only the latest position matters - replace any older queued one
+      { method: 'patch', url: `/ebooks/${ebook.value.id}/`, data: payload, dedupeKey: `pos:${ebook.value.id}` },
+    )
   } catch {
     lastSaved = '' // retry on next move
   }
@@ -318,7 +500,10 @@ const handleRelocated = (loc) => {
     position: loc.position,
     progress: loc.progress ?? location.value.progress,
     label: loc.label || '',
+    section: loc.section || '',
+    sectionEnd: loc.sectionEnd ?? null,
   }
+  recordSpeed(location.value.progress)
   syncActiveSticker()
   lastActivity = Date.now()
   if (sessionStartProgress == null) sessionStartProgress = location.value.progress
@@ -345,7 +530,13 @@ const handleReady = (info) => {
   if (info && 'hasText' in info) pdfHasText.value = info.hasText
   lastActivity = Date.now()
   sessionTimer = setInterval(tickSession, TICK_SECONDS * 1000)
-  if (ebook.value.track_progress == null) {
+  // Opened from a quote / note / word: go straight to it
+  if (route.query.at) {
+    reader.value?.goToPosition(String(route.query.at))
+    chromeTimer = setTimeout(() => { showChrome.value = false }, 2500)
+    return
+  }
+  if (ebook.value.track_progress == null && sync.online) {
     setTimeout(() => { showTrackPrompt.value = true }, 600)
     return
   }
@@ -408,6 +599,11 @@ const handleSliderChange = (e) => {
 }
 
 const handleKey = (e) => {
+  if (showSearch.value) return // the search box handles its own keys
+  if (openAnnotation.value) {
+    if (e.key === 'Escape') openAnnotation.value = null
+    return
+  }
   if (stickersMode.value) {
     if (e.key === 'Escape') {
       if (stickersMode.value === 'continue') continueFromLast()
@@ -475,7 +671,9 @@ onBeforeUnmount(() => {
           :ebook-id="ebook.id"
           :initial-position="ebook.position"
           :settings="settings"
+          :annotations="annotations"
           class="py-10"
+          @annotation-click="handleAnnotationClick"
           @ready="handleReady"
           @relocated="handleRelocated"
           @tap="handleTap"
@@ -489,6 +687,8 @@ onBeforeUnmount(() => {
           :initial-position="ebook.position"
           :settings="settings"
           :language="ebook.language"
+          :annotations="annotations"
+          @annotation-click="handleAnnotationClick"
           @ready="handleReady"
           @relocated="handleRelocated"
           @tap="handleTap"
@@ -532,13 +732,24 @@ onBeforeUnmount(() => {
           :style="{ background: `${theme.bg}f2`, borderColor: `${theme.muted}33` }"
         >
           <div class="flex items-center gap-2 px-2 sm:px-4 h-14">
-            <button class="p-2.5 rounded-xl hover:opacity-70" @click="goBack">
+            <button class="p-2.5 rounded-xl hover:opacity-70" aria-label="Back" title="Back" @click="goBack">
               <ArrowLeft :size="20" />
             </button>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-bold truncate">{{ ebook.title }}</p>
               <p class="text-[11px] truncate" :style="{ color: theme.muted }">{{ ebook.author }}</p>
             </div>
+            <span
+              v-if="!sync.online || sync.pending"
+              class="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400"
+              :title="sync.pending ? `${sync.pending} change(s) waiting to sync` : 'Offline'"
+            >
+              <CloudOff :size="12" /> {{ sync.online ? 'Syncing…' : 'Offline' }}<template v-if="sync.pending"> · {{ sync.pending }}</template>
+            </span>
+            <CloudOff v-if="!sync.online || sync.pending" :size="16" class="sm:hidden text-amber-400 shrink-0" />
+            <button class="p-2.5 rounded-xl hover:opacity-70" title="Search in book" :disabled="!ready" @click="openSearch">
+              <Search :size="20" />
+            </button>
             <button class="relative p-2.5 rounded-xl hover:opacity-70" title="Stickers" @click="openStickers">
               <StickyNote :size="20" />
               <span
@@ -580,6 +791,7 @@ onBeforeUnmount(() => {
                 <template v-if="sliderValue == null && printPage"> · p. {{ printPage }}/{{ ebook.total_pages }}</template>
               </span>
             </div>
+            <p v-if="timeLeft" class="text-[11px] -mt-1 mb-2 truncate" :style="{ color: theme.muted }">{{ timeLeft }}</p>
             <input
               type="range"
               min="0"
@@ -636,8 +848,58 @@ onBeforeUnmount(() => {
             class="w-full sm:w-[30rem]"
             @close="captureMode = null"
             @saved="handleCaptured"
-            @ebook-updated="mergeEbook"
           />
+        </div>
+      </Transition>
+
+      <!-- Search in the book (kept mounted so results survive jumping to a hit) -->
+      <SearchSheet
+        v-if="ready"
+        :open="showSearch"
+        :reader="reader"
+        :format="ebook.format"
+        :theme="theme"
+        @close="showSearch = false"
+        @go="goToSearchResult"
+      />
+
+      <!-- A saved quote / note / word, opened from its highlight -->
+      <Transition name="reader-sheet">
+        <div v-if="openAnnotation" class="absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30" @click="openAnnotation = null">
+          <div
+            class="w-full sm:w-[28rem] max-h-[75vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border shadow-2xl p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-5 space-y-3"
+            :style="{ background: theme.bg, color: theme.fg, borderColor: `${theme.muted}40` }"
+            @click.stop
+          >
+            <div class="flex items-center gap-3">
+              <div
+                :class="['w-9 h-9 shrink-0 rounded-xl flex items-center justify-center', { quote: 'text-indigo-400 bg-indigo-500/15', note: 'text-sky-400 bg-sky-500/15', word: 'text-amber-400 bg-amber-500/15' }[openAnnotation.kind]]"
+              >
+                <Quote v-if="openAnnotation.kind === 'quote'" :size="18" />
+                <NotebookPen v-else-if="openAnnotation.kind === 'note'" :size="18" />
+                <Brain v-else :size="18" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-bold truncate">{{ openAnnotation.title }}</p>
+                <p v-if="openAnnotation.reference" class="text-[11px] truncate" :style="{ color: theme.muted }">{{ openAnnotation.reference }}</p>
+              </div>
+              <button class="p-2 rounded-lg hover:opacity-70" @click="openAnnotation = null"><X :size="18" /></button>
+            </div>
+            <p v-if="openAnnotation.kind !== 'note'" class="text-sm font-serif italic leading-relaxed border-l-2 pl-3" :style="{ borderColor: `${theme.muted}66` }">
+              {{ openAnnotation.text }}
+            </p>
+            <p v-if="openAnnotation.body" class="text-sm leading-relaxed whitespace-pre-wrap">{{ openAnnotation.body }}</p>
+            <p v-if="openAnnotation.pending" class="text-[11px] text-amber-400">Saved on this device - will sync when you are online.</p>
+            <div v-else class="flex gap-2 pt-1">
+              <button class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold border hover:text-red-400" :style="{ borderColor: `${theme.muted}40` }" @click="deleteAnnotation">
+                <Trash2 :size="14" /> Delete
+              </button>
+              <button class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-bold bg-indigo-500 text-white" @click="openAnnotationTarget">
+                <ExternalLink :size="14" />
+                {{ { quote: 'Open in Quotes', note: 'Open in Study', word: 'Open in Vocabulary' }[openAnnotation.kind] }}
+              </button>
+            </div>
+          </div>
         </div>
       </Transition>
 

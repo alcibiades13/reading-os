@@ -392,6 +392,11 @@ export const ebooksAPI = {
   addBookmark: (id, data) => api.post(`/ebooks/${id}/bookmarks/`, data),
   updateBookmark: (id, bookmarkId, data) => api.patch(`/ebooks/${id}/bookmarks/${bookmarkId}/`, data),
   deleteBookmark: (id, bookmarkId) => api.delete(`/ebooks/${id}/bookmarks/${bookmarkId}/`),
+  // Quotes / notes / words captured in the reader, with their highlights
+  capture: (id, data) => api.post(`/ebooks/${id}/capture/`, data),
+  annotations: (id) => api.get(`/ebooks/${id}/annotations/`),
+  annotationsIndex: (kind) => api.get('/ebooks/annotations/index/', { params: { kind } }),
+  define: (word, context) => api.post('/ebooks/define/', { word, context }, { timeout: 30000 }),
   // Public-domain catalog (Project Gutenberg)
   publicDomainSearch: (params) => api.get('/ebooks/public-domain/search/', { params, timeout: 30000 }),
   publicDomainImport: (gutenbergId) =>

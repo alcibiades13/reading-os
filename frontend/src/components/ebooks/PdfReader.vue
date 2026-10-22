@@ -4,15 +4,17 @@ import { READER_THEMES, READER_FONTS, READER_MARGINS } from '@/stores/readerSett
 import { textContentToBlocks } from '@/utils/pdfReflow'
 import { pdfHasTextLayer } from '@/utils/ebookMetadata'
 import { describeRange } from '@/utils/textContext'
+import { normalizeQuery, findAll, excerpt } from '@/utils/textSearch'
 
 const props = defineProps({
   data: { type: ArrayBuffer, required: true },
   initialPosition: { type: String, default: '' },
   settings: { type: Object, required: true },
   language: { type: String, default: '' },
+  annotations: { type: Array, default: () => [] }, // highlights: { id, kind, position (page), text }
 })
 
-const emit = defineEmits(['ready', 'relocated', 'tap', 'error', 'selection'])
+const emit = defineEmits(['ready', 'relocated', 'tap', 'error', 'selection', 'annotation-click'])
 
 const scroller = ref(null)
 const numPages = ref(0)
@@ -209,6 +211,90 @@ const reflowStyle = computed(() => ({
   paddingRight: `${marginPx.value}px`,
 }))
 
+/* ---------- highlights & search hits in reflow text ---------- */
+
+const flashHit = ref(null) // { page, query } - a search result, marked for a moment
+const HIGHLIGHT_CLASSES = {
+  quote: 'bg-indigo-400/30',
+  note: 'bg-sky-400/30',
+  word: 'bg-amber-400/40',
+  flash: 'bg-yellow-400/60',
+}
+
+const annotationsByPage = computed(() => {
+  const byPage = {}
+  for (const annotation of props.annotations) {
+    const page = parseInt(annotation.position, 10)
+    if (page && annotation.text) (byPage[page] ||= []).push(annotation)
+  }
+  return byPage
+})
+
+// Split a paragraph into plain / highlighted segments
+const segmentsFor = (page, text) => {
+  const marks = []
+  for (const annotation of annotationsByPage.value[page] || []) {
+    let query = normalizeQuery(annotation.text)
+    let match = findAll(text, query, 1)[0]
+    // A selection spanning paragraphs: mark the part in this paragraph
+    if (!match && query.length > 40) match = findAll(text, query.slice(0, 40), 1)[0]
+    if (match) marks.push({ ...match, annotation })
+  }
+  if (flashHit.value?.page === page) {
+    for (const match of findAll(text, flashHit.value.query, 20)) marks.push({ ...match, flash: true })
+  }
+  if (!marks.length) return null
+
+  marks.sort((a, b) => a.start - b.start)
+  const segments = []
+  let at = 0
+  for (const mark of marks) {
+    if (mark.start < at) continue // overlapping - keep the first
+    if (mark.start > at) segments.push({ text: text.slice(at, mark.start) })
+    segments.push({ text: text.slice(mark.start, mark.end), annotation: mark.annotation, flash: mark.flash })
+    at = mark.end
+  }
+  if (at < text.length) segments.push({ text: text.slice(at) })
+  return segments
+}
+
+let searchRun = 0
+const searchTexts = new Map() // page -> blocks (search doesn't touch the rendered range)
+
+const search = async (query, onResults) => {
+  const run = ++searchRun
+  const normalized = normalizeQuery(query)
+  if (normalized.length < 2 || !doc) return
+  let chapter = ''
+  let total = 0
+  for (let n = 1; n <= numPages.value; n++) {
+    if (run !== searchRun || total >= 500) return
+    try {
+      if (!searchTexts.has(n)) searchTexts.set(n, textContentToBlocks(await (await getPage(n)).getTextContent()))
+      const results = []
+      for (const block of searchTexts.get(n)) {
+        if (block.type === 'h') chapter = block.text.slice(0, 120)
+        for (const match of findAll(block.text, normalized, 50)) {
+          results.push({ page: n, chapter, excerpt: excerpt(block.text, match.start, match.end) })
+        }
+      }
+      total += results.length
+      if (results.length && run === searchRun) onResults(results)
+    } catch {
+      // unreadable page - skip
+    }
+    if (n % 5 === 0) await new Promise((resolve) => setTimeout(resolve))
+  }
+}
+
+const cancelSearch = () => { searchRun++ }
+
+const goToSearchResult = async (page, query) => {
+  await goToPage(page)
+  flashHit.value = { page, query: normalizeQuery(query) }
+  setTimeout(() => { flashHit.value = null }, 2500)
+}
+
 /* ============================== SHARED ============================== */
 
 // The page whose top edge has most recently scrolled past the top of the viewport
@@ -301,6 +387,11 @@ const clearSelection = () => window.getSelection()?.removeAllRanges()
 
 const handleClick = (e) => {
   if (e.target.closest('a')) return
+  const highlight = e.target.closest('[data-annotation]')
+  if (highlight) {
+    emit('annotation-click', isNaN(Number(highlight.dataset.annotation)) ? highlight.dataset.annotation : Number(highlight.dataset.annotation))
+    return
+  }
   if (window.getSelection()?.toString().trim()) return
   emit('tap', 'center')
 }
@@ -368,7 +459,7 @@ onBeforeUnmount(() => {
 
 const goToPosition = (position) => goToPage(parseInt(position, 10) || 1)
 
-defineExpose({ next, prev, goToPage, goToProgress, goToPosition, clearSelection })
+defineExpose({ next, prev, goToPage, goToProgress, goToPosition, clearSelection, search, cancelSearch, goToSearchResult })
 </script>
 
 <template>
@@ -404,7 +495,18 @@ defineExpose({ next, prev, goToPage, goToProgress, goToPosition, clearSelection 
           </h2>
           <!-- Justify only where lines are long enough not to leave word gaps -->
           <p v-else :class="[block.continues ? '' : 'mt-[0.9em]', 'text-left sm:text-justify']" style="hyphens: auto">
-            {{ block.text }}
+            <template v-if="segmentsFor(n, block.text)">
+              <template v-for="(segment, s) in segmentsFor(n, block.text)" :key="s">
+                <mark
+                  v-if="segment.annotation || segment.flash"
+                  :data-annotation="segment.annotation?.id"
+                  :class="['rounded-sm px-px text-inherit', HIGHLIGHT_CLASSES[segment.flash ? 'flash' : segment.annotation.kind], segment.annotation ? 'cursor-pointer' : '']"
+                  style="color: inherit"
+                >{{ segment.text }}</mark>
+                <template v-else>{{ segment.text }}</template>
+              </template>
+            </template>
+            <template v-else>{{ block.text }}</template>
           </p>
         </template>
         <div class="text-center text-xs my-6 select-none font-sans" :style="{ color: theme.muted }">— {{ n }} —</div>

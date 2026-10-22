@@ -113,3 +113,37 @@ class EBookBookmark(models.Model):
 
     def __str__(self):
         return f"{self.label} ({self.ebook.title})"
+
+
+class EBookAnnotation(models.Model):
+    """
+    Where in an e-book a quote / study note / vocabulary word was captured.
+    Drives the highlights shown in the reader and "open in e-book" links.
+    """
+    KIND_QUOTE = 'quote'
+    KIND_NOTE = 'note'
+    KIND_WORD = 'word'
+    KIND_CHOICES = [(KIND_QUOTE, 'Quote'), (KIND_NOTE, 'Study note'), (KIND_WORD, 'Vocabulary word')]
+
+    ebook = models.ForeignKey(EBook, on_delete=models.CASCADE, related_name='annotations')
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES)
+    object_id = models.PositiveIntegerField()
+    position = models.CharField(max_length=1000, help_text="EPUB CFI range or PDF page number")
+    text = models.TextField(blank=True, help_text="The selected text")
+    # Set by the app so a capture replayed after being offline isn't saved twice
+    client_id = models.CharField(max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['kind', 'object_id'], name='ebook_annotation_unique_object'),
+            models.UniqueConstraint(
+                fields=['ebook', 'client_id'],
+                condition=~models.Q(client_id=''),
+                name='ebook_annotation_unique_client_id',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.kind} #{self.object_id} in {self.ebook.title}"
